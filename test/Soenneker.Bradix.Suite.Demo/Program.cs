@@ -31,7 +31,7 @@ public sealed class Program
                 BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
             });
 
-            builder.Services.AddBradixComponentAsScoped();
+            builder.Services.AddBradixSuiteAsScoped();
 
             WebAssemblyHost host = builder.Build();
 

@@ -12,25 +12,3 @@
 ```bash
 dotnet add package Soenneker.Bradix.Suite
 ```
-
-## Setup
-
-Register services in `Program.cs`:
-
-```csharp
-builder.Services.AddBradixComponentAsScoped();
-```
-
-Inject the higher-level utility where you need it:
-
-```csharp
-@inject IBradixComponent Suite
-```
-
-## Usage
-
-Initialize the package once before first use:
-
-```csharp
-await Suite.Initialize();
-```
