@@ -1,0 +1,23 @@
+@page "/"
+@using System.Threading.Tasks
+@using Soenneker.Bradix.Suite.Abstract
+
+@inject IBradixComponent Suite
+
+<PageTitle>Soenneker.Bradix.Suite Demo</PageTitle>
+
+<Div Space="Space.Y.Is4">
+    <Paragraph TextSize="TextSize.Sm" Class="text-muted-foreground">
+        Replace this page with package-specific demos. Initialization runs on first render below.
+    </Paragraph>
+</Div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await Suite.Initialize();
+    }
+}
