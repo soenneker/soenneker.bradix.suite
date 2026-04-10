@@ -34,7 +34,7 @@
 
         <section class="card stack stack--compact">
             <h3>Within form</h3>
-            <EditForm FormName="switch-demo">
+            <EditForm FormName="switch-demo" Model="@_formModel">
                 <div class="stack stack--compact">
                     <BradixLabel Class="switch-row">
                         <BradixSwitch Class="switch-root" Name="marketing" Required DefaultChecked>
@@ -62,6 +62,7 @@
 
 @code {
     private bool _checked = true;
+    private readonly object _formModel = new();
 
     private Task HandleCheckedChanged(bool value)
     {

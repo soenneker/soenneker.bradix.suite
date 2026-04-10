@@ -43,7 +43,7 @@
 
         <section class="card stack stack--compact">
             <h3>Within form</h3>
-            <EditForm FormName="checkbox-demo">
+            <EditForm FormName="checkbox-demo" Model="@_formModel">
                 <div class="stack stack--compact">
                     <BradixLabel Class="checkbox-row">
                         <BradixCheckbox Class="checkbox-root"
@@ -71,6 +71,7 @@
 
 @code {
     private BradixCheckboxCheckedState _controlledState = BradixCheckboxCheckedState.Indeterminate;
+    private readonly object _formModel = new();
 
     private Task HandleCheckedChange(BradixCheckboxCheckedState state)
     {
