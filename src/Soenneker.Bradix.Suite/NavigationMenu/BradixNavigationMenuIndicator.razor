@@ -1,0 +1,125 @@
+@using System.Globalization
+@using Microsoft.JSInterop
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+@if (ForceMount || NavigationMenu?.HasOpenItem == true)
+{
+    <BradixPresence Present="ForceMount || NavigationMenu?.HasOpenItem == true"
+                    Tag="div"
+                    Class="@Class"
+                    Style="@ComputedStyle"
+                    AdditionalAttributes="@IndicatorAttributes"
+                    OnElementReferenceCaptured="@HandleElementCapturedAsync">
+        @ChildContent
+    </BradixPresence>
+}
+
+@code {
+    private ElementReference _element;
+    private bool _hasElement;
+    private bool _registered;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private double? _size;
+    private double? _offset;
+
+    [CascadingParameter]
+    private BradixNavigationMenu? NavigationMenu { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    private IReadOnlyDictionary<string, object> IndicatorAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["aria-hidden"] = "true";
+            attributes["data-state"] = NavigationMenu?.HasOpenItem == true ? "visible" : "hidden";
+            attributes["data-orientation"] = NavigationMenu?.Orientation ?? "horizontal";
+            return attributes;
+        }
+    }
+
+    private string ComputedStyle
+    {
+        get
+        {
+            string orientation = NavigationMenu?.Orientation ?? "horizontal";
+            string baseStyle = "position:absolute;";
+
+            if (_size.HasValue && _offset.HasValue)
+            {
+                if (orientation == "vertical")
+                {
+                    baseStyle += $" top:0;height:{_size.Value.ToString(CultureInfo.InvariantCulture)}px;transform:translateY({_offset.Value.ToString(CultureInfo.InvariantCulture)}px);";
+                }
+                else
+                {
+                    baseStyle += $" left:0;width:{_size.Value.ToString(CultureInfo.InvariantCulture)}px;transform:translateX({_offset.Value.ToString(CultureInfo.InvariantCulture)}px);";
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(Style))
+                return baseStyle;
+
+            return $"{baseStyle} {Style}";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        BradixNavigationMenu? navigationMenu = NavigationMenu;
+
+        if (!_hasElement || navigationMenu is null || !navigationMenu.HasOpenItem || !navigationMenu.TryGetOpenTrigger(out IBradixNavigationMenuTrigger trigger))
+        {
+            if (_registered)
+            {
+                await Interop.UnregisterNavigationMenuIndicator(_element);
+                _registered = false;
+            }
+
+            return;
+        }
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+
+        if (_registered)
+        {
+            await Interop.UpdateNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.RootElement, navigationMenu.Orientation);
+        }
+        else
+        {
+            await Interop.RegisterNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.RootElement, _dotNetReference, navigationMenu.Orientation);
+            _registered = true;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered)
+            await Interop.UnregisterNavigationMenuIndicator(_element);
+
+        _dotNetReference?.Dispose();
+    }
+
+    private Task HandleElementCapturedAsync(ElementReference element)
+    {
+        _element = element;
+        _hasElement = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleIndicatorPositionChangedAsync(double size, double offset)
+    {
+        _size = size;
+        _offset = offset;
+        return InvokeAsync(StateHasChanged);
+    }
+}

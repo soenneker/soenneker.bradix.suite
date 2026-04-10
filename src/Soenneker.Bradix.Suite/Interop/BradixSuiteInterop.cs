@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Soenneker.Bradix.Suite.Presence;
 using Soenneker.Bradix.Suite.Abstract;
+using Soenneker.Bradix.Suite.Menubar;
 
 namespace Soenneker.Bradix.Suite.Interop;
 
@@ -198,16 +199,175 @@ public sealed class BradixSuiteInterop : ISuiteInterop
         await module.InvokeVoidAsync("registerPopperContent", cancellationToken, anchor, content, arrow, dotNetReference, options).ConfigureAwait(false);
     }
 
+    public async ValueTask RegisterVirtualPopperContent(ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, double x, double y, object options, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerVirtualPopperContent", cancellationToken, content, arrow, dotNetReference, x, y, options).ConfigureAwait(false);
+    }
+
     public async ValueTask UpdatePopperContent(ElementReference content, ElementReference arrow, object options, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
         await module.InvokeVoidAsync("updatePopperContent", cancellationToken, content, arrow, options).ConfigureAwait(false);
     }
 
+    public async ValueTask UpdateVirtualPopperContent(ElementReference content, ElementReference arrow, double x, double y, object options, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("updateVirtualPopperContent", cancellationToken, content, arrow, x, y, options).ConfigureAwait(false);
+    }
+
     public async ValueTask UnregisterPopperContent(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
         await module.InvokeVoidAsync("unregisterPopperContent", cancellationToken, content).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterSelectItemAlignedPosition(ElementReference wrapper, ElementReference content, ElementReference viewport, ElementReference trigger,
+        ElementReference valueNode, ElementReference selectedItem, ElementReference selectedItemText, string dir, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerSelectItemAlignedPosition", cancellationToken, wrapper, content, viewport, trigger, valueNode, selectedItem,
+            selectedItemText, dir).ConfigureAwait(false);
+    }
+
+    public async ValueTask UpdateSelectItemAlignedPosition(ElementReference wrapper, ElementReference content, ElementReference viewport, ElementReference trigger,
+        ElementReference valueNode, ElementReference selectedItem, ElementReference selectedItemText, string dir, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("updateSelectItemAlignedPosition", cancellationToken, wrapper, content, viewport, trigger, valueNode, selectedItem,
+            selectedItemText, dir).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterSelectItemAlignedPosition(ElementReference wrapper, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterSelectItemAlignedPosition", cancellationToken, wrapper).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterSelectViewport(ElementReference viewport, ElementReference content, ElementReference wrapper,
+        DotNetObjectReference<object> dotNetReference,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerSelectViewport", cancellationToken, viewport, content, wrapper, dotNetReference).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterSelectViewport(ElementReference viewport, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterSelectViewport", cancellationToken, viewport).ConfigureAwait(false);
+    }
+
+    public async ValueTask ScrollSelectViewportByItem(ElementReference viewport, ElementReference item, bool upward, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("scrollSelectViewportByItem", cancellationToken, viewport, item, upward).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterSelectContentPointerTracker(ElementReference content, DotNetObjectReference<object> dotNetReference, double pageX, double pageY,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerSelectContentPointerTracker", cancellationToken, content, dotNetReference, pageX, pageY).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterSelectContentPointerTracker(ElementReference content, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterSelectContentPointerTracker", cancellationToken, content).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterSelectWindowDismiss(ElementReference content, DotNetObjectReference<object> dotNetReference,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerSelectWindowDismiss", cancellationToken, content, dotNetReference).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterSelectWindowDismiss(ElementReference content, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterSelectWindowDismiss", cancellationToken, content).ConfigureAwait(false);
+    }
+
+    public async ValueTask DisableHoverCardContentTabNavigation(ElementReference content, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("disableHoverCardContentTabNavigation", cancellationToken, content).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterHoverCardSelectionContainment(ElementReference content, DotNetObjectReference<object> dotNetReference,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerHoverCardSelectionContainment", cancellationToken, content, dotNetReference).ConfigureAwait(false);
+    }
+
+    public async ValueTask BeginHoverCardSelectionContainment(ElementReference content, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("beginHoverCardSelectionContainment", cancellationToken, content).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterHoverCardSelectionContainment(ElementReference content, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterHoverCardSelectionContainment", cancellationToken, content).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterAvatarImageLoadingStatus(string? src, string? crossOrigin, string? referrerPolicy,
+        DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerAvatarImageLoadingStatus", cancellationToken, src, crossOrigin, referrerPolicy, dotNetReference)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterAvatarImageLoadingStatus(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterAvatarImageLoadingStatus", cancellationToken, dotNetReference).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference root,
+        DotNetObjectReference<object> dotNetReference, string orientation, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, root, dotNetReference, orientation)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask UpdateNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference root,
+        string orientation, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("updateNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, root, orientation).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterNavigationMenuIndicator(ElementReference indicator, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterNavigationMenuIndicator", cancellationToken, indicator).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterNavigationMenuViewport(ElementReference viewport, ElementReference content, DotNetObjectReference<object> dotNetReference,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerNavigationMenuViewport", cancellationToken, viewport, content, dotNetReference).ConfigureAwait(false);
+    }
+
+    public async ValueTask UpdateNavigationMenuViewport(ElementReference viewport, ElementReference content, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("updateNavigationMenuViewport", cancellationToken, viewport, content).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterNavigationMenuViewport(ElementReference viewport, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterNavigationMenuViewport", cancellationToken, viewport).ConfigureAwait(false);
     }
 
     public async ValueTask RegisterPresence(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
@@ -275,6 +435,27 @@ public sealed class BradixSuiteInterop : ISuiteInterop
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
         await module.InvokeVoidAsync("unregisterLabelTextSelectionGuard", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask<string> GetTextContent(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        string? textContent = await module.InvokeAsync<string>("getTextContent", cancellationToken, element).ConfigureAwait(false);
+        return textContent ?? string.Empty;
+    }
+
+    public async ValueTask<string> GetActiveElementId(CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        string? id = await module.InvokeAsync<string>("getActiveElementId", cancellationToken).ConfigureAwait(false);
+        return id ?? string.Empty;
+    }
+
+    public async ValueTask<BradixMenubarActiveElementState> GetMenubarActiveElementState(string currentContentId, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        BradixMenubarActiveElementState? state = await module.InvokeAsync<BradixMenubarActiveElementState>("getMenubarActiveElementState", cancellationToken, currentContentId).ConfigureAwait(false);
+        return state ?? new BradixMenubarActiveElementState();
     }
 
     public async ValueTask DisposeAsync()

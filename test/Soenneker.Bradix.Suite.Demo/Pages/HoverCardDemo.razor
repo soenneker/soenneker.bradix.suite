@@ -1,0 +1,57 @@
+@page "/hover-card"
+
+<PageTitle>HoverCard Demo</PageTitle>
+
+<section class="stack">
+    <div class="card">
+        <h2>HoverCard</h2>
+        <p>
+            Delayed hover and focus card behavior with non-modal layered content, preserved outside interaction,
+            pointer-entry retention, selection containment, and popper-positioned arrow support.
+        </p>
+    </div>
+
+    <div class="grid">
+        <article class="card stack">
+            <h3>Link preview</h3>
+
+            <BradixHoverCard>
+                <BradixHoverCardTrigger Class="demo-link">@@soenneker</BradixHoverCardTrigger>
+                <BradixHoverCardPortal>
+                    <BradixHoverCardContent Class="popover-surface popover-surface--animated"
+                                            Side="bottom"
+                                            SideOffset="8"
+                                            Align="start">
+                        <div class="stack">
+                            <strong>Soenneker</strong>
+                            <p>Behavior-first Blazor primitives and supporting suite libraries.</p>
+                            <p>Select this text to verify the card stays open while text selection is active.</p>
+                        </div>
+                        <BradixHoverCardArrow>
+                            <span class="tooltip-arrow-shape"></span>
+                        </BradixHoverCardArrow>
+                    </BradixHoverCardContent>
+                </BradixHoverCardPortal>
+            </BradixHoverCard>
+        </article>
+
+        <article class="card stack">
+            <h3>Instant open, slower close</h3>
+
+            <BradixHoverCard OpenDelay="0"
+                             CloseDelay="500">
+                <BradixHoverCardTrigger Class="primitive__trigger">Hover or focus me</BradixHoverCardTrigger>
+                <BradixHoverCardPortal>
+                    <BradixHoverCardContent Class="popover-surface"
+                                            Side="right"
+                                            SideOffset="10">
+                        <div class="stack">
+                            <strong>Timing</strong>
+                            <p>This card opens immediately but lingers briefly on pointer leave.</p>
+                        </div>
+                    </BradixHoverCardContent>
+                </BradixHoverCardPortal>
+            </BradixHoverCard>
+        </article>
+    </div>
+</section>

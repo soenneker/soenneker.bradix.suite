@@ -1,0 +1,39 @@
+<BradixMenuItem Id="@Id"
+                Class="@Class"
+                Style="@Style"
+                TextValue="@TextValue"
+                Disabled="@Disabled"
+                CloseOnSelect="@CloseOnSelect"
+                OnSelect="@OnSelect"
+                AdditionalAttributes="@AdditionalAttributes">
+    @ChildContent
+</BradixMenuItem>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public string? TextValue { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public bool CloseOnSelect { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnSelect { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

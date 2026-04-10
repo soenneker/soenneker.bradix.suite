@@ -1,0 +1,36 @@
+@using System
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<span @ref="_element"
+      @attributes="ItemTextAttributes">
+    @ChildContent
+</span>
+
+@code {
+    private ElementReference _element;
+    private string? _lastResolvedText;
+
+    [CascadingParameter]
+    private BradixSelectItem? Item { get; set; }
+
+    private Dictionary<string, object> ItemTextAttributes => BuildAttributes(
+        ("id", Item?.TextId));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Item is null)
+            return;
+
+        Item.RegisterTextElement(_element);
+
+        string text = await Interop.GetTextContent(_element);
+
+        if (string.Equals(_lastResolvedText, text, StringComparison.Ordinal))
+            return;
+
+        _lastResolvedText = text;
+        await Item.NotifyResolvedTextAsync(text);
+    }
+}

@@ -1,0 +1,35 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<CascadingValue Value="this">
+    <li @attributes="ItemAttributes">
+        @ChildContent
+    </li>
+</CascadingValue>
+
+@code {
+    [CascadingParameter]
+    private BradixNavigationMenu? NavigationMenu { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? AutoValue { get; private set; }
+
+    internal string ResolvedValue => Value ?? AutoValue ?? string.Empty;
+
+    internal string TriggerId => NavigationMenu?.MakeTriggerId(ResolvedValue) ?? string.Empty;
+
+    internal string ContentId => NavigationMenu?.MakeContentId(ResolvedValue) ?? string.Empty;
+
+    internal bool IsOpen => NavigationMenu?.IsOpen(this) == true;
+
+    protected override void OnInitialized()
+    {
+        AutoValue ??= IdGenerator.New("bradix-navigation-menu-item");
+    }
+
+    private Dictionary<string, object> ItemAttributes => BuildAttributes();
+}

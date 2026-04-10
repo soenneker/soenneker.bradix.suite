@@ -1,0 +1,15 @@
+<BradixMenuPortal ContainerSelector="@ContainerSelector"
+                  ForceMount="@ForceMount">
+    @ChildContent
+</BradixMenuPortal>
+
+@code {
+    [Parameter]
+    public string? ContainerSelector { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

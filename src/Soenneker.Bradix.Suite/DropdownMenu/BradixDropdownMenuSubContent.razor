@@ -1,0 +1,76 @@
+@using System.Collections.Generic
+
+<BradixMenuSubContent ForceMount="@ForceMount"
+                      Loop="@Loop"
+                      SideOffset="@SideOffset"
+                      AlignOffset="@AlignOffset"
+                      ArrowPadding="@ArrowPadding"
+                      AvoidCollisions="@AvoidCollisions"
+                      CollisionPadding="@CollisionPadding"
+                      HideWhenDetached="@HideWhenDetached"
+                      Class="@Class"
+                      Style="@MergedStyle"
+                      AdditionalAttributes="@AdditionalAttributes"
+                      OnPointerDownOutside="@OnPointerDownOutside"
+                      OnInteractOutside="@OnInteractOutside"
+                      OnPlaced="@OnPlaced">
+    @ChildContent
+</BradixMenuSubContent>
+
+@code {
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public bool Loop { get; set; }
+
+    [Parameter]
+    public double SideOffset { get; set; }
+
+    [Parameter]
+    public double AlignOffset { get; set; }
+
+    [Parameter]
+    public double ArrowPadding { get; set; }
+
+    [Parameter]
+    public bool AvoidCollisions { get; set; } = true;
+
+    [Parameter]
+    public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public bool HideWhenDetached { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnPlaced { get; set; }
+
+    private string MergedStyle
+    {
+        get
+        {
+            const string dropdownVariables =
+                "--radix-dropdown-menu-content-transform-origin: var(--radix-popper-transform-origin); --radix-dropdown-menu-content-available-width: var(--radix-popper-available-width); --radix-dropdown-menu-content-available-height: var(--radix-popper-available-height); --radix-dropdown-menu-trigger-width: var(--radix-popper-anchor-width); --radix-dropdown-menu-trigger-height: var(--radix-popper-anchor-height);";
+
+            return string.IsNullOrWhiteSpace(Style) ? dropdownVariables : $"{dropdownVariables} {Style}";
+        }
+    }
+}

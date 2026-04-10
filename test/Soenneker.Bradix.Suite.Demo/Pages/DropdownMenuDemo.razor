@@ -1,0 +1,117 @@
+@page "/dropdown-menu"
+
+<PageTitle>DropdownMenu Demo</PageTitle>
+
+<section class="stack">
+    <div class="card">
+        <h2>DropdownMenu</h2>
+        <p>
+            Triggered menu wrapper family built on the shared menu substrate, including grouped items,
+            checkbox items, radio items, indicators, and nested submenus.
+        </p>
+    </div>
+
+    <div class="grid">
+        <article class="card stack">
+            <h3>Modal dropdown menu</h3>
+
+            <BradixDropdownMenu Open="@_open" OpenChanged="HandleOpenChanged">
+                <BradixDropdownMenuTrigger>Open dropdown</BradixDropdownMenuTrigger>
+
+                <BradixDropdownMenuPortal>
+                    <BradixDropdownMenuContent Class="card stack" SideOffset="6">
+                        <BradixDropdownMenuLabel>Actions</BradixDropdownMenuLabel>
+                        <BradixDropdownMenuItem TextValue="Edit" OnSelect='@(() => SetSelection("Edit"))'>Edit</BradixDropdownMenuItem>
+                        <BradixDropdownMenuItem TextValue="Duplicate" OnSelect='@(() => SetSelection("Duplicate"))'>Duplicate</BradixDropdownMenuItem>
+                        <BradixDropdownMenuSub>
+                            <BradixDropdownMenuSubTrigger TextValue="Share">Share</BradixDropdownMenuSubTrigger>
+                            <BradixDropdownMenuPortal>
+                                <BradixDropdownMenuSubContent Class="card stack" SideOffset="6">
+                                    <BradixDropdownMenuItem TextValue="Copy link" OnSelect='@(() => SetSelection("Copy link"))'>Copy link</BradixDropdownMenuItem>
+                                    <BradixDropdownMenuItem TextValue="Email" OnSelect='@(() => SetSelection("Email"))'>Email</BradixDropdownMenuItem>
+                                </BradixDropdownMenuSubContent>
+                            </BradixDropdownMenuPortal>
+                        </BradixDropdownMenuSub>
+                        <BradixDropdownMenuSeparator />
+                        <BradixDropdownMenuCheckboxItem Checked="@_bookmarks"
+                                                        CheckedChanged="HandleBookmarksChanged"
+                                                        CloseOnSelect="false">
+                            <span>Show bookmarks</span>
+                            <BradixDropdownMenuItemIndicator>
+                                <span>[x]</span>
+                            </BradixDropdownMenuItemIndicator>
+                        </BradixDropdownMenuCheckboxItem>
+                        <BradixDropdownMenuRadioGroup Value="@_sort" ValueChanged="HandleSortChanged">
+                            <BradixDropdownMenuRadioItem Value="name" CloseOnSelect="false">
+                                <span>Name</span>
+                                <BradixDropdownMenuItemIndicator>
+                                    <span>(o)</span>
+                                </BradixDropdownMenuItemIndicator>
+                            </BradixDropdownMenuRadioItem>
+                            <BradixDropdownMenuRadioItem Value="date" CloseOnSelect="false">
+                                <span>Date modified</span>
+                                <BradixDropdownMenuItemIndicator>
+                                    <span>(o)</span>
+                                </BradixDropdownMenuItemIndicator>
+                            </BradixDropdownMenuRadioItem>
+                        </BradixDropdownMenuRadioGroup>
+                        <BradixDropdownMenuArrow>
+                            <span style="display:block;width:10px;height:10px;background:currentColor;transform:rotate(45deg);"></span>
+                        </BradixDropdownMenuArrow>
+                    </BradixDropdownMenuContent>
+                </BradixDropdownMenuPortal>
+            </BradixDropdownMenu>
+
+            <p><strong>Open:</strong> @_open</p>
+            <p><strong>Last selection:</strong> @(_selection ?? "(none)")</p>
+            <p><strong>Bookmarks:</strong> @(_bookmarks == Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
+            <p><strong>Sort:</strong> @_sort</p>
+        </article>
+
+        <article class="card stack">
+            <h3>Non-modal dropdown</h3>
+
+            <BradixDropdownMenu Modal="false">
+                <BradixDropdownMenuTrigger>Open non-modal dropdown</BradixDropdownMenuTrigger>
+                <BradixDropdownMenuPortal>
+                    <BradixDropdownMenuContent Class="card stack" Align="end" SideOffset="6">
+                        <BradixDropdownMenuItem TextValue="Profile" OnSelect='@(() => SetSelection("Profile"))'>Profile</BradixDropdownMenuItem>
+                        <BradixDropdownMenuItem TextValue="Billing" OnSelect='@(() => SetSelection("Billing"))'>Billing</BradixDropdownMenuItem>
+                        <BradixDropdownMenuItem TextValue="Sign out" OnSelect='@(() => SetSelection("Sign out"))'>Sign out</BradixDropdownMenuItem>
+                    </BradixDropdownMenuContent>
+                </BradixDropdownMenuPortal>
+            </BradixDropdownMenu>
+        </article>
+    </div>
+</section>
+
+@code {
+    private bool _open;
+    private string? _selection;
+    private Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState _bookmarks = Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState.Checked;
+    private string _sort = "name";
+
+    private Task HandleOpenChanged(bool open)
+    {
+        _open = open;
+        return Task.CompletedTask;
+    }
+
+    private Task SetSelection(string value)
+    {
+        _selection = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleBookmarksChanged(Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState state)
+    {
+        _bookmarks = state;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSortChanged(string? value)
+    {
+        _sort = value ?? _sort;
+        return Task.CompletedTask;
+    }
+}

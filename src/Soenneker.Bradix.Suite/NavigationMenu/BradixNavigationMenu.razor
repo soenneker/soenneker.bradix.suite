@@ -1,0 +1,460 @@
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using System.Threading
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Collection
+@using Soenneker.Bradix.Suite.RovingFocus
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<CascadingValue Value="this">
+    <nav @ref="_rootElement"
+         @attributes="RootAttributes">
+        @ChildContent
+    </nav>
+</CascadingValue>
+
+@code {
+    private readonly BradixCollectionRegistry<IBradixNavigationMenuTrigger> _triggers = new();
+    private readonly Dictionary<string, ElementReference> _contentElements = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, BradixNavigationMenuViewportRegistration> _viewportContents = new(StringComparer.Ordinal);
+    private ElementReference _rootElement;
+    private bool _initialized;
+    private bool _hasViewport;
+    private string? _uncontrolledValue;
+    private string _previousValue = string.Empty;
+    private string _lastObservedValue = string.Empty;
+    private CancellationTokenSource? _openDelayTokenSource;
+    private CancellationTokenSource? _closeDelayTokenSource;
+    private CancellationTokenSource? _skipDelayTokenSource;
+    private bool _isOpenDelayed = true;
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    [Parameter]
+    public string Orientation { get; set; } = "horizontal";
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    [Parameter]
+    public int DelayDuration { get; set; } = 200;
+
+    [Parameter]
+    public int SkipDelayDuration { get; set; } = 300;
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
+
+    internal string PreviousValue => _previousValue;
+
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+
+    internal string CurrentTabStopValue { get; private set; } = string.Empty;
+
+    internal bool HasOpenItem => !string.IsNullOrWhiteSpace(CurrentValue);
+
+    internal bool HasViewport => _hasViewport;
+
+    internal ElementReference RootElement => _rootElement;
+
+    internal string ActiveViewportValue => HasOpenItem ? CurrentValue : PreviousValue;
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("aria-label", "Main"),
+        ("data-orientation", Orientation),
+        ("dir", ResolvedDirection));
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-navigation-menu");
+    }
+
+    protected override void OnParametersSet()
+    {
+        Orientation = Orientation == "vertical" ? "vertical" : "horizontal";
+
+        if (!_initialized)
+        {
+            _uncontrolledValue = DefaultValue;
+            _lastObservedValue = CurrentValue;
+            _initialized = true;
+        }
+
+        if (!string.Equals(_lastObservedValue, CurrentValue, StringComparison.Ordinal))
+        {
+            _previousValue = _lastObservedValue;
+            _lastObservedValue = CurrentValue;
+        }
+
+        EnsureCurrentTabStopValue();
+    }
+
+    internal string MakeTriggerId(string value) => $"{BaseId}-trigger-{value}";
+
+    internal string MakeContentId(string value) => $"{BaseId}-content-{value}";
+
+    internal bool IsCurrentTabStop(BradixNavigationMenuItem item)
+    {
+        return string.Equals(CurrentTabStopValue, item.ResolvedValue, StringComparison.Ordinal);
+    }
+
+    internal bool IsOpen(BradixNavigationMenuItem item)
+    {
+        return string.Equals(CurrentValue, item.ResolvedValue, StringComparison.Ordinal);
+    }
+
+    internal bool TryGetOpenTrigger(out IBradixNavigationMenuTrigger trigger)
+    {
+        IBradixNavigationMenuTrigger? resolvedTrigger = _triggers.Snapshot()
+            .Select(entry => entry.Item)
+            .FirstOrDefault(candidate => string.Equals(candidate.Value, CurrentValue, StringComparison.Ordinal));
+
+        trigger = resolvedTrigger!;
+        return resolvedTrigger is not null;
+    }
+
+    internal void RegisterTrigger(IBradixNavigationMenuTrigger trigger)
+    {
+        _triggers.Register(trigger.Value, trigger);
+        EnsureCurrentTabStopValue();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterTrigger(IBradixNavigationMenuTrigger trigger)
+    {
+        _triggers.Unregister(trigger.Value);
+        EnsureCurrentTabStopValue();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void RegisterContent(string value, ElementReference element)
+    {
+        _contentElements[value] = element;
+    }
+
+    internal void UnregisterContent(string value)
+    {
+        _contentElements.Remove(value);
+    }
+
+    internal void RegisterViewport()
+    {
+        if (_hasViewport)
+            return;
+
+        _hasViewport = true;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterViewport()
+    {
+        if (!_hasViewport)
+            return;
+
+        _hasViewport = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void RegisterViewportContent(BradixNavigationMenuViewportRegistration registration)
+    {
+        if (_viewportContents.TryGetValue(registration.Value, out BradixNavigationMenuViewportRegistration? existing) &&
+            string.Equals(existing.TriggerId, registration.TriggerId, StringComparison.Ordinal) &&
+            string.Equals(existing.ContentId, registration.ContentId, StringComparison.Ordinal) &&
+            string.Equals(existing.Class, registration.Class, StringComparison.Ordinal) &&
+            string.Equals(existing.Style, registration.Style, StringComparison.Ordinal) &&
+            existing.ForceMount == registration.ForceMount)
+        {
+            _viewportContents[registration.Value] = registration;
+            return;
+        }
+
+        _viewportContents[registration.Value] = registration;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterViewportContent(string value)
+    {
+        if (_viewportContents.Remove(value))
+            _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal bool TryGetViewportContent(string value, out BradixNavigationMenuViewportRegistration registration)
+    {
+        return _viewportContents.TryGetValue(value, out registration!);
+    }
+
+    internal List<string> GetOrderedTriggerValues()
+    {
+        List<string> values = _triggers.Snapshot()
+            .Select(entry => entry.Item.Value)
+            .ToList();
+
+        if (ResolvedDirection == "rtl")
+            values.Reverse();
+
+        return values;
+    }
+
+    internal async Task HandleTriggerPointerMoveAsync(string value)
+    {
+        CancelCloseDelay();
+
+        if (_isOpenDelayed)
+        {
+            CancelOpenDelay();
+            _openDelayTokenSource = new CancellationTokenSource();
+            _ = OpenAfterDelayAsync(value, _openDelayTokenSource.Token);
+            return;
+        }
+
+        await OpenValueAsync(value);
+    }
+
+    internal Task HandleTriggerPointerLeaveAsync()
+    {
+        CancelOpenDelay();
+        StartCloseDelay();
+        return Task.CompletedTask;
+    }
+
+    internal Task HandleContentPointerEnterAsync()
+    {
+        CancelCloseDelay();
+        return Task.CompletedTask;
+    }
+
+    internal Task HandleContentPointerLeaveAsync()
+    {
+        StartCloseDelay();
+        return Task.CompletedTask;
+    }
+
+    internal async Task ToggleItemAsync(string value)
+    {
+        CancelOpenDelay();
+        CancelCloseDelay();
+
+        string? nextValue = string.Equals(CurrentValue, value, StringComparison.Ordinal)
+            ? string.Empty
+            : value;
+
+        await SetValueAsync(nextValue);
+        SetCurrentTabStop(value);
+    }
+
+    internal async Task DismissAsync(string? focusTriggerValue = null)
+    {
+        CancelOpenDelay();
+        CancelCloseDelay();
+        await SetValueAsync(string.Empty);
+
+        if (!string.IsNullOrWhiteSpace(focusTriggerValue))
+            await FocusTriggerAsync(focusTriggerValue);
+    }
+
+    internal async Task FocusTriggerAsync(string value)
+    {
+        IBradixNavigationMenuTrigger? trigger = GetFocusableTriggers().FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.Ordinal));
+        if (trigger is not null)
+            await trigger.FocusAsync();
+    }
+
+    internal async Task FocusContentAsync(string value)
+    {
+        if (_contentElements.TryGetValue(value, out ElementReference element))
+            await element.FocusAsync();
+    }
+
+    internal void SetCurrentTabStop(string value)
+    {
+        if (string.Equals(CurrentTabStopValue, value, StringComparison.Ordinal))
+            return;
+
+        CurrentTabStopValue = value;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task HandleTriggerNavigationAsync(IBradixNavigationMenuTrigger trigger, KeyboardEventArgs args)
+    {
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+            return;
+
+        List<IBradixNavigationMenuTrigger> focusableTriggers = GetFocusableTriggers();
+        int currentIndex = focusableTriggers.IndexOf(trigger);
+
+        if (currentIndex < 0)
+            return;
+
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(
+                args.Key,
+                Orientation,
+                ResolvedDirection,
+                currentIndex,
+                focusableTriggers.Count,
+                false,
+                out int targetIndex))
+        {
+            return;
+        }
+
+        IBradixNavigationMenuTrigger target = focusableTriggers[targetIndex];
+        CurrentTabStopValue = target.Value;
+        await target.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenAfterDelayAsync(string value, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(DelayDuration, cancellationToken);
+            await OpenValueAsync(value);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private async Task OpenValueAsync(string value)
+    {
+        await SetValueAsync(value);
+        SetCurrentTabStop(value);
+    }
+
+    private void StartCloseDelay()
+    {
+        CancelCloseDelay();
+        _closeDelayTokenSource = new CancellationTokenSource();
+        _ = CloseAfterDelayAsync(_closeDelayTokenSource.Token);
+    }
+
+    private async Task CloseAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(150, cancellationToken);
+            await SetValueAsync(string.Empty);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private async Task SetValueAsync(string? value)
+    {
+        string nextValue = value ?? string.Empty;
+
+        if (string.Equals(CurrentValue, nextValue, StringComparison.Ordinal))
+            return;
+
+        _previousValue = CurrentValue;
+        _lastObservedValue = nextValue;
+
+        if (Value is null)
+            _uncontrolledValue = nextValue;
+
+        if (!string.IsNullOrWhiteSpace(nextValue))
+        {
+            CancelSkipDelay();
+            if (SkipDelayDuration > 0)
+                _isOpenDelayed = false;
+        }
+        else
+        {
+            StartSkipDelay();
+        }
+
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(nextValue);
+
+        if (OnValueChange.HasDelegate)
+            await OnValueChange.InvokeAsync(nextValue);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void EnsureCurrentTabStopValue()
+    {
+        List<IBradixNavigationMenuTrigger> focusableTriggers = GetFocusableTriggers();
+
+        if (focusableTriggers.Count == 0)
+        {
+            CurrentTabStopValue = string.Empty;
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(CurrentTabStopValue) &&
+            focusableTriggers.Any(trigger => string.Equals(trigger.Value, CurrentTabStopValue, StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        IBradixNavigationMenuTrigger? activeTrigger = focusableTriggers.FirstOrDefault(trigger => string.Equals(trigger.Value, CurrentValue, StringComparison.Ordinal));
+        CurrentTabStopValue = activeTrigger?.Value ?? focusableTriggers[0].Value;
+    }
+
+    private List<IBradixNavigationMenuTrigger> GetFocusableTriggers()
+    {
+        return _triggers.Snapshot()
+            .Select(entry => entry.Item)
+            .Where(trigger => !trigger.Disabled)
+            .ToList();
+    }
+
+    private void StartSkipDelay()
+    {
+        CancelSkipDelay();
+        _skipDelayTokenSource = new CancellationTokenSource();
+        _ = ResetOpenDelayAsync(_skipDelayTokenSource.Token);
+    }
+
+    private async Task ResetOpenDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(SkipDelayDuration, cancellationToken);
+            _isOpenDelayed = true;
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private void CancelOpenDelay()
+    {
+        _openDelayTokenSource?.Cancel();
+        _openDelayTokenSource?.Dispose();
+        _openDelayTokenSource = null;
+    }
+
+    private void CancelCloseDelay()
+    {
+        _closeDelayTokenSource?.Cancel();
+        _closeDelayTokenSource?.Dispose();
+        _closeDelayTokenSource = null;
+    }
+
+    private void CancelSkipDelay()
+    {
+        _skipDelayTokenSource?.Cancel();
+        _skipDelayTokenSource?.Dispose();
+        _skipDelayTokenSource = null;
+    }
+}

@@ -1,0 +1,56 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+@if (Content?.CanScrollUp == true)
+{
+    <div aria-hidden="true"
+         @onpointerdown="HandlePointerDownAsync"
+         @onpointermove="HandlePointerMoveAsync"
+         @onpointerleave="HandlePointerLeave"
+         @onpointerup="HandlePointerUp"
+         @attributes="ButtonAttributes">
+        @ChildContent
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    private BradixSelectContent? Content { get; set; }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        return firstRender && Content is not null
+            ? Content.HandleScrollButtonMountedAsync()
+            : Task.CompletedTask;
+    }
+
+    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+        ("data-radix-select-scroll-up-button", string.Empty),
+        ("style", BuildStyle()));
+
+    private string BuildStyle()
+    {
+        const string baseStyle = "flex-shrink:0;";
+        return string.IsNullOrWhiteSpace(Style) ? baseStyle : $"{baseStyle} {Style}";
+    }
+
+    private Task HandlePointerDownAsync(PointerEventArgs _)
+    {
+        return Content?.StartAutoScrollAsync(true) ?? Task.CompletedTask;
+    }
+
+    private Task HandlePointerMoveAsync(PointerEventArgs _)
+    {
+        return Content?.StartAutoScrollAsync(true) ?? Task.CompletedTask;
+    }
+
+    private void HandlePointerLeave(PointerEventArgs _)
+    {
+        Content?.StopAutoScroll();
+    }
+
+    private void HandlePointerUp(PointerEventArgs _)
+    {
+        Content?.StopAutoScroll();
+    }
+}

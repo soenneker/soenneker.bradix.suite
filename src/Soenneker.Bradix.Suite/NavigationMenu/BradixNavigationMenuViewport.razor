@@ -1,0 +1,201 @@
+@using System.Globalization
+@using Microsoft.JSInterop
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+@if (ShouldRenderViewport)
+{
+    <BradixPresence Present="ForceMount || NavigationMenu?.HasOpenItem == true"
+                    Tag="div"
+                    Class="@Class"
+                    Style="@ComputedStyle"
+                    AdditionalAttributes="@ViewportAttributes"
+                    OnElementReferenceCaptured="@HandleViewportCapturedAsync">
+        @if (ActiveRegistration is not null)
+        {
+            <BradixNavigationMenuViewportContentHost Registration="@ActiveRegistration"
+                                                    IsOpen="@(NavigationMenu?.HasOpenItem == true)"
+                                                    Motion="@ResolveMotion()"
+                                                    OnContentElementCaptured="@HandleContentCapturedAsync"
+                                                    OnPointerEnterContent="@HandleContentEnterAsync"
+                                                    OnPointerLeaveContent="@HandleContentLeaveAsync" />
+        }
+    </BradixPresence>
+}
+
+@code {
+    private ElementReference _viewportElement;
+    private ElementReference _contentElement;
+    private bool _hasViewportElement;
+    private bool _hasContentElement;
+    private bool _registered;
+    private bool _viewportRegisteredWithRoot;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private double? _width;
+    private double? _height;
+
+    [CascadingParameter]
+    private BradixNavigationMenu? NavigationMenu { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    private BradixNavigationMenuViewportRegistration? ActiveRegistration
+    {
+        get
+        {
+            if (NavigationMenu is null || string.IsNullOrWhiteSpace(NavigationMenu.ActiveViewportValue))
+                return null;
+
+            return NavigationMenu.TryGetViewportContent(NavigationMenu.ActiveViewportValue, out BradixNavigationMenuViewportRegistration registration)
+                ? registration
+                : null;
+        }
+    }
+
+    private bool ShouldRenderViewport => ForceMount || NavigationMenu?.HasOpenItem == true || ActiveRegistration is not null;
+
+    private IReadOnlyDictionary<string, object> ViewportAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["data-state"] = NavigationMenu?.HasOpenItem == true ? "open" : "closed";
+            attributes["data-orientation"] = NavigationMenu?.Orientation ?? "horizontal";
+            return attributes;
+        }
+    }
+
+    private string ComputedStyle
+    {
+        get
+        {
+            string viewportStyle = string.Empty;
+
+            if (_width.HasValue)
+                viewportStyle += $"--radix-navigation-menu-viewport-width:{_width.Value.ToString(CultureInfo.InvariantCulture)}px;";
+
+            if (_height.HasValue)
+                viewportStyle += $"--radix-navigation-menu-viewport-height:{_height.Value.ToString(CultureInfo.InvariantCulture)}px;";
+
+            if (NavigationMenu?.HasOpenItem != true)
+                viewportStyle += "pointer-events:none;";
+
+            if (string.IsNullOrWhiteSpace(Style))
+                return viewportStyle;
+
+            return $"{viewportStyle} {Style}";
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!_viewportRegisteredWithRoot && NavigationMenu is not null)
+        {
+            NavigationMenu.RegisterViewport();
+            _viewportRegisteredWithRoot = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_hasViewportElement || !_hasContentElement)
+        {
+            if (_registered)
+            {
+                await Interop.UnregisterNavigationMenuViewport(_viewportElement);
+                _registered = false;
+            }
+
+            return;
+        }
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+
+        if (_registered)
+        {
+            await Interop.UpdateNavigationMenuViewport(_viewportElement, _contentElement);
+        }
+        else
+        {
+            await Interop.RegisterNavigationMenuViewport(_viewportElement, _contentElement, _dotNetReference);
+            _registered = true;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_viewportRegisteredWithRoot)
+            NavigationMenu?.UnregisterViewport();
+
+        if (_registered)
+            await Interop.UnregisterNavigationMenuViewport(_viewportElement);
+
+        _dotNetReference?.Dispose();
+    }
+
+    private Task HandleViewportCapturedAsync(ElementReference element)
+    {
+        _viewportElement = element;
+        _hasViewportElement = true;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleContentCapturedAsync(ElementReference element)
+    {
+        _contentElement = element;
+        _hasContentElement = true;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleContentEnterAsync()
+    {
+        return NavigationMenu?.HandleContentPointerEnterAsync() ?? Task.CompletedTask;
+    }
+
+    private Task HandleContentLeaveAsync()
+    {
+        return NavigationMenu?.HandleContentPointerLeaveAsync() ?? Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleViewportSizeChangedAsync(double width, double height)
+    {
+        _width = width;
+        _height = height;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private string ResolveMotion()
+    {
+        if (NavigationMenu is null || ActiveRegistration is null || string.IsNullOrWhiteSpace(NavigationMenu.PreviousValue))
+            return string.Empty;
+
+        List<string> values = NavigationMenu.GetOrderedTriggerValues();
+        int index = values.IndexOf(NavigationMenu.CurrentValue);
+        int previousIndex = values.IndexOf(NavigationMenu.PreviousValue);
+        int activeIndex = values.IndexOf(ActiveRegistration.Value);
+
+        bool isSelected = ActiveRegistration.Value == NavigationMenu.CurrentValue;
+        bool wasSelected = activeIndex == previousIndex;
+
+        if (!isSelected && !wasSelected)
+            return string.Empty;
+
+        if (index != previousIndex)
+        {
+            if (isSelected && previousIndex != -1)
+                return index > previousIndex ? "from-end" : "from-start";
+
+            if (wasSelected && index != -1)
+                return index > previousIndex ? "to-start" : "to-end";
+        }
+
+        return string.Empty;
+    }
+}

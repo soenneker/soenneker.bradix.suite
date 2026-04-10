@@ -1,0 +1,56 @@
+@using System.Threading.Tasks
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<BradixMenu Open="@Open"
+            DefaultOpen="DefaultOpen"
+            OpenChanged="HandleOpenChangedAsync"
+            OnOpenChange="HandleOpenChangeAsync"
+            Dir="@ParentMenu?.ResolvedDirection"
+            Modal="false">
+    <CascadingValue Value="this">
+        <CascadingValue Name="BradixParentMenu" Value="ParentMenu">
+            @ChildContent
+        </CascadingValue>
+    </CascadingValue>
+</BradixMenu>
+
+@code {
+    [CascadingParameter]
+    private BradixMenu? ParentMenu { get; set; }
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal string TriggerId => $"{BaseId}-trigger";
+
+    internal string ContentId => $"{BaseId}-content";
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-menu-sub");
+    }
+
+    private Task HandleOpenChangedAsync(bool open)
+    {
+        return OpenChanged.HasDelegate ? OpenChanged.InvokeAsync(open) : Task.CompletedTask;
+    }
+
+    private Task HandleOpenChangeAsync(bool open)
+    {
+        return OnOpenChange.HasDelegate ? OnOpenChange.InvokeAsync(open) : Task.CompletedTask;
+    }
+}

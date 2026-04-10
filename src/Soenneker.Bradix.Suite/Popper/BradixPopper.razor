@@ -8,10 +8,22 @@
 @code {
     internal ElementReference AnchorElement { get; private set; }
     internal bool HasAnchor { get; private set; }
+    internal bool HasVirtualAnchor { get; private set; }
+    internal double VirtualAnchorX { get; private set; }
+    internal double VirtualAnchorY { get; private set; }
 
     internal void RegisterAnchor(ElementReference element)
     {
         AnchorElement = element;
         HasAnchor = true;
+        HasVirtualAnchor = false;
+    }
+
+    internal void RegisterVirtualAnchor(double x, double y)
+    {
+        VirtualAnchorX = x;
+        VirtualAnchorY = y;
+        HasVirtualAnchor = true;
+        HasAnchor = false;
     }
 }

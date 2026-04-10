@@ -1,0 +1,427 @@
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Collection
+@using Soenneker.Bradix.Suite.Typeahead
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<BradixPopper>
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</BradixPopper>
+
+@if (ShouldRenderBubbleSelect)
+{
+    <select @onchange="HandleNativeChangeAsync"
+            @attributes="BubbleSelectAttributes">
+        @if (string.IsNullOrWhiteSpace(CurrentValue))
+        {
+            <option value="" selected="true"></option>
+        }
+
+        @foreach (BradixCollectionEntry<IBradixSelectItem> entry in _items.Snapshot())
+        {
+            <option value="@entry.Item.Value"
+                    disabled="@entry.Item.Disabled"
+                    selected="@string.Equals(entry.Item.Value, CurrentValue, StringComparison.Ordinal)">
+                @entry.Item.TextValue
+            </option>
+        }
+    </select>
+}
+
+@code {
+    private readonly BradixCollectionRegistry<IBradixSelectItem> _items = new();
+    private readonly BradixTypeaheadBuffer _typeahead = new();
+    private bool _initialized;
+    private bool _uncontrolledOpen;
+    private string? _uncontrolledValue;
+    private (double X, double Y)? _triggerPointerDownPosition;
+    private bool _suppressNextMouseUpSelection;
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public string? AutoComplete { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public bool Required { get; set; }
+
+    [Parameter]
+    public string? Form { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+
+    internal string? CurrentValue => Value ?? _uncontrolledValue;
+
+    internal string ContentId => $"{BaseId}-content";
+
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+
+    internal string CurrentText => _items.Snapshot()
+        .Select(entry => entry.Item)
+        .FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal))
+        ?.TextValue ?? string.Empty;
+
+    internal bool ShouldShowPlaceholder => string.IsNullOrWhiteSpace(CurrentValue);
+
+    internal ElementReference TriggerElement { get; private set; }
+
+    internal bool HasTrigger { get; private set; }
+
+    internal ElementReference ValueNodeElement { get; private set; }
+
+    internal bool HasValueNode { get; private set; }
+
+    internal bool ValueNodeHasChildren { get; private set; }
+
+    internal string? CurrentFocusedItemValue { get; private set; }
+
+    internal bool HasTriggerPointerDownPosition => _triggerPointerDownPosition is not null;
+
+    internal double TriggerPointerDownX => _triggerPointerDownPosition?.X ?? 0;
+
+    internal double TriggerPointerDownY => _triggerPointerDownPosition?.Y ?? 0;
+
+    private bool ShouldRenderBubbleSelect => !string.IsNullOrWhiteSpace(Name) || !string.IsNullOrWhiteSpace(Form) || Required;
+
+    private Dictionary<string, object> BubbleSelectAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = new()
+            {
+                ["tabindex"] = -1,
+                ["aria-hidden"] = "true",
+                ["required"] = Required,
+                ["disabled"] = Disabled,
+                ["style"] = "position:absolute;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);"
+            };
+
+            if (!string.IsNullOrWhiteSpace(Name))
+                attributes["name"] = Name;
+
+            if (!string.IsNullOrWhiteSpace(Form))
+                attributes["form"] = Form;
+
+            if (!string.IsNullOrWhiteSpace(AutoComplete))
+                attributes["autocomplete"] = AutoComplete;
+
+            return attributes;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-select");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _uncontrolledOpen = DefaultOpen;
+        _uncontrolledValue = DefaultValue;
+        _initialized = true;
+    }
+
+    internal void RegisterItem(IBradixSelectItem item)
+    {
+        _items.Register(item.Value, item);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterItem(IBradixSelectItem item)
+    {
+        _items.Unregister(item.Value);
+
+        if (string.Equals(CurrentFocusedItemValue, item.Value, StringComparison.Ordinal))
+            CurrentFocusedItemValue = null;
+
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void RegisterTrigger(ElementReference element)
+    {
+        TriggerElement = element;
+        HasTrigger = true;
+    }
+
+    internal void RegisterValueNode(ElementReference element)
+    {
+        ValueNodeElement = element;
+        HasValueNode = true;
+    }
+
+    internal void SetValueNodeHasChildren(bool hasChildren)
+    {
+        if (ValueNodeHasChildren == hasChildren)
+            return;
+
+        ValueNodeHasChildren = hasChildren;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal Task FocusTriggerAsync()
+    {
+        return HasTrigger ? TriggerElement.FocusAsync().AsTask() : Task.CompletedTask;
+    }
+
+    internal async Task SetValueAsync(string? value)
+    {
+        if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
+            return;
+
+        if (Value is null)
+            _uncontrolledValue = value;
+
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(value);
+
+        if (OnValueChange.HasDelegate)
+            await OnValueChange.InvokeAsync(value);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task SetOpenAsync(bool open)
+    {
+        if (CurrentOpen == open)
+            return;
+
+        if (Open is null)
+            _uncontrolledOpen = open;
+
+        if (!open)
+        {
+            _typeahead.Reset();
+            _triggerPointerDownPosition = null;
+            _suppressNextMouseUpSelection = false;
+        }
+
+        if (OpenChanged.HasDelegate)
+            await OpenChanged.InvokeAsync(open);
+
+        if (OnOpenChange.HasDelegate)
+            await OnOpenChange.InvokeAsync(open);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal Task ToggleOpenAsync()
+    {
+        return SetOpenAsync(!CurrentOpen);
+    }
+
+    internal Task OpenFromTriggerAsync(double? pageX = null, double? pageY = null)
+    {
+        _typeahead.Reset();
+
+        if (pageX.HasValue && pageY.HasValue)
+            _triggerPointerDownPosition = (pageX.Value, pageY.Value);
+        else
+            _triggerPointerDownPosition = null;
+
+        return SetOpenAsync(true);
+    }
+
+    internal void SetFocusedItem(string? value)
+    {
+        if (string.Equals(CurrentFocusedItemValue, value, StringComparison.Ordinal))
+            return;
+
+        CurrentFocusedItemValue = value;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal bool IsFocusedItem(IBradixSelectItem item)
+    {
+        return string.Equals(CurrentFocusedItemValue, item.Value, StringComparison.Ordinal);
+    }
+
+    internal async Task FocusSelectedOrFirstItemAsync()
+    {
+        IBradixSelectItem? target = GetSelectedOrFirstEnabledItem();
+
+        if (target is null)
+            return;
+
+        CurrentFocusedItemValue = target.Value;
+        await target.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task FocusFirstItemAsync()
+    {
+        IBradixSelectItem? first = GetEnabledItems().FirstOrDefault();
+
+        if (first is null)
+            return;
+
+        CurrentFocusedItemValue = first.Value;
+        await first.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task FocusLastItemAsync()
+    {
+        IBradixSelectItem? last = GetEnabledItems().LastOrDefault();
+
+        if (last is null)
+            return;
+
+        CurrentFocusedItemValue = last.Value;
+        await last.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task HandleTriggerTypeaheadAsync(string key)
+    {
+        string search = _typeahead.Append(key);
+        List<IBradixSelectItem> enabledItems = GetEnabledItems();
+        IBradixSelectItem? currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
+        IBradixSelectItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
+
+        if (nextItem is null)
+            return;
+
+        await SetValueAsync(nextItem.Value);
+    }
+
+    internal async Task HandleContentTypeaheadAsync(string key)
+    {
+        string search = _typeahead.Append(key);
+        List<IBradixSelectItem> enabledItems = GetEnabledItems();
+        IBradixSelectItem? currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentFocusedItemValue, StringComparison.Ordinal));
+        IBradixSelectItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
+
+        if (nextItem is null)
+            return;
+
+        CurrentFocusedItemValue = nextItem.Value;
+        await nextItem.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task HandleContentNavigationAsync(string key)
+    {
+        switch (key)
+        {
+            case "Home":
+            case "PageUp":
+                await FocusFirstItemAsync();
+                return;
+            case "End":
+            case "PageDown":
+                await FocusLastItemAsync();
+                return;
+        }
+
+        List<IBradixSelectItem> enabledItems = GetEnabledItems();
+        IBradixSelectItem? currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentFocusedItemValue, StringComparison.Ordinal))
+            ?? enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
+
+        if (currentItem is null)
+            return;
+
+        int currentIndex = enabledItems.IndexOf(currentItem);
+
+        if (currentIndex < 0)
+            return;
+
+        if (!RovingFocus.BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, true, out int targetIndex))
+            return;
+
+        IBradixSelectItem target = enabledItems[targetIndex];
+        CurrentFocusedItemValue = target.Value;
+        await target.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal Task NotifyItemTextChangedAsync()
+    {
+        return InvokeAsync(StateHasChanged);
+    }
+
+    internal void SuppressNextMouseUpSelection()
+    {
+        _suppressNextMouseUpSelection = true;
+    }
+
+    internal bool TryConsumeSuppressedMouseUpSelection()
+    {
+        if (!_suppressNextMouseUpSelection)
+            return false;
+
+        _suppressNextMouseUpSelection = false;
+        return true;
+    }
+
+    internal IBradixSelectItem? GetSelectedOrFirstEnabledItem()
+    {
+        List<IBradixSelectItem> enabledItems = GetEnabledItems();
+        return enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal))
+            ?? enabledItems.FirstOrDefault();
+    }
+
+    internal IBradixSelectItem? GetSelectedItem()
+    {
+        return _items.Snapshot()
+            .Select(entry => entry.Item)
+            .FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
+    }
+
+    private Task HandleNativeChangeAsync(ChangeEventArgs args)
+    {
+        return SetValueAsync(args.Value?.ToString());
+    }
+
+    private List<IBradixSelectItem> GetEnabledItems()
+    {
+        return _items.Snapshot()
+            .Select(entry => entry.Item)
+            .Where(item => !item.Disabled)
+            .ToList();
+    }
+}

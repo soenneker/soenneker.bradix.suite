@@ -1,0 +1,69 @@
+@using System
+@using System.Collections.Generic
+@using System.Threading.Tasks
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<CascadingValue Value="RadioGroupContext">
+    <BradixMenuGroup Id="@Id"
+                     Class="@Class"
+                     Style="@Style"
+                     AdditionalAttributes="@AdditionalAttributes">
+        @ChildContent
+    </BradixMenuGroup>
+</CascadingValue>
+
+@code {
+    private bool _initialized;
+    private string? _uncontrolledValue;
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    private string? CurrentValue => Value ?? _uncontrolledValue;
+
+    private BradixMenuRadioGroupContext RadioGroupContext => new()
+    {
+        CurrentValue = CurrentValue,
+        Disabled = Disabled,
+        SetValueAsync = SetValueAsync
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _uncontrolledValue = DefaultValue;
+        _initialized = true;
+    }
+
+    private async Task SetValueAsync(string value)
+    {
+        if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
+            return;
+
+        if (Value is null)
+            _uncontrolledValue = value;
+
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(value);
+
+        if (OnValueChange.HasDelegate)
+            await OnValueChange.InvokeAsync(value);
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

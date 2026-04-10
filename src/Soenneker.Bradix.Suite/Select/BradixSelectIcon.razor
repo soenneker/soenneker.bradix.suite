@@ -1,0 +1,14 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<span aria-hidden="true"
+      @attributes="BuildAttributes()">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        @("▼")
+    }
+</span>

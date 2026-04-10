@@ -1,0 +1,238 @@
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Collection
+@using Soenneker.Bradix.Suite.RovingFocus
+@using Soenneker.Bradix.Suite.Typeahead
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<BradixPopper>
+    <CascadingValue Name="BradixMenuRoot" Value="RootMenu">
+        <CascadingValue Value="this">
+            @ChildContent
+        </CascadingValue>
+    </CascadingValue>
+</BradixPopper>
+
+@code {
+    private readonly BradixCollectionRegistry<IBradixMenuItem> _items = new();
+    private readonly BradixTypeaheadBuffer _typeahead = new();
+    private bool _initialized;
+    private bool _uncontrolledOpen;
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
+    [CascadingParameter(Name = "BradixMenuRoot")]
+    private BradixMenu? RootMenuCandidate { get; set; }
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+
+    internal string ContentId => $"{BaseId}-content";
+
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+
+    internal BradixMenu RootMenu => RootMenuCandidate ?? this;
+
+    internal string? CurrentTabStopId { get; private set; }
+
+    internal bool IsTypeaheadActive => !string.IsNullOrEmpty(_typeahead.CurrentSearch);
+
+    internal ElementReference TriggerElement { get; private set; }
+
+    internal bool HasTrigger { get; private set; }
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-menu");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _uncontrolledOpen = DefaultOpen;
+        _initialized = true;
+    }
+
+    internal bool IsCurrentTabStop(IBradixMenuItem item)
+    {
+        return string.Equals(CurrentTabStopId, item.TabStopId, StringComparison.Ordinal);
+    }
+
+    internal void RegisterItem(IBradixMenuItem item)
+    {
+        _items.Register(item.TabStopId, item);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterItem(IBradixMenuItem item)
+    {
+        _items.Unregister(item.TabStopId);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void SetCurrentTabStop(string? tabStopId)
+    {
+        if (string.Equals(CurrentTabStopId, tabStopId, StringComparison.Ordinal))
+            return;
+
+        CurrentTabStopId = tabStopId;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task<bool> HandleItemNavigationAsync(IBradixMenuItem item, string key, bool loop)
+    {
+        List<IBradixMenuItem> enabledItems = GetEnabledItems();
+        int currentIndex = enabledItems.IndexOf(item);
+
+        if (currentIndex < 0)
+            return false;
+
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, loop, out int targetIndex))
+            return false;
+
+        IBradixMenuItem target = enabledItems[targetIndex];
+        CurrentTabStopId = target.TabStopId;
+        await target.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+        return true;
+    }
+
+    internal async Task HandleTypeaheadAsync(IBradixMenuItem? currentItem, string key)
+    {
+        string search = _typeahead.Append(key);
+        IReadOnlyList<IBradixMenuItem> enabledItems = GetEnabledItems();
+
+        IBradixMenuItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
+
+        if (nextItem is null)
+            return;
+
+        CurrentTabStopId = nextItem.TabStopId;
+        await nextItem.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal void ResetTypeahead()
+    {
+        _typeahead.Reset();
+    }
+
+    internal async Task FocusFirstItemAsync()
+    {
+        IBradixMenuItem? first = GetEnabledItems().FirstOrDefault();
+        if (first is null)
+            return;
+
+        CurrentTabStopId = first.TabStopId;
+        await first.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task FocusLastItemAsync()
+    {
+        IBradixMenuItem? last = GetEnabledItems().LastOrDefault();
+        if (last is null)
+            return;
+
+        CurrentTabStopId = last.TabStopId;
+        await last.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal void RegisterTrigger(ElementReference element)
+    {
+        TriggerElement = element;
+        HasTrigger = true;
+    }
+
+    internal async Task FocusTriggerAsync()
+    {
+        if (!HasTrigger)
+            return;
+
+        try
+        {
+            await TriggerElement.FocusAsync();
+        }
+        catch
+        {
+        }
+    }
+
+    internal async Task SetOpenAsync(bool open)
+    {
+        if (CurrentOpen == open)
+            return;
+
+        if (Open is null)
+            _uncontrolledOpen = open;
+
+        if (!open)
+            ResetTypeahead();
+
+        if (OpenChanged.HasDelegate)
+            await OpenChanged.InvokeAsync(open);
+
+        if (OnOpenChange.HasDelegate)
+            await OnOpenChange.InvokeAsync(open);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal Task ToggleOpenAsync()
+    {
+        return SetOpenAsync(!CurrentOpen);
+    }
+
+    private List<IBradixMenuItem> GetEnabledItems()
+    {
+        return _items.Snapshot()
+            .Select(entry => entry.Item)
+            .Where(item => !item.IsDisabled)
+            .ToList();
+    }
+
+    private void EnsureCurrentTabStopId()
+    {
+        List<IBradixMenuItem> enabledItems = GetEnabledItems();
+
+        if (enabledItems.Count == 0)
+        {
+            CurrentTabStopId = null;
+            return;
+        }
+
+        if (CurrentTabStopId is not null && enabledItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
+            return;
+
+        CurrentTabStopId = enabledItems[0].TabStopId;
+    }
+}

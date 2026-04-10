@@ -1,0 +1,66 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<BradixDismissableLayerBranch>
+    <BradixMenuAnchor>
+        <button @ref="_button"
+                @onpointerdown="HandlePointerDownAsync"
+                @onkeydown="HandleKeyDownAsync"
+                @attributes="ButtonAttributes">
+            @ChildContent
+        </button>
+    </BradixMenuAnchor>
+</BradixDismissableLayerBranch>
+
+@code {
+    private ElementReference _button;
+
+    [CascadingParameter]
+    private BradixDropdownMenu? DropdownMenu { get; set; }
+
+    [CascadingParameter]
+    private BradixMenu? Menu { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+        ("type", "button"),
+        ("id", DropdownMenu?.TriggerId),
+        ("aria-haspopup", "menu"),
+        ("aria-expanded", DropdownMenu?.CurrentOpen == true ? "true" : "false"),
+        ("aria-controls", DropdownMenu?.CurrentOpen == true ? DropdownMenu.ContentId : null),
+        ("data-state", DropdownMenu?.CurrentOpen == true ? "open" : "closed"),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("disabled", Disabled ? true : null));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            Menu?.RegisterTrigger(_button);
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandlePointerDownAsync(PointerEventArgs args)
+    {
+        return Disabled || DropdownMenu is null || args.Button != 0 || args.CtrlKey
+            ? Task.CompletedTask
+            : DropdownMenu.ToggleOpenAsync();
+    }
+
+    private Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (Disabled || DropdownMenu is null)
+            return Task.CompletedTask;
+
+        return args.Key switch
+        {
+            "Enter" => DropdownMenu.ToggleOpenAsync(),
+            " " => DropdownMenu.ToggleOpenAsync(),
+            "Spacebar" => DropdownMenu.ToggleOpenAsync(),
+            "ArrowDown" => DropdownMenu.SetOpenAsync(true),
+            _ => Task.CompletedTask
+        };
+    }
+}

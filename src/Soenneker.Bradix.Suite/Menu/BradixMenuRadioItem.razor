@@ -1,0 +1,66 @@
+@using System
+@using System.Collections.Generic
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Checkbox
+@inherits BradixComponentBase
+
+<CascadingValue Value="IndicatorContext">
+    <BradixMenuItem Id="@Id"
+                    Class="@Class"
+                    Style="@Style"
+                    TextValue="@TextValue"
+                    Role="menuitemradio"
+                    Disabled="IsDisabled"
+                    CloseOnSelect="CloseOnSelect"
+                    OnSelect="HandleSelectAsync"
+                    AdditionalAttributes="@ItemAttributes">
+        @ChildContent
+    </BradixMenuItem>
+</CascadingValue>
+
+@code {
+    [CascadingParameter]
+    internal BradixMenuRadioGroupContext Group { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = null!;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? TextValue { get; set; }
+
+    [Parameter]
+    public bool CloseOnSelect { get; set; } = true;
+
+    private bool IsDisabled => Group.Disabled || Disabled;
+
+    private bool IsChecked => string.Equals(Group.CurrentValue, Value, StringComparison.Ordinal);
+
+    private BradixMenuItemIndicatorContext IndicatorContext => new()
+    {
+        CheckedState = IsChecked ? BradixCheckboxCheckedState.Checked : BradixCheckboxCheckedState.Unchecked,
+        Disabled = IsDisabled
+    };
+
+    private IReadOnlyDictionary<string, object> ItemAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["aria-checked"] = IsChecked ? "true" : "false";
+            attributes["data-state"] = IsChecked ? "checked" : "unchecked";
+
+            return attributes;
+        }
+    }
+
+    private Task HandleSelectAsync()
+    {
+        return Group.SetValueAsync(Value);
+    }
+}

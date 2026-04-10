@@ -1,0 +1,75 @@
+@using System.Threading
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+
+@if (CanRenderFallback)
+{
+    <span @attributes="FallbackAttributes">
+        @ChildContent
+    </span>
+}
+
+@code {
+    private CancellationTokenSource? _delayTokenSource;
+    private int? _lastDelayMs;
+    private bool _canRender;
+    private bool _delayInitialized;
+
+    [CascadingParameter]
+    private BradixAvatar? Avatar { get; set; }
+
+    [Parameter]
+    public int? DelayMs { get; set; }
+
+    private bool CanRenderFallback => _canRender && Avatar?.ImageLoadingStatus != BradixAvatarImageLoadingStatus.Loaded;
+
+    private Dictionary<string, object> FallbackAttributes => BuildAttributes();
+
+    protected override void OnParametersSet()
+    {
+        if (_delayInitialized && _lastDelayMs == DelayMs)
+            return;
+
+        _delayInitialized = true;
+        _lastDelayMs = DelayMs;
+        ResetDelay();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        _delayTokenSource?.Cancel();
+        _delayTokenSource?.Dispose();
+        return ValueTask.CompletedTask;
+    }
+
+    private void ResetDelay()
+    {
+        _delayTokenSource?.Cancel();
+        _delayTokenSource?.Dispose();
+        _delayTokenSource = null;
+
+        if (DelayMs is null)
+        {
+            _canRender = true;
+            return;
+        }
+
+        _canRender = false;
+        _delayTokenSource = new CancellationTokenSource();
+        _ = EnableAfterDelayAsync(_delayTokenSource.Token);
+    }
+
+    private async Task EnableAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(DelayMs!.Value, cancellationToken);
+            _canRender = true;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+}

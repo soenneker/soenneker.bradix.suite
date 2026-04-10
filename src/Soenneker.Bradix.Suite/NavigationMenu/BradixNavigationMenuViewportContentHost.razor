@@ -1,0 +1,113 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IDisposable
+@inherits BradixComponentBase
+
+<BradixDismissableLayer DisableOutsidePointerEvents="false"
+                        DismissOnEscapeKeyDown="false"
+                        DismissOnPointerDownOutside="false"
+                        DismissOnFocusOutside="false"
+                        OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
+                        OnPointerDownOutside="@HandlePointerDownOutsideAsync"
+                        OnElementReferenceCaptured="@HandleElementCapturedAsync">
+    <div @attributes="ContentAttributes">
+        @Registration.ChildContent
+    </div>
+</BradixDismissableLayer>
+
+@code {
+    [CascadingParameter]
+    private BradixNavigationMenu? NavigationMenu { get; set; }
+
+    [Parameter]
+    public required BradixNavigationMenuViewportRegistration Registration { get; set; }
+
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public string Motion { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<ElementReference> OnContentElementCaptured { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerEnterContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerLeaveContent { get; set; }
+
+    private IReadOnlyDictionary<string, object> ContentAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = Registration.AdditionalAttributes is not null
+                ? new Dictionary<string, object>(Registration.AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            if (!string.IsNullOrWhiteSpace(Registration.Class))
+                attributes["class"] = Registration.Class;
+
+            if (!string.IsNullOrWhiteSpace(Registration.Style))
+                attributes["style"] = Registration.Style;
+
+            attributes["id"] = Registration.ContentId;
+            attributes["aria-labelledby"] = Registration.TriggerId;
+            attributes["data-state"] = IsOpen ? "open" : "closed";
+            attributes["data-orientation"] = NavigationMenu?.Orientation ?? "horizontal";
+            attributes["tabindex"] = -1;
+            attributes["onpointerenter"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerEnterAsync);
+            attributes["onpointerleave"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerLeaveAsync);
+
+            if (!string.IsNullOrWhiteSpace(Motion))
+                attributes["data-motion"] = Motion;
+
+            return attributes;
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationMenu?.UnregisterContent(Registration.Value);
+    }
+
+    private async Task HandleEscapeKeyDownAsync()
+    {
+        if (NavigationMenu is not null)
+            await NavigationMenu.DismissAsync(Registration.Value);
+    }
+
+    private async Task HandlePointerDownOutsideAsync()
+    {
+        if (NavigationMenu is not null)
+            await NavigationMenu.DismissAsync();
+    }
+
+    private Task HandleElementCapturedAsync(ElementReference element)
+    {
+        NavigationMenu?.RegisterContent(Registration.Value, element);
+
+        return OnContentElementCaptured.HasDelegate
+            ? OnContentElementCaptured.InvokeAsync(element)
+            : Task.CompletedTask;
+    }
+
+    private Task HandlePointerEnterAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch")
+            return Task.CompletedTask;
+
+        return OnPointerEnterContent.HasDelegate
+            ? OnPointerEnterContent.InvokeAsync()
+            : Task.CompletedTask;
+    }
+
+    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch")
+            return Task.CompletedTask;
+
+        return OnPointerLeaveContent.HasDelegate
+            ? OnPointerLeaveContent.InvokeAsync()
+            : Task.CompletedTask;
+    }
+}

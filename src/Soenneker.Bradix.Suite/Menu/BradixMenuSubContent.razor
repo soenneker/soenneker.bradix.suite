@@ -1,0 +1,129 @@
+@using System.Collections.Generic
+
+<BradixDismissableLayerBranch>
+    <BradixMenuContent Id="@Sub.ContentId"
+                       ForceMount="ForceMount"
+                       Loop="Loop"
+                       Side="@ResolvedSide"
+                       Align="start"
+                       SideOffset="SideOffset"
+                       AlignOffset="AlignOffset"
+                       ArrowPadding="ArrowPadding"
+                       AvoidCollisions="AvoidCollisions"
+                       CollisionPadding="CollisionPadding"
+                       HideWhenDetached="HideWhenDetached"
+                       Class="@Class"
+                       Style="@Style"
+                       AdditionalAttributes="@ContentAttributes"
+                       OnEscapeKeyDown="HandleEscapeKeyDownAsync"
+                       OnContentKeyDown="HandleContentKeyDownAsync"
+                       OnCloseAutoFocus="HandleCloseAutoFocusAsync"
+                       OnPointerDownOutside="OnPointerDownOutside"
+                       OnFocusOutside="HandleFocusOutsideAsync"
+                       OnInteractOutside="OnInteractOutside"
+                       OnPlaced="OnPlaced">
+        @ChildContent
+    </BradixMenuContent>
+</BradixDismissableLayerBranch>
+
+@code {
+    [CascadingParameter]
+    private BradixMenu SubMenu { get; set; } = null!;
+
+    [CascadingParameter]
+    private BradixMenuSub Sub { get; set; } = null!;
+
+    [CascadingParameter(Name = "BradixParentMenu")]
+    private BradixMenu ParentMenu { get; set; } = null!;
+
+    [CascadingParameter(Name = "BradixMenuRoot")]
+    private BradixMenu RootMenu { get; set; } = null!;
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public bool Loop { get; set; }
+
+    [Parameter]
+    public double SideOffset { get; set; }
+
+    [Parameter]
+    public double AlignOffset { get; set; }
+
+    [Parameter]
+    public double ArrowPadding { get; set; }
+
+    [Parameter]
+    public bool AvoidCollisions { get; set; } = true;
+
+    [Parameter]
+    public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public bool HideWhenDetached { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnPlaced { get; set; }
+
+    private string ResolvedSide => ParentMenu.ResolvedDirection == "rtl" ? "left" : "right";
+
+    private IReadOnlyDictionary<string, object> ContentAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["aria-labelledby"] = Sub.TriggerId;
+            return attributes;
+        }
+    }
+
+    private Task HandleCloseAutoFocusAsync()
+    {
+        return SubMenu.FocusTriggerAsync();
+    }
+
+    private Task HandleFocusOutsideAsync()
+    {
+        return SubMenu.SetOpenAsync(false);
+    }
+
+    private async Task HandleEscapeKeyDownAsync()
+    {
+        await RootMenu.SetOpenAsync(false);
+    }
+
+    private async Task HandleContentKeyDownAsync(KeyboardEventArgs args)
+    {
+        bool isCloseKey = ParentMenu.ResolvedDirection == "rtl"
+            ? args.Key == "ArrowRight"
+            : args.Key == "ArrowLeft";
+
+        if (!isCloseKey)
+            return;
+
+        await SubMenu.SetOpenAsync(false);
+        await SubMenu.FocusTriggerAsync();
+    }
+}

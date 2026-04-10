@@ -1,0 +1,33 @@
+@using System.Collections.Generic
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Checkbox
+@inherits BradixComponentBase
+
+@if (ForceMount || IndicatorState?.CheckedState != BradixCheckboxCheckedState.Unchecked)
+{
+    <span @attributes="IndicatorAttributes">
+        @ChildContent
+    </span>
+}
+
+@code {
+    [CascadingParameter]
+    internal BradixMenuItemIndicatorContext? IndicatorState { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    private Dictionary<string, object> IndicatorAttributes => BuildAttributes(
+        ("data-state", GetDataState(IndicatorState?.CheckedState ?? BradixCheckboxCheckedState.Unchecked)),
+        ("data-disabled", IndicatorState?.Disabled == true ? string.Empty : null));
+
+    private static string GetDataState(BradixCheckboxCheckedState state)
+    {
+        return state switch
+        {
+            BradixCheckboxCheckedState.Checked => "checked",
+            BradixCheckboxCheckedState.Indeterminate => "indeterminate",
+            _ => "unchecked"
+        };
+    }
+}

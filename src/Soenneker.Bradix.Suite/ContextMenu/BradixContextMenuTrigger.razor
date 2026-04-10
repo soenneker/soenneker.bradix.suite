@@ -1,0 +1,113 @@
+@using System
+@using System.Threading
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+
+<span @oncontextmenu="HandleContextMenuAsync"
+      @oncontextmenu:preventDefault="@(!Disabled)"
+      @onpointerdown="HandlePointerDownAsync"
+      @onpointermove="HandlePointerMoveAsync"
+      @onpointercancel="HandlePointerCancelAsync"
+      @onpointerup="HandlePointerUpAsync"
+      @attributes="TriggerAttributes">
+    @ChildContent
+</span>
+
+@code {
+    private const int _longPressDelayMs = 700;
+    private CancellationTokenSource? _longPressCancellationTokenSource;
+
+    [CascadingParameter]
+    private BradixContextMenu? ContextMenu { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("data-state", ContextMenu?.CurrentOpen == true ? "open" : "closed"),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("style", BuildStyle()));
+
+    public ValueTask DisposeAsync()
+    {
+        ClearLongPress();
+        return ValueTask.CompletedTask;
+    }
+
+    private Task HandleContextMenuAsync(MouseEventArgs args)
+    {
+        if (Disabled || ContextMenu is null)
+            return Task.CompletedTask;
+
+        ClearLongPress();
+        return ContextMenu.OpenAtPointAsync(args.ClientX, args.ClientY);
+    }
+
+    private Task HandlePointerDownAsync(PointerEventArgs args)
+    {
+        if (Disabled || ContextMenu is null || IsMousePointer(args))
+            return Task.CompletedTask;
+
+        ClearLongPress();
+        _longPressCancellationTokenSource = new CancellationTokenSource();
+        _ = StartLongPressAsync(args.ClientX, args.ClientY, _longPressCancellationTokenSource.Token);
+        return Task.CompletedTask;
+    }
+
+    private Task HandlePointerMoveAsync(PointerEventArgs args)
+    {
+        if (!IsMousePointer(args))
+            ClearLongPress();
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandlePointerCancelAsync(PointerEventArgs args)
+    {
+        if (!IsMousePointer(args))
+            ClearLongPress();
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandlePointerUpAsync(PointerEventArgs args)
+    {
+        if (!IsMousePointer(args))
+            ClearLongPress();
+
+        return Task.CompletedTask;
+    }
+
+    private async Task StartLongPressAsync(double x, double y, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(_longPressDelayMs, cancellationToken);
+
+            if (ContextMenu is not null)
+                await InvokeAsync(() => ContextMenu.OpenAtPointAsync(x, y));
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void ClearLongPress()
+    {
+        _longPressCancellationTokenSource?.Cancel();
+        _longPressCancellationTokenSource?.Dispose();
+        _longPressCancellationTokenSource = null;
+    }
+
+    private string BuildStyle()
+    {
+        const string baseStyle = "-webkit-touch-callout: none;";
+        return string.IsNullOrWhiteSpace(Style) ? baseStyle : $"{baseStyle} {Style}";
+    }
+
+    private static bool IsMousePointer(PointerEventArgs args)
+    {
+        return string.Equals(args.PointerType, "mouse", StringComparison.Ordinal);
+    }
+}

@@ -1,0 +1,23 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<CascadingValue Value="this">
+    <span @attributes="RootAttributes">
+        @ChildContent
+    </span>
+</CascadingValue>
+
+@code {
+    internal BradixAvatarImageLoadingStatus ImageLoadingStatus { get; private set; } = BradixAvatarImageLoadingStatus.Idle;
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes();
+
+    internal Task SetImageLoadingStatusAsync(BradixAvatarImageLoadingStatus status)
+    {
+        if (ImageLoadingStatus == status)
+            return Task.CompletedTask;
+
+        ImageLoadingStatus = status;
+        return InvokeAsync(StateHasChanged);
+    }
+}

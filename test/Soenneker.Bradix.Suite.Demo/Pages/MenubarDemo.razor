@@ -1,0 +1,133 @@
+@page "/menubar"
+
+<PageTitle>Menubar Demo</PageTitle>
+
+<section class="stack">
+    <div class="card">
+        <h2>Menubar</h2>
+        <p>
+            Horizontal menu strip built on the shared menu substrate, with trigger-to-trigger roving
+            focus, cross-menu navigation, submenu support, and selection items.
+        </p>
+    </div>
+
+    <div class="grid">
+        <article class="card stack">
+            <h3>Application menubar</h3>
+
+            <BradixMenubar Value="@_currentMenu" ValueChanged="HandleCurrentMenuChanged">
+                <BradixMenubarMenu Value="file">
+                    <BradixMenubarTrigger>File</BradixMenubarTrigger>
+                    <BradixMenubarPortal>
+                        <BradixMenubarContent Class="card stack" SideOffset="6">
+                            <BradixMenubarItem TextValue="New file" OnSelect='@(() => SetSelection("New file"))'>New file</BradixMenubarItem>
+                            <BradixMenubarItem TextValue="Open" OnSelect='@(() => SetSelection("Open"))'>Open</BradixMenubarItem>
+                            <BradixMenubarSub>
+                                <BradixMenubarSubTrigger TextValue="Share">Share</BradixMenubarSubTrigger>
+                                <BradixMenubarPortal>
+                                    <BradixMenubarSubContent Class="card stack" SideOffset="6">
+                                        <BradixMenubarItem TextValue="Copy link" OnSelect='@(() => SetSelection("Copy link"))'>Copy link</BradixMenubarItem>
+                                        <BradixMenubarItem TextValue="Email" OnSelect='@(() => SetSelection("Email"))'>Email</BradixMenubarItem>
+                                    </BradixMenubarSubContent>
+                                </BradixMenubarPortal>
+                            </BradixMenubarSub>
+                        </BradixMenubarContent>
+                    </BradixMenubarPortal>
+                </BradixMenubarMenu>
+
+                <BradixMenubarMenu Value="edit">
+                    <BradixMenubarTrigger>Edit</BradixMenubarTrigger>
+                    <BradixMenubarPortal>
+                        <BradixMenubarContent Class="card stack" SideOffset="6">
+                            <BradixMenubarCheckboxItem Checked="@_lineNumbers"
+                                                       CheckedChanged="HandleLineNumbersChanged"
+                                                       CloseOnSelect="false">
+                                <span>Show line numbers</span>
+                                <BradixMenubarItemIndicator>
+                                    <span>[x]</span>
+                                </BradixMenubarItemIndicator>
+                            </BradixMenubarCheckboxItem>
+                            <BradixMenubarCheckboxItem Checked="@_wordWrap"
+                                                       CheckedChanged="HandleWordWrapChanged"
+                                                       CloseOnSelect="false">
+                                <span>Word wrap</span>
+                                <BradixMenubarItemIndicator>
+                                    <span>[x]</span>
+                                </BradixMenubarItemIndicator>
+                            </BradixMenubarCheckboxItem>
+                        </BradixMenubarContent>
+                    </BradixMenubarPortal>
+                </BradixMenubarMenu>
+
+                <BradixMenubarMenu Value="view">
+                    <BradixMenubarTrigger>View</BradixMenubarTrigger>
+                    <BradixMenubarPortal>
+                        <BradixMenubarContent Class="card stack" SideOffset="6">
+                            <BradixMenubarLabel>Sort by</BradixMenubarLabel>
+                            <BradixMenubarRadioGroup Value="@_sort" ValueChanged="HandleSortChanged">
+                                <BradixMenubarRadioItem Value="name" CloseOnSelect="false">
+                                    <span>Name</span>
+                                    <BradixMenubarItemIndicator>
+                                        <span>(o)</span>
+                                    </BradixMenubarItemIndicator>
+                                </BradixMenubarRadioItem>
+                                <BradixMenubarRadioItem Value="date" CloseOnSelect="false">
+                                    <span>Date modified</span>
+                                    <BradixMenubarItemIndicator>
+                                        <span>(o)</span>
+                                    </BradixMenubarItemIndicator>
+                                </BradixMenubarRadioItem>
+                            </BradixMenubarRadioGroup>
+                            <BradixMenubarSeparator />
+                            <BradixMenubarItem TextValue="Zoom in" OnSelect='@(() => SetSelection("Zoom in"))'>Zoom in</BradixMenubarItem>
+                        </BradixMenubarContent>
+                    </BradixMenubarPortal>
+                </BradixMenubarMenu>
+            </BradixMenubar>
+
+            <p><strong>Open menu:</strong> @(_currentMenu ?? "(none)")</p>
+            <p><strong>Last selection:</strong> @(_selection ?? "(none)")</p>
+            <p><strong>Line numbers:</strong> @(_lineNumbers == BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
+            <p><strong>Word wrap:</strong> @(_wordWrap == BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
+            <p><strong>Sort:</strong> @_sort</p>
+        </article>
+    </div>
+</section>
+
+@code {
+    private string? _currentMenu;
+    private string? _selection;
+    private BradixCheckboxCheckedState _lineNumbers = BradixCheckboxCheckedState.Checked;
+    private BradixCheckboxCheckedState _wordWrap = BradixCheckboxCheckedState.Unchecked;
+    private string _sort = "name";
+
+    private Task HandleCurrentMenuChanged(string? value)
+    {
+        _currentMenu = value;
+        return Task.CompletedTask;
+    }
+
+    private Task SetSelection(string value)
+    {
+        _selection = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleLineNumbersChanged(BradixCheckboxCheckedState state)
+    {
+        _lineNumbers = state;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleWordWrapChanged(BradixCheckboxCheckedState state)
+    {
+        _wordWrap = state;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSortChanged(string? value)
+    {
+        _sort = value ?? _sort;
+        return Task.CompletedTask;
+    }
+}

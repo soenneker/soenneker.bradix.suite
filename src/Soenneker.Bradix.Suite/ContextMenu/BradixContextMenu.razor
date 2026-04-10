@@ -1,0 +1,65 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<BradixMenu Open="@_open"
+            OpenChanged="HandleMenuOpenChangedAsync"
+            Dir="@Dir"
+            Modal="@Modal">
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</BradixMenu>
+
+@code {
+    private bool _open;
+
+    [CascadingParameter]
+    private BradixPopper? Popper { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    internal bool CurrentOpen => _open;
+
+    internal async Task OpenAtPointAsync(double x, double y)
+    {
+        Popper?.RegisterVirtualAnchor(x, y);
+
+        if (_open)
+        {
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        await SetOpenAsync(true);
+    }
+
+    internal Task CloseAsync()
+    {
+        return SetOpenAsync(false);
+    }
+
+    private async Task SetOpenAsync(bool open)
+    {
+        if (_open == open)
+            return;
+
+        _open = open;
+
+        if (OnOpenChange.HasDelegate)
+            await OnOpenChange.InvokeAsync(open);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Task HandleMenuOpenChangedAsync(bool open)
+    {
+        return SetOpenAsync(open);
+    }
+}

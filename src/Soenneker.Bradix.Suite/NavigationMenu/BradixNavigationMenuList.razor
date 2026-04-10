@@ -1,0 +1,16 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<div style="position:relative;">
+    <ul @attributes="ListAttributes">
+        @ChildContent
+    </ul>
+</div>
+
+@code {
+    [CascadingParameter]
+    private BradixNavigationMenu? NavigationMenu { get; set; }
+
+    private Dictionary<string, object> ListAttributes => BuildAttributes(
+        ("data-orientation", NavigationMenu?.Orientation ?? "horizontal"));
+}

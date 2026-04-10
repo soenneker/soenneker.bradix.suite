@@ -1,0 +1,206 @@
+@using System.Threading
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<BradixPopper>
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</BradixPopper>
+
+@code {
+    private bool _initialized;
+    private bool _uncontrolledOpen;
+    private CancellationTokenSource? _openDelayTokenSource;
+    private CancellationTokenSource? _closeDelayTokenSource;
+    private bool _isPointerDownOnContent;
+    private bool _hasSelection;
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter]
+    public int OpenDelay { get; set; } = 700;
+
+    [Parameter]
+    public int CloseDelay { get; set; } = 300;
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+
+    internal string ContentId => $"{BaseId}-content";
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-hover-card");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _uncontrolledOpen = DefaultOpen;
+        _initialized = true;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        CancelOpenDelay();
+        CancelCloseDelay();
+        return ValueTask.CompletedTask;
+    }
+
+    internal Task HandleTriggerEnterAsync()
+    {
+        CancelCloseDelay();
+        StartOpenDelay();
+        return Task.CompletedTask;
+    }
+
+    internal Task HandleTriggerLeaveAsync()
+    {
+        StartCloseDelay();
+        return Task.CompletedTask;
+    }
+
+    internal async Task HandleTriggerFocusAsync()
+    {
+        CancelOpenDelay();
+        CancelCloseDelay();
+        await SetOpenAsync(true);
+    }
+
+    internal Task HandleTriggerBlurAsync()
+    {
+        StartCloseDelay();
+        return Task.CompletedTask;
+    }
+
+    internal Task HandleContentEnterAsync()
+    {
+        CancelCloseDelay();
+        return Task.CompletedTask;
+    }
+
+    internal Task HandleContentLeaveAsync()
+    {
+        StartCloseDelay();
+        return Task.CompletedTask;
+    }
+
+    internal void NotifyContentPointerDown()
+    {
+        _hasSelection = false;
+        _isPointerDownOnContent = true;
+        CancelCloseDelay();
+    }
+
+    internal void NotifyContentPointerUp(bool hasSelection)
+    {
+        _isPointerDownOnContent = false;
+        _hasSelection = hasSelection;
+    }
+
+    internal async Task DismissAsync()
+    {
+        CancelOpenDelay();
+        CancelCloseDelay();
+        _isPointerDownOnContent = false;
+        _hasSelection = false;
+        await SetOpenAsync(false);
+    }
+
+    private void StartOpenDelay()
+    {
+        CancelOpenDelay();
+        _openDelayTokenSource = new CancellationTokenSource();
+        _ = OpenAfterDelayAsync(_openDelayTokenSource.Token);
+    }
+
+    private async Task OpenAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(OpenDelay, cancellationToken);
+            await SetOpenAsync(true);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private void StartCloseDelay()
+    {
+        CancelOpenDelay();
+
+        if (_hasSelection || _isPointerDownOnContent)
+            return;
+
+        CancelCloseDelay();
+        _closeDelayTokenSource = new CancellationTokenSource();
+        _ = CloseAfterDelayAsync(_closeDelayTokenSource.Token);
+    }
+
+    private async Task CloseAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(CloseDelay, cancellationToken);
+            await SetOpenAsync(false);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private async Task SetOpenAsync(bool open)
+    {
+        if (CurrentOpen == open)
+            return;
+
+        if (Open is null)
+            _uncontrolledOpen = open;
+
+        if (!open)
+        {
+            _isPointerDownOnContent = false;
+            _hasSelection = false;
+        }
+
+        if (OpenChanged.HasDelegate)
+            await OpenChanged.InvokeAsync(open);
+
+        if (OnOpenChange.HasDelegate)
+            await OnOpenChange.InvokeAsync(open);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void CancelOpenDelay()
+    {
+        _openDelayTokenSource?.Cancel();
+        _openDelayTokenSource?.Dispose();
+        _openDelayTokenSource = null;
+    }
+
+    private void CancelCloseDelay()
+    {
+        _closeDelayTokenSource?.Cancel();
+        _closeDelayTokenSource?.Dispose();
+        _closeDelayTokenSource = null;
+    }
+}

@@ -1,0 +1,140 @@
+@using System
+@using Soenneker.Bradix.Suite.Base
+@implements IDisposable
+@inherits BradixComponentBase
+
+<button @ref="_button"
+        @onpointerenter="HandlePointerEnterAsync"
+        @onpointermove="HandlePointerMoveAsync"
+        @onpointerleave="HandlePointerLeaveAsync"
+        @onclick="HandleClickAsync"
+        @onfocus="HandleFocusAsync"
+        @onkeydown="HandleKeyDownAsync"
+        @attributes="TriggerAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private ElementReference _button;
+    private bool _hasPointerMoveOpened;
+    private bool _wasClickClose;
+    private TriggerRegistration? _registration;
+
+    [CascadingParameter]
+    private BradixNavigationMenu? NavigationMenu { get; set; }
+
+    [CascadingParameter]
+    private BradixNavigationMenuItem? Item { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private bool IsOpen => Item?.IsOpen == true;
+
+    private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("id", Item?.TriggerId),
+        ("type", "button"),
+        ("disabled", Disabled ? true : null),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("data-state", IsOpen ? "open" : "closed"),
+        ("aria-expanded", IsOpen ? "true" : "false"),
+        ("aria-controls", Item?.ContentId),
+        ("tabindex", NavigationMenu is not null && Item is not null && NavigationMenu.IsCurrentTabStop(Item) ? 0 : -1));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && NavigationMenu is not null && Item is not null)
+        {
+            _registration = new TriggerRegistration(Item.ResolvedValue, Item.TriggerId, Disabled, _button);
+            NavigationMenu.RegisterTrigger(_registration);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        if (_registration is not null)
+            NavigationMenu?.UnregisterTrigger(_registration);
+    }
+
+    private Task HandlePointerEnterAsync(PointerEventArgs _)
+    {
+        _wasClickClose = false;
+        return Task.CompletedTask;
+    }
+
+    private async Task HandlePointerMoveAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch" || Disabled || NavigationMenu is null || Item is null || _wasClickClose || _hasPointerMoveOpened)
+            return;
+
+        await NavigationMenu.HandleTriggerPointerMoveAsync(Item.ResolvedValue);
+        _hasPointerMoveOpened = true;
+    }
+
+    private async Task HandlePointerLeaveAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch" || Disabled || NavigationMenu is null)
+            return;
+
+        _hasPointerMoveOpened = false;
+        await NavigationMenu.HandleTriggerPointerLeaveAsync();
+    }
+
+    private async Task HandleClickAsync()
+    {
+        if (Disabled || NavigationMenu is null || Item is null)
+            return;
+
+        await NavigationMenu.ToggleItemAsync(Item.ResolvedValue);
+        _wasClickClose = IsOpen;
+    }
+
+    private Task HandleFocusAsync(FocusEventArgs _)
+    {
+        if (NavigationMenu is not null && Item is not null)
+            NavigationMenu.SetCurrentTabStop(Item.ResolvedValue);
+
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (Disabled || NavigationMenu is null || Item is null)
+            return;
+
+        string verticalEntryKey = NavigationMenu.ResolvedDirection == "rtl" ? "ArrowLeft" : "ArrowRight";
+        string entryKey = NavigationMenu.Orientation == "vertical" ? verticalEntryKey : "ArrowDown";
+
+        if (IsOpen && string.Equals(args.Key, entryKey, StringComparison.Ordinal))
+        {
+            await NavigationMenu.FocusContentAsync(Item.ResolvedValue);
+            return;
+        }
+
+        if (args.Key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown" or "Home" or "End")
+        {
+            if (_registration is not null)
+                await NavigationMenu.HandleTriggerNavigationAsync(_registration, args);
+
+            return;
+        }
+
+        if (args.Key is "Enter" or " " or "Spacebar")
+            await NavigationMenu.ToggleItemAsync(Item.ResolvedValue);
+    }
+
+    private sealed class TriggerRegistration(string value, string triggerId, bool disabled, ElementReference triggerElement) : IBradixNavigationMenuTrigger
+    {
+        public string Value { get; } = value;
+        public string TriggerId { get; } = triggerId;
+        public bool Disabled { get; } = disabled;
+        public ElementReference TriggerElement { get; } = triggerElement;
+
+        public ValueTask FocusAsync()
+        {
+            return TriggerElement.FocusAsync();
+        }
+    }
+}

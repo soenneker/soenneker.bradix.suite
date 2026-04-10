@@ -1,0 +1,20 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<CascadingValue Value="_context">
+    <div role="group"
+         aria-labelledby="@_context.LabelId"
+         @attributes="BuildAttributes()">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private readonly BradixSelectGroupContext _context = new();
+
+    protected override void OnInitialized()
+    {
+        _context.RegisterLabelId(IdGenerator.New("bradix-select-group-label"));
+    }
+}

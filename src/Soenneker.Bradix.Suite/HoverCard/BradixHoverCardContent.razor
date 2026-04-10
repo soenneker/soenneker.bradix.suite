@@ -1,0 +1,199 @@
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+@if (IsPresent)
+{
+    <BradixDismissableLayer DisableOutsidePointerEvents="false"
+                            DismissOnEscapeKeyDown="false"
+                            DismissOnPointerDownOutside="false"
+                            DismissOnFocusOutside="false"
+                            OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
+                            OnPointerDownOutside="@HandlePointerDownOutsideAsync"
+                            OnFocusOutside="@HandleFocusOutsideAsync"
+                            OnInteractOutside="@OnInteractOutside">
+        <BradixPopperContent Side="@Side"
+                             SideOffset="@SideOffset"
+                             Align="@Align"
+                             AlignOffset="@AlignOffset"
+                             ArrowPadding="@ArrowPadding"
+                             AvoidCollisions="@AvoidCollisions"
+                             CollisionPadding="@CollisionPadding"
+                             HideWhenDetached="@HideWhenDetached"
+                             Style="@PositionerStyle">
+            <BradixPresence Present="IsPresent"
+                            Tag="div"
+                            Id="@ResolvedContentId"
+                            Class="@Class"
+                            Style="@Style"
+                            AdditionalAttributes="@ContentAttributes"
+                            OnElementReferenceCaptured="@HandleContentReferenceCapturedAsync">
+                <div @onpointerenter="HandlePointerEnterAsync"
+                     @onpointerleave="HandlePointerLeaveAsync"
+                     @onpointerdown="HandlePointerDownAsync">
+                    @ChildContent
+                </div>
+            </BradixPresence>
+        </BradixPopperContent>
+    </BradixDismissableLayer>
+}
+
+@code {
+    private ElementReference _contentElement;
+    private bool _hasContentElement;
+    private bool _selectionContainmentRegistered;
+    private DotNetObjectReference<object>? _dotNetReference;
+
+    [CascadingParameter]
+    private BradixHoverCard? HoverCard { get; set; }
+
+    [CascadingParameter(Name = "BradixHoverCardPortalForceMount")]
+    private bool PortalForceMount { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public string Side { get; set; } = "top";
+
+    [Parameter]
+    public double SideOffset { get; set; }
+
+    [Parameter]
+    public string Align { get; set; } = "center";
+
+    [Parameter]
+    public double AlignOffset { get; set; }
+
+    [Parameter]
+    public double ArrowPadding { get; set; }
+
+    [Parameter]
+    public bool AvoidCollisions { get; set; } = true;
+
+    [Parameter]
+    public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public bool HideWhenDetached { get; set; }
+
+    [Parameter]
+    public EventCallback OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnFocusOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnInteractOutside { get; set; }
+
+    private bool IsPresent => ForceMount || PortalForceMount || HoverCard?.CurrentOpen == true;
+
+    private string? ResolvedContentId => string.IsNullOrWhiteSpace(Id) ? HoverCard?.ContentId : Id;
+
+    private string PositionerStyle =>
+        "--radix-hover-card-content-transform-origin: var(--radix-popper-transform-origin); --radix-hover-card-content-available-width: var(--radix-popper-available-width); --radix-hover-card-content-available-height: var(--radix-popper-available-height); --radix-hover-card-trigger-width: var(--radix-popper-anchor-width); --radix-hover-card-trigger-height: var(--radix-popper-anchor-height);";
+
+    private IReadOnlyDictionary<string, object> ContentAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["data-state"] = HoverCard?.CurrentOpen == true ? "open" : "closed";
+            return attributes;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_hasContentElement)
+            return;
+
+        await Interop.DisableHoverCardContentTabNavigation(_contentElement);
+
+        if (_selectionContainmentRegistered)
+            return;
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterHoverCardSelectionContainment(_contentElement, _dotNetReference);
+        _selectionContainmentRegistered = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_selectionContainmentRegistered)
+            await Interop.UnregisterHoverCardSelectionContainment(_contentElement);
+
+        _dotNetReference?.Dispose();
+    }
+
+    private Task HandleContentReferenceCapturedAsync(ElementReference element)
+    {
+        _contentElement = element;
+        _hasContentElement = true;
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleEscapeKeyDownAsync()
+    {
+        if (OnEscapeKeyDown.HasDelegate)
+            await OnEscapeKeyDown.InvokeAsync();
+
+        if (HoverCard is not null)
+            await HoverCard.DismissAsync();
+    }
+
+    private async Task HandlePointerDownOutsideAsync()
+    {
+        if (OnPointerDownOutside.HasDelegate)
+            await OnPointerDownOutside.InvokeAsync();
+
+        if (HoverCard is not null)
+            await HoverCard.DismissAsync();
+    }
+
+    private Task HandleFocusOutsideAsync()
+    {
+        return OnFocusOutside.HasDelegate
+            ? OnFocusOutside.InvokeAsync()
+            : Task.CompletedTask;
+    }
+
+    private Task HandlePointerEnterAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch")
+            return Task.CompletedTask;
+
+        return HoverCard?.HandleContentEnterAsync() ?? Task.CompletedTask;
+    }
+
+    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch")
+            return Task.CompletedTask;
+
+        return HoverCard?.HandleContentLeaveAsync() ?? Task.CompletedTask;
+    }
+
+    private async Task HandlePointerDownAsync(PointerEventArgs _)
+    {
+        if (_hasContentElement)
+            await Interop.BeginHoverCardSelectionContainment(_contentElement);
+
+        HoverCard?.NotifyContentPointerDown();
+    }
+
+    [JSInvokable]
+    public Task HandleDocumentPointerUpAsync(bool hasSelection)
+    {
+        HoverCard?.NotifyContentPointerUp(hasSelection);
+        return Task.CompletedTask;
+    }
+}

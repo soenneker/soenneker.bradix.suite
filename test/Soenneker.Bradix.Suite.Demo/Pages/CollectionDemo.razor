@@ -1,0 +1,136 @@
+@page "/collection"
+@using Soenneker.Bradix.Suite.Collection
+@using Soenneker.Bradix.Suite.Typeahead
+
+<PageTitle>Collection Demo</PageTitle>
+
+<section class="stack">
+    <div class="card">
+        <h2>Collection + Typeahead substrate</h2>
+        <p>
+            This page exercises the ordered collection registry and the Radix-style typeahead matcher
+            that upcoming menu, select, and navigation primitives will build on.
+        </p>
+    </div>
+
+    <div class="card stack">
+        <label for="typeahead-input"><strong>Typeahead input</strong></label>
+        <input id="typeahead-input"
+               @onkeydown="HandleKeyDown"
+               placeholder="Type letters to search the ordered items..."
+               aria-describedby="typeahead-hint" />
+        <p id="typeahead-hint">
+            The buffer resets after a short idle pause. Single-character searches skip the current match,
+            matching Radix's menu/select behavior.
+        </p>
+
+        <div>
+            <button type="button" @onclick="ResetSearch">Reset search</button>
+            <button type="button" @onclick="MoveBlueFirst">Move Blue to first</button>
+            <button type="button" @onclick="ToggleAmberDisabled">Toggle Amber disabled</button>
+        </div>
+
+        <p><strong>Current search:</strong> @(_buffer.CurrentSearch is "" ? "(empty)" : _buffer.CurrentSearch)</p>
+        <p><strong>Active match:</strong> @(CurrentMatchLabel ?? "(none)")</p>
+
+        <ul aria-label="Registered collection items">
+            @foreach (BradixCollectionEntry<DemoItem> entry in _registry.Snapshot())
+            {
+                bool isActive = entry.Key == _activeKey;
+                <li aria-current="@(isActive ? "true" : null)">
+                    <strong>@entry.Item.TextValue</strong>
+                    @if (entry.Item.Disabled)
+                    {
+                        <span> (disabled)</span>
+                    }
+                    @if (isActive)
+                    {
+                        <span> [active]</span>
+                    }
+                </li>
+            }
+        </ul>
+    </div>
+</section>
+
+@code {
+    private readonly BradixCollectionRegistry<DemoItem> _registry = new();
+    private readonly BradixTypeaheadBuffer _buffer = new();
+    private string? _activeKey;
+
+    private string? CurrentMatchLabel =>
+        _activeKey is null || !_registry.TryGet(_activeKey, out DemoItem item)
+            ? null
+            : item.TextValue;
+
+    protected override void OnInitialized()
+    {
+        _registry.Register("alpha", new DemoItem("Alpha"));
+        _registry.Register("amber", new DemoItem("Amber"));
+        _registry.Register("beta", new DemoItem("Beta"));
+        _registry.Register("blue", new DemoItem("Blue"));
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+        {
+            ResetSearch();
+            return;
+        }
+
+        if (args.CtrlKey || args.AltKey || args.MetaKey || string.IsNullOrEmpty(args.Key) || args.Key.Length != 1)
+        {
+            return;
+        }
+
+        string search = _buffer.Append(args.Key);
+        ApplySearch(search);
+    }
+
+    private void ResetSearch()
+    {
+        _buffer.Reset();
+        _activeKey = null;
+    }
+
+    private void MoveBlueFirst()
+    {
+        if (_registry.TryGet("blue", out DemoItem item))
+        {
+            _registry.Insert(0, "blue", item);
+        }
+    }
+
+    private void ToggleAmberDisabled()
+    {
+        if (_registry.TryGet("amber", out DemoItem item))
+        {
+            _registry.Register("amber", item with { Disabled = !item.Disabled });
+
+            if (_activeKey == "amber" && item.Disabled is false)
+            {
+                _activeKey = null;
+            }
+        }
+    }
+
+    private void ApplySearch(string search)
+    {
+        IReadOnlyList<BradixCollectionEntry<DemoItem>> enabledEntries = _registry.Snapshot()
+            .Where(entry => !entry.Item.Disabled)
+            .ToArray();
+
+        BradixCollectionEntry<DemoItem>? currentEntry = enabledEntries.FirstOrDefault(entry => entry.Key == _activeKey);
+
+        BradixCollectionEntry<DemoItem>? nextEntry = BradixTypeaheadMatcher.FindNextItem(enabledEntries, search, currentEntry,
+            entry => entry.Item.TextValue);
+
+        if (nextEntry is not null)
+        {
+            _activeKey = nextEntry.Key;
+        }
+    }
+
+    private sealed record DemoItem(string TextValue, bool Disabled = false);
+}

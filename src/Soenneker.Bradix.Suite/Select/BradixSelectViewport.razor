@@ -1,0 +1,46 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<>
+    <style>
+        [data-radix-select-viewport] { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+        [data-radix-select-viewport]::-webkit-scrollbar { display: none; }
+    </style>
+    <div @ref="_element"
+         @attributes="ViewportAttributes">
+        <div @ref="_content"
+             style="min-width:100%;display:block;">
+            @ChildContent
+        </div>
+    </div>
+</>
+
+@code {
+    private ElementReference _element;
+    private ElementReference _content;
+
+    [CascadingParameter]
+    private BradixSelectContent? Content { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Content?.RegisterViewportContent(_content);
+
+            if (Content is not null)
+                await Content.RegisterViewportAsync(_element);
+        }
+    }
+
+    private Dictionary<string, object> ViewportAttributes => BuildAttributes(
+        ("data-radix-select-viewport", string.Empty),
+        ("role", "presentation"),
+        ("style", BuildStyle()));
+
+    private string BuildStyle()
+    {
+        const string baseStyle = "position:relative;flex:1;overflow:hidden auto;";
+        return string.IsNullOrWhiteSpace(Style) ? baseStyle : $"{baseStyle} {Style}";
+    }
+}

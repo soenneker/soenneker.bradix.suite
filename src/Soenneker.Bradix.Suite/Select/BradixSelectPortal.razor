@@ -1,0 +1,11 @@
+<BradixPortal ContainerSelector="@ContainerSelector">
+    @ChildContent
+</BradixPortal>
+
+@code {
+    [Parameter]
+    public string? ContainerSelector { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

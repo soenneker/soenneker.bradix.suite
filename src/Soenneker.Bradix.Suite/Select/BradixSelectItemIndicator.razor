@@ -1,0 +1,15 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+@if (Item?.IsSelected == true)
+{
+    <span aria-hidden="true"
+          @attributes="BuildAttributes()">
+        @ChildContent
+    </span>
+}
+
+@code {
+    [CascadingParameter]
+    private BradixSelectItem? Item { get; set; }
+}

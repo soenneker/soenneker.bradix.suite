@@ -1,0 +1,11 @@
+@using System.Collections.Generic
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<div @attributes="GroupAttributes">
+    @ChildContent
+</div>
+
+@code {
+    private Dictionary<string, object> GroupAttributes => BuildAttributes(("role", "group"));
+}

@@ -1,0 +1,133 @@
+@using System.Collections.Generic
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@implements IBradixMenubarTrigger
+@inherits BradixComponentBase
+
+<BradixMenuAnchor>
+    <button @ref="_button"
+            @onpointerdown="HandlePointerDownAsync"
+            @onpointerenter="HandlePointerEnterAsync"
+            @onkeydown="HandleKeyDownAsync"
+            @onfocus="HandleFocusAsync"
+            @onblur="HandleBlurAsync"
+            @attributes="TriggerAttributes">
+        @ChildContent
+    </button>
+</BradixMenuAnchor>
+
+@code {
+    private ElementReference _button;
+    private bool _registered;
+    private bool _isFocused;
+
+    [CascadingParameter]
+    private BradixMenubar? Menubar { get; set; }
+
+    [CascadingParameter]
+    private BradixMenubarMenu? MenubarMenu { get; set; }
+
+    [CascadingParameter]
+    private BradixMenu? Menu { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    string IBradixMenubarTrigger.Value => MenubarMenu!.CurrentValue;
+
+    string IBradixMenubarTrigger.TriggerId => MenubarMenu!.TriggerId;
+
+    bool IBradixMenubarTrigger.Disabled => Disabled;
+
+    private bool IsOpen => MenubarMenu?.IsOpen == true;
+
+    private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("type", "button"),
+        ("role", "menuitem"),
+        ("id", MenubarMenu?.TriggerId),
+        ("tabindex", Menubar?.IsCurrentTabStop(MenubarMenu!) == true ? 0 : -1),
+        ("aria-haspopup", "menu"),
+        ("aria-expanded", IsOpen ? "true" : "false"),
+        ("aria-controls", IsOpen ? MenubarMenu?.ContentId : null),
+        ("data-highlighted", _isFocused ? string.Empty : null),
+        ("data-state", IsOpen ? "open" : "closed"),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("disabled", Disabled ? true : null));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || Menubar is null || MenubarMenu is null || Menu is null)
+            return Task.CompletedTask;
+
+        Menubar.RegisterTrigger(this);
+        Menu.RegisterTrigger(_button);
+        _registered = true;
+        return Task.CompletedTask;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (_registered && Menubar is not null)
+            Menubar.UnregisterTrigger(this);
+
+        return ValueTask.CompletedTask;
+    }
+
+    ValueTask IBradixMenubarTrigger.FocusAsync() => _button.FocusAsync();
+
+    private Task HandlePointerDownAsync(PointerEventArgs args)
+    {
+        if (Disabled || Menubar is null || MenubarMenu is null || args.Button != 0 || args.CtrlKey)
+            return Task.CompletedTask;
+
+        MenubarMenu.ResetKeyboardTriggerOpen();
+        return Menubar.OpenMenuAsync(MenubarMenu.CurrentValue);
+    }
+
+    private async Task HandlePointerEnterAsync(PointerEventArgs _)
+    {
+        if (Disabled || Menubar is null || MenubarMenu is null || !Menubar.HasOpenMenu || IsOpen)
+            return;
+
+        await Menubar.OpenMenuAsync(MenubarMenu.CurrentValue);
+        await _button.FocusAsync();
+    }
+
+    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (Disabled || Menubar is null || MenubarMenu is null)
+            return;
+
+        if (args.Key is "Enter" or " " or "Spacebar")
+        {
+            MenubarMenu.MarkKeyboardTriggerOpen();
+            await Menubar.ToggleMenuAsync(MenubarMenu.CurrentValue);
+            return;
+        }
+
+        if (args.Key == "ArrowDown")
+        {
+            MenubarMenu.MarkKeyboardTriggerOpen();
+            await Menubar.OpenMenuAsync(MenubarMenu.CurrentValue);
+            return;
+        }
+
+        await Menubar.HandleTriggerKeyDownAsync(this, args);
+    }
+
+    private Task HandleFocusAsync(FocusEventArgs _)
+    {
+        if (Disabled || MenubarMenu is null || Menubar is null)
+            return Task.CompletedTask;
+
+        _isFocused = true;
+        Menubar.SetCurrentTabStop(MenubarMenu.CurrentValue);
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task HandleBlurAsync(FocusEventArgs _)
+    {
+        _isFocused = false;
+        return InvokeAsync(StateHasChanged);
+    }
+}

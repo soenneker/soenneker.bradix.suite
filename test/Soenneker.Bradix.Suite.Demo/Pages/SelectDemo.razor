@@ -1,0 +1,143 @@
+@page "/select"
+
+<PageTitle>Select Demo</PageTitle>
+
+<section class="stack">
+    <div class="card">
+        <h2>Select</h2>
+        <p>
+            Trigger/listbox composition with default item-aligned positioning, grouped labels,
+            selected-item indicators, focus-scoped content, pointer-open guards, window-dismiss behavior,
+            and a hidden native select for form participation.
+        </p>
+    </div>
+
+    <div class="grid">
+        <article class="card stack">
+            <h3>Uncontrolled select</h3>
+
+            <BradixSelect Name="fruit"
+                          DefaultValue="orange">
+                <BradixSelectTrigger Class="demo-link">
+                    <BradixSelectValue Placeholder="@_placeholder" />
+                    <BradixSelectIcon />
+                </BradixSelectTrigger>
+
+                <BradixSelectPortal>
+                    <BradixSelectContent Class="card stack"
+                                         SideOffset="6">
+                        <BradixSelectViewport Class="stack">
+                            <BradixSelectGroup>
+                                <BradixSelectLabel>Citrus</BradixSelectLabel>
+                                <BradixSelectItem Value="orange">
+                                    <BradixSelectItemText>Orange</BradixSelectItemText>
+                                    <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
+                                </BradixSelectItem>
+                                <BradixSelectItem Value="lime">
+                                    <BradixSelectItemText>Lime</BradixSelectItemText>
+                                    <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
+                                </BradixSelectItem>
+                            </BradixSelectGroup>
+
+                            <BradixSelectSeparator />
+
+                            <BradixSelectGroup>
+                                <BradixSelectLabel>Berry</BradixSelectLabel>
+                                <BradixSelectItem Value="strawberry">
+                                    <BradixSelectItemText>Strawberry</BradixSelectItemText>
+                                    <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
+                                </BradixSelectItem>
+                                <BradixSelectItem Value="blueberry"
+                                                  Disabled="true">
+                                    <BradixSelectItemText>Blueberry (disabled)</BradixSelectItemText>
+                                </BradixSelectItem>
+                            </BradixSelectGroup>
+                        </BradixSelectViewport>
+                    </BradixSelectContent>
+                </BradixSelectPortal>
+            </BradixSelect>
+        </article>
+
+        <article class="card stack">
+            <h3>Overflow with scroll buttons</h3>
+
+            <BradixSelect DefaultValue="option-8">
+                <BradixSelectTrigger Class="demo-link">
+                    <BradixSelectValue Placeholder="@_placeholder" />
+                    <BradixSelectIcon />
+                </BradixSelectTrigger>
+
+                <BradixSelectPortal>
+                    <BradixSelectContent Class="card stack"
+                                         Style="max-height:12rem;">
+                        <BradixSelectScrollUpButton>Scroll up</BradixSelectScrollUpButton>
+                        <BradixSelectViewport Class="stack">
+                            @foreach (string option in _overflowOptions)
+                            {
+                                <BradixSelectItem Value="@option">
+                                    <BradixSelectItemText>@OptionLabel(option)</BradixSelectItemText>
+                                    <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
+                                </BradixSelectItem>
+                            }
+                        </BradixSelectViewport>
+                        <BradixSelectScrollDownButton>Scroll down</BradixSelectScrollDownButton>
+                    </BradixSelectContent>
+                </BradixSelectPortal>
+            </BradixSelect>
+        </article>
+
+        <article class="card stack">
+            <h3>Controlled value with popper positioning</h3>
+
+            <BradixSelect Value="@_priority"
+                          ValueChanged="HandlePriorityChanged">
+                <BradixSelectTrigger Class="demo-link">
+                    <BradixSelectValue Placeholder="@_placeholder" />
+                    <BradixSelectIcon />
+                </BradixSelectTrigger>
+
+                <BradixSelectPortal>
+                    <BradixSelectContent Class="card stack"
+                                         Position="popper"
+                                         SideOffset="6"
+                                         Align="start">
+                        <BradixSelectViewport Class="stack">
+                            <BradixSelectItem Value="low">
+                                <BradixSelectItemText>Low</BradixSelectItemText>
+                                <BradixSelectItemIndicator>(o)</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="medium">
+                                <BradixSelectItemText>Medium</BradixSelectItemText>
+                                <BradixSelectItemIndicator>(o)</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="high">
+                                <BradixSelectItemText>High</BradixSelectItemText>
+                                <BradixSelectItemIndicator>(o)</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                        </BradixSelectViewport>
+                    </BradixSelectContent>
+                </BradixSelectPortal>
+            </BradixSelect>
+
+            <p><strong>Current priority:</strong> @_priority</p>
+        </article>
+    </div>
+</section>
+
+@code {
+    private string _priority = "medium";
+    private readonly string[] _overflowOptions = Enumerable.Range(1, 16).Select(index => $"option-{index}").ToArray();
+
+    private RenderFragment _placeholder => builder => builder.AddContent(0, "Select an option");
+
+    private Task HandlePriorityChanged(string? value)
+    {
+        _priority = value ?? _priority;
+        return Task.CompletedTask;
+    }
+
+    private static string OptionLabel(string option)
+    {
+        return $"Option {option.Split('-').Last()}";
+    }
+}

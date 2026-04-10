@@ -1,0 +1,132 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+
+@if (ShouldRenderInline && (ForceMount || IsOpen))
+{
+    <BradixPresence Present="ForceMount || IsOpen"
+                    Tag="div"
+                    Id="@Item?.ContentId"
+                    Class="@Class"
+                    Style="@Style"
+                    AdditionalAttributes="@ContentAttributes"
+                    OnElementReferenceCaptured="@HandleElementReferenceCapturedAsync">
+        <BradixDismissableLayer DisableOutsidePointerEvents="false"
+                                DismissOnEscapeKeyDown="false"
+                                DismissOnPointerDownOutside="false"
+                                DismissOnFocusOutside="false"
+                                OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
+                                OnPointerDownOutside="@HandlePointerDownOutsideAsync">
+            <div @ref="_contentElement"
+                 @onpointerenter="HandlePointerEnterAsync"
+                 @onpointerleave="HandlePointerLeaveAsync">
+                @ChildContent
+            </div>
+        </BradixDismissableLayer>
+    </BradixPresence>
+}
+
+@code {
+    private ElementReference _contentElement;
+    private bool _registered;
+    private bool _viewportContentRegistered;
+
+    [CascadingParameter]
+    private BradixNavigationMenu? NavigationMenu { get; set; }
+
+    [CascadingParameter]
+    private BradixNavigationMenuItem? Item { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    private bool IsOpen => Item?.IsOpen == true;
+
+    private bool ShouldRenderInline => NavigationMenu?.HasViewport != true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!ShouldRenderInline && !_viewportContentRegistered && NavigationMenu is not null && Item is not null)
+        {
+            NavigationMenu.RegisterViewportContent(new BradixNavigationMenuViewportRegistration
+            {
+                Value = Item.ResolvedValue,
+                TriggerId = Item.TriggerId,
+                ContentId = Item.ContentId,
+                Class = Class,
+                Style = Style,
+                AdditionalAttributes = AdditionalAttributes,
+                ChildContent = ChildContent,
+                ForceMount = ForceMount
+            });
+
+            _viewportContentRegistered = true;
+        }
+    }
+
+    private IReadOnlyDictionary<string, object> ContentAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["data-state"] = IsOpen ? "open" : "closed";
+            attributes["data-orientation"] = NavigationMenu?.Orientation ?? "horizontal";
+            attributes["aria-labelledby"] = Item?.TriggerId ?? string.Empty;
+            attributes["tabindex"] = -1;
+            return attributes;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered && Item is not null)
+            NavigationMenu?.UnregisterContent(Item.ResolvedValue);
+
+        if (Item is not null)
+            NavigationMenu?.UnregisterViewportContent(Item.ResolvedValue);
+    }
+
+    private Task HandleElementReferenceCapturedAsync(ElementReference element)
+    {
+        _contentElement = element;
+
+        if (Item is not null)
+        {
+            NavigationMenu?.RegisterContent(Item.ResolvedValue, element);
+            _registered = true;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleEscapeKeyDownAsync()
+    {
+        if (NavigationMenu is not null && Item is not null)
+            await NavigationMenu.DismissAsync(Item.ResolvedValue);
+    }
+
+    private async Task HandlePointerDownOutsideAsync()
+    {
+        if (NavigationMenu is not null)
+            await NavigationMenu.DismissAsync();
+    }
+
+    private Task HandlePointerEnterAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch")
+            return Task.CompletedTask;
+
+        return NavigationMenu?.HandleContentPointerEnterAsync() ?? Task.CompletedTask;
+    }
+
+    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch")
+            return Task.CompletedTask;
+
+        return NavigationMenu?.HandleContentPointerLeaveAsync() ?? Task.CompletedTask;
+    }
+}

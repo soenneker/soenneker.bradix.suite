@@ -1,0 +1,46 @@
+@using System.Collections.Generic
+
+<BradixMenuSubTrigger Id="@Id"
+                      Class="@Class"
+                      Style="@Style"
+                      TextValue="@TextValue"
+                      Disabled="@Disabled"
+                      AdditionalAttributes="@MergedAttributes">
+    @ChildContent
+</BradixMenuSubTrigger>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public string? TextValue { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private IReadOnlyDictionary<string, object> MergedAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["data-bradix-menubar-subtrigger"] = string.Empty;
+            return attributes;
+        }
+    }
+}

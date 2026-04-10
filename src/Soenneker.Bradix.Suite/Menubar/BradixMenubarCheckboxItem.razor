@@ -1,0 +1,53 @@
+@using Soenneker.Bradix.Suite.Checkbox
+
+<BradixMenuCheckboxItem Id="@Id"
+                        Class="@Class"
+                        Style="@Style"
+                        TextValue="@TextValue"
+                        Checked="@Checked"
+                        DefaultChecked="@DefaultChecked"
+                        Disabled="@Disabled"
+                        CloseOnSelect="@CloseOnSelect"
+                        CheckedChanged="@CheckedChanged"
+                        OnCheckedChange="@OnCheckedChange"
+                        AdditionalAttributes="@AdditionalAttributes">
+    @ChildContent
+</BradixMenuCheckboxItem>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public string? TextValue { get; set; }
+
+    [Parameter]
+    public BradixCheckboxCheckedState? Checked { get; set; }
+
+    [Parameter]
+    public BradixCheckboxCheckedState DefaultChecked { get; set; } = BradixCheckboxCheckedState.Unchecked;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public bool CloseOnSelect { get; set; } = true;
+
+    [Parameter]
+    public EventCallback<BradixCheckboxCheckedState> CheckedChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnCheckedChange { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

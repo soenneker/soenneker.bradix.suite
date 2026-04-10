@@ -1,0 +1,51 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<span @ref="_element"
+      @attributes="ValueAttributes">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else if (Select?.ShouldShowPlaceholder == true)
+    {
+        @Placeholder
+    }
+    else
+    {
+        @Select?.CurrentText
+    }
+</span>
+
+@code {
+    private ElementReference _element;
+
+    [CascadingParameter]
+    private BradixSelect? Select { get; set; }
+
+    [Parameter]
+    public RenderFragment? Placeholder { get; set; }
+
+    protected override Task OnParametersSetAsync()
+    {
+        Select?.SetValueNodeHasChildren(ChildContent is not null);
+        return Task.CompletedTask;
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            Select?.RegisterValueNode(_element);
+
+        return Task.CompletedTask;
+    }
+
+    private Dictionary<string, object> ValueAttributes => BuildAttributes(
+        ("style", BuildStyle()));
+
+    private string BuildStyle()
+    {
+        const string baseStyle = "pointer-events:none;";
+        return string.IsNullOrWhiteSpace(Style) ? baseStyle : $"{baseStyle} {Style}";
+    }
+}

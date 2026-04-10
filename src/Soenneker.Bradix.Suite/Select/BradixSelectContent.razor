@@ -1,0 +1,437 @@
+@using System
+@using System.Collections.Generic
+@using System.Threading
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+@if (Select?.CurrentOpen == true || ForceMount)
+{
+    <BradixRemoveScroll AllowPinchZoom>
+        <BradixFocusGuards>
+            <BradixFocusScope Trapped="true"
+                              OnMountAutoFocus="@HandleOpenAutoFocusAsync"
+                              OnUnmountAutoFocus="@HandleCloseAutoFocusAsync">
+                <BradixDismissableLayer DisableOutsidePointerEvents="true"
+                                        DismissOnEscapeKeyDown="false"
+                                        DismissOnPointerDownOutside="false"
+                                        DismissOnFocusOutside="false"
+                                        OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
+                                        OnPointerDownOutside="@HandlePointerDownOutsideAsync"
+                                        OnFocusOutside="@HandleFocusOutsideAsync">
+                    @if (UseItemAlignedPosition)
+                    {
+                        <div @ref="_wrapperElement"
+                             data-radix-select-position="item-aligned"
+                             style="display:flex;flex-direction:column;position:fixed;">
+                            <BradixPresence Present="true"
+                                            Tag="div"
+                                            Id="@Select?.ContentId"
+                                            Class="@Class"
+                                            Style="@MergedStyle"
+                                            AdditionalAttributes="@ContentAttributes"
+                                            OnElementReferenceCaptured="@HandleContentElementCapturedAsync">
+                                <CascadingValue Value="this">
+                                    @ChildContent
+                                </CascadingValue>
+                            </BradixPresence>
+                        </div>
+                    }
+                    else
+                    {
+                        <BradixPopperContent Side="@Side"
+                                             SideOffset="@SideOffset"
+                                             Align="@Align"
+                                             AlignOffset="@AlignOffset"
+                                             ArrowPadding="@ArrowPadding"
+                                             AvoidCollisions="@AvoidCollisions"
+                                             CollisionPadding="@CollisionPadding"
+                                             HideWhenDetached="@HideWhenDetached"
+                                             Style="@PositionerStyle"
+                                             OnPlaced="@OnPlaced">
+                            <BradixPresence Present="true"
+                                            Tag="div"
+                                            Id="@Select?.ContentId"
+                                            Class="@Class"
+                                            Style="@MergedStyle"
+                                            AdditionalAttributes="@ContentAttributes"
+                                            OnElementReferenceCaptured="@HandleContentElementCapturedAsync">
+                                <CascadingValue Value="this">
+                                    @ChildContent
+                                </CascadingValue>
+                            </BradixPresence>
+                        </BradixPopperContent>
+                    }
+                </BradixDismissableLayer>
+            </BradixFocusScope>
+        </BradixFocusGuards>
+    </BradixRemoveScroll>
+}
+else
+{
+    <div hidden
+         style="display:none;">
+        <CascadingValue Value="this">
+            @ChildContent
+        </CascadingValue>
+    </div>
+}
+
+@code {
+    private bool _didFocusOpenItem;
+    private bool _hasContentElement;
+    private bool _hasViewportElement;
+    private bool _itemAlignedRegistered;
+    private bool _viewportRegistered;
+    private bool _shouldRepositionOnScrollButton = true;
+    private bool _pointerTrackerRegistered;
+    private bool _windowDismissRegistered;
+    private double _viewportScrollTop;
+    private double _viewportScrollHeight;
+    private double _viewportHeight;
+    private CancellationTokenSource? _autoScrollCts;
+    private ElementReference _contentElement;
+    private ElementReference _viewportElement;
+    private ElementReference _wrapperElement;
+    private ElementReference _viewportContentElement;
+    private DotNetObjectReference<object>? _dotNetReference;
+
+    [CascadingParameter]
+    private BradixSelect? Select { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public string Position { get; set; } = "item-aligned";
+
+    [Parameter]
+    public string Side { get; set; } = "bottom";
+
+    [Parameter]
+    public double SideOffset { get; set; }
+
+    [Parameter]
+    public string Align { get; set; } = "start";
+
+    [Parameter]
+    public double AlignOffset { get; set; }
+
+    [Parameter]
+    public double ArrowPadding { get; set; }
+
+    [Parameter]
+    public bool AvoidCollisions { get; set; } = true;
+
+    [Parameter]
+    public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public bool HideWhenDetached { get; set; }
+
+    [Parameter]
+    public EventCallback OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnPlaced { get; set; }
+
+    internal bool CanScrollUp => _viewportRegistered && _viewportScrollTop > 0;
+
+    internal bool CanScrollDown => _viewportRegistered && Math.Ceiling(_viewportScrollTop) < Math.Max(_viewportScrollHeight - _viewportHeight, 0);
+
+    private bool UseItemAlignedPosition => !string.Equals(Position, "popper", StringComparison.OrdinalIgnoreCase);
+
+    private string PositionerStyle =>
+        "--radix-select-content-transform-origin: var(--radix-popper-transform-origin); --radix-select-content-available-width: var(--radix-popper-available-width); --radix-select-content-available-height: var(--radix-popper-available-height); --radix-select-trigger-width: var(--radix-popper-anchor-width); --radix-select-trigger-height: var(--radix-popper-anchor-height);";
+
+    private string MergedStyle => string.IsNullOrWhiteSpace(Style) ? "display:flex;flex-direction:column;outline:none;" : $"display:flex;flex-direction:column;outline:none; {Style}";
+
+    private IReadOnlyDictionary<string, object> ContentAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["role"] = "listbox";
+            attributes["dir"] = Select?.ResolvedDirection ?? "ltr";
+            attributes["data-state"] = Select?.CurrentOpen == true ? "open" : "closed";
+            attributes["data-position"] = UseItemAlignedPosition ? "item-aligned" : "popper";
+            attributes["tabindex"] = -1;
+            attributes["onkeydown"] = EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleContentKeyDownAsync);
+            return attributes;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Select?.CurrentOpen == true)
+        {
+            if (UseItemAlignedPosition)
+                await UpdateItemAlignedPositionAsync();
+
+            await EnsurePointerTrackerAsync();
+            await EnsureWindowDismissAsync();
+        }
+        else
+        {
+            _didFocusOpenItem = false;
+            _shouldRepositionOnScrollButton = true;
+
+            StopAutoScroll();
+
+            if (_itemAlignedRegistered)
+            {
+                await Interop.UnregisterSelectItemAlignedPosition(_wrapperElement);
+                _itemAlignedRegistered = false;
+            }
+
+            if (_viewportRegistered)
+            {
+                await Interop.UnregisterSelectViewport(_viewportElement);
+                _viewportRegistered = false;
+            }
+
+            if (_pointerTrackerRegistered)
+            {
+                await Interop.UnregisterSelectContentPointerTracker(_contentElement);
+                _pointerTrackerRegistered = false;
+            }
+
+            if (_windowDismissRegistered)
+            {
+                await Interop.UnregisterSelectWindowDismiss(_contentElement);
+                _windowDismissRegistered = false;
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        StopAutoScroll();
+
+        if (_itemAlignedRegistered)
+            await Interop.UnregisterSelectItemAlignedPosition(_wrapperElement);
+
+        if (_viewportRegistered)
+            await Interop.UnregisterSelectViewport(_viewportElement);
+
+        if (_pointerTrackerRegistered)
+            await Interop.UnregisterSelectContentPointerTracker(_contentElement);
+
+        if (_windowDismissRegistered)
+            await Interop.UnregisterSelectWindowDismiss(_contentElement);
+
+        _dotNetReference?.Dispose();
+    }
+
+    internal async Task RegisterViewportAsync(ElementReference element)
+    {
+        _viewportElement = element;
+        _hasViewportElement = true;
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterSelectViewport(_viewportElement, _viewportContentElement, _wrapperElement, _dotNetReference);
+        _viewportRegistered = true;
+    }
+
+    internal void RegisterViewportContent(ElementReference element)
+    {
+        _viewportContentElement = element;
+    }
+
+    internal Task FocusViewportAsync()
+    {
+        return Select?.FocusSelectedOrFirstItemAsync() ?? Task.CompletedTask;
+    }
+
+    internal Task StartAutoScrollAsync(bool upward)
+    {
+        StopAutoScroll();
+        _autoScrollCts = new CancellationTokenSource();
+        return RunAutoScrollAsync(upward, _autoScrollCts.Token);
+    }
+
+    internal void StopAutoScroll()
+    {
+        _autoScrollCts?.Cancel();
+        _autoScrollCts?.Dispose();
+        _autoScrollCts = null;
+    }
+
+    internal async Task HandleScrollButtonMountedAsync()
+    {
+        if (!UseItemAlignedPosition || !_shouldRepositionOnScrollButton)
+            return;
+
+        _shouldRepositionOnScrollButton = false;
+        await UpdateItemAlignedPositionAsync();
+        await FocusViewportAsync();
+    }
+
+    [JSInvokable]
+    public Task HandleViewportMetricsChangedAsync(double scrollTop, double scrollHeight, double viewportHeight)
+    {
+        _viewportScrollTop = scrollTop;
+        _viewportScrollHeight = scrollHeight;
+        _viewportHeight = viewportHeight;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task HandleTriggerPointerGuardResultAsync(bool suppressSelection, bool shouldClose)
+    {
+        if (suppressSelection)
+            Select?.SuppressNextMouseUpSelection();
+
+        if (shouldClose && Select is not null)
+            await Select.SetOpenAsync(false);
+
+        _pointerTrackerRegistered = false;
+    }
+
+    [JSInvokable]
+    public async Task HandleWindowDismissAsync()
+    {
+        if (Select is not null && Select.CurrentOpen)
+            await Select.SetOpenAsync(false);
+    }
+
+    private Task HandleContentElementCapturedAsync(ElementReference element)
+    {
+        _contentElement = element;
+        _hasContentElement = true;
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleEscapeKeyDownAsync()
+    {
+        if (OnEscapeKeyDown.HasDelegate)
+            await OnEscapeKeyDown.InvokeAsync();
+
+        if (Select is not null)
+            await Select.SetOpenAsync(false);
+    }
+
+    private async Task HandlePointerDownOutsideAsync()
+    {
+        if (OnPointerDownOutside.HasDelegate)
+            await OnPointerDownOutside.InvokeAsync();
+
+        if (Select is not null)
+            await Select.SetOpenAsync(false);
+    }
+
+    private async Task HandleFocusOutsideAsync()
+    {
+        if (Select is not null)
+            await Select.SetOpenAsync(false);
+    }
+
+    private async Task HandleOpenAutoFocusAsync()
+    {
+        if (_didFocusOpenItem || Select is null)
+            return;
+
+        _didFocusOpenItem = true;
+        await Select.FocusSelectedOrFirstItemAsync();
+    }
+
+    private Task HandleCloseAutoFocusAsync()
+    {
+        return Select?.FocusTriggerAsync() ?? Task.CompletedTask;
+    }
+
+    private async Task HandleContentKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
+            return;
+
+        if (args.Key == "Tab")
+            return;
+
+        if (args.Key.Length == 1)
+        {
+            await Select.HandleContentTypeaheadAsync(args.Key);
+            return;
+        }
+
+        if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
+            await Select.HandleContentNavigationAsync(args.Key);
+    }
+
+    private async Task UpdateItemAlignedPositionAsync()
+    {
+        if (Select is null || !UseItemAlignedPosition || !_hasContentElement || !_hasViewportElement || !Select.HasTrigger || !Select.HasValueNode)
+            return;
+
+        IBradixSelectItem? selectedItem = Select.GetSelectedOrFirstEnabledItem();
+
+        if (selectedItem is null || !selectedItem.HasItemTextElement)
+            return;
+
+        if (_itemAlignedRegistered)
+        {
+            await Interop.UpdateSelectItemAlignedPosition(_wrapperElement, _contentElement, _viewportElement, Select.TriggerElement, Select.ValueNodeElement,
+                selectedItem.ItemElement, selectedItem.ItemTextElement, Select.ResolvedDirection);
+        }
+        else
+        {
+            await Interop.RegisterSelectItemAlignedPosition(_wrapperElement, _contentElement, _viewportElement, Select.TriggerElement, Select.ValueNodeElement,
+                selectedItem.ItemElement, selectedItem.ItemTextElement, Select.ResolvedDirection);
+            _itemAlignedRegistered = true;
+
+            if (OnPlaced.HasDelegate)
+                await OnPlaced.InvokeAsync();
+        }
+    }
+
+    private async Task RunAutoScrollAsync(bool upward, CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (Select is null)
+                return;
+
+            IBradixSelectItem? item = Select.GetSelectedOrFirstEnabledItem();
+
+            if (item is not null)
+                await Interop.ScrollSelectViewportByItem(_viewportElement, item.ItemElement, upward, cancellationToken);
+
+            try
+            {
+                await Task.Delay(50, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+        }
+    }
+
+    private async Task EnsurePointerTrackerAsync()
+    {
+        if (Select is null || !_hasContentElement || _pointerTrackerRegistered || !Select.HasTriggerPointerDownPosition)
+            return;
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterSelectContentPointerTracker(_contentElement, _dotNetReference, Select.TriggerPointerDownX, Select.TriggerPointerDownY);
+        _pointerTrackerRegistered = true;
+    }
+
+    private async Task EnsureWindowDismissAsync()
+    {
+        if (!_hasContentElement || _windowDismissRegistered)
+            return;
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterSelectWindowDismiss(_contentElement, _dotNetReference);
+        _windowDismissRegistered = true;
+    }
+}

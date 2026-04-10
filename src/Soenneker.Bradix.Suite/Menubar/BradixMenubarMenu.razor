@@ -1,0 +1,61 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<BradixMenu Open="@IsOpen"
+            OpenChanged="HandleMenuOpenChangedAsync"
+            Dir="@Menubar?.ResolvedDirection"
+            Modal="false">
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</BradixMenu>
+
+@code {
+    [CascadingParameter]
+    internal BradixMenubar? Menubar { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? AutoValue { get; private set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal bool WasKeyboardTriggerOpen { get; private set; }
+
+    internal string CurrentValue => Value ?? AutoValue!;
+
+    internal string TriggerId => $"{BaseId}-trigger";
+
+    internal string ContentId => $"{BaseId}-content";
+
+    internal bool IsOpen => string.Equals(Menubar?.CurrentValue, CurrentValue, System.StringComparison.Ordinal);
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-menubar-menu");
+        AutoValue ??= IdGenerator.New("bradix-menubar-value");
+    }
+
+    internal void MarkKeyboardTriggerOpen()
+    {
+        WasKeyboardTriggerOpen = true;
+    }
+
+    internal void ResetKeyboardTriggerOpen()
+    {
+        WasKeyboardTriggerOpen = false;
+    }
+
+    private Task HandleMenuOpenChangedAsync(bool open)
+    {
+        if (open)
+            return Menubar?.OpenMenuAsync(CurrentValue) ?? Task.CompletedTask;
+
+        ResetKeyboardTriggerOpen();
+        return Menubar?.CloseMenuAsync() ?? Task.CompletedTask;
+    }
+}

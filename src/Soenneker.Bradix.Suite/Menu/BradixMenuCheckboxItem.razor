@@ -1,0 +1,115 @@
+@using System.Collections.Generic
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Checkbox
+@inherits BradixComponentBase
+
+<CascadingValue Value="IndicatorContext">
+    <BradixMenuItem Id="@Id"
+                    Class="@Class"
+                    Style="@Style"
+                    TextValue="@TextValue"
+                    Role="menuitemcheckbox"
+                    Disabled="Disabled"
+                    CloseOnSelect="CloseOnSelect"
+                    OnSelect="HandleSelectAsync"
+                    AdditionalAttributes="@ItemAttributes">
+        @ChildContent
+    </BradixMenuItem>
+</CascadingValue>
+
+@code {
+    private bool _initialized;
+    private BradixCheckboxCheckedState _uncontrolledChecked;
+
+    [Parameter]
+    public BradixCheckboxCheckedState? Checked { get; set; }
+
+    [Parameter]
+    public BradixCheckboxCheckedState DefaultChecked { get; set; } = BradixCheckboxCheckedState.Unchecked;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? TextValue { get; set; }
+
+    [Parameter]
+    public bool CloseOnSelect { get; set; } = true;
+
+    [Parameter]
+    public EventCallback<BradixCheckboxCheckedState> CheckedChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnCheckedChange { get; set; }
+
+    private BradixCheckboxCheckedState CurrentChecked => Checked ?? _uncontrolledChecked;
+
+    private BradixMenuItemIndicatorContext IndicatorContext => new()
+    {
+        CheckedState = CurrentChecked,
+        Disabled = Disabled
+    };
+
+    private IReadOnlyDictionary<string, object> ItemAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["aria-checked"] = CurrentChecked == BradixCheckboxCheckedState.Indeterminate
+                ? "mixed"
+                : CurrentChecked == BradixCheckboxCheckedState.Checked
+                    ? "true"
+                    : "false";
+            attributes["data-state"] = GetDataState(CurrentChecked);
+
+            return attributes;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _uncontrolledChecked = DefaultChecked;
+        _initialized = true;
+    }
+
+    private async Task HandleSelectAsync()
+    {
+        BradixCheckboxCheckedState nextState = GetNextState(CurrentChecked);
+
+        if (Checked is null)
+            _uncontrolledChecked = nextState;
+
+        if (CheckedChanged.HasDelegate)
+            await CheckedChanged.InvokeAsync(nextState);
+
+        if (OnCheckedChange.HasDelegate)
+            await OnCheckedChange.InvokeAsync(nextState == BradixCheckboxCheckedState.Checked);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static BradixCheckboxCheckedState GetNextState(BradixCheckboxCheckedState state)
+    {
+        return state == BradixCheckboxCheckedState.Indeterminate
+            ? BradixCheckboxCheckedState.Checked
+            : state == BradixCheckboxCheckedState.Checked
+                ? BradixCheckboxCheckedState.Unchecked
+                : BradixCheckboxCheckedState.Checked;
+    }
+
+    private static string GetDataState(BradixCheckboxCheckedState state)
+    {
+        return state switch
+        {
+            BradixCheckboxCheckedState.Checked => "checked",
+            BradixCheckboxCheckedState.Indeterminate => "indeterminate",
+            _ => "unchecked"
+        };
+    }
+}

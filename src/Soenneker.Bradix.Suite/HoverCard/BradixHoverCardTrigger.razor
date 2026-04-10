@@ -1,0 +1,47 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<BradixPopperAnchor>
+    <a @onpointerenter="HandlePointerEnterAsync"
+       @onpointerleave="HandlePointerLeaveAsync"
+       @onfocus="HandleFocusAsync"
+       @onblur="HandleBlurAsync"
+       @ontouchstart:preventDefault="true"
+       @attributes="TriggerAttributes">
+        @ChildContent
+    </a>
+</BradixPopperAnchor>
+
+@code {
+    [CascadingParameter]
+    private BradixHoverCard? HoverCard { get; set; }
+
+    private bool HasHref => AdditionalAttributes?.ContainsKey("href") == true;
+
+    private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("data-state", HoverCard?.CurrentOpen == true ? "open" : "closed"),
+        ("tabindex", HasHref ? null : 0));
+
+    private Task HandlePointerEnterAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch")
+            return Task.CompletedTask;
+
+        return HoverCard?.HandleTriggerEnterAsync() ?? Task.CompletedTask;
+    }
+
+    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    {
+        return HoverCard?.HandleTriggerLeaveAsync() ?? Task.CompletedTask;
+    }
+
+    private Task HandleFocusAsync(FocusEventArgs _)
+    {
+        return HoverCard?.HandleTriggerFocusAsync() ?? Task.CompletedTask;
+    }
+
+    private Task HandleBlurAsync(FocusEventArgs _)
+    {
+        return HoverCard?.HandleTriggerBlurAsync() ?? Task.CompletedTask;
+    }
+}

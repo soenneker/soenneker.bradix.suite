@@ -1,0 +1,22 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<div @attributes="LabelAttributes">
+    @ChildContent
+</div>
+
+@code {
+    [CascadingParameter]
+    private BradixSelectGroupContext? Group { get; set; }
+
+    private string? ResolvedId => string.IsNullOrWhiteSpace(Id) ? Group?.LabelId : Id;
+
+    private Dictionary<string, object> LabelAttributes => BuildAttributes(
+        ("id", ResolvedId));
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrWhiteSpace(ResolvedId))
+            Group?.RegisterLabelId(ResolvedId);
+    }
+}

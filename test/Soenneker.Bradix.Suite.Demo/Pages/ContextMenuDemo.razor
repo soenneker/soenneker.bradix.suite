@@ -1,0 +1,126 @@
+@page "/context-menu"
+
+<PageTitle>ContextMenu Demo</PageTitle>
+
+<section class="stack">
+    <div class="card">
+        <h2>ContextMenu</h2>
+        <p>
+            Pointer-anchored menu wrapper family built on the shared menu substrate, opening from
+            right-click and touch/pen long-press against a virtual popper anchor.
+        </p>
+    </div>
+
+    <div class="grid">
+        <article class="card stack">
+            <h3>Modal context menu</h3>
+
+            <BradixContextMenu OnOpenChange="HandleOpenChanged">
+                <BradixContextMenuTrigger>
+                    <span style="display:inline-block; min-width: 18rem; padding: 2rem; border: 1px dashed currentColor;">
+                        Right-click or long-press this region
+                    </span>
+                </BradixContextMenuTrigger>
+
+                <BradixContextMenuPortal>
+                    <BradixContextMenuContent Class="card stack">
+                        <BradixContextMenuLabel>File</BradixContextMenuLabel>
+                        <BradixContextMenuItem TextValue="Open" OnSelect='@(() => SetSelection("Open"))'>Open</BradixContextMenuItem>
+                        <BradixContextMenuItem TextValue="Rename" OnSelect='@(() => SetSelection("Rename"))'>Rename</BradixContextMenuItem>
+                        <BradixContextMenuSub>
+                            <BradixContextMenuSubTrigger TextValue="Share">Share</BradixContextMenuSubTrigger>
+                            <BradixContextMenuPortal>
+                                <BradixContextMenuSubContent Class="card stack" SideOffset="6">
+                                    <BradixContextMenuItem TextValue="Copy link" OnSelect='@(() => SetSelection("Copy link"))'>Copy link</BradixContextMenuItem>
+                                    <BradixContextMenuItem TextValue="Email" OnSelect='@(() => SetSelection("Email"))'>Email</BradixContextMenuItem>
+                                </BradixContextMenuSubContent>
+                            </BradixContextMenuPortal>
+                        </BradixContextMenuSub>
+                        <BradixContextMenuSeparator />
+                        <BradixContextMenuCheckboxItem Checked="@_bookmarks"
+                                                       CheckedChanged="HandleBookmarksChanged"
+                                                       CloseOnSelect="false">
+                            <span>Show bookmarks</span>
+                            <BradixContextMenuItemIndicator>
+                                <span>[x]</span>
+                            </BradixContextMenuItemIndicator>
+                        </BradixContextMenuCheckboxItem>
+                        <BradixContextMenuRadioGroup Value="@_sort" ValueChanged="HandleSortChanged">
+                            <BradixContextMenuRadioItem Value="name" CloseOnSelect="false">
+                                <span>Name</span>
+                                <BradixContextMenuItemIndicator>
+                                    <span>(o)</span>
+                                </BradixContextMenuItemIndicator>
+                            </BradixContextMenuRadioItem>
+                            <BradixContextMenuRadioItem Value="date" CloseOnSelect="false">
+                                <span>Date modified</span>
+                                <BradixContextMenuItemIndicator>
+                                    <span>(o)</span>
+                                </BradixContextMenuItemIndicator>
+                            </BradixContextMenuRadioItem>
+                        </BradixContextMenuRadioGroup>
+                        <BradixContextMenuArrow>
+                            <span style="display:block;width:10px;height:10px;background:currentColor;transform:rotate(45deg);"></span>
+                        </BradixContextMenuArrow>
+                    </BradixContextMenuContent>
+                </BradixContextMenuPortal>
+            </BradixContextMenu>
+
+            <p><strong>Open:</strong> @_open</p>
+            <p><strong>Last selection:</strong> @(_selection ?? "(none)")</p>
+            <p><strong>Bookmarks:</strong> @(_bookmarks == BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
+            <p><strong>Sort:</strong> @_sort</p>
+        </article>
+
+        <article class="card stack">
+            <h3>Non-modal context menu</h3>
+
+            <BradixContextMenu Modal="false">
+                <BradixContextMenuTrigger>
+                    <span style="display:inline-block; min-width: 18rem; padding: 2rem; border: 1px dashed currentColor;">
+                        Right-click for account actions
+                    </span>
+                </BradixContextMenuTrigger>
+
+                <BradixContextMenuPortal>
+                    <BradixContextMenuContent Class="card stack">
+                        <BradixContextMenuItem TextValue="Profile" OnSelect='@(() => SetSelection("Profile"))'>Profile</BradixContextMenuItem>
+                        <BradixContextMenuItem TextValue="Billing" OnSelect='@(() => SetSelection("Billing"))'>Billing</BradixContextMenuItem>
+                        <BradixContextMenuItem TextValue="Sign out" OnSelect='@(() => SetSelection("Sign out"))'>Sign out</BradixContextMenuItem>
+                    </BradixContextMenuContent>
+                </BradixContextMenuPortal>
+            </BradixContextMenu>
+        </article>
+    </div>
+</section>
+
+@code {
+    private bool _open;
+    private string? _selection;
+    private BradixCheckboxCheckedState _bookmarks = BradixCheckboxCheckedState.Checked;
+    private string _sort = "name";
+
+    private Task HandleOpenChanged(bool open)
+    {
+        _open = open;
+        return Task.CompletedTask;
+    }
+
+    private Task SetSelection(string value)
+    {
+        _selection = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleBookmarksChanged(BradixCheckboxCheckedState state)
+    {
+        _bookmarks = state;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSortChanged(string? value)
+    {
+        _sort = value ?? _sort;
+        return Task.CompletedTask;
+    }
+}

@@ -1,0 +1,223 @@
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Collection
+@using Soenneker.Bradix.Suite.RovingFocus
+@inherits BradixComponentBase
+
+<CascadingValue Value="this">
+    <div @attributes="RootAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private readonly BradixCollectionRegistry<IBradixMenubarTrigger> _triggers = new();
+    private bool _initialized;
+    private string? _uncontrolledValue;
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    [Parameter]
+    public bool Loop { get; set; } = true;
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+
+    internal string? CurrentValue => Value ?? _uncontrolledValue;
+
+    internal bool HasOpenMenu => !string.IsNullOrWhiteSpace(CurrentValue);
+
+    internal string? CurrentTabStopId { get; private set; }
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("role", "menubar"),
+        ("dir", ResolvedDirection));
+
+    protected override void OnParametersSet()
+    {
+        if (!_initialized)
+        {
+            _uncontrolledValue = DefaultValue;
+            _initialized = true;
+        }
+
+        EnsureCurrentTabStopId();
+    }
+
+    internal bool IsCurrentTabStop(BradixMenubarMenu menu)
+    {
+        return string.Equals(CurrentTabStopId, menu.CurrentValue, StringComparison.Ordinal);
+    }
+
+    internal void RegisterTrigger(IBradixMenubarTrigger trigger)
+    {
+        _triggers.Register(trigger.Value, trigger);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterTrigger(IBradixMenubarTrigger trigger)
+    {
+        _triggers.Unregister(trigger.Value);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void SetCurrentTabStop(string? value)
+    {
+        if (string.Equals(CurrentTabStopId, value, StringComparison.Ordinal))
+            return;
+
+        CurrentTabStopId = value;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task OpenMenuAsync(string value)
+    {
+        await SetValueAsync(value);
+        SetCurrentTabStop(value);
+    }
+
+    internal Task CloseMenuAsync()
+    {
+        return SetValueAsync(null);
+    }
+
+    internal async Task ToggleMenuAsync(string value)
+    {
+        string? nextValue = string.Equals(CurrentValue, value, StringComparison.Ordinal)
+            ? null
+            : value;
+
+        await SetValueAsync(nextValue);
+        SetCurrentTabStop(value);
+    }
+
+    internal async Task HandleTriggerKeyDownAsync(IBradixMenubarTrigger trigger, KeyboardEventArgs args)
+    {
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+            return;
+
+        List<IBradixMenubarTrigger> focusableTriggers = GetFocusableTriggers();
+        int currentIndex = focusableTriggers.IndexOf(trigger);
+
+        if (currentIndex < 0)
+            return;
+
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(args.Key, "horizontal", ResolvedDirection, currentIndex, focusableTriggers.Count, Loop, out int targetIndex))
+            return;
+
+        IBradixMenubarTrigger target = focusableTriggers[targetIndex];
+        CurrentTabStopId = target.Value;
+        await target.FocusAsync();
+
+        if (HasOpenMenu)
+            await SetValueAsync(target.Value);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task MoveToAdjacentMenuAsync(string value, string key)
+    {
+        List<IBradixMenubarTrigger> focusableTriggers = GetFocusableTriggers();
+        List<string> candidateValues = focusableTriggers.Select(trigger => trigger.Value).ToList();
+
+        string previousMenuKey = ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
+        bool isPreviousKey = string.Equals(previousMenuKey, key, StringComparison.Ordinal);
+
+        if (isPreviousKey)
+            candidateValues.Reverse();
+
+        int currentIndex = candidateValues.IndexOf(value);
+
+        if (currentIndex < 0)
+            return;
+
+        List<string> rotatedValues = Loop
+            ? WrapArray(candidateValues, currentIndex + 1)
+            : candidateValues.Skip(currentIndex + 1).ToList();
+
+        string? nextValue = rotatedValues.FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(nextValue))
+            return;
+
+        await SetValueAsync(nextValue);
+    }
+
+    internal bool IsRegisteredTriggerId(string? triggerId)
+    {
+        if (string.IsNullOrWhiteSpace(triggerId))
+            return false;
+
+        return _triggers.Snapshot().Any(entry => string.Equals(entry.Item.TriggerId, triggerId, StringComparison.Ordinal));
+    }
+
+    private async Task SetValueAsync(string? value)
+    {
+        if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
+            return;
+
+        if (Value is null)
+            _uncontrolledValue = value;
+
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(value);
+
+        if (OnValueChange.HasDelegate)
+            await OnValueChange.InvokeAsync(value);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private List<IBradixMenubarTrigger> GetFocusableTriggers()
+    {
+        return _triggers.Snapshot()
+            .Select(entry => entry.Item)
+            .Where(trigger => !trigger.Disabled)
+            .ToList();
+    }
+
+    private void EnsureCurrentTabStopId()
+    {
+        List<IBradixMenubarTrigger> focusableTriggers = GetFocusableTriggers();
+
+        if (focusableTriggers.Count == 0)
+        {
+            CurrentTabStopId = null;
+            return;
+        }
+
+        if (CurrentTabStopId is not null && focusableTriggers.Any(trigger => string.Equals(trigger.Value, CurrentTabStopId, StringComparison.Ordinal)))
+            return;
+
+        CurrentTabStopId = focusableTriggers[0].Value;
+    }
+
+    private static List<string> WrapArray(IReadOnlyList<string> values, int startIndex)
+    {
+        if (values.Count == 0)
+            return [];
+
+        return Enumerable.Range(0, values.Count)
+            .Select(index => values[(startIndex + index) % values.Count])
+            .ToList();
+    }
+}

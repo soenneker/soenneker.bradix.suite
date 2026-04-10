@@ -1,0 +1,85 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<BradixMenu Open="@CurrentOpen"
+            OpenChanged="HandleMenuOpenChangedAsync"
+            Dir="@Dir"
+            Modal="@Modal">
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</BradixMenu>
+
+@code {
+    private bool _initialized;
+    private bool _uncontrolledOpen;
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+
+    internal string TriggerId => $"{BaseId}-trigger";
+
+    internal string ContentId => $"{BaseId}-content";
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-dropdown-menu");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _uncontrolledOpen = DefaultOpen;
+        _initialized = true;
+    }
+
+    internal Task ToggleOpenAsync()
+    {
+        return SetOpenAsync(!CurrentOpen);
+    }
+
+    internal async Task SetOpenAsync(bool open)
+    {
+        if (CurrentOpen == open)
+            return;
+
+        if (Open is null)
+            _uncontrolledOpen = open;
+
+        if (OpenChanged.HasDelegate)
+            await OpenChanged.InvokeAsync(open);
+
+        if (OnOpenChange.HasDelegate)
+            await OnOpenChange.InvokeAsync(open);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Task HandleMenuOpenChangedAsync(bool open)
+    {
+        return SetOpenAsync(open);
+    }
+}

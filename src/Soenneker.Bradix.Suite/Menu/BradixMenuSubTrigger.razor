@@ -1,0 +1,160 @@
+@using System
+@using System.Collections.Generic
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@implements IBradixMenuItem
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<div @ref="_element"
+     @onclick="HandleClickAsync"
+     @onfocus="HandleFocusAsync"
+     @onblur="HandleBlur"
+     @onkeydown="HandleKeyDownAsync"
+     @onkeydown:preventDefault="true"
+     @onpointermove="HandlePointerMoveAsync"
+     @attributes="ItemAttributes">
+    @ChildContent
+</div>
+
+@code {
+    private ElementReference _element;
+    private bool _registered;
+    private bool _isFocused;
+    private string? _resolvedTextValue;
+
+    [CascadingParameter]
+    internal BradixMenu SubMenu { get; set; } = null!;
+
+    [CascadingParameter]
+    internal BradixMenuContent ParentContent { get; set; } = null!;
+
+    [CascadingParameter]
+    internal BradixMenuSub Sub { get; set; } = null!;
+
+    [CascadingParameter(Name = "BradixParentMenu")]
+    internal BradixMenu ParentMenu { get; set; } = null!;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? TextValue { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    public string? TabStopId { get; private set; }
+
+    bool IBradixMenuItem.IsDisabled => Disabled;
+
+    string IBradixMenuItem.TabStopId => TabStopId!;
+
+    string IBradixMenuItem.TextValue => string.IsNullOrWhiteSpace(TextValue)
+        ? _resolvedTextValue ?? string.Empty
+        : TextValue;
+
+    private Dictionary<string, object> ItemAttributes => BuildAttributes(
+        ("id", Sub.TriggerId),
+        ("role", "menuitem"),
+        ("tabindex", ParentMenu.IsCurrentTabStop(this) ? 0 : -1),
+        ("aria-haspopup", "menu"),
+        ("aria-expanded", SubMenu.CurrentOpen ? "true" : "false"),
+        ("aria-controls", Sub.ContentId),
+        ("aria-disabled", Disabled ? "true" : null),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("data-state", SubMenu.CurrentOpen ? "open" : "closed"),
+        ("data-highlighted", _isFocused ? string.Empty : null));
+
+    protected override void OnInitialized()
+    {
+        TabStopId ??= IdGenerator.New("bradix-menu-sub-trigger");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            ParentMenu.RegisterItem(this);
+            SubMenu.RegisterTrigger(_element);
+            _registered = true;
+        }
+
+        if (string.IsNullOrWhiteSpace(TextValue))
+        {
+            string textContent = await Interop.GetTextContent(_element);
+
+            if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
+                _resolvedTextValue = textContent;
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (_registered)
+            ParentMenu.UnregisterItem(this);
+
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask FocusAsync() => _element.FocusAsync();
+
+    private async Task HandleClickAsync()
+    {
+        if (Disabled)
+            return;
+
+        await _element.FocusAsync();
+        await SubMenu.SetOpenAsync(true);
+    }
+
+    private Task HandleBlur(FocusEventArgs _)
+    {
+        _isFocused = false;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task HandleFocusAsync(FocusEventArgs _)
+    {
+        if (Disabled)
+            return Task.CompletedTask;
+
+        _isFocused = true;
+        ParentMenu.SetCurrentTabStop(TabStopId);
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (Disabled || args.CtrlKey || args.AltKey || args.MetaKey)
+            return;
+
+        bool isOpenKey = ParentMenu.ResolvedDirection == "rtl"
+            ? args.Key is "ArrowLeft" or "Enter" or " " or "Spacebar"
+            : args.Key is "ArrowRight" or "Enter" or " " or "Spacebar";
+
+        if (isOpenKey)
+        {
+            await SubMenu.SetOpenAsync(true);
+            return;
+        }
+
+        if (args.Key.Length == 1)
+        {
+            await ParentContent.HandleTypeaheadKeyAsync(this, args.Key);
+            return;
+        }
+
+        await ParentContent.HandleItemKeyDownAsync(this, args);
+    }
+
+    private async Task HandlePointerMoveAsync(PointerEventArgs _)
+    {
+        if (Disabled)
+            return;
+
+        await ParentContent.HandlePointerMoveAsync(this);
+
+        if (!SubMenu.CurrentOpen)
+            await SubMenu.SetOpenAsync(true);
+    }
+}

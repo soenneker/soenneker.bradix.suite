@@ -1,0 +1,202 @@
+@using System
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@implements IBradixSelectItem
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<CascadingValue Value="this">
+    <div @ref="_element"
+         @onclick="HandleClickAsync"
+         @onfocus="HandleFocusAsync"
+         @onblur="HandleBlurAsync"
+         @onkeydown="HandleKeyDownAsync"
+         @onkeydown:preventDefault="true"
+         @onpointerdown="HandlePointerDownAsync"
+         @onpointerup="HandlePointerUpAsync"
+         @onpointermove="HandlePointerMoveAsync"
+         @attributes="ItemAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private ElementReference _element;
+    private bool _registered;
+    private bool _isFocused;
+    private string _pointerType = "mouse";
+    private string? _resolvedTextValue;
+    private ElementReference _itemTextElement;
+    private bool _hasItemTextElement;
+
+    [CascadingParameter]
+    private BradixSelect? Select { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = null!;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? TextValue { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? TextId { get; private set; }
+
+    string IBradixSelectItem.Value => Value;
+
+    bool IBradixSelectItem.Disabled => Disabled;
+
+    string IBradixSelectItem.TextValue => string.IsNullOrWhiteSpace(TextValue)
+        ? _resolvedTextValue ?? string.Empty
+        : TextValue;
+
+    ElementReference IBradixSelectItem.ItemElement => _element;
+
+    ElementReference IBradixSelectItem.ItemTextElement => _itemTextElement;
+
+    bool IBradixSelectItem.HasItemTextElement => _hasItemTextElement;
+
+    internal bool IsSelected => string.Equals(Select?.CurrentValue, Value, StringComparison.Ordinal);
+
+    private Dictionary<string, object> ItemAttributes => BuildAttributes(
+        ("role", "option"),
+        ("aria-labelledby", TextId),
+        ("aria-selected", IsSelected && _isFocused ? "true" : "false"),
+        ("aria-disabled", Disabled ? "true" : null),
+        ("data-state", IsSelected ? "checked" : "unchecked"),
+        ("data-highlighted", _isFocused ? string.Empty : null),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("tabindex", Disabled ? null : Select?.IsFocusedItem(this) == true ? 0 : -1));
+
+    protected override void OnInitialized()
+    {
+        TextId ??= IdGenerator.New("bradix-select-item-text");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Select is not null)
+        {
+            if (string.IsNullOrWhiteSpace(Value))
+                throw new InvalidOperationException("A BradixSelectItem value cannot be empty.");
+
+            Select.RegisterItem(this);
+            _registered = true;
+        }
+
+        if (string.IsNullOrWhiteSpace(TextValue))
+        {
+            string textContent = await Interop.GetTextContent(_element);
+
+            if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
+            {
+                _resolvedTextValue = textContent;
+
+                if (Select is not null)
+                    await Select.NotifyItemTextChangedAsync();
+            }
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (_registered)
+            Select?.UnregisterItem(this);
+
+        return ValueTask.CompletedTask;
+    }
+
+    ValueTask IBradixSelectItem.FocusAsync() => _element.FocusAsync();
+
+    internal async Task NotifyResolvedTextAsync(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(TextValue))
+            _resolvedTextValue = text;
+
+        if (Select is not null)
+            await Select.NotifyItemTextChangedAsync();
+    }
+
+    internal void RegisterTextElement(ElementReference element)
+    {
+        _itemTextElement = element;
+        _hasItemTextElement = true;
+    }
+
+    private async Task HandleClickAsync(MouseEventArgs _)
+    {
+        if (Disabled || Select is null || _pointerType == "mouse")
+            return;
+
+        await Select.SetValueAsync(Value);
+        await Select.SetOpenAsync(false);
+        await Select.FocusTriggerAsync();
+    }
+
+    private Task HandleFocusAsync(FocusEventArgs _)
+    {
+        if (Disabled || Select is null)
+            return Task.CompletedTask;
+
+        _isFocused = true;
+        Select.SetFocusedItem(Value);
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task HandleBlurAsync(FocusEventArgs _)
+    {
+        _isFocused = false;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (Disabled || Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
+            return;
+
+        if (args.Key is " " or "Spacebar" or "Enter")
+        {
+            await Select.SetValueAsync(Value);
+            await Select.SetOpenAsync(false);
+            await Select.FocusTriggerAsync();
+            return;
+        }
+
+        if (args.Key.Length == 1)
+            await Select.HandleContentTypeaheadAsync(args.Key);
+    }
+
+    private Task HandlePointerDownAsync(PointerEventArgs args)
+    {
+        _pointerType = args.PointerType ?? "mouse";
+        return Task.CompletedTask;
+    }
+
+    private async Task HandlePointerUpAsync(PointerEventArgs _)
+    {
+        if (Disabled || Select is null || _pointerType != "mouse")
+            return;
+
+        if (Select.TryConsumeSuppressedMouseUpSelection())
+            return;
+
+        await Select.SetValueAsync(Value);
+        await Select.SetOpenAsync(false);
+        await Select.FocusTriggerAsync();
+    }
+
+    private async Task HandlePointerMoveAsync(PointerEventArgs args)
+    {
+        _pointerType = args.PointerType ?? _pointerType;
+
+        if (Disabled || Select is null || !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
+            return;
+
+        Select.SetFocusedItem(Value);
+        await _element.FocusAsync();
+    }
+}

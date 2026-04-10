@@ -8,6 +8,13 @@ const scrollAreaViewportHandlers = new WeakMap();
 const scrollAreaScrollbarHandlers = new WeakMap();
 const portalMounts = new WeakMap();
 const labelTextSelectionHandlers = new WeakMap();
+const selectViewportHandlers = new WeakMap();
+const selectContentPointerTrackers = new WeakMap();
+const selectWindowDismissHandlers = new WeakMap();
+const hoverCardSelectionHandlers = new WeakMap();
+const avatarImageLoaders = new WeakMap();
+const navigationMenuIndicatorHandlers = new WeakMap();
+const navigationMenuViewportHandlers = new WeakMap();
 const dismissableBranches = new Set();
 const dismissableLayers = [];
 let dismissableLayerListenersRegistered = false;
@@ -15,6 +22,7 @@ let originalDismissableBodyPointerEvents = "";
 const focusScopeHandlers = new WeakMap();
 const focusScopeStack = [];
 const popperContentHandlers = new WeakMap();
+const selectItemAlignedHandlers = new WeakMap();
 const presenceHandlers = new WeakMap();
 let focusGuardsCount = 0;
 const hideOthersState = new WeakMap();
@@ -361,6 +369,428 @@ export function unregisterScrollAreaViewport(viewport) {
   }
 
   scrollAreaViewportHandlers.delete(viewport);
+}
+
+export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
+  if (!viewport) {
+    return;
+  }
+
+  unregisterSelectViewport(viewport);
+
+  const expandOnScroll = () => {
+    if (!wrapper) {
+      return;
+    }
+
+    const itemAligned = selectItemAlignedHandlers.get(wrapper);
+    if (!itemAligned || !itemAligned.state.shouldExpandOnScroll) {
+      return;
+    }
+
+    const scrolledBy = Math.abs(itemAligned.state.previousScrollTop - viewport.scrollTop);
+    if (scrolledBy <= 0) {
+      itemAligned.state.previousScrollTop = viewport.scrollTop;
+      return;
+    }
+
+    const CONTENT_MARGIN = 10;
+    const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
+    const cssMinHeight = parseFloat(wrapper.style.minHeight || "0");
+    const cssHeight = parseFloat(wrapper.style.height || "0");
+    const previousHeight = Math.max(cssMinHeight, cssHeight);
+
+    if (previousHeight < availableHeight) {
+      const nextHeight = previousHeight + scrolledBy;
+      const clampedNextHeight = Math.min(availableHeight, nextHeight);
+      const heightDiff = nextHeight - clampedNextHeight;
+
+      wrapper.style.height = `${clampedNextHeight}px`;
+      if (wrapper.style.bottom === "0px") {
+        viewport.scrollTop = heightDiff > 0 ? heightDiff : 0;
+        wrapper.style.justifyContent = "flex-end";
+      }
+    }
+
+    itemAligned.state.previousScrollTop = viewport.scrollTop;
+  };
+
+  const notify = () => {
+    const contentElement = content || viewport.firstElementChild;
+    dotNetRef.invokeMethodAsync(
+      "HandleViewportMetricsChangedAsync",
+      viewport.scrollTop,
+      contentElement ? contentElement.scrollHeight : viewport.scrollHeight,
+      viewport.offsetHeight
+    );
+  };
+
+  const scroll = () => {
+    expandOnScroll();
+    notify();
+  };
+  viewport.addEventListener("scroll", scroll);
+
+  const viewportResizeObserver = new ResizeObserver(() => {
+    requestAnimationFrame(notify);
+  });
+  viewportResizeObserver.observe(viewport);
+
+  let contentResizeObserver = null;
+  if (content) {
+    contentResizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(notify);
+    });
+    contentResizeObserver.observe(content);
+  }
+
+  requestAnimationFrame(notify);
+  selectViewportHandlers.set(viewport, { scroll, viewportResizeObserver, contentResizeObserver });
+}
+
+export function unregisterSelectViewport(viewport) {
+  const handlers = selectViewportHandlers.get(viewport);
+  if (!handlers) {
+    return;
+  }
+
+  viewport.removeEventListener("scroll", handlers.scroll);
+  handlers.viewportResizeObserver.disconnect();
+  if (handlers.contentResizeObserver) {
+    handlers.contentResizeObserver.disconnect();
+  }
+
+  selectViewportHandlers.delete(viewport);
+}
+
+export function scrollSelectViewportByItem(viewport, item, upward) {
+  if (!viewport || !item) {
+    return;
+  }
+
+  const delta = item.offsetHeight || 0;
+  viewport.scrollTop = upward ? viewport.scrollTop - delta : viewport.scrollTop + delta;
+}
+
+export function registerSelectContentPointerTracker(content, dotNetRef, pageX, pageY) {
+  if (!content) {
+    return;
+  }
+
+  unregisterSelectContentPointerTracker(content);
+
+  let pointerMoveDelta = { x: 0, y: 0 };
+
+  const handlePointerMove = (event) => {
+    pointerMoveDelta = {
+      x: Math.abs(Math.round(event.pageX) - Math.round(pageX || 0)),
+      y: Math.abs(Math.round(event.pageY) - Math.round(pageY || 0))
+    };
+  };
+
+  const handlePointerUp = (event) => {
+    const suppressSelection = pointerMoveDelta.x <= 10 && pointerMoveDelta.y <= 10;
+    const target = event.target;
+    const shouldClose = !suppressSelection && !!target && !content.contains(target);
+
+    dotNetRef.invokeMethodAsync("HandleTriggerPointerGuardResultAsync", suppressSelection, shouldClose);
+    document.removeEventListener("pointermove", handlePointerMove);
+    selectContentPointerTrackers.delete(content);
+  };
+
+  document.addEventListener("pointermove", handlePointerMove);
+  document.addEventListener("pointerup", handlePointerUp, { capture: true, once: true });
+  selectContentPointerTrackers.set(content, { handlePointerMove, handlePointerUp });
+}
+
+export function unregisterSelectContentPointerTracker(content) {
+  const handlers = selectContentPointerTrackers.get(content);
+  if (!handlers) {
+    return;
+  }
+
+  document.removeEventListener("pointermove", handlers.handlePointerMove);
+  document.removeEventListener("pointerup", handlers.handlePointerUp, true);
+  selectContentPointerTrackers.delete(content);
+}
+
+export function registerSelectWindowDismiss(content, dotNetRef) {
+  if (!content || !dotNetRef) {
+    return;
+  }
+
+  unregisterSelectWindowDismiss(content);
+
+  const dismiss = () => {
+    dotNetRef.invokeMethodAsync("HandleWindowDismissAsync");
+  };
+
+  window.addEventListener("blur", dismiss);
+  window.addEventListener("resize", dismiss);
+
+  selectWindowDismissHandlers.set(content, { dismiss });
+}
+
+export function unregisterSelectWindowDismiss(content) {
+  const handlers = selectWindowDismissHandlers.get(content);
+  if (!handlers) {
+    return;
+  }
+
+  window.removeEventListener("blur", handlers.dismiss);
+  window.removeEventListener("resize", handlers.dismiss);
+  selectWindowDismissHandlers.delete(content);
+}
+
+export function disableHoverCardContentTabNavigation(content) {
+  if (!content) {
+    return;
+  }
+
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+  });
+
+  while (walker.nextNode()) {
+    walker.currentNode.setAttribute("tabindex", "-1");
+  }
+}
+
+export function registerHoverCardSelectionContainment(content, dotNetRef) {
+  if (!content || !dotNetRef) {
+    return;
+  }
+
+  unregisterHoverCardSelectionContainment(content);
+
+  const previousUserSelect = content.style.userSelect;
+  const previousWebkitUserSelect = content.style.webkitUserSelect;
+  let originalBodyUserSelect = "";
+  let active = false;
+
+  const restoreSelection = () => {
+    if (!active) {
+      return;
+    }
+
+    active = false;
+    content.style.userSelect = previousUserSelect;
+    content.style.webkitUserSelect = previousWebkitUserSelect;
+    document.body.style.userSelect = originalBodyUserSelect;
+    document.body.style.webkitUserSelect = originalBodyUserSelect;
+  };
+
+  const handlePointerUp = () => {
+    if (!active) {
+      return;
+    }
+
+    restoreSelection();
+
+    setTimeout(() => {
+      const hasSelection = (document.getSelection()?.toString() || "") !== "";
+      dotNetRef.invokeMethodAsync("HandleDocumentPointerUpAsync", hasSelection);
+    });
+  };
+
+  document.addEventListener("pointerup", handlePointerUp);
+  hoverCardSelectionHandlers.set(content, {
+    handlePointerUp,
+    begin() {
+      if (active) {
+        return;
+      }
+
+      originalBodyUserSelect = document.body.style.userSelect || document.body.style.webkitUserSelect;
+      document.body.style.userSelect = "none";
+      document.body.style.webkitUserSelect = "none";
+      content.style.userSelect = "text";
+      content.style.webkitUserSelect = "text";
+      active = true;
+    },
+    restoreSelection
+  });
+}
+
+export function beginHoverCardSelectionContainment(content) {
+  const handlers = hoverCardSelectionHandlers.get(content);
+  if (!handlers) {
+    return;
+  }
+
+  handlers.begin();
+}
+
+export function unregisterHoverCardSelectionContainment(content) {
+  const handlers = hoverCardSelectionHandlers.get(content);
+  if (!handlers) {
+    return;
+  }
+
+  document.removeEventListener("pointerup", handlers.handlePointerUp);
+  handlers.restoreSelection();
+  hoverCardSelectionHandlers.delete(content);
+}
+
+export function registerAvatarImageLoadingStatus(src, crossOrigin, referrerPolicy, dotNetRef) {
+  if (!dotNetRef) {
+    return;
+  }
+
+  unregisterAvatarImageLoadingStatus(dotNetRef);
+
+  const image = new window.Image();
+  const handleLoad = () => {
+    dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "loaded");
+  };
+  const handleError = () => {
+    dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "error");
+  };
+
+  image.addEventListener("load", handleLoad);
+  image.addEventListener("error", handleError);
+
+  if (referrerPolicy) {
+    image.referrerPolicy = referrerPolicy;
+  }
+
+  if (typeof crossOrigin === "string" && crossOrigin.length > 0) {
+    image.crossOrigin = crossOrigin;
+  }
+
+  avatarImageLoaders.set(dotNetRef, { image, handleLoad, handleError });
+
+  if (!src) {
+    dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "error");
+    return;
+  }
+
+  image.src = src;
+
+  if (image.complete && image.naturalWidth > 0) {
+    dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "loaded");
+    return;
+  }
+
+  dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "loading");
+}
+
+export function unregisterAvatarImageLoadingStatus(dotNetRef) {
+  const handlers = avatarImageLoaders.get(dotNetRef);
+  if (!handlers) {
+    return;
+  }
+
+  handlers.image.removeEventListener("load", handlers.handleLoad);
+  handlers.image.removeEventListener("error", handlers.handleError);
+  avatarImageLoaders.delete(dotNetRef);
+}
+
+export function registerNavigationMenuIndicator(indicator, activeTrigger, root, dotNetRef, orientation) {
+  if (!indicator || !activeTrigger || !root || !dotNetRef) {
+    return;
+  }
+
+  unregisterNavigationMenuIndicator(indicator);
+
+  const notify = () => {
+    const triggerRect = activeTrigger.getBoundingClientRect();
+    const rootRect = root.getBoundingClientRect();
+    const isHorizontal = orientation !== "vertical";
+    const size = isHorizontal ? activeTrigger.offsetWidth : activeTrigger.offsetHeight;
+    const offset = isHorizontal ? triggerRect.left - rootRect.left : triggerRect.top - rootRect.top;
+    dotNetRef.invokeMethodAsync("HandleIndicatorPositionChangedAsync", size, offset);
+  };
+
+  const triggerResizeObserver = new ResizeObserver(notify);
+  const rootResizeObserver = new ResizeObserver(notify);
+  const handleWindowResize = () => notify();
+
+  triggerResizeObserver.observe(activeTrigger);
+  rootResizeObserver.observe(root);
+  window.addEventListener("resize", handleWindowResize);
+
+  notify();
+
+  navigationMenuIndicatorHandlers.set(indicator, {
+    notify,
+    triggerResizeObserver,
+    rootResizeObserver,
+    handleWindowResize,
+    dotNetRef
+  });
+}
+
+export function updateNavigationMenuIndicator(indicator, activeTrigger, root, orientation) {
+  const handlers = navigationMenuIndicatorHandlers.get(indicator);
+  if (!handlers) {
+    return;
+  }
+
+  unregisterNavigationMenuIndicator(indicator);
+  registerNavigationMenuIndicator(indicator, activeTrigger, root, handlers.dotNetRef, orientation);
+}
+
+export function unregisterNavigationMenuIndicator(indicator) {
+  const handlers = navigationMenuIndicatorHandlers.get(indicator);
+  if (!handlers) {
+    return;
+  }
+
+  handlers.triggerResizeObserver.disconnect();
+  handlers.rootResizeObserver.disconnect();
+  window.removeEventListener("resize", handlers.handleWindowResize);
+  navigationMenuIndicatorHandlers.delete(indicator);
+}
+
+export function registerNavigationMenuViewport(viewport, content, dotNetRef) {
+  if (!viewport || !content || !dotNetRef) {
+    return;
+  }
+
+  unregisterNavigationMenuViewport(viewport);
+
+  const notify = () => {
+    dotNetRef.invokeMethodAsync("HandleViewportSizeChangedAsync", content.offsetWidth || 0, content.offsetHeight || 0);
+  };
+
+  const contentResizeObserver = new ResizeObserver(notify);
+  contentResizeObserver.observe(content);
+  notify();
+
+  navigationMenuViewportHandlers.set(viewport, {
+    content,
+    dotNetRef,
+    notify,
+    contentResizeObserver
+  });
+}
+
+export function updateNavigationMenuViewport(viewport, content) {
+  const handlers = navigationMenuViewportHandlers.get(viewport);
+  if (!handlers || !content) {
+    return;
+  }
+
+  if (handlers.content === content) {
+    handlers.notify();
+    return;
+  }
+
+  handlers.contentResizeObserver.disconnect();
+  handlers.content = content;
+  handlers.contentResizeObserver.observe(content);
+  handlers.notify();
+}
+
+export function unregisterNavigationMenuViewport(viewport) {
+  const handlers = navigationMenuViewportHandlers.get(viewport);
+  if (!handlers) {
+    return;
+  }
+
+  handlers.contentResizeObserver.disconnect();
+  navigationMenuViewportHandlers.delete(viewport);
 }
 
 export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientation, dir, dotNetRef) {
@@ -1118,6 +1548,19 @@ function updateRegisteredPopperContent(content) {
     position.transformOriginY);
 }
 
+function createVirtualAnchor(x, y) {
+  return {
+    getBoundingClientRect() {
+      return DOMRect.fromRect({
+        x,
+        y,
+        width: 0,
+        height: 0
+      });
+    }
+  };
+}
+
 export function registerPopperContent(anchor, content, arrow, dotNetRef, options) {
   if (!anchor || !content) {
     return;
@@ -1149,6 +1592,36 @@ export function registerPopperContent(anchor, content, arrow, dotNetRef, options
   update();
 }
 
+export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, options) {
+  if (!content) {
+    return;
+  }
+
+  unregisterPopperContent(content);
+
+  const update = () => updateRegisteredPopperContent(content);
+  const resizeObserver = new ResizeObserver(update);
+  resizeObserver.observe(content);
+  if (arrow) {
+    resizeObserver.observe(arrow);
+  }
+
+  window.addEventListener("resize", update);
+  window.addEventListener("scroll", update, true);
+
+  popperContentHandlers.set(content, {
+    anchor: createVirtualAnchor(x, y),
+    content,
+    arrow,
+    dotNetRef,
+    options: options || {},
+    resizeObserver,
+    update
+  });
+
+  update();
+}
+
 export function updatePopperContent(content, arrow, options) {
   const handlers = popperContentHandlers.get(content);
   if (!handlers) {
@@ -1167,6 +1640,24 @@ export function updatePopperContent(content, arrow, options) {
   handlers.update();
 }
 
+export function updateVirtualPopperContent(content, arrow, x, y, options) {
+  const handlers = popperContentHandlers.get(content);
+  if (!handlers) {
+    return;
+  }
+
+  handlers.anchor = createVirtualAnchor(x, y);
+  handlers.arrow = arrow;
+  handlers.options = options || {};
+  handlers.resizeObserver.disconnect();
+  handlers.resizeObserver.observe(handlers.content);
+  if (arrow) {
+    handlers.resizeObserver.observe(arrow);
+  }
+
+  handlers.update();
+}
+
 export function unregisterPopperContent(content) {
   const handlers = popperContentHandlers.get(content);
   if (!handlers) {
@@ -1177,6 +1668,174 @@ export function unregisterPopperContent(content) {
   window.removeEventListener("resize", handlers.update);
   window.removeEventListener("scroll", handlers.update, true);
   popperContentHandlers.delete(content);
+}
+
+function clampValue(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function positionSelectItemAligned(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir) {
+  if (!wrapper || !content || !viewport || !trigger || !valueNode || !selectedItem || !selectedItemText) {
+    return;
+  }
+
+  const CONTENT_MARGIN = 10;
+  const triggerRect = trigger.getBoundingClientRect();
+  const contentRect = content.getBoundingClientRect();
+  const valueNodeRect = valueNode.getBoundingClientRect();
+  const itemTextRect = selectedItemText.getBoundingClientRect();
+  const isRtl = dir === "rtl";
+
+  wrapper.style.position = "fixed";
+  wrapper.style.display = "flex";
+  wrapper.style.flexDirection = "column";
+  wrapper.style.margin = `${CONTENT_MARGIN}px 0`;
+  wrapper.style.top = "";
+  wrapper.style.right = "";
+  wrapper.style.bottom = "";
+  wrapper.style.left = "";
+
+  if (!isRtl) {
+    const itemTextOffset = itemTextRect.left - contentRect.left;
+    const left = valueNodeRect.left - itemTextOffset;
+    const leftDelta = triggerRect.left - left;
+    const minContentWidth = triggerRect.width + leftDelta;
+    const contentWidth = Math.max(minContentWidth, contentRect.width);
+    const rightEdge = window.innerWidth - CONTENT_MARGIN;
+    const clampedLeft = clampValue(left, CONTENT_MARGIN, Math.max(CONTENT_MARGIN, rightEdge - contentWidth));
+    wrapper.style.minWidth = `${minContentWidth}px`;
+    wrapper.style.left = `${clampedLeft}px`;
+  } else {
+    const itemTextOffset = contentRect.right - itemTextRect.right;
+    const right = window.innerWidth - valueNodeRect.right - itemTextOffset;
+    const rightDelta = window.innerWidth - triggerRect.right - right;
+    const minContentWidth = triggerRect.width + rightDelta;
+    const contentWidth = Math.max(minContentWidth, contentRect.width);
+    const leftEdge = window.innerWidth - CONTENT_MARGIN;
+    const clampedRight = clampValue(right, CONTENT_MARGIN, Math.max(CONTENT_MARGIN, leftEdge - contentWidth));
+    wrapper.style.minWidth = `${minContentWidth}px`;
+    wrapper.style.right = `${clampedRight}px`;
+  }
+
+  const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
+  const itemsHeight = viewport.scrollHeight;
+  const contentStyles = getComputedStyle(content);
+  const contentBorderTopWidth = parseInt(contentStyles.borderTopWidth || "0", 10);
+  const contentPaddingTop = parseInt(contentStyles.paddingTop || "0", 10);
+  const contentBorderBottomWidth = parseInt(contentStyles.borderBottomWidth || "0", 10);
+  const contentPaddingBottom = parseInt(contentStyles.paddingBottom || "0", 10);
+  const fullContentHeight = contentBorderTopWidth + contentPaddingTop + itemsHeight + contentPaddingBottom + contentBorderBottomWidth;
+  const minContentHeight = Math.min(selectedItem.offsetHeight * 5, fullContentHeight);
+
+  const viewportStyles = getComputedStyle(viewport);
+  const viewportPaddingTop = parseInt(viewportStyles.paddingTop || "0", 10);
+  const viewportPaddingBottom = parseInt(viewportStyles.paddingBottom || "0", 10);
+
+  const topEdgeToTriggerMiddle = triggerRect.top + triggerRect.height / 2 - CONTENT_MARGIN;
+  const triggerMiddleToBottomEdge = availableHeight - topEdgeToTriggerMiddle;
+  const selectedItemHalfHeight = selectedItem.offsetHeight / 2;
+  const itemOffsetMiddle = selectedItem.offsetTop + selectedItemHalfHeight;
+  const contentTopToItemMiddle = contentBorderTopWidth + contentPaddingTop + itemOffsetMiddle;
+  const itemMiddleToContentBottom = fullContentHeight - contentTopToItemMiddle;
+  const items = Array.from(viewport.querySelectorAll("[role='option']"));
+  const willAlignWithoutTopOverflow = contentTopToItemMiddle <= topEdgeToTriggerMiddle;
+
+  if (willAlignWithoutTopOverflow) {
+    const isLastItem = items.length > 0 && selectedItem === items[items.length - 1];
+    wrapper.style.bottom = "0px";
+    const viewportOffsetBottom = content.clientHeight - viewport.offsetTop - viewport.offsetHeight;
+    const clampedTriggerMiddleToBottomEdge = Math.max(
+      triggerMiddleToBottomEdge,
+      selectedItemHalfHeight + (isLastItem ? viewportPaddingBottom : 0) + viewportOffsetBottom + contentBorderBottomWidth
+    );
+    wrapper.style.height = `${contentTopToItemMiddle + clampedTriggerMiddleToBottomEdge}px`;
+    wrapper.style.justifyContent = "";
+  } else {
+    const isFirstItem = items.length > 0 && selectedItem === items[0];
+    wrapper.style.top = "0px";
+    const clampedTopEdgeToTriggerMiddle = Math.max(
+      topEdgeToTriggerMiddle,
+      contentBorderTopWidth + viewport.offsetTop + (isFirstItem ? viewportPaddingTop : 0) + selectedItemHalfHeight
+    );
+    wrapper.style.height = `${clampedTopEdgeToTriggerMiddle + itemMiddleToContentBottom}px`;
+    viewport.scrollTop = contentTopToItemMiddle - topEdgeToTriggerMiddle + viewport.offsetTop;
+  }
+
+  wrapper.style.minHeight = `${minContentHeight}px`;
+  wrapper.style.maxHeight = `${availableHeight}px`;
+  content.style.boxSizing = "border-box";
+  content.style.maxHeight = "100%";
+}
+
+export function registerSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir) {
+  if (!wrapper || !content) {
+    return;
+  }
+
+  unregisterSelectItemAlignedPosition(wrapper);
+
+  const state = {
+    content,
+    viewport,
+    trigger,
+    valueNode,
+    selectedItem,
+    selectedItemText,
+    dir,
+    shouldExpandOnScroll: false,
+    previousScrollTop: viewport ? viewport.scrollTop : 0
+  };
+  const update = () => positionSelectItemAligned(
+    wrapper,
+    state.content,
+    state.viewport,
+    state.trigger,
+    state.valueNode,
+    state.selectedItem,
+    state.selectedItemText,
+    state.dir
+  );
+  const resizeObserver = new ResizeObserver(update);
+
+  resizeObserver.observe(content);
+  resizeObserver.observe(viewport);
+  resizeObserver.observe(trigger);
+  resizeObserver.observe(selectedItem);
+  resizeObserver.observe(selectedItemText);
+
+  window.addEventListener("resize", update);
+  window.addEventListener("scroll", update, true);
+
+  selectItemAlignedHandlers.set(wrapper, {
+    update,
+    resizeObserver,
+    state
+  });
+
+  requestAnimationFrame(() => {
+    update();
+    state.previousScrollTop = viewport ? viewport.scrollTop : 0;
+    requestAnimationFrame(() => {
+      state.shouldExpandOnScroll = true;
+    });
+  });
+}
+
+export function updateSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir) {
+  unregisterSelectItemAlignedPosition(wrapper);
+  registerSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir);
+}
+
+export function unregisterSelectItemAlignedPosition(wrapper) {
+  const handlers = selectItemAlignedHandlers.get(wrapper);
+  if (!handlers) {
+    return;
+  }
+
+  handlers.resizeObserver.disconnect();
+  window.removeEventListener("resize", handlers.update);
+  window.removeEventListener("scroll", handlers.update, true);
+  selectItemAlignedHandlers.delete(wrapper);
 }
 
 export function registerPresence(element, dotNetRef) {
@@ -1366,4 +2025,36 @@ export function unregisterLabelTextSelectionGuard(element) {
 
   element.removeEventListener("mousedown", handler);
   labelTextSelectionHandlers.delete(element);
+}
+
+export function getTextContent(element) {
+  if (!element) {
+    return "";
+  }
+
+  return (element.textContent || "").trim();
+}
+
+export function getActiveElementId() {
+  const activeElement = document.activeElement;
+  return activeElement && activeElement.id ? activeElement.id : "";
+}
+
+export function getMenubarActiveElementState(currentContentId) {
+  const activeElement = document.activeElement;
+  if (!(activeElement instanceof HTMLElement)) {
+    return {
+      isSubTrigger: false,
+      isInsideNestedContent: false
+    };
+  }
+
+  const closestContent = typeof activeElement.closest === "function"
+    ? activeElement.closest("[data-bradix-menubar-content]")
+    : null;
+
+  return {
+    isSubTrigger: activeElement.hasAttribute("data-bradix-menubar-subtrigger"),
+    isInsideNestedContent: !!closestContent && closestContent.id !== currentContentId
+  };
 }

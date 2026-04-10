@@ -1,0 +1,85 @@
+@using System
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<BradixPopperAnchor>
+    <button @ref="_button"
+            @onclick="HandleClickAsync"
+            @onpointerdown="HandlePointerDownAsync"
+            @onkeydown="HandleKeyDownAsync"
+            @onkeydown:preventDefault="true"
+            @attributes="TriggerAttributes">
+        @ChildContent
+    </button>
+</BradixPopperAnchor>
+
+@code {
+    private ElementReference _button;
+    private string _pointerType = "touch";
+
+    [CascadingParameter]
+    private BradixSelect? Select { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private bool IsDisabled => Select?.Disabled == true || Disabled;
+
+    private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("type", "button"),
+        ("role", "combobox"),
+        ("aria-controls", Select?.ContentId),
+        ("aria-expanded", Select?.CurrentOpen == true ? "true" : "false"),
+        ("aria-required", Select?.Required == true ? "true" : null),
+        ("aria-autocomplete", "none"),
+        ("dir", Select?.ResolvedDirection),
+        ("data-state", Select?.CurrentOpen == true ? "open" : "closed"),
+        ("data-disabled", IsDisabled ? string.Empty : null),
+        ("data-placeholder", Select?.ShouldShowPlaceholder == true ? string.Empty : null),
+        ("disabled", IsDisabled ? true : null));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            Select?.RegisterTrigger(_button);
+
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleClickAsync(MouseEventArgs _)
+    {
+        if (IsDisabled || Select is null)
+            return;
+
+        await _button.FocusAsync();
+
+        if (!Select.CurrentOpen && !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
+            await Select.OpenFromTriggerAsync();
+    }
+
+    private async Task HandlePointerDownAsync(PointerEventArgs args)
+    {
+        if (IsDisabled || Select is null)
+            return;
+
+        _pointerType = args.PointerType ?? "touch";
+
+        if (args.Button == 0 && !args.CtrlKey && string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
+            await Select.OpenFromTriggerAsync(args.PageX, args.PageY);
+    }
+
+    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (IsDisabled || Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
+            return;
+
+        if (!Select.CurrentOpen && args.Key.Length == 1)
+        {
+            await Select.HandleTriggerTypeaheadAsync(args.Key);
+            return;
+        }
+
+        if (args.Key is " " or "Spacebar" or "Enter" or "ArrowUp" or "ArrowDown")
+            await Select.OpenFromTriggerAsync();
+    }
+}

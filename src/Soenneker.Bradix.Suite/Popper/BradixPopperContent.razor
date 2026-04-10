@@ -32,6 +32,7 @@
     private string _transformOriginY = "50%";
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached)? _lastOptions;
     private bool _lastHadArrow;
+    private (double X, double Y)? _lastVirtualAnchor;
 
     [CascadingParameter]
     private BradixPopper? Popper { get; set; }
@@ -75,7 +76,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (Popper is null || !Popper.HasAnchor)
+        if (Popper is null || (!Popper.HasAnchor && !Popper.HasVirtualAnchor))
         {
             if (firstRender)
                 await InvokeAsync(StateHasChanged);
@@ -88,36 +89,38 @@
         if (firstRender)
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterPopperContent(Popper.AnchorElement, _element, _arrow, _dotNetReference, new
+            if (Popper.HasVirtualAnchor)
             {
-                side = options.Side,
-                sideOffset = options.SideOffset,
-                align = options.Align,
-                alignOffset = options.AlignOffset,
-                arrowPadding = options.ArrowPadding,
-                avoidCollisions = options.AvoidCollisions,
-                collisionPadding = options.CollisionPadding,
-                hideWhenDetached = options.HideWhenDetached
-            });
+                await Interop.RegisterVirtualPopperContent(_element, _arrow, _dotNetReference, Popper.VirtualAnchorX, Popper.VirtualAnchorY, CreateOptionsPayload(options));
+                _lastVirtualAnchor = (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
+            }
+            else
+            {
+                await Interop.RegisterPopperContent(Popper.AnchorElement, _element, _arrow, _dotNetReference, CreateOptionsPayload(options));
+            }
+
             _registered = true;
             _lastOptions = options;
             _lastHadArrow = hasArrow;
             return;
         }
 
-        if (_lastOptions != options || _lastHadArrow != hasArrow)
+        bool virtualAnchorChanged = Popper.HasVirtualAnchor &&
+            _lastVirtualAnchor != (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
+
+        if (_lastOptions != options || _lastHadArrow != hasArrow || virtualAnchorChanged)
         {
-            await Interop.UpdatePopperContent(_element, _arrow, new
+            if (Popper.HasVirtualAnchor)
             {
-                side = options.Side,
-                sideOffset = options.SideOffset,
-                align = options.Align,
-                alignOffset = options.AlignOffset,
-                arrowPadding = options.ArrowPadding,
-                avoidCollisions = options.AvoidCollisions,
-                collisionPadding = options.CollisionPadding,
-                hideWhenDetached = options.HideWhenDetached
-            });
+                await Interop.UpdateVirtualPopperContent(_element, _arrow, Popper.VirtualAnchorX, Popper.VirtualAnchorY, CreateOptionsPayload(options));
+                _lastVirtualAnchor = (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
+            }
+            else
+            {
+                await Interop.UpdatePopperContent(_element, _arrow, CreateOptionsPayload(options));
+                _lastVirtualAnchor = null;
+            }
+
             _lastOptions = options;
             _lastHadArrow = hasArrow;
         }
@@ -179,4 +182,19 @@
 
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached) CurrentOptions
         => (Side, SideOffset, Align, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, HideWhenDetached);
+
+    private static object CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached) options)
+    {
+        return new
+        {
+            side = options.Side,
+            sideOffset = options.SideOffset,
+            align = options.Align,
+            alignOffset = options.AlignOffset,
+            arrowPadding = options.ArrowPadding,
+            avoidCollisions = options.AvoidCollisions,
+            collisionPadding = options.CollisionPadding,
+            hideWhenDetached = options.HideWhenDetached
+        };
+    }
 }

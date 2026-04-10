@@ -1,0 +1,116 @@
+@using System
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+@if (_loadingStatus == BradixAvatarImageLoadingStatus.Loaded)
+{
+    <img @attributes="ImageAttributes" />
+}
+
+@code {
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _registered;
+    private bool _pendingRegistration = true;
+    private bool _hasRendered;
+    private string? _lastSrc;
+    private string? _lastCrossOrigin;
+    private string? _lastReferrerPolicy;
+    private BradixAvatarImageLoadingStatus _loadingStatus = BradixAvatarImageLoadingStatus.Idle;
+
+    [CascadingParameter]
+    private BradixAvatar? Avatar { get; set; }
+
+    [Parameter]
+    public string? Src { get; set; }
+
+    [Parameter]
+    public string? Alt { get; set; }
+
+    [Parameter]
+    public string? CrossOrigin { get; set; }
+
+    [Parameter]
+    public string? ReferrerPolicy { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAvatarImageLoadingStatus> OnLoadingStatusChange { get; set; }
+
+    private Dictionary<string, object> ImageAttributes => BuildAttributes(
+        ("src", Src),
+        ("alt", Alt),
+        ("crossorigin", CrossOrigin),
+        ("referrerpolicy", ReferrerPolicy));
+
+    protected override void OnParametersSet()
+    {
+        if (!_hasRendered)
+            return;
+
+        if (string.Equals(_lastSrc, Src, StringComparison.Ordinal) &&
+            string.Equals(_lastCrossOrigin, CrossOrigin, StringComparison.Ordinal) &&
+            string.Equals(_lastReferrerPolicy, ReferrerPolicy, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _pendingRegistration = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _hasRendered = true;
+
+        if (!_pendingRegistration)
+            return;
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+
+        if (_registered)
+            await Interop.UnregisterAvatarImageLoadingStatus(_dotNetReference);
+
+        _loadingStatus = BradixAvatarImageLoadingStatus.Idle;
+        if (Avatar is not null)
+            await Avatar.SetImageLoadingStatusAsync(BradixAvatarImageLoadingStatus.Idle);
+
+        await Interop.RegisterAvatarImageLoadingStatus(Src, CrossOrigin, ReferrerPolicy, _dotNetReference);
+        _registered = true;
+        _pendingRegistration = false;
+        _lastSrc = Src;
+        _lastCrossOrigin = CrossOrigin;
+        _lastReferrerPolicy = ReferrerPolicy;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered && _dotNetReference is not null)
+            await Interop.UnregisterAvatarImageLoadingStatus(_dotNetReference);
+
+        _dotNetReference?.Dispose();
+    }
+
+    [JSInvokable]
+    public async Task HandleImageLoadingStatusChangedAsync(string status)
+    {
+        BradixAvatarImageLoadingStatus resolvedStatus = status switch
+        {
+            "loading" => BradixAvatarImageLoadingStatus.Loading,
+            "loaded" => BradixAvatarImageLoadingStatus.Loaded,
+            "error" => BradixAvatarImageLoadingStatus.Error,
+            _ => BradixAvatarImageLoadingStatus.Idle
+        };
+
+        if (_loadingStatus == resolvedStatus)
+            return;
+
+        _loadingStatus = resolvedStatus;
+
+        if (OnLoadingStatusChange.HasDelegate)
+            await OnLoadingStatusChange.InvokeAsync(resolvedStatus);
+
+        if (Avatar is not null)
+            await Avatar.SetImageLoadingStatusAsync(resolvedStatus);
+    }
+}

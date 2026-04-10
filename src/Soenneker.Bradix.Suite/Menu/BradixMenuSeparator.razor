@@ -1,0 +1,11 @@
+@using System.Collections.Generic
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<div @attributes="SeparatorAttributes"></div>
+
+@code {
+    private Dictionary<string, object> SeparatorAttributes => BuildAttributes(
+        ("role", "separator"),
+        ("aria-orientation", "horizontal"));
+}

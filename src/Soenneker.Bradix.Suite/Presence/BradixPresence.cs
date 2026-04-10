@@ -22,6 +22,9 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
     [Parameter]
     public EventCallback OnExitComplete { get; set; }
 
+    [Parameter]
+    public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
+
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
@@ -29,6 +32,7 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
     private bool _initialized;
     private bool _pendingExitEvaluation;
     private bool _exitSuspended;
+    private bool _elementReferenceCaptured;
     private string _previousAnimationName = "none";
 
     protected override void OnParametersSet()
@@ -56,6 +60,14 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
     {
         if (_rendered)
         {
+            if (!_elementReferenceCaptured)
+            {
+                _elementReferenceCaptured = true;
+
+                if (OnElementReferenceCaptured.HasDelegate)
+                    await OnElementReferenceCaptured.InvokeAsync(_element);
+            }
+
             if (!_registered)
             {
                 _dotNetReference ??= DotNetObjectReference.Create<object>(this);
@@ -87,6 +99,9 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
             await Interop.UnregisterPresence(_element);
             _registered = false;
         }
+
+        if (!_rendered)
+            _elementReferenceCaptured = false;
 
         await base.OnAfterRenderAsync(firstRender);
     }
