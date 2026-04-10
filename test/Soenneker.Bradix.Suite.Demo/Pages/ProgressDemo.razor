@@ -1,0 +1,67 @@
+@page "/progress"
+
+<PageTitle>Bradix Progress</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixProgress</h2>
+        <p>Exposes the same progress root/indicator split and state metadata for indeterminate, loading, and complete flows.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Controlled</h3>
+            <p class="state-line">Value: <strong>@(_value?.ToString() ?? "indeterminate")</strong></p>
+            <BradixProgress Class="progress-root" Value="@_value" Max="150">
+                <BradixProgressIndicator Class="progress-indicator" Style="@IndicatorStyle" />
+            </BradixProgress>
+            <input type="range" class="range-input" min="0" max="150" @bind="_sliderValue" @bind:event="oninput" />
+            <div class="button-row">
+                <button type="button" class="primitive__trigger" @onclick="ApplySlider">Apply value</button>
+                <button type="button" class="primitive__trigger" @onclick="ToggleIndeterminate">Toggle indeterminate</button>
+            </div>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>States</h3>
+            <BradixProgress Class="progress-root" Value="0">
+                <BradixProgressIndicator Class="progress-indicator" Style="width: 0%;" />
+            </BradixProgress>
+            <BradixProgress Class="progress-root" Value="30">
+                <BradixProgressIndicator Class="progress-indicator" Style="width: 30%;" />
+            </BradixProgress>
+            <BradixProgress Class="progress-root">
+                <BradixProgressIndicator Class="progress-indicator" />
+            </BradixProgress>
+            <BradixProgress Class="progress-root" Value="100">
+                <BradixProgressIndicator Class="progress-indicator" Style="width: 100%;" />
+            </BradixProgress>
+        </section>
+    </div>
+</section>
+
+@code {
+    private double? _value = 45;
+    private double _sliderValue = 45;
+    private double _lastDeterminateValue = 45;
+
+    private string? IndicatorStyle => _value is double value ? $"width: {Math.Round((value / 150d) * 100)}%;" : null;
+
+    private void ApplySlider()
+    {
+        _value = _sliderValue;
+        _lastDeterminateValue = _sliderValue;
+    }
+
+    private void ToggleIndeterminate()
+    {
+        if (_value is null)
+        {
+            _value = _lastDeterminateValue;
+            return;
+        }
+
+        _lastDeterminateValue = _value.Value;
+        _value = null;
+    }
+}

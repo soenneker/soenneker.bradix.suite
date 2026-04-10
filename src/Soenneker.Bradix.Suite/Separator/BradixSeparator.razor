@@ -1,0 +1,21 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<div @attributes="SeparatorAttributes"></div>
+
+@code {
+    private const string DefaultOrientation = "horizontal";
+
+    [Parameter]
+    public string Orientation { get; set; } = DefaultOrientation;
+
+    [Parameter]
+    public bool Decorative { get; set; }
+
+    private string ResolvedOrientation => Orientation == "vertical" ? "vertical" : DefaultOrientation;
+
+    private Dictionary<string, object> SeparatorAttributes => BuildAttributes(
+        ("role", Decorative ? "none" : "separator"),
+        ("aria-orientation", !Decorative && ResolvedOrientation == "vertical" ? "vertical" : null),
+        ("data-orientation", ResolvedOrientation));
+}

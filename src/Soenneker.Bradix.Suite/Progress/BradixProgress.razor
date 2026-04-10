@@ -1,0 +1,55 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<CascadingValue Value="this">
+    <div @attributes="ProgressAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private const int DefaultMax = 100;
+
+    [Parameter]
+    public double? Value { get; set; }
+
+    [Parameter]
+    public double Max { get; set; } = DefaultMax;
+
+    [Parameter]
+    public Func<double, double, string>? GetValueLabel { get; set; }
+
+    internal double ResolvedMax => IsValidMax(Max) ? Max : DefaultMax;
+
+    internal double? ResolvedValue => IsValidValue(Value, ResolvedMax) ? Value : null;
+
+    internal string State => ResolvedValue is null
+        ? "indeterminate"
+        : ResolvedValue == ResolvedMax
+            ? "complete"
+            : "loading";
+
+    private string? ValueLabel => ResolvedValue is double value
+        ? (GetValueLabel?.Invoke(value, ResolvedMax) ?? $"{Math.Round((value / ResolvedMax) * 100)}%")
+        : null;
+
+    private Dictionary<string, object> ProgressAttributes => BuildAttributes(
+        ("role", "progressbar"),
+        ("aria-valuemax", ResolvedMax),
+        ("aria-valuemin", 0),
+        ("aria-valuenow", ResolvedValue),
+        ("aria-valuetext", ValueLabel),
+        ("data-state", State),
+        ("data-value", ResolvedValue),
+        ("data-max", ResolvedMax));
+
+    private static bool IsValidMax(double max)
+    {
+        return !double.IsNaN(max) && max > 0;
+    }
+
+    private static bool IsValidValue(double? value, double max)
+    {
+        return value is double number && !double.IsNaN(number) && number >= 0 && number <= max;
+    }
+}

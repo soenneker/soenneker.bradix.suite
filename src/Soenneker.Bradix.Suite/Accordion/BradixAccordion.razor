@@ -18,6 +18,9 @@
     private string? _uncontrolledValue;
     private HashSet<string> _uncontrolledValues = [];
 
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
     [Parameter]
     public string Type { get; set; } = SingleType;
 
@@ -28,7 +31,7 @@
     public string Orientation { get; set; } = VerticalOrientation;
 
     [Parameter]
-    public string Dir { get; set; } = "ltr";
+    public string? Dir { get; set; }
 
     [Parameter]
     public bool Collapsible { get; set; }
@@ -58,18 +61,18 @@
     public EventCallback<IReadOnlyCollection<string>> OnValuesChange { get; set; }
 
     internal bool IsCollapsible => Type == MultipleType || Collapsible;
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
 
     private bool IsSingle => Type == SingleType;
 
     private IReadOnlyDictionary<string, object> RootAttributes => BuildAttributes(
         ("data-orientation", Orientation),
-        ("dir", Dir));
+        ("dir", ResolvedDirection));
 
     protected override void OnParametersSet()
     {
         Type = Type == MultipleType ? MultipleType : SingleType;
         Orientation = Orientation == HorizontalOrientation ? HorizontalOrientation : VerticalOrientation;
-        Dir = Dir == "rtl" ? "rtl" : "ltr";
 
         if (_initialized)
             return;
@@ -170,12 +173,12 @@
                 nextIndex = (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;
                 break;
             case "ArrowRight" when Orientation == HorizontalOrientation:
-                nextIndex = Dir == "rtl"
+                nextIndex = ResolvedDirection == "rtl"
                     ? (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count
                     : (currentIndex + 1) % enabledTriggers.Count;
                 break;
             case "ArrowLeft" when Orientation == HorizontalOrientation:
-                nextIndex = Dir == "rtl"
+                nextIndex = ResolvedDirection == "rtl"
                     ? (currentIndex + 1) % enabledTriggers.Count
                     : (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;
                 break;

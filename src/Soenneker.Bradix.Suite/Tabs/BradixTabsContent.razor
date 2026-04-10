@@ -1,0 +1,63 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+@if (ForceMount || IsSelected)
+{
+    <div @attributes="ContentAttributes">
+        @if (ForceMount || IsSelected)
+        {
+            @ChildContent
+        }
+    </div>
+}
+
+@code {
+    private bool _preventMountAnimation = true;
+
+    [CascadingParameter]
+    internal BradixTabs Tabs { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = null!;
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    private bool IsSelected => string.Equals(Tabs.CurrentValue, Value, StringComparison.Ordinal);
+
+    private string TriggerId => Tabs.MakeTriggerId(Value);
+
+    private string ContentId => Tabs.MakeContentId(Value);
+
+    private Dictionary<string, object> ContentAttributes => BuildAttributes(
+        ("role", "tabpanel"),
+        ("aria-labelledby", TriggerId),
+        ("hidden", !IsSelected ? true : null),
+        ("id", ContentId),
+        ("tabindex", 0),
+        ("data-state", IsSelected ? "active" : "inactive"),
+        ("data-orientation", Tabs.Orientation),
+        ("style", BuildContentStyle()));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return Task.CompletedTask;
+
+        _preventMountAnimation = false;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private string? BuildContentStyle()
+    {
+        string? animationStyle = _preventMountAnimation ? "animation-duration: 0s;" : null;
+
+        if (string.IsNullOrWhiteSpace(Style))
+            return animationStyle;
+
+        if (string.IsNullOrWhiteSpace(animationStyle))
+            return Style;
+
+        return $"{animationStyle} {Style}";
+    }
+}

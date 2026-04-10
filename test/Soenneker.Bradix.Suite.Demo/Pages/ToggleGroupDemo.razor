@@ -1,0 +1,84 @@
+@page "/toggle-group"
+
+<PageTitle>Bradix ToggleGroup</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixToggleGroup</h2>
+        <p>Builds on `BradixToggle` with single or multiple value coordination, roving focus, orientation, and direction-aware keyboard navigation.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Single</h3>
+            <p class="state-line">Value: <strong>@(_singleValue ?? "(none)")</strong></p>
+            <BradixToggleGroup Class="toggle-group"
+                               Type="single"
+                               Value="@_singleValue"
+                               OnValueChange="HandleSingleChanged"
+                               aria-label="Text alignment">
+                <BradixToggleGroupItem Class="primitive__trigger" Value="left">Left</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger" Value="center">Center</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger" Value="right">Right</BradixToggleGroupItem>
+            </BradixToggleGroup>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Multiple</h3>
+            <p class="state-line">Values: <strong>@string.Join(", ", _multipleValues)</strong></p>
+            <BradixToggleGroup Class="toggle-group"
+                               Type="multiple"
+                               Values="@_multipleValues"
+                               OnValuesChange="HandleMultipleChanged"
+                               aria-label="Formatting options">
+                <BradixToggleGroupItem Class="primitive__trigger" Value="bold">Bold</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger" Value="italic">Italic</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger" Value="underline">Underline</BradixToggleGroupItem>
+            </BradixToggleGroup>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Vertical</h3>
+            <BradixToggleGroup Class="toggle-group toggle-group--vertical"
+                               Type="single"
+                               Orientation="vertical"
+                               DefaultValue="a"
+                               aria-label="List density">
+                <BradixToggleGroupItem Class="primitive__trigger" Value="a">Compact</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger" Value="b">Default</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger" Value="c">Comfortable</BradixToggleGroupItem>
+            </BradixToggleGroup>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Inherited direction</h3>
+            <BradixDirectionProvider Dir="rtl">
+                <BradixToggleGroup Class="toggle-group"
+                                   Type="single"
+                                   DefaultValue="one"
+                                   aria-label="RTL options">
+                    <BradixToggleGroupItem Class="primitive__trigger" Value="one">One</BradixToggleGroupItem>
+                    <BradixToggleGroupItem Class="primitive__trigger" Value="two">Two</BradixToggleGroupItem>
+                    <BradixToggleGroupItem Class="primitive__trigger" Value="three" Disabled>Three</BradixToggleGroupItem>
+                </BradixToggleGroup>
+            </BradixDirectionProvider>
+        </section>
+    </div>
+</section>
+
+@code {
+    private string? _singleValue = "center";
+    private IReadOnlyCollection<string> _multipleValues = ["bold", "underline"];
+
+    private Task HandleSingleChanged(string? value)
+    {
+        _singleValue = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleMultipleChanged(IReadOnlyCollection<string> values)
+    {
+        _multipleValues = values;
+        return Task.CompletedTask;
+    }
+}

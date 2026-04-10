@@ -1,0 +1,26 @@
+@page "/label"
+
+<PageTitle>Bradix Label</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixLabel</h2>
+        <p>Preserves native label relationships and Radix’s mousedown guard for double-click selection around nested form controls.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Wrapping a control</h3>
+            <BradixLabel Class="field">
+                <button type="button" class="primitive__trigger">Nested control</button>
+                <span>Label text</span>
+            </BradixLabel>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Referencing a control</h3>
+            <input id="label-demo-input" class="text-input" placeholder="Name" />
+            <BradixLabel for="label-demo-input">Name</BradixLabel>
+        </section>
+    </div>
+</section>

@@ -1,0 +1,13 @@
+<CascadingValue Name="BradixDirection" Value="ResolvedDirection">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public string Dir { get; set; } = "ltr";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string ResolvedDirection => Dir == "rtl" ? "rtl" : "ltr";
+}

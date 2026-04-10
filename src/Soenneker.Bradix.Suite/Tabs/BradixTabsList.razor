@@ -1,0 +1,20 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<CascadingValue Value="this">
+    <div @attributes="ListAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    [CascadingParameter]
+    internal BradixTabs Tabs { get; set; } = null!;
+
+    [Parameter]
+    public bool Loop { get; set; } = true;
+
+    private Dictionary<string, object> ListAttributes => BuildAttributes(
+        ("role", "tablist"),
+        ("aria-orientation", Tabs.Orientation == "vertical" ? "vertical" : null));
+}

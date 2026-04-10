@@ -1,0 +1,16 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<div @attributes="IndicatorAttributes">
+    @ChildContent
+</div>
+
+@code {
+    [CascadingParameter]
+    internal BradixProgress Progress { get; set; } = null!;
+
+    private Dictionary<string, object> IndicatorAttributes => BuildAttributes(
+        ("data-state", Progress.State),
+        ("data-value", Progress.ResolvedValue),
+        ("data-max", Progress.ResolvedMax));
+}

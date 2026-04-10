@@ -1,0 +1,42 @@
+@page "/aspect-ratio"
+
+<PageTitle>Bradix AspectRatio</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixAspectRatio</h2>
+        <p>Uses the same wrapper-and-absolute-child structure as Radix so content keeps its ratio without imposing design styling.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Default ratio</h3>
+            <div class="aspect-frame">
+                <BradixAspectRatio Class="aspect-sample">
+                    <div class="aspect-fill">1:1</div>
+                </BradixAspectRatio>
+            </div>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Custom ratios</h3>
+            <div class="aspect-grid">
+                <div class="aspect-frame">
+                    <BradixAspectRatio Ratio="0.5" Class="aspect-sample">
+                        <div class="aspect-fill">1:2</div>
+                    </BradixAspectRatio>
+                </div>
+                <div class="aspect-frame">
+                    <BradixAspectRatio Ratio="1.7777777778" Class="aspect-sample">
+                        <div class="aspect-fill">16:9</div>
+                    </BradixAspectRatio>
+                </div>
+                <div class="aspect-frame">
+                    <BradixAspectRatio Ratio="2" Class="aspect-sample">
+                        <div class="aspect-fill">2:1</div>
+                    </BradixAspectRatio>
+                </div>
+            </div>
+        </section>
+    </div>
+</section>

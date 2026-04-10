@@ -1,0 +1,39 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<label @ref="_element"
+       @onmousedown="HandleMouseDown"
+       @attributes="LabelAttributes">
+    @ChildContent
+</label>
+
+@code {
+    private ElementReference _element;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMouseDown { get; set; }
+
+    private Dictionary<string, object> LabelAttributes => BuildAttributes();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await Interop.RegisterLabelTextSelectionGuard(_element);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnregisterLabelTextSelectionGuard(_element);
+    }
+
+    private Task HandleMouseDown(MouseEventArgs args)
+    {
+        return OnMouseDown.HasDelegate
+            ? OnMouseDown.InvokeAsync(args)
+            : Task.CompletedTask;
+    }
+}

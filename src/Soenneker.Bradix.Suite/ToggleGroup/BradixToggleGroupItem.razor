@@ -1,0 +1,129 @@
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Toggle
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<BradixToggle @ref="_toggle"
+              Id="@Id"
+              Class="@Class"
+              Style="@Style"
+              Pressed="@IsPressed"
+              Disabled="@IsDisabled"
+              RenderAriaPressed="@(!IsSingle)"
+              OnPressedChange="HandlePressedChange"
+              OnMouseDown="HandleMouseDown"
+              OnFocus="HandleFocus"
+              OnKeyDown="HandleKeyDown"
+              AdditionalAttributes="ToggleAttributes">
+    @ChildContent
+</BradixToggle>
+
+@code {
+    private BradixToggle? _toggle;
+    private bool _registered;
+
+    [CascadingParameter]
+    internal BradixToggleGroup Group { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = null!;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? TabStopId { get; private set; }
+
+    internal bool IsPressed => Group.IsItemPressed(Value);
+
+    internal bool IsDisabled => Group.Disabled || Disabled;
+
+    internal bool IsFocusable => !IsDisabled;
+
+    private bool IsSingle => Group.Type != "multiple";
+
+    private Dictionary<string, object> ToggleAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : [];
+
+            if (IsSingle)
+            {
+                attributes["role"] = "radio";
+                attributes["aria-checked"] = IsPressed ? "true" : "false";
+            }
+
+            if (Group.RovingFocus)
+                attributes["tabindex"] = Group.IsCurrentTabStop(this) ? 0 : -1;
+
+            if (Group.Orientation is not null)
+                attributes["data-orientation"] = Group.Orientation;
+
+            return attributes;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        TabStopId ??= IdGenerator.New("bradix-toggle-group-item");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        Group.RegisterItem(this);
+        _registered = true;
+
+        if (Group.RovingFocus && _toggle is not null)
+            await Interop.RegisterRovingFocusNavigationKeys(_toggle.Element);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (Group.RovingFocus && _toggle is not null)
+            await Interop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
+
+        if (_registered)
+            Group.UnregisterItem(this);
+    }
+
+    internal ValueTask FocusAsync()
+    {
+        return _toggle?.FocusAsync() ?? ValueTask.CompletedTask;
+    }
+
+    private Task HandleMouseDown(MouseEventArgs _)
+    {
+        if (IsFocusable)
+            Group.SetCurrentTabStop(TabStopId);
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandleFocus(FocusEventArgs _)
+    {
+        if (IsFocusable)
+            Group.SetCurrentTabStop(TabStopId);
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        return Group.HandleItemKeyDownAsync(this, args);
+    }
+
+    private Task HandlePressedChange(bool pressed)
+    {
+        return pressed
+            ? Group.ActivateItemAsync(Value)
+            : Group.DeactivateItemAsync(Value);
+    }
+}

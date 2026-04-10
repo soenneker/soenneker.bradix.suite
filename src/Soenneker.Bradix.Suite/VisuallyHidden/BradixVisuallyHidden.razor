@@ -1,0 +1,14 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<span @attributes="SpanAttributes">
+    @ChildContent
+</span>
+
+@code {
+    private const string HiddenStyles =
+        "position: absolute; border: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; word-wrap: normal;";
+
+    private Dictionary<string, object> SpanAttributes => BuildAttributes(
+        ("style", string.IsNullOrWhiteSpace(Style) ? HiddenStyles : $"{HiddenStyles} {Style}"));
+}

@@ -1,0 +1,126 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<button @ref="_element"
+        @onmousedown="HandleMouseDown"
+        @onkeydown="HandleKeyDown"
+        @onfocus="HandleFocus"
+        @attributes="TriggerAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private ElementReference _element;
+    private bool _registered;
+
+    [CascadingParameter]
+    internal BradixTabs Tabs { get; set; } = null!;
+
+    [CascadingParameter]
+    internal BradixTabsList? List { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = null!;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMouseDown { get; set; }
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback<FocusEventArgs> OnFocus { get; set; }
+
+    internal bool IsDisabled => Disabled;
+
+    internal bool IsSelected => string.Equals(Tabs.CurrentValue, Value, StringComparison.Ordinal);
+
+    internal string TabStopId => TriggerId;
+
+    private string TriggerId => Tabs.MakeTriggerId(Value);
+
+    private string ContentId => Tabs.MakeContentId(Value);
+
+    private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("type", "button"),
+        ("role", "tab"),
+        ("aria-selected", IsSelected ? "true" : "false"),
+        ("aria-controls", ContentId),
+        ("data-state", IsSelected ? "active" : "inactive"),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("data-orientation", Tabs.Orientation),
+        ("disabled", Disabled ? true : null),
+        ("id", TriggerId),
+        ("tabindex", Tabs.IsCurrentTabStop(this) ? 0 : -1));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        Tabs.RegisterTrigger(this);
+        _registered = true;
+        await Interop.RegisterRovingFocusNavigationKeys(_element);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnregisterRovingFocusNavigationKeys(_element);
+
+        if (_registered)
+            Tabs.UnregisterTrigger(this);
+    }
+
+    internal ValueTask FocusAsync()
+    {
+        return _element.FocusAsync();
+    }
+
+    private async Task HandleMouseDown(MouseEventArgs args)
+    {
+        if (OnMouseDown.HasDelegate)
+            await OnMouseDown.InvokeAsync(args);
+
+        if (Disabled)
+            return;
+
+        if (args.Button == 0 && !args.CtrlKey)
+            await Tabs.SetValueAsync(Value);
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (OnKeyDown.HasDelegate)
+            await OnKeyDown.InvokeAsync(args);
+
+        if (Disabled)
+            return;
+
+        if (args.Key is " " or "Enter")
+        {
+            await Tabs.SetValueAsync(Value);
+            return;
+        }
+
+        await Tabs.HandleTriggerKeyDownAsync(this, List?.Loop ?? true, args);
+    }
+
+    private async Task HandleFocus(FocusEventArgs args)
+    {
+        if (OnFocus.HasDelegate)
+            await OnFocus.InvokeAsync(args);
+
+        if (Disabled)
+            return;
+
+        Tabs.SetCurrentTabStop(TabStopId);
+
+        if (!IsSelected && Tabs.IsAutomaticActivation)
+            await Tabs.SetValueAsync(Value);
+    }
+}

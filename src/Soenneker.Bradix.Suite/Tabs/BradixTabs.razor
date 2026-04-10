@@ -1,0 +1,180 @@
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.RovingFocus
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<CascadingValue Value="this">
+    <div @attributes="RootAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private readonly List<BradixTabsTrigger> _triggers = [];
+    private bool _initialized;
+    private string? _uncontrolledValue;
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    [Parameter]
+    public string Orientation { get; set; } = "horizontal";
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    [Parameter]
+    public string ActivationMode { get; set; } = "automatic";
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal string? CurrentTabStopId { get; private set; }
+
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+
+    internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
+
+    internal bool IsAutomaticActivation => ActivationMode != "manual";
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("dir", ResolvedDirection),
+        ("data-orientation", Orientation));
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-tabs");
+    }
+
+    protected override void OnParametersSet()
+    {
+        Orientation = Orientation == "vertical" ? "vertical" : "horizontal";
+        ActivationMode = ActivationMode == "manual" ? "manual" : "automatic";
+
+        if (_initialized)
+        {
+            EnsureCurrentTabStopId();
+            return;
+        }
+
+        _uncontrolledValue = DefaultValue;
+        _initialized = true;
+        EnsureCurrentTabStopId();
+    }
+
+    internal string MakeTriggerId(string value) => $"{BaseId}-trigger-{value}";
+
+    internal string MakeContentId(string value) => $"{BaseId}-content-{value}";
+
+    internal void RegisterTrigger(BradixTabsTrigger trigger)
+    {
+        if (_triggers.Contains(trigger))
+            return;
+
+        _triggers.Add(trigger);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterTrigger(BradixTabsTrigger trigger)
+    {
+        _triggers.Remove(trigger);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal bool IsCurrentTabStop(BradixTabsTrigger trigger)
+    {
+        return string.Equals(CurrentTabStopId, trigger.TabStopId, StringComparison.Ordinal);
+    }
+
+    internal void SetCurrentTabStop(string? tabStopId)
+    {
+        if (string.Equals(CurrentTabStopId, tabStopId, StringComparison.Ordinal))
+            return;
+
+        CurrentTabStopId = tabStopId;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task HandleTriggerKeyDownAsync(BradixTabsTrigger trigger, bool loop, KeyboardEventArgs args)
+    {
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+            return;
+
+        List<BradixTabsTrigger> focusableTriggers = _triggers
+            .Where(candidate => !candidate.IsDisabled)
+            .ToList();
+
+        int currentIndex = focusableTriggers.IndexOf(trigger);
+
+        if (currentIndex < 0)
+            return;
+
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(
+                args.Key,
+                Orientation,
+                ResolvedDirection,
+                currentIndex,
+                focusableTriggers.Count,
+                loop,
+                out int targetIndex))
+        {
+            return;
+        }
+
+        BradixTabsTrigger target = focusableTriggers[targetIndex];
+        CurrentTabStopId = target.TabStopId;
+        await target.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task SetValueAsync(string value)
+    {
+        if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
+            return;
+
+        if (Value is null)
+            _uncontrolledValue = value;
+
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(value);
+
+        if (OnValueChange.HasDelegate)
+            await OnValueChange.InvokeAsync(value);
+
+        EnsureCurrentTabStopId();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void EnsureCurrentTabStopId()
+    {
+        List<BradixTabsTrigger> focusableTriggers = _triggers
+            .Where(item => !item.IsDisabled)
+            .ToList();
+
+        if (focusableTriggers.Count == 0)
+        {
+            CurrentTabStopId = null;
+            return;
+        }
+
+        if (CurrentTabStopId is not null && focusableTriggers.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
+            return;
+
+        BradixTabsTrigger? activeTrigger = focusableTriggers.FirstOrDefault(item => item.IsSelected);
+        CurrentTabStopId = activeTrigger?.TabStopId ?? focusableTriggers[0].TabStopId;
+    }
+}

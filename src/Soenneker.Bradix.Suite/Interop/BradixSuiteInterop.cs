@@ -35,6 +35,30 @@ public sealed class BradixSuiteInterop : ISuiteInterop
         await module.InvokeVoidAsync("unobserveCollapsibleContent", cancellationToken, element).ConfigureAwait(false);
     }
 
+    public async ValueTask RegisterRovingFocusNavigationKeys(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerRovingFocusNavigationKeys", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterRovingFocusNavigationKeys(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterRovingFocusNavigationKeys", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerLabelTextSelectionGuard", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterLabelTextSelectionGuard", cancellationToken, element).ConfigureAwait(false);
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_module is not null)

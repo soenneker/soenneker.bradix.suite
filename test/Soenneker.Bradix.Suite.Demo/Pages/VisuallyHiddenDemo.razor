@@ -1,0 +1,20 @@
+@page "/visually-hidden"
+
+<PageTitle>Bradix VisuallyHidden</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixVisuallyHidden</h2>
+        <p>Provides screen-reader-only content without imposing visible layout, matching Radix’s utility semantics.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Accessible icon button</h3>
+            <button type="button" class="primitive__trigger icon-button">
+                <BradixVisuallyHidden>Save the file</BradixVisuallyHidden>
+                <span aria-hidden="true">S</span>
+            </button>
+        </section>
+    </div>
+</section>

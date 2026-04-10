@@ -130,6 +130,34 @@
                 </BradixAccordionItem>
             </BradixAccordion>
         </section>
+
+        <section class="card stack stack--compact">
+            <h3>Inherited direction</h3>
+            <BradixDirectionProvider Dir="rtl">
+                <BradixAccordion Class="primitive primitive--horizontal"
+                                 Type="single"
+                                 Orientation="horizontal"
+                                 DefaultValue="one">
+                    <BradixAccordionItem Class="accordion-item accordion-item--horizontal" Value="one">
+                        <BradixAccordionHeader Class="accordion-header">
+                            <BradixAccordionTrigger Class="primitive__trigger">One</BradixAccordionTrigger>
+                        </BradixAccordionHeader>
+                        <BradixAccordionContent Class="primitive__content">
+                            <p>Arrow navigation now resolves through the shared Bradix direction context.</p>
+                        </BradixAccordionContent>
+                    </BradixAccordionItem>
+
+                    <BradixAccordionItem Class="accordion-item accordion-item--horizontal" Value="two">
+                        <BradixAccordionHeader Class="accordion-header">
+                            <BradixAccordionTrigger Class="primitive__trigger">Two</BradixAccordionTrigger>
+                        </BradixAccordionHeader>
+                        <BradixAccordionContent Class="primitive__content">
+                            <p>This mirrors Radix's ability to inherit direction from a provider instead of a local prop.</p>
+                        </BradixAccordionContent>
+                    </BradixAccordionItem>
+                </BradixAccordion>
+            </BradixDirectionProvider>
+        </section>
     </div>
 </section>
 
