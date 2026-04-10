@@ -1,7 +1,25 @@
+@using System
 @using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Slot
 @inherits BradixComponentBase
 
-<div @attributes="SeparatorAttributes"></div>
+@if (AsChild)
+{
+    <BradixSlot ElementName="@ResolvedChildElementName"
+                Id="@Id"
+                Class="@Class"
+                Style="@Style"
+                AdditionalAttributes="@SeparatorAttributes"
+                ChildAttributes="@ChildAttributes">
+        @ChildContent
+    </BradixSlot>
+}
+else
+{
+    <div @attributes="SeparatorAttributes">
+        @ChildContent
+    </div>
+}
 
 @code {
     private const string DefaultOrientation = "horizontal";
@@ -12,10 +30,27 @@
     [Parameter]
     public bool Decorative { get; set; }
 
+    [Parameter]
+    public bool AsChild { get; set; }
+
+    [Parameter]
+    public string? ChildElementName { get; set; }
+
+    [Parameter]
+    public IReadOnlyDictionary<string, object>? ChildAttributes { get; set; }
+
     private string ResolvedOrientation => Orientation == "vertical" ? "vertical" : DefaultOrientation;
+
+    private string ResolvedChildElementName => ChildElementName ?? string.Empty;
 
     private Dictionary<string, object> SeparatorAttributes => BuildAttributes(
         ("role", Decorative ? "none" : "separator"),
         ("aria-orientation", !Decorative && ResolvedOrientation == "vertical" ? "vertical" : null),
         ("data-orientation", ResolvedOrientation));
+
+    protected override void OnParametersSet()
+    {
+        if (AsChild && string.IsNullOrWhiteSpace(ChildElementName))
+            throw new InvalidOperationException("BradixSeparator requires ChildElementName when AsChild is true.");
+    }
 }

@@ -39,4 +39,21 @@ public sealed class BradixRemoveScrollRenderTests : Bunit.BunitContext
         Assert.Contains("Locked content", cut.Markup);
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
     }
+
+    [Fact]
+    public void Remove_scroll_forwards_allow_pinch_zoom_to_interop()
+    {
+        Render(builder =>
+        {
+            builder.OpenComponent<BradixRemoveScroll>(0);
+            builder.AddAttribute(1, nameof(BradixRemoveScroll.AllowPinchZoom), true);
+            builder.CloseComponent();
+        });
+
+        Assert.Contains(_module.Invocations, invocation =>
+            invocation.Identifier == "registerRemoveScroll" &&
+            invocation.Arguments.Count > 0 &&
+            invocation.Arguments[0] is bool allowPinchZoom &&
+            allowPinchZoom);
+    }
 }

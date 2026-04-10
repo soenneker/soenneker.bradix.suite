@@ -53,6 +53,33 @@ public sealed class BradixDismissableLayerRenderTests : Bunit.BunitContext
     }
 
     [Fact]
+    public async Task Focus_outside_triggers_interact_and_dismiss_callbacks()
+    {
+        bool focusOutside = false;
+        bool interactOutside = false;
+
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixDismissableLayer>(0);
+            builder.AddAttribute(1, nameof(BradixDismissableLayer.OnFocusOutside), EventCallback.Factory.Create(this, () => focusOutside = true));
+            builder.AddAttribute(2, nameof(BradixDismissableLayer.OnInteractOutside), EventCallback.Factory.Create(this, () => interactOutside = true));
+            builder.AddAttribute(3, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => _dismissed = true));
+            builder.AddAttribute(4, nameof(BradixDismissableLayer.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.AddContent(0, "Layer content");
+            }));
+            builder.CloseComponent();
+        });
+
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+        await layer.Instance.HandleFocusOutsideAsync();
+
+        Assert.True(focusOutside);
+        Assert.True(interactOutside);
+        Assert.True(_dismissed);
+    }
+
+    [Fact]
     public void Branch_renders_child_content()
     {
         var cut = Render(builder =>

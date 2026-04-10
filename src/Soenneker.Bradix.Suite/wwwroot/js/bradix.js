@@ -2,6 +2,7 @@ const collapsibleObservers = new WeakMap();
 const rovingFocusHandlers = new WeakMap();
 const radioGroupItemHandlers = new WeakMap();
 const checkboxRootHandlers = new WeakMap();
+const formRootHandlers = new WeakMap();
 const sliderPointerHandlers = new WeakMap();
 const scrollAreaRootHandlers = new WeakMap();
 const scrollAreaViewportHandlers = new WeakMap();
@@ -14,7 +15,10 @@ const selectWindowDismissHandlers = new WeakMap();
 const hoverCardSelectionHandlers = new WeakMap();
 const avatarImageLoaders = new WeakMap();
 const navigationMenuIndicatorHandlers = new WeakMap();
+const navigationMenuContentFocusBridgeHandlers = new WeakMap();
 const navigationMenuViewportHandlers = new WeakMap();
+const toastViewportHandlers = new WeakMap();
+const oneTimePasswordInputHandlers = new WeakMap();
 const dismissableBranches = new Set();
 const dismissableLayers = [];
 let dismissableLayerListenersRegistered = false;
@@ -27,8 +31,10 @@ const presenceHandlers = new WeakMap();
 let focusGuardsCount = 0;
 const hideOthersState = new WeakMap();
 let removeScrollCount = 0;
+const removeScrollAllowPinchZoomStack = [];
 let originalBodyOverflow = "";
 let originalBodyPaddingRight = "";
+let originalDocumentTouchAction = "";
 const rovingFocusKeys = new Set([
   "ArrowLeft",
   "ArrowRight",
@@ -167,6 +173,102 @@ export function registerCheckboxRoot(element, dotNetRef) {
   checkboxRootHandlers.set(element, { keydown, form, reset, dotNetRef });
 }
 
+export function registerFormRoot(element) {
+  if (!element) {
+    return;
+  }
+
+  unregisterFormRoot(element);
+
+  const invalid = (event) => {
+    event.preventDefault();
+
+    const invalidElements = Array.from(element.elements || []).filter((candidate) => {
+      return candidate instanceof HTMLElement && isInvalidFormControl(candidate);
+    });
+
+    const firstInvalid = invalidElements[0];
+
+    if (firstInvalid && firstInvalid === event.target && typeof firstInvalid.focus === "function") {
+      firstInvalid.focus();
+    }
+  };
+
+  element.addEventListener("invalid", invalid, true);
+  formRootHandlers.set(element, { invalid });
+}
+
+export function unregisterFormRoot(element) {
+  const handlers = formRootHandlers.get(element);
+
+  if (!handlers) {
+    return;
+  }
+
+  element.removeEventListener("invalid", handlers.invalid, true);
+  formRootHandlers.delete(element);
+}
+
+export function getFormControlValidity(element) {
+  if (!element || !("validity" in element) || !element.validity) {
+    return createFormValiditySnapshot(null);
+  }
+
+  return createFormValiditySnapshot(element);
+}
+
+export function getFormControlState(element) {
+  return {
+    value: element && "value" in element ? element.value || "" : "",
+    validity: getFormControlValidity(element),
+    formData: serializeFormDataSnapshot(element ? (element.form || (typeof element.closest === "function" ? element.closest("form") : null)) : null)
+  };
+}
+
+export function setFormControlCustomValidity(element, validationMessage) {
+  if (!element || typeof element.setCustomValidity !== "function") {
+    return;
+  }
+
+  element.setCustomValidity(validationMessage || "");
+}
+
+export function clearFormCustomValidity(form) {
+  if (!form || !form.elements) {
+    return;
+  }
+
+  Array.from(form.elements).forEach((element) => {
+    if (element && typeof element.setCustomValidity === "function") {
+      element.setCustomValidity("");
+    }
+  });
+}
+
+export function focusServerInvalidFormControl(element) {
+  if (!element) {
+    return false;
+  }
+
+  const form = element.form || (typeof element.closest === "function" ? element.closest("form") : null);
+  if (!form) {
+    return false;
+  }
+
+  const invalidElements = Array.from(form.elements || []).filter((candidate) => {
+    return candidate instanceof HTMLElement && isInvalidFormControl(candidate);
+  });
+
+  const firstInvalid = invalidElements[0];
+
+  if (firstInvalid === element && typeof element.focus === "function") {
+    element.focus();
+    return true;
+  }
+
+  return false;
+}
+
 export function unregisterCheckboxRoot(element) {
   const handlers = checkboxRootHandlers.get(element);
 
@@ -181,6 +283,52 @@ export function unregisterCheckboxRoot(element) {
   }
 
   checkboxRootHandlers.delete(element);
+}
+
+function isInvalidFormControl(element) {
+  return !!element && "validity" in element && (
+    (element.validity && element.validity.valid === false) ||
+    element.getAttribute("aria-invalid") === "true"
+  );
+}
+
+function createFormValiditySnapshot(element) {
+  const validity = element && element.validity ? element.validity : null;
+
+  return {
+    badInput: !!validity?.badInput,
+    customError: !!validity?.customError,
+    patternMismatch: !!validity?.patternMismatch,
+    rangeOverflow: !!validity?.rangeOverflow,
+    rangeUnderflow: !!validity?.rangeUnderflow,
+    stepMismatch: !!validity?.stepMismatch,
+    tooLong: !!validity?.tooLong,
+    tooShort: !!validity?.tooShort,
+    typeMismatch: !!validity?.typeMismatch,
+    valid: validity ? !!validity.valid : true,
+    valueMissing: !!validity?.valueMissing,
+    validationMessage: element?.validationMessage || ""
+  };
+}
+
+function serializeFormDataSnapshot(form) {
+  const values = {};
+
+  if (!form || typeof FormData !== "function") {
+    return { values };
+  }
+
+  const formData = new FormData(form);
+
+  for (const [key, value] of formData.entries()) {
+    if (!values[key]) {
+      values[key] = [];
+    }
+
+    values[key].push(typeof value === "string" ? value : "");
+  }
+
+  return { values };
 }
 
 export function syncCheckboxBubbleInputState(element, isChecked, isIndeterminate, dispatchEvent) {
@@ -743,6 +891,103 @@ export function unregisterNavigationMenuIndicator(indicator) {
   navigationMenuIndicatorHandlers.delete(indicator);
 }
 
+export function registerNavigationMenuContentFocusBridge(content, trigger, startProxy, endProxy) {
+  if (!content || !trigger || !startProxy || !endProxy) {
+    return;
+  }
+
+  unregisterNavigationMenuContentFocusBridge(content);
+
+  const focusContent = (side) => {
+    const candidates = getTabbableCandidates(content);
+    if (!candidates.length) {
+      return;
+    }
+
+    focusFirst(side === "start" ? candidates : [...candidates].reverse(), true);
+  };
+
+  const handleStartProxyFocus = (event) => {
+    const previous = event.relatedTarget instanceof HTMLElement ? event.relatedTarget : null;
+    const wasTriggerFocused = previous === trigger;
+    const wasFocusFromContent = !!previous && content.contains(previous);
+
+    if (wasTriggerFocused || !wasFocusFromContent) {
+      focusContent(wasTriggerFocused ? "start" : "end");
+    }
+  };
+
+  const handleEndProxyFocus = (event) => {
+    const previous = event.relatedTarget instanceof HTMLElement ? event.relatedTarget : null;
+    const wasFocusFromContent = !!previous && content.contains(previous);
+
+    if (!wasFocusFromContent) {
+      focusContent("end");
+    }
+  };
+
+  const handleContentKeydown = (event) => {
+    const isMetaKey = event.altKey || event.ctrlKey || event.metaKey;
+    const isTabKey = event.key === "Tab" && !isMetaKey;
+    if (!isTabKey) {
+      return;
+    }
+
+    const candidates = getTabbableCandidates(content);
+    const focusedElement = document.activeElement;
+    const index = candidates.findIndex((candidate) => candidate === focusedElement);
+    const isMovingBackwards = event.shiftKey;
+    const nextCandidates = isMovingBackwards
+      ? candidates.slice(0, index).reverse()
+      : candidates.slice(index + 1);
+
+    if (focusFirst(nextCandidates, true)) {
+      event.preventDefault();
+    } else {
+      focusElement(isMovingBackwards ? startProxy : endProxy, false);
+    }
+  };
+
+  startProxy.addEventListener("focus", handleStartProxyFocus);
+  endProxy.addEventListener("focus", handleEndProxyFocus);
+  content.addEventListener("keydown", handleContentKeydown);
+
+  navigationMenuContentFocusBridgeHandlers.set(content, {
+    trigger,
+    startProxy,
+    endProxy,
+    handleStartProxyFocus,
+    handleEndProxyFocus,
+    handleContentKeydown
+  });
+}
+
+export function updateNavigationMenuContentFocusBridge(content, trigger, startProxy, endProxy) {
+  const handlers = navigationMenuContentFocusBridgeHandlers.get(content);
+  if (!handlers) {
+    return;
+  }
+
+  if (handlers.trigger === trigger && handlers.startProxy === startProxy && handlers.endProxy === endProxy) {
+    return;
+  }
+
+  unregisterNavigationMenuContentFocusBridge(content);
+  registerNavigationMenuContentFocusBridge(content, trigger, startProxy, endProxy);
+}
+
+export function unregisterNavigationMenuContentFocusBridge(content) {
+  const handlers = navigationMenuContentFocusBridgeHandlers.get(content);
+  if (!handlers) {
+    return;
+  }
+
+  handlers.startProxy.removeEventListener("focus", handlers.handleStartProxyFocus);
+  handlers.endProxy.removeEventListener("focus", handlers.handleEndProxyFocus);
+  content.removeEventListener("keydown", handlers.handleContentKeydown);
+  navigationMenuContentFocusBridgeHandlers.delete(content);
+}
+
 export function registerNavigationMenuViewport(viewport, content, dotNetRef) {
   if (!viewport || !content || !dotNetRef) {
     return;
@@ -999,6 +1244,224 @@ export function unmountPortal(element) {
   }
 
   portalMounts.delete(element);
+}
+
+export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, hotkey, dotNetRef) {
+  if (!viewport) {
+    return;
+  }
+
+  unregisterToastViewport(viewport);
+
+  const hotkeys = Array.isArray(hotkey) ? hotkey : [];
+  const hasToasts = () => viewport.childElementCount > 0;
+  const invokePause = () => {
+    if (hasToasts() && dotNetRef) {
+      dotNetRef.invokeMethodAsync("HandlePauseAsync");
+    }
+  };
+  const invokeResume = () => {
+    if (dotNetRef) {
+      dotNetRef.invokeMethodAsync("HandleResumeAsync");
+    }
+  };
+  const getSortedCandidates = (backwards) => {
+    const toastItems = Array.from(viewport.querySelectorAll('[role="status"]'));
+    const orderedItems = backwards ? toastItems : [...toastItems].reverse();
+    return orderedItems.flatMap((toast) => {
+      const candidates = [toast, ...getTabbableCandidates(toast)];
+      return backwards ? candidates.reverse() : candidates;
+    });
+  };
+  const focusFromProxy = (backwards) => {
+    const previous = document.activeElement;
+    if (viewport.contains(previous)) {
+      return;
+    }
+
+    focusFirst(getSortedCandidates(backwards), false);
+  };
+  const keydown = (event) => {
+    const isHotkeyPressed = hotkeys.length !== 0 && hotkeys.every((key) => {
+      return event[key] || event.code === key || event.key === key;
+    });
+
+    if (isHotkeyPressed) {
+      focusElement(viewport, false);
+    }
+  };
+  const focusin = () => invokePause();
+  const focusout = (event) => {
+    if (!wrapper || wrapper.contains(event.relatedTarget)) {
+      return;
+    }
+
+    invokeResume();
+  };
+  const pointermove = () => invokePause();
+  const pointerleave = () => {
+    if (!wrapper || wrapper.contains(document.activeElement)) {
+      return;
+    }
+
+    invokeResume();
+  };
+  const windowBlur = () => invokePause();
+  const windowFocus = () => invokeResume();
+  const viewportKeydown = (event) => {
+    const isMetaKey = event.altKey || event.ctrlKey || event.metaKey;
+    if (event.key !== "Tab" || isMetaKey) {
+      return;
+    }
+
+    const backwards = event.shiftKey;
+    const targetIsViewport = event.target === viewport;
+    if (targetIsViewport && backwards) {
+      focusElement(headProxy, false);
+      return;
+    }
+
+    const sortedCandidates = getSortedCandidates(backwards);
+    const index = sortedCandidates.findIndex((candidate) => candidate === document.activeElement);
+    const nextCandidates = sortedCandidates.slice(index + 1);
+    const previous = document.activeElement;
+    focusFirst(nextCandidates, false);
+    if (document.activeElement === previous) {
+      focusElement(backwards ? headProxy : tailProxy, false);
+    }
+
+    event.preventDefault();
+  };
+  const headFocus = (event) => {
+    if (!viewport.contains(event.relatedTarget)) {
+      focusFromProxy(false);
+    }
+  };
+  const tailFocus = (event) => {
+    if (!viewport.contains(event.relatedTarget)) {
+      focusFromProxy(true);
+    }
+  };
+
+  document.addEventListener("keydown", keydown);
+  if (wrapper) {
+    wrapper.addEventListener("focusin", focusin);
+    wrapper.addEventListener("focusout", focusout);
+    wrapper.addEventListener("pointermove", pointermove);
+    wrapper.addEventListener("pointerleave", pointerleave);
+  }
+  window.addEventListener("blur", windowBlur);
+  window.addEventListener("focus", windowFocus);
+  viewport.addEventListener("keydown", viewportKeydown);
+  if (headProxy) {
+    headProxy.addEventListener("focus", headFocus);
+  }
+  if (tailProxy) {
+    tailProxy.addEventListener("focus", tailFocus);
+  }
+
+  toastViewportHandlers.set(viewport, {
+    wrapper,
+    keydown,
+    focusin,
+    focusout,
+    pointermove,
+    pointerleave,
+    windowBlur,
+    windowFocus,
+    viewportKeydown,
+    headProxy,
+    headFocus,
+    tailProxy,
+    tailFocus
+  });
+}
+
+export function unregisterToastViewport(viewport) {
+  const handlers = toastViewportHandlers.get(viewport);
+
+  if (!handlers) {
+    return;
+  }
+
+  document.removeEventListener("keydown", handlers.keydown);
+  if (handlers.wrapper) {
+    handlers.wrapper.removeEventListener("focusin", handlers.focusin);
+    handlers.wrapper.removeEventListener("focusout", handlers.focusout);
+    handlers.wrapper.removeEventListener("pointermove", handlers.pointermove);
+    handlers.wrapper.removeEventListener("pointerleave", handlers.pointerleave);
+  }
+  window.removeEventListener("blur", handlers.windowBlur);
+  window.removeEventListener("focus", handlers.windowFocus);
+  viewport.removeEventListener("keydown", handlers.viewportKeydown);
+  if (handlers.headProxy) {
+    handlers.headProxy.removeEventListener("focus", handlers.headFocus);
+  }
+  if (handlers.tailProxy) {
+    handlers.tailProxy.removeEventListener("focus", handlers.tailFocus);
+  }
+
+  toastViewportHandlers.delete(viewport);
+}
+
+export function isToastFocused(toast) {
+  return !!(toast && toast.contains(document.activeElement));
+}
+
+export function focusElementById(elementId) {
+  if (!elementId) {
+    return;
+  }
+
+  focusElement(document.getElementById(elementId), false);
+}
+
+export function registerOneTimePasswordInput(element, dotNetRef) {
+  if (!element) {
+    return;
+  }
+
+  unregisterOneTimePasswordInput(element);
+
+  const paste = (event) => {
+    if (!dotNetRef) {
+      return;
+    }
+
+    event.preventDefault();
+    dotNetRef.invokeMethodAsync("HandlePasteAsync", event.clipboardData?.getData("Text") || "");
+  };
+
+  element.addEventListener("paste", paste);
+  oneTimePasswordInputHandlers.set(element, { paste });
+}
+
+export function unregisterOneTimePasswordInput(element) {
+  const handlers = oneTimePasswordInputHandlers.get(element);
+
+  if (!handlers) {
+    return;
+  }
+
+  element.removeEventListener("paste", handlers.paste);
+  oneTimePasswordInputHandlers.delete(element);
+}
+
+export function requestFormSubmit(associatedElement, formId) {
+  let form = null;
+
+  if (formId) {
+    const candidate = associatedElement?.ownerDocument?.getElementById(formId) || document.getElementById(formId);
+    if (candidate instanceof HTMLFormElement) {
+      form = candidate;
+    }
+  }
+
+  form ||= associatedElement?.form || (typeof associatedElement?.closest === "function" ? associatedElement.closest("form") : null);
+
+  if (form && typeof form.requestSubmit === "function") {
+    form.requestSubmit();
+  }
 }
 
 function updateDismissableLayerPointerEvents() {
@@ -1396,11 +1859,9 @@ export function unregisterFocusScope(element) {
   element.removeEventListener("keydown", handlers.keydown);
   handlers.mutationObserver.disconnect();
 
-  setTimeout(() => {
-    handlers.scope.dotNetRef.invokeMethodAsync("HandleUnmountAutoFocusAsync");
-    focusElement(handlers.scope.previouslyFocusedElement || document.body, true);
-    removeFocusScopeFromStack(handlers.scope);
-  }, 0);
+  handlers.scope.dotNetRef.invokeMethodAsync("HandleUnmountAutoFocusAsync");
+  focusElement(handlers.scope.previouslyFocusedElement || document.body, true);
+  removeFocusScopeFromStack(handlers.scope);
 
   focusScopeHandlers.delete(element);
 }
@@ -1421,6 +1882,7 @@ function clamp(value, min, max) {
 function resolvePopperPosition(anchorRect, contentRect, options) {
   const side = options.side || "bottom";
   const align = options.align || "center";
+  const dir = options.dir === "rtl" ? "rtl" : "ltr";
   const sideOffset = Number(options.sideOffset || 0);
   const alignOffset = Number(options.alignOffset || 0);
   const collisionPadding = Number(options.collisionPadding || 0);
@@ -1454,9 +1916,13 @@ function resolvePopperPosition(anchorRect, contentRect, options) {
       : anchorRect.top - contentRect.height - sideOffset;
 
     if (align === "start") {
-      left = anchorRect.left + alignOffset;
+      left = dir === "rtl"
+        ? anchorRect.right - contentRect.width - alignOffset
+        : anchorRect.left + alignOffset;
     } else if (align === "end") {
-      left = anchorRect.right - contentRect.width + alignOffset;
+      left = dir === "rtl"
+        ? anchorRect.left + alignOffset
+        : anchorRect.right - contentRect.width + alignOffset;
     } else {
       left = anchorRect.left + ((anchorRect.width - contentRect.width) / 2) + alignOffset;
     }
@@ -1570,10 +2036,11 @@ export function registerPopperContent(anchor, content, arrow, dotNetRef, options
 
   const update = () => updateRegisteredPopperContent(content);
   const resizeObserver = new ResizeObserver(update);
+  const resolvedArrow = arrow instanceof Element ? arrow : null;
   resizeObserver.observe(anchor);
   resizeObserver.observe(content);
-  if (arrow) {
-    resizeObserver.observe(arrow);
+  if (resolvedArrow) {
+    resizeObserver.observe(resolvedArrow);
   }
 
   window.addEventListener("resize", update);
@@ -1582,7 +2049,7 @@ export function registerPopperContent(anchor, content, arrow, dotNetRef, options
   popperContentHandlers.set(content, {
     anchor,
     content,
-    arrow,
+    arrow: resolvedArrow,
     dotNetRef,
     options: options || {},
     resizeObserver,
@@ -1601,9 +2068,10 @@ export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, op
 
   const update = () => updateRegisteredPopperContent(content);
   const resizeObserver = new ResizeObserver(update);
+  const resolvedArrow = arrow instanceof Element ? arrow : null;
   resizeObserver.observe(content);
-  if (arrow) {
-    resizeObserver.observe(arrow);
+  if (resolvedArrow) {
+    resizeObserver.observe(resolvedArrow);
   }
 
   window.addEventListener("resize", update);
@@ -1612,7 +2080,7 @@ export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, op
   popperContentHandlers.set(content, {
     anchor: createVirtualAnchor(x, y),
     content,
-    arrow,
+    arrow: resolvedArrow,
     dotNetRef,
     options: options || {},
     resizeObserver,
@@ -1628,13 +2096,13 @@ export function updatePopperContent(content, arrow, options) {
     return;
   }
 
-  handlers.arrow = arrow;
+  handlers.arrow = arrow instanceof Element ? arrow : null;
   handlers.options = options || {};
   handlers.resizeObserver.disconnect();
   handlers.resizeObserver.observe(handlers.anchor);
   handlers.resizeObserver.observe(handlers.content);
-  if (arrow) {
-    handlers.resizeObserver.observe(arrow);
+  if (handlers.arrow) {
+    handlers.resizeObserver.observe(handlers.arrow);
   }
 
   handlers.update();
@@ -1647,12 +2115,12 @@ export function updateVirtualPopperContent(content, arrow, x, y, options) {
   }
 
   handlers.anchor = createVirtualAnchor(x, y);
-  handlers.arrow = arrow;
+  handlers.arrow = arrow instanceof Element ? arrow : null;
   handlers.options = options || {};
   handlers.resizeObserver.disconnect();
   handlers.resizeObserver.observe(handlers.content);
-  if (arrow) {
-    handlers.resizeObserver.observe(arrow);
+  if (handlers.arrow) {
+    handlers.resizeObserver.observe(handlers.arrow);
   }
 
   handlers.update();
@@ -1960,7 +2428,7 @@ export function unregisterHideOthers(element) {
   hideOthersState.delete(element);
 }
 
-export function registerRemoveScroll() {
+export function registerRemoveScroll(allowPinchZoom) {
   if (!document.body || !document.documentElement) {
     return;
   }
@@ -1968,6 +2436,7 @@ export function registerRemoveScroll() {
   if (removeScrollCount === 0) {
     originalBodyOverflow = document.body.style.overflow || "";
     originalBodyPaddingRight = document.body.style.paddingRight || "";
+    originalDocumentTouchAction = document.documentElement.style.touchAction || "";
 
     const scrollbarWidth = Math.max(window.innerWidth - document.documentElement.clientWidth, 0);
     document.body.style.overflow = "hidden";
@@ -1977,7 +2446,9 @@ export function registerRemoveScroll() {
     }
   }
 
+  removeScrollAllowPinchZoomStack.push(Boolean(allowPinchZoom));
   removeScrollCount += 1;
+  updateRemoveScrollTouchAction();
 }
 
 export function unregisterRemoveScroll() {
@@ -1985,12 +2456,28 @@ export function unregisterRemoveScroll() {
     return;
   }
 
+  if (removeScrollAllowPinchZoomStack.length > 0) {
+    removeScrollAllowPinchZoomStack.pop();
+  }
+
   removeScrollCount = Math.max(removeScrollCount - 1, 0);
 
   if (removeScrollCount === 0) {
     document.body.style.overflow = originalBodyOverflow;
     document.body.style.paddingRight = originalBodyPaddingRight;
+    document.documentElement.style.touchAction = originalDocumentTouchAction;
+  } else {
+    updateRemoveScrollTouchAction();
   }
+}
+
+function updateRemoveScrollTouchAction() {
+  if (!document.documentElement) {
+    return;
+  }
+
+  const allowPinchZoom = removeScrollAllowPinchZoomStack.some(Boolean);
+  document.documentElement.style.touchAction = allowPinchZoom ? originalDocumentTouchAction : "none";
 }
 
 export function registerLabelTextSelectionGuard(element) {

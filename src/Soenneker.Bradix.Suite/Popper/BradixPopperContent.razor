@@ -30,12 +30,15 @@
     private bool _hidden;
     private string _transformOriginX = "50%";
     private string _transformOriginY = "50%";
-    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached)? _lastOptions;
+    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir)? _lastOptions;
     private bool _lastHadArrow;
     private (double X, double Y)? _lastVirtualAnchor;
 
     [CascadingParameter]
     private BradixPopper? Popper { get; set; }
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? Direction { get; set; }
 
     [Parameter]
     public string Side { get; set; } = "bottom";
@@ -180,10 +183,10 @@
         return $"{baseStyle} {Style}";
     }
 
-    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached) CurrentOptions
-        => (Side, SideOffset, Align, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, HideWhenDetached);
+    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir) CurrentOptions
+        => (Side, SideOffset, Align, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, HideWhenDetached, Direction == "rtl" ? "rtl" : "ltr");
 
-    private static object CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached) options)
+    private static object CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir) options)
     {
         return new
         {
@@ -194,7 +197,8 @@
             arrowPadding = options.ArrowPadding,
             avoidCollisions = options.AvoidCollisions,
             collisionPadding = options.CollisionPadding,
-            hideWhenDetached = options.HideWhenDetached
+            hideWhenDetached = options.HideWhenDetached,
+            dir = options.Dir
         };
     }
 }

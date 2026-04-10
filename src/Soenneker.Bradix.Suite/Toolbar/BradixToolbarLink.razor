@@ -33,7 +33,6 @@
     [Parameter]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-    [Microsoft.AspNetCore.Components.PersistentState]
     public string? TabStopId { get; private set; }
 
     bool IBradixToolbarItem.IsDisabled => false;

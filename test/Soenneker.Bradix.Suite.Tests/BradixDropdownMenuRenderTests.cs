@@ -66,6 +66,25 @@ public sealed class BradixDropdownMenuRenderTests : Bunit.BunitContext
     }
 
     [Fact]
+    public void Trigger_pointer_down_opens_content()
+    {
+        var cut = Render(CreateDropdownMenu());
+        var trigger = cut.Find("button");
+
+        trigger.TriggerEvent("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs
+        {
+            Button = 0,
+            CtrlKey = false
+        });
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
+            Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
+        });
+    }
+
+    [Fact]
     public void Checkbox_and_radio_wrappers_render_checked_state()
     {
         var cut = Render(CreateDropdownMenu(defaultOpen: true));

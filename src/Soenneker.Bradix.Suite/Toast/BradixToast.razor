@@ -1,0 +1,466 @@
+@using System.Threading
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Presence
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+@if (Provider?.HasViewport == true)
+{
+    <CascadingValue Value="this">
+        <BradixPresence Present="ShouldPresent"
+                        Tag="li"
+                        Class="@Class"
+                        Style="@ResolvedStyle"
+                        AdditionalAttributes="@ToastAttributes"
+                        OnElementReferenceCaptured="HandleElementReferenceCapturedAsync"
+                        OnExitComplete="HandleExitCompleteAsync">
+            @ChildContent
+        </BradixPresence>
+    </CascadingValue>
+}
+
+@code {
+    private bool _initialized;
+    private bool _uncontrolledOpen = true;
+    private bool _registered;
+    private bool _portalMounted;
+    private bool _timerPaused;
+    private DateTime _timerStartedUtc;
+    private double _remainingDuration;
+    private CancellationTokenSource? _closeTimerCts;
+    private ElementReference _toastElement;
+    private ElementReference _closeButtonElement;
+    private double? _pointerStartX;
+    private double? _pointerStartY;
+    private string? _swipeState;
+    private double _swipeMoveX;
+    private double _swipeMoveY;
+    private double _swipeEndX;
+    private double _swipeEndY;
+    private bool _lastKnownOpen;
+
+    [CascadingParameter]
+    private BradixToastProvider? Provider { get; set; }
+
+    [CascadingParameter(Name = "BradixToastPortalDisabled")]
+    private bool PortalDisabled { get; set; }
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; } = true;
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public string Type { get; set; } = "foreground";
+
+    [Parameter]
+    public int? Duration { get; set; }
+
+    [Parameter]
+    public EventCallback OnPause { get; set; }
+
+    [Parameter]
+    public EventCallback OnResume { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixToastSwipeEventArgs> OnSwipeStart { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixToastSwipeEventArgs> OnSwipeMove { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixToastSwipeEventArgs> OnSwipeCancel { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixToastSwipeEventArgs> OnSwipeEnd { get; set; }
+
+    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+
+    private bool ShouldPresent => ForceMount || CurrentOpen;
+
+    private bool IsForeground => !string.Equals(Type, "background", StringComparison.OrdinalIgnoreCase);
+
+    private int ResolvedDuration => Duration ?? Provider?.Duration ?? 5000;
+
+    private string ResolvedStyle
+    {
+        get
+        {
+            string swipeStyles = "user-select:none;touch-action:none;";
+            if (_swipeMoveX != 0)
+                swipeStyles += $"--radix-toast-swipe-move-x:{_swipeMoveX}px;";
+            if (_swipeMoveY != 0)
+                swipeStyles += $"--radix-toast-swipe-move-y:{_swipeMoveY}px;";
+            if (_swipeEndX != 0)
+                swipeStyles += $"--radix-toast-swipe-end-x:{_swipeEndX}px;";
+            if (_swipeEndY != 0)
+                swipeStyles += $"--radix-toast-swipe-end-y:{_swipeEndY}px;";
+
+            return string.IsNullOrWhiteSpace(Style) ? swipeStyles : $"{swipeStyles} {Style}";
+        }
+    }
+
+    private IReadOnlyDictionary<string, object> ToastAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : [];
+
+            attributes["role"] = "status";
+            attributes["aria-live"] = IsForeground ? "assertive" : "polite";
+            attributes["aria-atomic"] = "true";
+            attributes["tabindex"] = 0;
+            attributes["data-state"] = CurrentOpen ? "open" : "closed";
+            attributes["data-swipe-direction"] = Provider?.SwipeDirection ?? "right";
+
+            if (!string.IsNullOrWhiteSpace(_swipeState))
+                attributes["data-swipe"] = _swipeState;
+
+            attributes["onkeydown"] = EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDownAsync);
+            attributes["onpointerdown"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDownAsync);
+            attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMoveAsync);
+            attributes["onpointerup"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUpAsync);
+
+            return attributes;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!_initialized)
+        {
+            _uncontrolledOpen = DefaultOpen;
+            _remainingDuration = ResolvedDuration;
+            _lastKnownOpen = CurrentOpen;
+            _initialized = true;
+            return;
+        }
+
+        if (_lastKnownOpen != CurrentOpen)
+        {
+            _lastKnownOpen = CurrentOpen;
+
+            if (CurrentOpen)
+            {
+                _remainingDuration = ResolvedDuration;
+                _timerPaused = false;
+
+                if (_registered && !(Provider?.IsClosePaused ?? false))
+                    StartCloseTimer();
+            }
+            else
+            {
+                CancelCloseTimer();
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        CancelCloseTimer();
+
+        if (_registered)
+            Provider?.UnregisterToast(this);
+
+        if (_portalMounted)
+            await Interop.UnmountPortal(_toastElement);
+    }
+
+    internal Task PauseAsync()
+    {
+        if (!CurrentOpen || _timerPaused || ResolvedDuration == int.MaxValue)
+            return Task.CompletedTask;
+
+        _timerPaused = true;
+
+        if (_closeTimerCts is not null)
+        {
+            TimeSpan elapsed = DateTime.UtcNow - _timerStartedUtc;
+            _remainingDuration = Math.Max(0, _remainingDuration - elapsed.TotalMilliseconds);
+        }
+
+        CancelCloseTimer();
+
+        return OnPause.HasDelegate ? OnPause.InvokeAsync() : Task.CompletedTask;
+    }
+
+    internal Task ResumeAsync()
+    {
+        if (!CurrentOpen || !_timerPaused)
+            return Task.CompletedTask;
+
+        _timerPaused = false;
+        StartCloseTimer();
+        return OnResume.HasDelegate ? OnResume.InvokeAsync() : Task.CompletedTask;
+    }
+
+    internal async Task CloseAsync()
+    {
+        bool wasFocused = await Interop.IsToastFocused(_toastElement);
+        await SetOpenAsync(false);
+
+        if (wasFocused && Provider?.HasViewport == true)
+            await Interop.FocusElementById(Provider.ViewportId);
+    }
+
+    internal void RegisterCloseButton(ElementReference element)
+    {
+        _closeButtonElement = element;
+    }
+
+    internal Task TriggerCloseAsync() => CloseAsync();
+
+    private async Task HandleElementReferenceCapturedAsync(ElementReference element)
+    {
+        _toastElement = element;
+
+        if (!PortalDisabled && !_portalMounted && Provider?.HasViewport == true)
+        {
+            await Interop.MountPortal(_toastElement, $"#{Provider.ViewportId}");
+            _portalMounted = true;
+        }
+
+        if (!_registered)
+        {
+            Provider?.RegisterToast(this);
+            _registered = true;
+        }
+
+        if (CurrentOpen && !(Provider?.IsClosePaused ?? false))
+            StartCloseTimer();
+    }
+
+    private async Task HandleExitCompleteAsync()
+    {
+        CancelCloseTimer();
+
+        if (_registered)
+        {
+            Provider?.UnregisterToast(this);
+            _registered = false;
+        }
+
+        if (_portalMounted)
+        {
+            await Interop.UnmountPortal(_toastElement);
+            _portalMounted = false;
+        }
+    }
+
+    private async Task SetOpenAsync(bool open)
+    {
+        if (CurrentOpen == open)
+            return;
+
+        if (Open is null)
+            _uncontrolledOpen = open;
+
+        if (open)
+        {
+            _remainingDuration = ResolvedDuration;
+            _timerPaused = false;
+            StartCloseTimer();
+        }
+        else
+        {
+            CancelCloseTimer();
+        }
+
+        if (OpenChanged.HasDelegate)
+            await OpenChanged.InvokeAsync(open);
+
+        if (OnOpenChange.HasDelegate)
+            await OnOpenChange.InvokeAsync(open);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void StartCloseTimer()
+    {
+        CancelCloseTimer();
+
+        if (!CurrentOpen || _timerPaused || ResolvedDuration <= 0)
+            return;
+
+        if (ResolvedDuration == int.MaxValue || double.IsInfinity(_remainingDuration))
+            return;
+
+        if (_remainingDuration <= 0)
+            _remainingDuration = ResolvedDuration;
+
+        _closeTimerCts = new CancellationTokenSource();
+        CancellationToken token = _closeTimerCts.Token;
+        _timerStartedUtc = DateTime.UtcNow;
+
+        _ = RunCloseTimerAsync(_remainingDuration, token);
+    }
+
+    private async Task RunCloseTimerAsync(double duration, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(duration), cancellationToken);
+            await InvokeAsync(CloseAsync);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void CancelCloseTimer()
+    {
+        if (_closeTimerCts is null)
+            return;
+
+        _closeTimerCts.Cancel();
+        _closeTimerCts.Dispose();
+        _closeTimerCts = null;
+    }
+
+    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+            await CloseAsync();
+    }
+
+    private Task HandlePointerDownAsync(PointerEventArgs args)
+    {
+        if (args.Button != 0)
+            return Task.CompletedTask;
+
+        _pointerStartX = args.ClientX;
+        _pointerStartY = args.ClientY;
+        _swipeState = null;
+        _swipeMoveX = 0;
+        _swipeMoveY = 0;
+        _swipeEndX = 0;
+        _swipeEndY = 0;
+        return Task.CompletedTask;
+    }
+
+    private async Task HandlePointerMoveAsync(PointerEventArgs args)
+    {
+        if (_pointerStartX is null || _pointerStartY is null || Provider is null)
+            return;
+
+        double x = args.ClientX - _pointerStartX.Value;
+        double y = args.ClientY - _pointerStartY.Value;
+        bool horizontal = Provider.SwipeDirection is "left" or "right";
+        double clampedX = horizontal ? ClampInDirection(x, Provider.SwipeDirection) : 0;
+        double clampedY = horizontal ? 0 : ClampInDirection(y, Provider.SwipeDirection);
+        double moveStartBuffer = string.Equals(args.PointerType, "touch", StringComparison.OrdinalIgnoreCase) ? 10 : 2;
+
+        if (string.IsNullOrWhiteSpace(_swipeState))
+        {
+            if (!IsDeltaInDirection(clampedX, clampedY, Provider.SwipeDirection, moveStartBuffer))
+            {
+                if (Math.Abs(x) > moveStartBuffer || Math.Abs(y) > moveStartBuffer)
+                {
+                    _pointerStartX = null;
+                    _pointerStartY = null;
+                }
+
+                return;
+            }
+
+            _swipeState = "start";
+
+            if (OnSwipeStart.HasDelegate)
+                await OnSwipeStart.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = clampedX, DeltaY = clampedY });
+        }
+
+        _swipeState = "move";
+        _swipeMoveX = clampedX;
+        _swipeMoveY = clampedY;
+
+        if (OnSwipeMove.HasDelegate)
+            await OnSwipeMove.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = clampedX, DeltaY = clampedY });
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandlePointerUpAsync(PointerEventArgs _)
+    {
+        if (Provider is null || string.IsNullOrWhiteSpace(_swipeState))
+        {
+            ResetSwipeTracking();
+            return;
+        }
+
+        BradixToastSwipeEventArgs args = new()
+        {
+            DeltaX = _swipeMoveX,
+            DeltaY = _swipeMoveY
+        };
+
+        if (IsDeltaInDirection(_swipeMoveX, _swipeMoveY, Provider.SwipeDirection, Provider.SwipeThreshold))
+        {
+            _swipeState = "end";
+            _swipeEndX = _swipeMoveX;
+            _swipeEndY = _swipeMoveY;
+            _swipeMoveX = 0;
+            _swipeMoveY = 0;
+
+            if (OnSwipeEnd.HasDelegate)
+                await OnSwipeEnd.InvokeAsync(args);
+
+            await CloseAsync();
+        }
+        else
+        {
+            _swipeState = "cancel";
+            _swipeMoveX = 0;
+            _swipeMoveY = 0;
+            _swipeEndX = 0;
+            _swipeEndY = 0;
+
+            if (OnSwipeCancel.HasDelegate)
+                await OnSwipeCancel.InvokeAsync(args);
+
+            await InvokeAsync(StateHasChanged);
+        }
+
+        ResetSwipeTracking(clearState: false);
+    }
+
+    private void ResetSwipeTracking(bool clearState = true)
+    {
+        _pointerStartX = null;
+        _pointerStartY = null;
+
+        if (clearState)
+            _swipeState = null;
+    }
+
+    private static bool IsDeltaInDirection(double x, double y, string direction, double threshold)
+    {
+        return direction switch
+        {
+            "right" => x >= threshold,
+            "left" => x <= -threshold,
+            "down" => y >= threshold,
+            "up" => y <= -threshold,
+            _ => false
+        };
+    }
+
+    private static double ClampInDirection(double delta, string direction)
+    {
+        return direction is "left" or "up"
+            ? Math.Min(0, delta)
+            : Math.Max(0, delta);
+    }
+}

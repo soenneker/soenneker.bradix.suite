@@ -1,11 +1,20 @@
 @using Soenneker.Bradix.Suite.Base
 @inherits BradixComponentBase
 
-<div style="position:relative;">
+@if (NavigationMenu?.IsRootMenu == true)
+{
+    <div style="position:relative;">
+        <ul @attributes="ListAttributes">
+            @ChildContent
+        </ul>
+    </div>
+}
+else
+{
     <ul @attributes="ListAttributes">
         @ChildContent
     </ul>
-</div>
+}
 
 @code {
     [CascadingParameter]

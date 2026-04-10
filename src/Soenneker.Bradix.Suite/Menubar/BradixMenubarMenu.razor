@@ -18,11 +18,9 @@
     [Parameter]
     public string? Value { get; set; }
 
-    [Microsoft.AspNetCore.Components.PersistentState]
     internal string? AutoValue { get; private set; }
 
-    [Microsoft.AspNetCore.Components.PersistentState]
-    internal string? BaseId { get; private set; }
+    public string? BaseId { get; private set; }
 
     internal bool WasKeyboardTriggerOpen { get; private set; }
 

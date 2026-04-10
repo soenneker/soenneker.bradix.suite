@@ -28,7 +28,6 @@
     [Parameter]
     public bool Modal { get; set; }
 
-    [Microsoft.AspNetCore.Components.PersistentState]
     internal string? BaseId { get; private set; }
 
     internal bool CurrentOpen => Open ?? _uncontrolledOpen;

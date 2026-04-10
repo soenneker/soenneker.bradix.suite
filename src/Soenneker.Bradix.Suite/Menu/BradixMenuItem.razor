@@ -46,7 +46,6 @@
     [Parameter]
     public EventCallback OnSelect { get; set; }
 
-    [Microsoft.AspNetCore.Components.PersistentState]
     public string? TabStopId { get; private set; }
 
     bool IBradixMenuItem.IsDisabled => Disabled;

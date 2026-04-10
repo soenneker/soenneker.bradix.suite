@@ -1,0 +1,125 @@
+@page "/form"
+
+<PageTitle>Bradix Form</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixForm</h2>
+        <p>Builds Radix-style field composition over the browser's native constraint validation model, including built-in validity messages, custom sync/async matcher registration, invalid-state metadata, and server-error clearing hooks.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Built-in validation messages</h3>
+            <BradixForm Class="stack stack--compact">
+                <BradixFormField Name="email">
+                    <BradixFormLabel>Email address</BradixFormLabel>
+                    <BradixFormControl Class="primitive__trigger" Type="email" required="required" placeholder="name@example.com" />
+                    <BradixFormMessage Match="@((object)"valueMissing")" />
+                    <BradixFormMessage Match="@((object)"typeMismatch")" />
+                </BradixFormField>
+
+                <BradixFormSubmit Class="primitive__trigger">Submit</BradixFormSubmit>
+            </BradixForm>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Server-invalid handoff</h3>
+            <p class="state-line">Server error active: <strong>@_serverInvalid</strong></p>
+            <p>When the server marks the field invalid, the first invalid control is refocused and the server message clears on submit or reset.</p>
+            <BradixForm Class="stack stack--compact" OnClearServerErrors="HandleClearServerErrors">
+                <BradixFormField Name="username" ServerInvalid="@_serverInvalid">
+                    <BradixFormLabel>Username</BradixFormLabel>
+                    <BradixFormControl Class="primitive__trigger" required="required" value="taken-user" />
+                    <BradixFormMessage>This username is already taken.</BradixFormMessage>
+                </BradixFormField>
+
+                <div class="button-row">
+                    <BradixFormSubmit Class="primitive__trigger">Try submit</BradixFormSubmit>
+                    <button class="primitive__trigger" type="reset">Reset</button>
+                    <button class="primitive__trigger" type="button" @onclick="ResetServerError">Restore server error</button>
+                </div>
+            </BradixForm>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Validity snapshot</h3>
+            <BradixForm Class="stack stack--compact">
+                <BradixFormField Name="postalCode">
+                    <BradixFormLabel>Postal code</BradixFormLabel>
+                    <BradixFormControl Class="primitive__trigger" pattern="[0-9]{5}" placeholder="12345" />
+                    <BradixFormMessage Match="@((object)"patternMismatch")" />
+                    <BradixFormValidityState Context="validity">
+                        <p class="state-line">
+                            Valid: <strong>@(validity?.Valid.ToString() ?? "unset")</strong>,
+                            Pattern mismatch: <strong>@(validity?.PatternMismatch.ToString() ?? "false")</strong>
+                        </p>
+                    </BradixFormValidityState>
+                </BradixFormField>
+
+                <BradixFormSubmit Class="primitive__trigger">Validate</BradixFormSubmit>
+            </BradixForm>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Custom sync matcher</h3>
+            <BradixForm Class="stack stack--compact">
+                <BradixFormField Name="password">
+                    <BradixFormLabel>Password</BradixFormLabel>
+                    <BradixFormControl Class="primitive__trigger" Type="password" required="required" />
+                    <BradixFormMessage Match="@((object)"valueMissing")" />
+                </BradixFormField>
+
+                <BradixFormField Name="confirmPassword">
+                    <BradixFormLabel>Confirm password</BradixFormLabel>
+                    <BradixFormControl Class="primitive__trigger" Type="password" required="required" />
+                    <BradixFormMessage Match="@((Func<string?, BradixFormDataSnapshot, bool>)ValidatePasswordConfirmation)">Passwords must match.</BradixFormMessage>
+                </BradixFormField>
+
+                <BradixFormSubmit Class="primitive__trigger">Validate passwords</BradixFormSubmit>
+            </BradixForm>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Custom async matcher</h3>
+            <BradixForm Class="stack stack--compact">
+                <BradixFormField Name="teamSlug">
+                    <BradixFormLabel>Team slug</BradixFormLabel>
+                    <BradixFormControl Class="primitive__trigger" pattern="[a-z0-9-]+" placeholder="quark-team" />
+                    <BradixFormMessage Match="@((object)"patternMismatch")" />
+                    <BradixFormMessage Match="@((Func<string?, BradixFormDataSnapshot, Task<bool>>)ValidateTeamSlugAvailabilityAsync)">This team slug is already reserved.</BradixFormMessage>
+                </BradixFormField>
+
+                <BradixFormSubmit Class="primitive__trigger">Check availability</BradixFormSubmit>
+            </BradixForm>
+        </section>
+    </div>
+</section>
+
+@code {
+    private bool _serverInvalid = true;
+
+    private Task HandleClearServerErrors()
+    {
+        _serverInvalid = false;
+        return Task.CompletedTask;
+    }
+
+    private void ResetServerError()
+    {
+        _serverInvalid = true;
+    }
+
+    private static bool ValidatePasswordConfirmation(string? value, BradixFormDataSnapshot formData)
+    {
+        return !string.Equals(value, formData.Get("password"), StringComparison.Ordinal);
+    }
+
+    private static async Task<bool> ValidateTeamSlugAvailabilityAsync(string? value, BradixFormDataSnapshot _)
+    {
+        await Task.Delay(150);
+        return string.Equals(value, "admin", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(value, "root", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(value, "quark", StringComparison.OrdinalIgnoreCase);
+    }
+}

@@ -6,20 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Soenneker.Bradix.Suite.Demo</title>
     <base href="%BASE_URL%" />
-    <script>
-        (() => {
-            const storageKey = "quark-theme";
-            const storedTheme = localStorage.getItem(storageKey);
-            const resolvedTheme = storedTheme === "dark" ? "dark" : "light";
-
-            if (!storedTheme) {
-                localStorage.setItem(storageKey, "light");
-            }
-
-            document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
-        })();
-    </script>
-    <link href="css/quark-tailwind.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
 </head>
 

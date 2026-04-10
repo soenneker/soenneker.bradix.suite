@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Soenneker.Bradix.Suite.Presence;
 using Soenneker.Bradix.Suite.Abstract;
+using Soenneker.Bradix.Suite.Form;
 using Soenneker.Bradix.Suite.Menubar;
 
 namespace Soenneker.Bradix.Suite.Interop;
@@ -65,6 +67,52 @@ public sealed class BradixSuiteInterop : ISuiteInterop
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
         await module.InvokeVoidAsync("registerCheckboxRoot", cancellationToken, element, dotNetReference).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterFormRoot(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerFormRoot", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterFormRoot(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterFormRoot", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask<BradixFormValiditySnapshot> GetFormControlValidity(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        BradixFormValiditySnapshot? snapshot = await module.InvokeAsync<BradixFormValiditySnapshot>("getFormControlValidity", cancellationToken, element)
+            .ConfigureAwait(false);
+        return snapshot ?? new BradixFormValiditySnapshot();
+    }
+
+    public async ValueTask<BradixFormControlSnapshot> GetFormControlState(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        BradixFormControlSnapshot? snapshot = await module.InvokeAsync<BradixFormControlSnapshot>("getFormControlState", cancellationToken, element)
+            .ConfigureAwait(false);
+        return snapshot ?? new BradixFormControlSnapshot();
+    }
+
+    public async ValueTask SetFormControlCustomValidity(ElementReference element, string? validationMessage, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("setFormControlCustomValidity", cancellationToken, element, validationMessage).ConfigureAwait(false);
+    }
+
+    public async ValueTask ClearFormCustomValidity(ElementReference formElement, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("clearFormCustomValidity", cancellationToken, formElement).ConfigureAwait(false);
+    }
+
+    public async ValueTask<bool> FocusServerInvalidFormControl(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        return await module.InvokeAsync<bool>("focusServerInvalidFormControl", cancellationToken, element).ConfigureAwait(false);
     }
 
     public async ValueTask UnregisterCheckboxRoot(ElementReference element, CancellationToken cancellationToken = default)
@@ -143,6 +191,54 @@ public sealed class BradixSuiteInterop : ISuiteInterop
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
         await module.InvokeVoidAsync("unmountPortal", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterToastViewport(ElementReference wrapper, ElementReference viewport, ElementReference headProxy, ElementReference tailProxy,
+        IReadOnlyList<string> hotkey, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerToastViewport", cancellationToken, wrapper, viewport, headProxy, tailProxy, hotkey, dotNetReference)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterToastViewport(ElementReference viewport, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterToastViewport", cancellationToken, viewport).ConfigureAwait(false);
+    }
+
+    public async ValueTask<bool> IsToastFocused(ElementReference toast, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        return await module.InvokeAsync<bool>("isToastFocused", cancellationToken, toast).ConfigureAwait(false);
+    }
+
+    public async ValueTask FocusElementById(string? elementId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(elementId))
+            return;
+
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("focusElementById", cancellationToken, elementId).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterOneTimePasswordInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerOneTimePasswordInput", cancellationToken, element, dotNetReference).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterOneTimePasswordInput(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterOneTimePasswordInput", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask RequestFormSubmit(ElementReference associatedElement, string? formId = null, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("requestFormSubmit", cancellationToken, associatedElement, formId).ConfigureAwait(false);
     }
 
     public async ValueTask RegisterDismissableLayer(ElementReference element, DotNetObjectReference<object> dotNetReference, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default)
@@ -351,6 +447,26 @@ public sealed class BradixSuiteInterop : ISuiteInterop
         await module.InvokeVoidAsync("unregisterNavigationMenuIndicator", cancellationToken, indicator).ConfigureAwait(false);
     }
 
+    public async ValueTask RegisterNavigationMenuContentFocusBridge(ElementReference content, ElementReference trigger, ElementReference startProxy,
+        ElementReference endProxy, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerNavigationMenuContentFocusBridge", cancellationToken, content, trigger, startProxy, endProxy).ConfigureAwait(false);
+    }
+
+    public async ValueTask UpdateNavigationMenuContentFocusBridge(ElementReference content, ElementReference trigger, ElementReference startProxy,
+        ElementReference endProxy, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("updateNavigationMenuContentFocusBridge", cancellationToken, content, trigger, startProxy, endProxy).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterNavigationMenuContentFocusBridge(ElementReference content, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterNavigationMenuContentFocusBridge", cancellationToken, content).ConfigureAwait(false);
+    }
+
     public async ValueTask RegisterNavigationMenuViewport(ElementReference viewport, ElementReference content, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default)
     {
@@ -413,10 +529,10 @@ public sealed class BradixSuiteInterop : ISuiteInterop
         await module.InvokeVoidAsync("unregisterHideOthers", cancellationToken, element).ConfigureAwait(false);
     }
 
-    public async ValueTask RegisterRemoveScroll(CancellationToken cancellationToken = default)
+    public async ValueTask RegisterRemoveScroll(bool allowPinchZoom = false, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
-        await module.InvokeVoidAsync("registerRemoveScroll", cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerRemoveScroll", cancellationToken, allowPinchZoom).ConfigureAwait(false);
     }
 
     public async ValueTask UnregisterRemoveScroll(CancellationToken cancellationToken = default)

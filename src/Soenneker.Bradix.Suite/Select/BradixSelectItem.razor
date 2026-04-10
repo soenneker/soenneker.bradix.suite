@@ -43,7 +43,6 @@
     [Parameter]
     public string? TextValue { get; set; }
 
-    [Microsoft.AspNetCore.Components.PersistentState]
     internal string? TextId { get; private set; }
 
     string IBradixSelectItem.Value => Value;

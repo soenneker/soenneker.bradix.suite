@@ -1,4 +1,5 @@
 @page "/separator"
+@using System.Collections.Generic
 
 <PageTitle>Bradix Separator</PageTitle>
 
@@ -26,6 +27,16 @@
                 <BradixSeparator Class="separator separator--vertical" Orientation="vertical" Decorative />
                 <span>End</span>
             </div>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>`asChild` composition</h3>
+            <p>Separator semantics can now be merged onto a caller-chosen native host element.</p>
+            <BradixSeparator AsChild
+                             ChildElementName="span"
+                             ChildAttributes="@(new Dictionary<string, object> { ["data-slot-separator"] = "true" })"
+                             Class="separator">
+            </BradixSeparator>
         </section>
     </div>
 </section>

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Soenneker.Bradix.Suite.Interop;
 using Soenneker.Bradix.Suite.Popper;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -73,6 +74,32 @@ public sealed class BradixPopperRenderTests : Bunit.BunitContext
         Assert.Contains("data-side=\"top\"", cut.Markup);
         Assert.Contains("data-align=\"start\"", cut.Markup);
         Assert.Equal(1, placedCount);
+    }
+
+    [Fact]
+    public void Popper_registers_rtl_direction_in_positioning_options()
+    {
+        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        module.SetupVoid("registerPopperContent", _ => true);
+        module.SetupVoid("updatePopperContent", _ => true);
+        module.SetupVoid("unregisterPopperContent", _ => true);
+
+        Render(builder =>
+        {
+            builder.OpenComponent<Soenneker.Bradix.Suite.Direction.BradixDirectionProvider>(0);
+            builder.AddAttribute(1, "Dir", "rtl");
+            builder.AddAttribute(2, "ChildContent", (RenderFragment)(content =>
+            {
+                content.AddContent(0, CreatePopper());
+            }));
+            builder.CloseComponent();
+        });
+
+        var invocation = module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+        var options = invocation.Arguments[4];
+        var dir = options?.GetType().GetProperty("dir")?.GetValue(options)?.ToString();
+
+        Assert.Equal("rtl", dir);
     }
 
     private static RenderFragment CreatePopper()

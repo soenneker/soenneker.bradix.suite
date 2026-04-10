@@ -13,9 +13,13 @@
     private ElementReference _element;
 
     [Parameter]
+    public string? For { get; set; }
+
+    [Parameter]
     public EventCallback<MouseEventArgs> OnMouseDown { get; set; }
 
-    private Dictionary<string, object> LabelAttributes => BuildAttributes();
+    private Dictionary<string, object> LabelAttributes => BuildAttributes(
+        ("for", For));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

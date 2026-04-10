@@ -1,7 +1,8 @@
 @using System
 @using Soenneker.Bradix.Suite.Base
-@implements IDisposable
+@implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
 
 <button @ref="_button"
         @onpointerenter="HandlePointerEnterAsync"
@@ -14,10 +15,28 @@
     @ChildContent
 </button>
 
+@if (IsOpen)
+{
+    <>
+        <span @ref="_focusProxy"
+              data-bradix-navigation-menu-focus-proxy=""
+              aria-hidden="true"
+              tabindex="0"
+              style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" />
+
+        @if (NavigationMenu?.IsRootMenu == true && NavigationMenu.HasViewport && Item is not null)
+        {
+            <span aria-owns="@Item.ContentId"></span>
+        }
+    </>
+}
+
 @code {
     private ElementReference _button;
+    private ElementReference _focusProxy;
     private bool _hasPointerMoveOpened;
     private bool _wasClickClose;
+    private bool _focusProxyRegistered;
     private TriggerRegistration? _registration;
 
     [CascadingParameter]
@@ -41,19 +60,38 @@
         ("aria-controls", Item?.ContentId),
         ("tabindex", NavigationMenu is not null && Item is not null && NavigationMenu.IsCurrentTabStop(Item) ? 0 : -1));
 
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && NavigationMenu is not null && Item is not null)
         {
             _registration = new TriggerRegistration(Item.ResolvedValue, Item.TriggerId, Disabled, _button);
             NavigationMenu.RegisterTrigger(_registration);
+            await Interop.RegisterRovingFocusNavigationKeys(_button);
         }
 
-        return Task.CompletedTask;
+        if (NavigationMenu is not null && Item is not null)
+        {
+            if (IsOpen)
+            {
+                NavigationMenu.RegisterFocusProxy(Item.ResolvedValue, _focusProxy);
+                _focusProxyRegistered = true;
+            }
+            else if (_focusProxyRegistered)
+            {
+                NavigationMenu.UnregisterFocusProxy(Item.ResolvedValue);
+                _focusProxyRegistered = false;
+            }
+        }
+
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
+        await Interop.UnregisterRovingFocusNavigationKeys(_button);
+
+        if (_focusProxyRegistered && Item is not null)
+            NavigationMenu?.UnregisterFocusProxy(Item.ResolvedValue);
+
         if (_registration is not null)
             NavigationMenu?.UnregisterTrigger(_registration);
     }

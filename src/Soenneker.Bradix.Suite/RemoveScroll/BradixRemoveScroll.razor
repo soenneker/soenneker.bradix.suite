@@ -17,7 +17,7 @@
         if (!firstRender)
             return;
 
-        await Interop.RegisterRemoveScroll();
+        await Interop.RegisterRemoveScroll(AllowPinchZoom);
         _registered = true;
     }
 

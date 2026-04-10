@@ -1,0 +1,181 @@
+using Bunit;
+using Bunit.JSInterop;
+using Bunit.Rendering;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
+using Soenneker.Bradix.Suite.Id;
+using Soenneker.Bradix.Suite.Interop;
+using Soenneker.Bradix.Suite.Presence;
+using Soenneker.Bradix.Suite.Toast;
+using System;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Soenneker.Bradix.Suite.Tests;
+
+public sealed class BradixToastRenderTests : Bunit.BunitContext
+{
+    private readonly BunitJSModuleInterop _module;
+
+    public BradixToastRenderTests()
+    {
+        _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.SetupVoid("registerToastViewport", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterToastViewport", _ => true).SetVoidResult();
+        _module.SetupVoid("mountPortal", _ => true).SetVoidResult();
+        _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
+        _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        _module.SetupVoid("focusElementById", _ => true).SetVoidResult();
+        _module.Setup<bool>("isToastFocused", _ => true).SetResult(false);
+        _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
+            .SetResult(new BradixPresenceSnapshot { AnimationName = "toast-out", Display = "block" });
+
+        Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
+    }
+
+    [Fact]
+    public void Viewport_renders_region_label_and_open_toast_metadata()
+    {
+        var cut = RenderToast();
+
+        var region = cut.Find("[role='region']");
+        var toast = cut.Find("li[role='status']");
+
+        Assert.Equal("Notifications (F8)", region.GetAttribute("aria-label"));
+        Assert.Equal("open", toast.GetAttribute("data-state"));
+        Assert.Equal("right", toast.GetAttribute("data-swipe-direction"));
+        Assert.Equal("assertive", toast.GetAttribute("aria-live"));
+    }
+
+    [Fact]
+    public async Task Close_button_keeps_toast_mounted_until_exit_animation_finishes()
+    {
+        var cut = RenderToast();
+
+        cut.Find("button[data-toast-close='true']").Click();
+        Assert.Single(cut.FindAll("li[role='status']"));
+
+        var presence = cut.FindComponent<BradixPresence>();
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("toast-out"));
+
+        Assert.Empty(cut.FindAll("li[role='status']"));
+    }
+
+    [Fact]
+    public async Task Viewport_pause_and_resume_invoke_toast_callbacks()
+    {
+        int pauseCount = 0;
+        int resumeCount = 0;
+
+        var cut = RenderToast(onPause: () => pauseCount++, onResume: () => resumeCount++);
+        var viewport = cut.FindComponent<BradixToastViewport>();
+
+        await cut.InvokeAsync(() => viewport.Instance.HandlePauseAsync());
+        await cut.InvokeAsync(() => viewport.Instance.HandleResumeAsync());
+
+        Assert.Equal(1, pauseCount);
+        Assert.Equal(1, resumeCount);
+    }
+
+    [Fact]
+    public void Action_requires_non_empty_alt_text()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            Render(builder =>
+            {
+                builder.OpenComponent<BradixToastProvider>(0);
+                builder.AddAttribute(1, nameof(BradixToastProvider.ChildContent), (RenderFragment)(content =>
+                {
+                    content.OpenComponent<BradixToastViewport>(0);
+                    content.CloseComponent();
+
+                    content.OpenComponent<BradixToast>(1);
+                    content.AddAttribute(2, nameof(BradixToast.ChildContent), (RenderFragment)(toast =>
+                    {
+                        toast.OpenComponent<BradixToastAction>(0);
+                        toast.AddAttribute(1, nameof(BradixToastAction.ChildContent), (RenderFragment)(action =>
+                        {
+                            action.AddContent(0, "Undo");
+                        }));
+                        toast.CloseComponent();
+                    }));
+                    content.CloseComponent();
+                }));
+                builder.CloseComponent();
+            });
+        });
+    }
+
+    [Fact]
+    public void Swipe_sets_end_state_before_close()
+    {
+        var cut = RenderToast(swipeThreshold: 10);
+        var toast = cut.Find("li[role='status']");
+
+        toast.TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0 });
+        toast.TriggerEvent("onpointermove", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0 });
+        toast.TriggerEvent("onpointerup", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0 });
+
+        Assert.Equal("end", cut.Find("li[role='status']").GetAttribute("data-swipe"));
+    }
+
+    private IRenderedComponent<ContainerFragment> RenderToast(Action? onPause = null, Action? onResume = null, double swipeThreshold = 50)
+    {
+        return Render(builder =>
+        {
+            builder.OpenComponent<BradixToastProvider>(0);
+            builder.AddAttribute(1, nameof(BradixToastProvider.SwipeThreshold), swipeThreshold);
+            builder.AddAttribute(2, nameof(BradixToastProvider.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixToastViewport>(0);
+                content.CloseComponent();
+
+                content.OpenComponent<BradixToast>(1);
+                content.AddAttribute(2, nameof(BradixToast.Class), "toast-root");
+                content.AddAttribute(3, nameof(BradixToast.OnPause), EventCallback.Factory.Create(this, () => onPause?.Invoke()));
+                content.AddAttribute(4, nameof(BradixToast.OnResume), EventCallback.Factory.Create(this, () => onResume?.Invoke()));
+                content.AddAttribute(5, nameof(BradixToast.ChildContent), (RenderFragment)(toast =>
+                {
+                    toast.OpenComponent<BradixToastTitle>(0);
+                    toast.AddAttribute(1, nameof(BradixToastTitle.ChildContent), (RenderFragment)(title =>
+                    {
+                        title.AddContent(0, "Upload complete");
+                    }));
+                    toast.CloseComponent();
+
+                    toast.OpenComponent<BradixToastDescription>(2);
+                    toast.AddAttribute(3, nameof(BradixToastDescription.ChildContent), (RenderFragment)(description =>
+                    {
+                        description.AddContent(0, "Your asset is ready.");
+                    }));
+                    toast.CloseComponent();
+
+                    toast.OpenComponent<BradixToastAction>(4);
+                    toast.AddAttribute(5, nameof(BradixToastAction.AltText), "Open uploads");
+                    toast.AddAttribute(6, nameof(BradixToastAction.ChildContent), (RenderFragment)(action =>
+                    {
+                        action.AddContent(0, "Open");
+                    }));
+                    toast.CloseComponent();
+
+                    toast.OpenComponent<BradixToastClose>(7);
+                    toast.AddAttribute(8, nameof(BradixToastClose.AdditionalAttributes), new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        ["data-toast-close"] = "true"
+                    });
+                    toast.AddAttribute(9, nameof(BradixToastClose.ChildContent), (RenderFragment)(close =>
+                    {
+                        close.AddContent(0, "Dismiss");
+                    }));
+                    toast.CloseComponent();
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+    }
+}

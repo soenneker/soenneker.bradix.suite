@@ -1,0 +1,31 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<button @ref="_button"
+        @onclick="HandleClickAsync"
+        @attributes="ButtonAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private ElementReference _button;
+
+    [CascadingParameter]
+    private BradixToast? Toast { get; set; }
+
+    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+        ("type", "button"));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            Toast?.RegisterCloseButton(_button);
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandleClickAsync()
+    {
+        return Toast?.TriggerCloseAsync() ?? Task.CompletedTask;
+    }
+}

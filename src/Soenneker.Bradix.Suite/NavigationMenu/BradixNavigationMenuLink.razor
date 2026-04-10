@@ -1,14 +1,25 @@
 @using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@implements IBradixNavigationMenuFocusGroupItem
 @inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
 
-<a @onclick="HandleClickAsync"
+<a @ref="_element"
+   @onclick="HandleClickAsync"
+   @onkeydown="HandleKeyDownAsync"
    @attributes="LinkAttributes">
     @ChildContent
 </a>
 
 @code {
+    private ElementReference _element;
+    private bool _registered;
+
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
+
+    [CascadingParameter(Name = "BradixNavigationMenuFocusGroupId")]
+    private string? FocusGroupId { get; set; }
 
     [Parameter]
     public bool Active { get; set; }
@@ -20,12 +31,44 @@
         ("data-active", Active ? string.Empty : null),
         ("aria-current", Active ? "page" : null));
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        if (NavigationMenu is not null && !string.IsNullOrWhiteSpace(FocusGroupId))
+        {
+            NavigationMenu.RegisterFocusGroupItem(FocusGroupId, this);
+            _registered = true;
+        }
+
+        await Interop.RegisterRovingFocusNavigationKeys(_element);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnregisterRovingFocusNavigationKeys(_element);
+
+        if (_registered && NavigationMenu is not null && !string.IsNullOrWhiteSpace(FocusGroupId))
+            NavigationMenu.UnregisterFocusGroupItem(FocusGroupId, this);
+    }
+
+    ValueTask IBradixNavigationMenuFocusGroupItem.FocusAsync() => _element.FocusAsync();
+
     private async Task HandleClickAsync(MouseEventArgs args)
     {
         if (OnSelect.HasDelegate)
             await OnSelect.InvokeAsync();
 
-        if (!args.MetaKey && NavigationMenu is not null)
+        if (!args.MetaKey && NavigationMenu?.IsRootMenu == true)
             await NavigationMenu.DismissAsync();
+    }
+
+    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (NavigationMenu is null || string.IsNullOrWhiteSpace(FocusGroupId))
+            return;
+
+        await NavigationMenu.HandleFocusGroupItemKeyDownAsync(FocusGroupId, this, args);
     }
 }

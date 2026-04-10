@@ -1,0 +1,24 @@
+@using System
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.VisuallyHidden
+@inherits BradixComponentBase
+
+<span @attributes="IconAttributes">
+    @ChildContent
+</span>
+<BradixVisuallyHidden>@Label</BradixVisuallyHidden>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = string.Empty;
+
+    private Dictionary<string, object> IconAttributes => BuildAttributes(
+        ("aria-hidden", "true"),
+        ("focusable", "false"));
+
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+            throw new InvalidOperationException("BradixAccessibleIcon requires a non-empty Label.");
+    }
+}

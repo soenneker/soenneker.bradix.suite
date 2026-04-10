@@ -1,0 +1,94 @@
+@page "/slot"
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>Bradix Slot</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixSlot</h2>
+        <p>Provides an honest Blazor-native slot target for native elements by merging slot props with child-target attributes, including child-first event composition and child precedence for conflicting attributes.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Merged attributes</h3>
+            <BradixSlot ElementName="button"
+                        Id="slot-button"
+                        Class="primitive__trigger"
+                        Style="border: 1px solid currentColor; color: steelblue;"
+                        ChildAttributes="@_buttonChildAttributes">
+                Child target wins duplicate attributes
+            </BradixSlot>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Composed click handlers</h3>
+            <p class="state-line">Child count: <strong>@_childClicks</strong>, slot count: <strong>@_slotClicks</strong></p>
+            <BradixSlot ElementName="button"
+                        Class="primitive__trigger"
+                        AdditionalAttributes="@_slotButtonAttributes"
+                        ChildAttributes="@_childButtonAttributes">
+                Click me
+            </BradixSlot>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Anchor semantics</h3>
+            <BradixSlot ElementName="a"
+                        Class="primitive__trigger"
+                        AdditionalAttributes="@_slotAnchorAttributes"
+                        ChildAttributes="@_childAnchorAttributes">
+                Render as link while keeping merged slot metadata
+            </BradixSlot>
+        </section>
+    </div>
+</section>
+
+@code {
+    private int _childClicks;
+    private int _slotClicks;
+
+    private IReadOnlyDictionary<string, object> _buttonChildAttributes => new Dictionary<string, object>
+    {
+        ["class"] = "slot-demo__child",
+        ["style"] = "color: rebeccapurple; background: transparent;",
+        ["type"] = "button",
+        ["title"] = "child target title"
+    };
+
+    private IReadOnlyDictionary<string, object> _slotButtonAttributes => new Dictionary<string, object>
+    {
+        ["onclick"] = EventCallback.Factory.Create<MouseEventArgs>(this, HandleSlotClick)
+    };
+
+    private IReadOnlyDictionary<string, object> _childButtonAttributes => new Dictionary<string, object>
+    {
+        ["onclick"] = EventCallback.Factory.Create<MouseEventArgs>(this, HandleChildClick),
+        ["type"] = "button"
+    };
+
+    private IReadOnlyDictionary<string, object> _slotAnchorAttributes => new Dictionary<string, object>
+    {
+        ["data-state"] = "open",
+        ["rel"] = "noreferrer"
+    };
+
+    private IReadOnlyDictionary<string, object> _childAnchorAttributes => new Dictionary<string, object>
+    {
+        ["href"] = "https://www.radix-ui.com/primitives/docs/utilities/slot",
+        ["target"] = "_blank",
+        ["class"] = "slot-demo__child"
+    };
+
+    private Task HandleChildClick()
+    {
+        _childClicks++;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSlotClick()
+    {
+        _slotClicks++;
+        return Task.CompletedTask;
+    }
+}

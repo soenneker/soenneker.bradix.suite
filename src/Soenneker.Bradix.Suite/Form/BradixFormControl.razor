@@ -1,0 +1,79 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<input @ref="_element"
+       @oninvalid:preventDefault="true"
+       @oninvalid="HandleInvalidAsync"
+       @onchange="HandleChangeAsync"
+       @attributes="ControlAttributes" />
+
+@code {
+    private ElementReference _element;
+    private bool? _lastServerInvalid;
+
+    [CascadingParameter]
+    private BradixForm? Form { get; set; }
+
+    [CascadingParameter]
+    private BradixFormField? Field { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public string? Type { get; set; }
+
+    internal string ResolvedName => Name ?? Field?.Name ?? string.Empty;
+
+    private string ResolvedId => Id ?? Field?.FieldId ?? string.Empty;
+
+    private Dictionary<string, object> ControlAttributes => BuildAttributes(
+        ("name", ResolvedName),
+        ("id", ResolvedId),
+        ("type", string.IsNullOrWhiteSpace(Type) ? null : Type),
+        ("data-valid", Field?.IsValid == true ? string.Empty : null),
+        ("data-invalid", Field?.IsInvalid == true ? string.Empty : null),
+        ("aria-invalid", Field?.ServerInvalid == true ? "true" : null),
+        ("aria-describedby", !string.IsNullOrWhiteSpace(ResolvedName) ? Form?.GetFieldDescription(ResolvedName) : null),
+        ("title", string.Empty));
+
+    public async Task HandleValidityChangedAsync(BradixFormValiditySnapshot? validity)
+    {
+        if (!string.IsNullOrWhiteSpace(ResolvedName))
+            Form?.SetFieldValidity(ResolvedName, validity);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task HandleControlStateChangedAsync(BradixFormControlSnapshot snapshot)
+    {
+        if (Form is null || string.IsNullOrWhiteSpace(ResolvedName))
+            return;
+
+        await Form.UpdateControlStateAsync(_element, ResolvedName, snapshot);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        bool serverInvalid = Field?.ServerInvalid == true;
+
+        if (serverInvalid && (_lastServerInvalid != true || firstRender))
+            await Interop.FocusServerInvalidFormControl(_element);
+
+        _lastServerInvalid = serverInvalid;
+    }
+
+    private async Task HandleInvalidAsync()
+    {
+        BradixFormControlSnapshot snapshot = await Interop.GetFormControlState(_element);
+        await HandleControlStateChangedAsync(snapshot);
+    }
+
+    private async Task HandleChangeAsync(ChangeEventArgs _)
+    {
+        BradixFormControlSnapshot snapshot = await Interop.GetFormControlState(_element);
+        await HandleControlStateChangedAsync(snapshot);
+    }
+}

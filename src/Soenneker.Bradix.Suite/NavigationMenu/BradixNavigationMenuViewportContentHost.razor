@@ -1,20 +1,34 @@
 @using Soenneker.Bradix.Suite.Base
-@implements IDisposable
+@implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
 
 <BradixDismissableLayer DisableOutsidePointerEvents="false"
                         DismissOnEscapeKeyDown="false"
                         DismissOnPointerDownOutside="false"
                         DismissOnFocusOutside="false"
                         OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
-                        OnPointerDownOutside="@HandlePointerDownOutsideAsync"
-                        OnElementReferenceCaptured="@HandleElementCapturedAsync">
-    <div @attributes="ContentAttributes">
-        @Registration.ChildContent
+                        OnPointerDownOutside="@HandlePointerDownOutsideAsync">
+    <div @ref="_contentElement"
+         tabindex="-1"
+         @attributes="ContentAttributes">
+        <CascadingValue Name="BradixNavigationMenuFocusGroupId" Value="@Registration.Value">
+            @Registration.ChildContent
+        </CascadingValue>
     </div>
+    <span @ref="_exitProxyElement"
+          data-bradix-navigation-menu-focus-proxy-end=""
+          aria-hidden="true"
+          tabindex="0"
+          style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" />
 </BradixDismissableLayer>
 
 @code {
+    private ElementReference _contentElement;
+    private ElementReference _exitProxyElement;
+    private bool _contentCaptured;
+    private bool _focusBridgeRegistered;
+
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
 
@@ -65,8 +79,38 @@
         }
     }
 
-    public void Dispose()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!_contentCaptured)
+        {
+            NavigationMenu?.RegisterContent(Registration.Value, _contentElement);
+            _contentCaptured = true;
+
+            if (OnContentElementCaptured.HasDelegate)
+                await OnContentElementCaptured.InvokeAsync(_contentElement);
+        }
+
+        if (NavigationMenu is not null &&
+            NavigationMenu.TryGetFocusProxy(Registration.Value, out ElementReference startProxy) &&
+            NavigationMenu.TryGetTrigger(Registration.Value, out IBradixNavigationMenuTrigger trigger))
+        {
+            if (_focusBridgeRegistered)
+            {
+                await Interop.UpdateNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
+            }
+            else
+            {
+                await Interop.RegisterNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
+                _focusBridgeRegistered = true;
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_focusBridgeRegistered)
+            await Interop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
+
         NavigationMenu?.UnregisterContent(Registration.Value);
     }
 
@@ -80,15 +124,6 @@
     {
         if (NavigationMenu is not null)
             await NavigationMenu.DismissAsync();
-    }
-
-    private Task HandleElementCapturedAsync(ElementReference element)
-    {
-        NavigationMenu?.RegisterContent(Registration.Value, element);
-
-        return OnContentElementCaptured.HasDelegate
-            ? OnContentElementCaptured.InvokeAsync(element)
-            : Task.CompletedTask;
     }
 
     private Task HandlePointerEnterAsync(PointerEventArgs args)

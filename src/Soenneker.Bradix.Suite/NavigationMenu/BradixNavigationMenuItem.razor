@@ -15,7 +15,6 @@
     [Parameter]
     public string? Value { get; set; }
 
-    [Microsoft.AspNetCore.Components.PersistentState]
     internal string? AutoValue { get; private set; }
 
     internal string ResolvedValue => Value ?? AutoValue ?? string.Empty;

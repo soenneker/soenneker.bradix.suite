@@ -1,0 +1,42 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<CascadingValue Value="this">
+    <div @attributes="FieldAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    [CascadingParameter]
+    private BradixForm? Form { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = null!;
+
+    [Parameter]
+    public bool ServerInvalid { get; set; }
+
+    [Parameter]
+    public string? ControlId { get; set; }
+
+    internal string? AutoId { get; private set; }
+
+    internal string FieldId => ControlId ?? AutoId ?? string.Empty;
+
+    internal BradixFormValiditySnapshot? Validity => Form?.GetFieldValidity(Name);
+
+    internal bool IsInvalid => ServerInvalid || Validity?.Valid == false;
+
+    internal bool IsValid => !ServerInvalid && Validity?.Valid == true;
+
+    protected override void OnInitialized()
+    {
+        AutoId ??= IdGenerator.New("bradix-form-field");
+    }
+
+    private Dictionary<string, object> FieldAttributes => BuildAttributes(
+        ("data-valid", IsValid ? string.Empty : null),
+        ("data-invalid", IsInvalid ? string.Empty : null));
+}

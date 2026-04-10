@@ -1,0 +1,40 @@
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Label
+@inherits BradixComponentBase
+
+<BradixLabel For="@HtmlFor"
+             Class="@LabelClass"
+             Style="@Style"
+             AdditionalAttributes="@LabelAdditionalAttributes">
+    @ChildContent
+</BradixLabel>
+
+@code {
+    [CascadingParameter]
+    private BradixFormField? Field { get; set; }
+
+    [Parameter]
+    public string? For { get; set; }
+
+    private string HtmlFor => For ?? Field?.FieldId ?? string.Empty;
+
+    private string? LabelClass => Class;
+
+    private IReadOnlyDictionary<string, object>? LabelAdditionalAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : [];
+
+            if (Field?.IsValid == true)
+                attributes["data-valid"] = string.Empty;
+
+            if (Field?.IsInvalid == true)
+                attributes["data-invalid"] = string.Empty;
+
+            return attributes;
+        }
+    }
+}

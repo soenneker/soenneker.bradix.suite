@@ -1,0 +1,11 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<button @attributes="SubmitAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private Dictionary<string, object> SubmitAttributes => BuildAttributes(
+        ("type", "submit"));
+}

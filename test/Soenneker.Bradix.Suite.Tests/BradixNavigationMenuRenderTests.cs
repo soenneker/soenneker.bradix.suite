@@ -8,6 +8,7 @@ using Soenneker.Bradix.Suite.Id;
 using Soenneker.Bradix.Suite.Interop;
 using Soenneker.Bradix.Suite.NavigationMenu;
 using Soenneker.Bradix.Suite.Presence;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -24,11 +25,16 @@ public sealed class BradixNavigationMenuRenderTests : Bunit.BunitContext
         _module.SetupVoid("registerDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("updateDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
+        _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         _module.SetupVoid("registerNavigationMenuIndicator", _ => true).SetVoidResult();
         _module.SetupVoid("updateNavigationMenuIndicator", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterNavigationMenuIndicator", _ => true).SetVoidResult();
+        _module.SetupVoid("registerNavigationMenuContentFocusBridge", _ => true).SetVoidResult();
+        _module.SetupVoid("updateNavigationMenuContentFocusBridge", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterNavigationMenuContentFocusBridge", _ => true).SetVoidResult();
         _module.SetupVoid("registerNavigationMenuViewport", _ => true).SetVoidResult();
         _module.SetupVoid("updateNavigationMenuViewport", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterNavigationMenuViewport", _ => true).SetVoidResult();
@@ -69,6 +75,14 @@ public sealed class BradixNavigationMenuRenderTests : Bunit.BunitContext
             Assert.Equal("-1", updatedTriggers[0].GetAttribute("tabindex"));
             Assert.Equal("0", updatedTriggers[1].GetAttribute("tabindex"));
         });
+    }
+
+    [Fact]
+    public void Triggers_register_roving_key_handlers()
+    {
+        Render(CreateNavigationMenu());
+
+        Assert.True(_module.Invocations.Count(invocation => invocation.Identifier == "registerRovingFocusNavigationKeys") >= 3);
     }
 
     [Fact]
@@ -141,6 +155,127 @@ public sealed class BradixNavigationMenuRenderTests : Bunit.BunitContext
         });
     }
 
+    [Fact]
+    public void Open_root_item_renders_focus_proxies_and_registers_focus_bridge()
+    {
+        var cut = Render(CreateNavigationMenu());
+        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.NotEmpty(cut.FindAll("[data-bradix-navigation-menu-focus-proxy]"));
+            Assert.NotEmpty(cut.FindAll("[data-bradix-navigation-menu-focus-proxy-end]"));
+            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerNavigationMenuContentFocusBridge");
+        });
+    }
+
+    [Fact]
+    public void Open_content_registers_link_roving_handlers()
+    {
+        var cut = Render(CreateNavigationMenu());
+        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Buttons", cut.Markup);
+            Assert.True(_module.Invocations.Count(invocation => invocation.Identifier == "registerRovingFocusNavigationKeys") >= 2);
+        });
+    }
+
+    [Fact]
+    public void Inline_content_does_not_emit_viewport_ownership_shim()
+    {
+        var cut = Render(CreateNavigationMenu());
+        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Empty(cut.FindAll("[aria-owns]"));
+        });
+    }
+
+    [Fact]
+    public void Viewport_content_registers_focus_bridge_against_active_content()
+    {
+        var cut = Render(CreateNavigationMenu(includeViewport: true));
+        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Buttons", cut.Markup);
+            Assert.NotEmpty(cut.FindAll("[data-bradix-navigation-menu-focus-proxy]"));
+            Assert.NotEmpty(cut.FindAll("[data-bradix-navigation-menu-focus-proxy-end]"));
+            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerNavigationMenuContentFocusBridge");
+        });
+    }
+
+    [Fact]
+    public void Viewport_content_registers_link_roving_handlers()
+    {
+        var cut = Render(CreateNavigationMenu(includeViewport: true));
+        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Buttons", cut.Markup);
+            Assert.True(_module.Invocations.Count(invocation => invocation.Identifier == "registerRovingFocusNavigationKeys") >= 2);
+        });
+    }
+
+    [Fact]
+    public void Viewport_content_emits_trigger_ownership_shim()
+    {
+        var cut = Render(CreateNavigationMenu(includeViewport: true));
+        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
+            string? ownedId = cut.Find("[aria-owns]").GetAttribute("aria-owns");
+            Assert.Equal(trigger.GetAttribute("aria-controls"), ownedId);
+        });
+    }
+
+    [Fact]
+    public void Sub_uses_default_active_item_and_does_not_toggle_closed_on_repeat_click()
+    {
+        var cut = Render(CreateNavigationMenuWithSub());
+        cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).Click();
+
+        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+
+        cut.FindAll("button").First(button => button.TextContent.Contains("Overview")).Click();
+
+        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+    }
+
+    [Fact]
+    public void Sub_link_click_does_not_dismiss_nested_content()
+    {
+        var cut = Render(CreateNavigationMenuWithSub());
+        cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).Click();
+
+        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+
+        cut.FindAll("a").First(anchor => anchor.TextContent.Contains("Overview content stays mounted.")).Click();
+
+        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+    }
+
+    [Fact]
+    public void Sub_pointer_move_switches_active_content_immediately()
+    {
+        var cut = Render(CreateNavigationMenuWithSub());
+        cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).Click();
+
+        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+
+        cut.FindAll("button").First(button => button.TextContent.Contains("API"))
+            .TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+
+        cut.WaitForAssertion(() => Assert.Contains("API content swaps immediately.", cut.Markup));
+    }
+
     private static RenderFragment CreateNavigationMenu(bool includeIndicator = false, bool includeViewport = false)
     {
         return builder =>
@@ -170,6 +305,52 @@ public sealed class BradixNavigationMenuRenderTests : Bunit.BunitContext
                     content.OpenComponent<BradixNavigationMenuViewport>(20);
                     content.CloseComponent();
                 }
+            }));
+            builder.CloseComponent();
+        };
+    }
+
+    private static RenderFragment CreateNavigationMenuWithSub()
+    {
+        return builder =>
+        {
+            builder.OpenComponent<BradixNavigationMenu>(0);
+            builder.AddAttribute(1, nameof(BradixNavigationMenu.DelayDuration), 0);
+            builder.AddAttribute(2, nameof(BradixNavigationMenu.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixNavigationMenuList>(0);
+                content.AddAttribute(1, nameof(BradixNavigationMenuList.ChildContent), (RenderFragment)(list =>
+                {
+                    list.OpenComponent<BradixNavigationMenuItem>(0);
+                    list.AddAttribute(1, nameof(BradixNavigationMenuItem.Value), "guides");
+                    list.AddAttribute(2, nameof(BradixNavigationMenuItem.ChildContent), (RenderFragment)(item =>
+                    {
+                        item.OpenComponent<BradixNavigationMenuTrigger>(0);
+                        item.AddAttribute(1, nameof(BradixNavigationMenuTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Guides")));
+                        item.CloseComponent();
+
+                        item.OpenComponent<BradixNavigationMenuContent>(2);
+                        item.AddAttribute(3, nameof(BradixNavigationMenuContent.ChildContent), (RenderFragment)(menuContent =>
+                        {
+                            menuContent.OpenComponent<BradixNavigationMenuSub>(0);
+                            menuContent.AddAttribute(1, nameof(BradixNavigationMenuSub.DefaultValue), "overview");
+                            menuContent.AddAttribute(2, nameof(BradixNavigationMenuSub.ChildContent), (RenderFragment)(sub =>
+                            {
+                                sub.OpenComponent<BradixNavigationMenuList>(0);
+                                sub.AddAttribute(1, nameof(BradixNavigationMenuList.ChildContent), (RenderFragment)(subList =>
+                                {
+                                    BuildItem(subList, 0, "overview", "Overview", ("Overview content stays mounted.", "overview"));
+                                    BuildItem(subList, 100, "api", "API", ("API content swaps immediately.", "api"));
+                                }));
+                                sub.CloseComponent();
+                            }));
+                            menuContent.CloseComponent();
+                        }));
+                        item.CloseComponent();
+                    }));
+                    list.CloseComponent();
+                }));
+                content.CloseComponent();
             }));
             builder.CloseComponent();
         };

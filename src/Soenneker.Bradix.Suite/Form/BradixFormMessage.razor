@@ -1,0 +1,221 @@
+@using System
+@using Soenneker.Bradix.Suite.Base
+@implements IDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+@if (ShouldDisplay)
+{
+    <span @attributes="MessageAttributes">
+        @ResolvedContent
+    </span>
+}
+
+@code {
+    private static readonly IReadOnlyDictionary<string, string> _defaultMessages = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["badInput"] = "This value is not valid",
+        ["patternMismatch"] = "This value does not match the required pattern",
+        ["rangeOverflow"] = "This value is too large",
+        ["rangeUnderflow"] = "This value is too small",
+        ["stepMismatch"] = "This value does not match the required step",
+        ["tooLong"] = "This value is too long",
+        ["tooShort"] = "This value is too short",
+        ["typeMismatch"] = "This value does not match the required type",
+        ["valueMissing"] = "This value is missing"
+    };
+
+    private bool _registered;
+    private string? _registeredCustomMatcherFieldName;
+
+    [CascadingParameter]
+    private BradixForm? Form { get; set; }
+
+    [CascadingParameter]
+    private BradixFormField? Field { get; set; }
+
+    [Parameter]
+    public object? Match { get; set; }
+
+    [Parameter]
+    public bool ForceMatch { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    private string? AutoId { get; set; }
+
+    private string ResolvedName => Name ?? Field?.Name ?? string.Empty;
+
+    private string MessageId => Id ?? AutoId ?? string.Empty;
+
+    private BradixFormValiditySnapshot? Validity => !string.IsNullOrWhiteSpace(ResolvedName)
+        ? Form?.GetFieldValidity(ResolvedName)
+        : null;
+
+    private bool ShouldDisplay => ForceMatch || MatchesCurrentState();
+
+    private RenderFragment? ResolvedContent => ChildContent ?? (builder =>
+    {
+        builder.AddContent(0, ResolveDefaultMessage());
+    });
+
+    private Dictionary<string, object> MessageAttributes => BuildAttributes(
+        ("id", MessageId));
+
+    protected override void OnInitialized()
+    {
+        AutoId ??= IdGenerator.New("bradix-form-message");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!string.Equals(_registeredCustomMatcherFieldName, ResolvedName, StringComparison.Ordinal))
+            UnregisterCustomMatcher();
+
+        if (TryCreateCustomMatcher(out Func<string?, BradixFormDataSnapshot, ValueTask<bool>>? matcher))
+        {
+            if (!string.IsNullOrWhiteSpace(ResolvedName))
+            {
+                Form?.RegisterFieldCustomMatcher(ResolvedName, new BradixFormCustomMatcherEntry
+                {
+                    Id = MessageId,
+                    MatchAsync = matcher!
+                });
+
+                _registeredCustomMatcherFieldName = ResolvedName;
+            }
+        }
+        else
+        {
+            UnregisterCustomMatcher();
+
+            if (Match is not null && Match is not string)
+            {
+                throw new InvalidOperationException(
+                    "BradixFormMessage Match must be null, a built-in validity key string, or a Func<string?, BradixFormDataSnapshot, bool/Task<bool>/ValueTask<bool>>.");
+            }
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        bool shouldRegister = ShouldDisplay && !string.IsNullOrWhiteSpace(ResolvedName);
+
+        if (shouldRegister && !_registered)
+        {
+            Form?.RegisterFieldMessageId(ResolvedName, MessageId);
+            _registered = true;
+            return;
+        }
+
+        if (!shouldRegister && _registered)
+        {
+            Form?.UnregisterFieldMessageId(ResolvedName, MessageId);
+            _registered = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        UnregisterCustomMatcher();
+
+        if (_registered && !string.IsNullOrWhiteSpace(ResolvedName))
+            Form?.UnregisterFieldMessageId(ResolvedName, MessageId);
+    }
+
+    private bool MatchesCurrentState()
+    {
+        if (Field?.ServerInvalid == true && Match is null)
+            return true;
+
+        if (Validity is null)
+            return false;
+
+        if (Match is null)
+            return !Validity.Valid || Field?.ServerInvalid == true;
+
+        if (TryGetBuiltInMatch(out string? builtInMatch))
+        {
+            return builtInMatch switch
+            {
+                "badInput" => Validity.BadInput,
+                "customError" => Validity.CustomError,
+                "patternMismatch" => Validity.PatternMismatch,
+                "rangeOverflow" => Validity.RangeOverflow,
+                "rangeUnderflow" => Validity.RangeUnderflow,
+                "stepMismatch" => Validity.StepMismatch,
+                "tooLong" => Validity.TooLong,
+                "tooShort" => Validity.TooShort,
+                "typeMismatch" => Validity.TypeMismatch,
+                "valueMissing" => Validity.ValueMissing,
+                _ => false
+            };
+        }
+
+        return !HasBuiltInError(Validity) &&
+               !string.IsNullOrWhiteSpace(ResolvedName) &&
+               Form?.GetFieldCustomError(ResolvedName, MessageId) == true;
+    }
+
+    private string ResolveDefaultMessage()
+    {
+        if (Match is string builtInMatch && _defaultMessages.TryGetValue(builtInMatch, out string? message))
+            return message;
+
+        return "This value is not valid";
+    }
+
+    private bool TryGetBuiltInMatch(out string? builtInMatch)
+    {
+        if (Match is string value && !string.IsNullOrWhiteSpace(value))
+        {
+            builtInMatch = value;
+            return true;
+        }
+
+        builtInMatch = null;
+        return false;
+    }
+
+    private bool TryCreateCustomMatcher(out Func<string?, BradixFormDataSnapshot, ValueTask<bool>>? matcher)
+    {
+        switch (Match)
+        {
+            case Func<string?, BradixFormDataSnapshot, ValueTask<bool>> valueTaskMatcher:
+                matcher = valueTaskMatcher;
+                return true;
+            case Func<string?, BradixFormDataSnapshot, Task<bool>> taskMatcher:
+                matcher = (value, formData) => new ValueTask<bool>(taskMatcher(value, formData));
+                return true;
+            case Func<string?, BradixFormDataSnapshot, bool> syncMatcher:
+                matcher = (value, formData) => ValueTask.FromResult(syncMatcher(value, formData));
+                return true;
+            default:
+                matcher = null;
+                return false;
+        }
+    }
+
+    private void UnregisterCustomMatcher()
+    {
+        if (!string.IsNullOrWhiteSpace(_registeredCustomMatcherFieldName))
+        {
+            Form?.UnregisterFieldCustomMatcher(_registeredCustomMatcherFieldName, MessageId);
+            _registeredCustomMatcherFieldName = null;
+        }
+    }
+
+    private static bool HasBuiltInError(BradixFormValiditySnapshot validity)
+    {
+        return validity.BadInput ||
+               validity.PatternMismatch ||
+               validity.RangeOverflow ||
+               validity.RangeUnderflow ||
+               validity.StepMismatch ||
+               validity.TooLong ||
+               validity.TooShort ||
+               validity.TypeMismatch ||
+               validity.ValueMissing;
+    }
+}

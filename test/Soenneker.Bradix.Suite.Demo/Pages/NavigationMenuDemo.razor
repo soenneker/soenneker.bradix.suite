@@ -7,7 +7,8 @@
         <h2>NavigationMenu</h2>
         <p>
             Delayed root navigation content with roving trigger focus, dismissable flyout panels,
-            active link semantics, and indicator positioning for application-style top navigation.
+            active link semantics, indicator positioning, and proxy-driven tab handoff between
+            triggers and open content for application-style top navigation.
         </p>
     </div>
 
@@ -63,6 +64,7 @@
                 <BradixNavigationMenuIndicator Style="top:2.75rem;height:2px;background:currentColor;" />
             </BradixNavigationMenu>
 
+            <p>With a panel open, `Tab` moves into the active content instead of skipping straight to the next trigger, and arrow/Home/End keys move between `NavigationMenu.Link` items.</p>
             <p><strong>Open panel:</strong> @(_openValue ?? "(none)")</p>
             <p><strong>Active link:</strong> @_activeLink</p>
         </article>
@@ -96,7 +98,45 @@
                                               Style="margin-top:0.5rem;" />
             </BradixNavigationMenu>
 
-            <p>The viewport reuses a shared surface and resizes to the active content.</p>
+            <p>The viewport reuses a shared surface, resizes to the active content, preserves the same trigger-to-content tab flow, keeps arrow/Home/End navigation between links, and keeps the active trigger/content relationship exposed to assistive tech.</p>
+        </article>
+
+        <article class="card stack">
+            <h3>Nested submenu</h3>
+
+            <BradixNavigationMenu DelayDuration="0"
+                                  Class="stack"
+                                  Style="position:relative;">
+                <BradixNavigationMenuList Style="display:flex;gap:0.75rem;list-style:none;padding:0;margin:0;">
+                    <BradixNavigationMenuItem Value="guides">
+                        <BradixNavigationMenuTrigger Class="primitive__trigger">Guides</BradixNavigationMenuTrigger>
+                        <BradixNavigationMenuContent Class="card stack" Style="margin-top:0.5rem;">
+                            <p>A nested submenu should behave more like tabs than a dismissable root flyout.</p>
+
+                            <BradixNavigationMenuSub DefaultValue="overview"
+                                                     Class="stack">
+                                <BradixNavigationMenuList Style="display:flex;gap:0.5rem;list-style:none;padding:0;margin:0;">
+                                    <BradixNavigationMenuItem Value="overview">
+                                        <BradixNavigationMenuTrigger Class="primitive__trigger">Overview</BradixNavigationMenuTrigger>
+                                        <BradixNavigationMenuContent Class="stack" Style="margin-top:0.5rem;">
+                                            <BradixNavigationMenuLink Href="#overview">Overview content stays mounted after selection.</BradixNavigationMenuLink>
+                                        </BradixNavigationMenuContent>
+                                    </BradixNavigationMenuItem>
+
+                                    <BradixNavigationMenuItem Value="api">
+                                        <BradixNavigationMenuTrigger Class="primitive__trigger">API</BradixNavigationMenuTrigger>
+                                        <BradixNavigationMenuContent Class="stack" Style="margin-top:0.5rem;">
+                                            <BradixNavigationMenuLink Href="#api-reference">API content swaps immediately on trigger focus or pointer move.</BradixNavigationMenuLink>
+                                        </BradixNavigationMenuContent>
+                                    </BradixNavigationMenuItem>
+                                </BradixNavigationMenuList>
+                            </BradixNavigationMenuSub>
+                        </BradixNavigationMenuContent>
+                    </BradixNavigationMenuItem>
+                </BradixNavigationMenuList>
+            </BradixNavigationMenu>
+
+            <p>The nested `Sub` keeps selection active instead of toggling closed on repeated trigger or link interaction, while still participating in the same tab handoff.</p>
         </article>
     </div>
 </section>

@@ -1,0 +1,96 @@
+@using Microsoft.JSInterop
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<div @ref="_wrapperElement"
+     @attributes="RegionAttributes">
+    @if (Provider?.ToastCount > 0)
+    {
+        <span @ref="_headFocusProxy"
+              aria-hidden="true"
+              tabindex="0"
+              style="position:fixed;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;"></span>
+    }
+
+    <ol @ref="_viewportElement"
+        @attributes="ViewportAttributes"></ol>
+
+    @if (Provider?.ToastCount > 0)
+    {
+        <span @ref="_tailFocusProxy"
+              aria-hidden="true"
+              tabindex="0"
+              style="position:fixed;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;"></span>
+    }
+</div>
+
+@code {
+    private static readonly IReadOnlyList<string> _defaultHotkey = ["F8"];
+
+    private ElementReference _wrapperElement;
+    private ElementReference _viewportElement;
+    private ElementReference _headFocusProxy;
+    private ElementReference _tailFocusProxy;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _registered;
+
+    [CascadingParameter]
+    private BradixToastProvider? Provider { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string> Hotkey { get; set; } = _defaultHotkey;
+
+    [Parameter]
+    public string Label { get; set; } = "Notifications ({hotkey})";
+
+    private string HotkeyLabel => string.Join("+", Hotkey).Replace("Key", "", StringComparison.Ordinal).Replace("Digit", "", StringComparison.Ordinal);
+
+    private string ResolvedViewportId => Id ?? Provider?.ViewportId ?? string.Empty;
+
+    private Dictionary<string, object> RegionAttributes => BuildAttributes(
+        ("role", "region"),
+        ("aria-label", Label.Replace("{hotkey}", HotkeyLabel, StringComparison.Ordinal)),
+        ("tabindex", -1),
+        ("style", Provider?.ToastCount > 0 ? null : "pointer-events:none;"));
+
+    private Dictionary<string, object> ViewportAttributes => new()
+    {
+        ["id"] = ResolvedViewportId,
+        ["tabindex"] = -1
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Provider?.RegisterViewport();
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterToastViewport(_wrapperElement, _viewportElement, _headFocusProxy, _tailFocusProxy, Hotkey, _dotNetReference);
+            _registered = true;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Provider?.UnregisterViewport();
+
+        if (_registered)
+            await Interop.UnregisterToastViewport(_viewportElement);
+
+        _dotNetReference?.Dispose();
+    }
+
+    [JSInvokable]
+    public Task HandlePauseAsync()
+    {
+        return Provider?.PauseToastsAsync() ?? Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleResumeAsync()
+    {
+        return Provider?.ResumeToastsAsync() ?? Task.CompletedTask;
+    }
+}

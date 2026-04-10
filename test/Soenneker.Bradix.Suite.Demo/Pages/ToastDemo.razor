@@ -1,0 +1,133 @@
+@page "/toast"
+@using Soenneker.Bradix.Suite.Toast
+
+<PageTitle>Bradix Toast</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixToast</h2>
+        <p>Provider-managed toasts with auto-dismiss timing, viewport hotkey focus, pause/resume behavior, and swipe-close state modeled after Radix.</p>
+    </header>
+
+    <BradixToastProvider Duration="5000"
+                         SwipeDirection="right"
+                         SwipeThreshold="40">
+        <div class="demo-grid">
+            <section class="card stack stack--compact">
+                <h3>Foreground toast</h3>
+                <p class="state-line">Pause state: @_pauseState</p>
+                <p class="state-line">Swipe state: @_swipeState</p>
+
+                <div class="button-row">
+                    <button class="primitive__trigger" @onclick="ShowForegroundToast">Show upload toast</button>
+                    <button class="primitive__trigger" @onclick="ShowBackgroundToast">Show background toast</button>
+                </div>
+            </section>
+
+            <section class="card stack stack--compact">
+                <h3>Viewport behavior</h3>
+                <p class="state-line">Press <kbd>F8</kbd> to move focus to the viewport. Hover the viewport or focus a toast action to pause the close timer.</p>
+                <p class="state-line">Swipe a toast to the right to dismiss it using the configured threshold.</p>
+            </section>
+        </div>
+
+        <BradixToast Open="@_foregroundOpen"
+                     OpenChanged="HandleForegroundOpenChanged"
+                     OnPause="HandlePause"
+                     OnResume="HandleResume"
+                     OnSwipeStart="HandleSwipeStart"
+                     OnSwipeMove="HandleSwipeMove"
+                     OnSwipeCancel="HandleSwipeCancel"
+                     OnSwipeEnd="HandleSwipeEnd"
+                     Class="card stack stack--compact"
+                     Style="min-width: 18rem; border: 1px solid var(--border-color, #d0d7de); background: white; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);">
+            <BradixToastTitle>Upload complete</BradixToastTitle>
+            <BradixToastDescription>Your screenshot bundle is ready to review.</BradixToastDescription>
+            <div class="button-row">
+                <BradixToastAction AltText="Open uploads panel" Class="primitive__trigger">Open uploads</BradixToastAction>
+                <BradixToastClose Class="primitive__trigger">Dismiss</BradixToastClose>
+            </div>
+        </BradixToast>
+
+        <BradixToast Open="@_backgroundOpen"
+                     OpenChanged="HandleBackgroundOpenChanged"
+                     Type="background"
+                     Duration="8000"
+                     Class="card stack stack--compact"
+                     Style="min-width: 18rem; border: 1px solid var(--border-color, #d0d7de); background: white; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);">
+            <BradixToastTitle>Sync in progress</BradixToastTitle>
+            <BradixToastDescription>Background revalidation is still running and will finish automatically.</BradixToastDescription>
+            <BradixToastClose Class="primitive__trigger">Hide</BradixToastClose>
+        </BradixToast>
+
+        <BradixToastViewport Class="stack stack--compact"
+                             Style="position: fixed; right: 1rem; bottom: 1rem; display: flex; flex-direction: column; gap: 0.75rem; width: min(24rem, calc(100vw - 2rem)); margin: 0; padding: 0; list-style: none; z-index: 1000;" />
+    </BradixToastProvider>
+</section>
+
+@code {
+    private bool _foregroundOpen;
+    private bool _backgroundOpen;
+    private string _pauseState = "resumed";
+    private string _swipeState = "idle";
+
+    private void ShowForegroundToast()
+    {
+        _foregroundOpen = true;
+        _pauseState = "resumed";
+        _swipeState = "idle";
+    }
+
+    private void ShowBackgroundToast()
+    {
+        _backgroundOpen = true;
+    }
+
+    private Task HandleForegroundOpenChanged(bool open)
+    {
+        _foregroundOpen = open;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleBackgroundOpenChanged(bool open)
+    {
+        _backgroundOpen = open;
+        return Task.CompletedTask;
+    }
+
+    private Task HandlePause()
+    {
+        _pauseState = "paused";
+        return Task.CompletedTask;
+    }
+
+    private Task HandleResume()
+    {
+        _pauseState = "resumed";
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSwipeStart(BradixToastSwipeEventArgs _)
+    {
+        _swipeState = "start";
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSwipeMove(BradixToastSwipeEventArgs _)
+    {
+        _swipeState = "move";
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSwipeCancel(BradixToastSwipeEventArgs _)
+    {
+        _swipeState = "cancel";
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSwipeEnd(BradixToastSwipeEventArgs _)
+    {
+        _swipeState = "end";
+        return Task.CompletedTask;
+    }
+}

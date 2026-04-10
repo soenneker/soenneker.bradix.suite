@@ -1,6 +1,7 @@
 @using Soenneker.Bradix.Suite.Base
 @implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
 
 @if (ShouldRenderInline && (ForceMount || IsOpen))
 {
@@ -9,8 +10,7 @@
                     Id="@Item?.ContentId"
                     Class="@Class"
                     Style="@Style"
-                    AdditionalAttributes="@ContentAttributes"
-                    OnElementReferenceCaptured="@HandleElementReferenceCapturedAsync">
+                    AdditionalAttributes="@ContentAttributes">
         <BradixDismissableLayer DisableOutsidePointerEvents="false"
                                 DismissOnEscapeKeyDown="false"
                                 DismissOnPointerDownOutside="false"
@@ -18,18 +18,28 @@
                                 OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
                                 OnPointerDownOutside="@HandlePointerDownOutsideAsync">
             <div @ref="_contentElement"
+                 tabindex="-1"
                  @onpointerenter="HandlePointerEnterAsync"
                  @onpointerleave="HandlePointerLeaveAsync">
-                @ChildContent
+                <CascadingValue Name="BradixNavigationMenuFocusGroupId" Value="@(Item?.ResolvedValue)">
+                    @ChildContent
+                </CascadingValue>
             </div>
+            <span @ref="_exitProxyElement"
+                  data-bradix-navigation-menu-focus-proxy-end=""
+                  aria-hidden="true"
+                  tabindex="0"
+                  style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" />
         </BradixDismissableLayer>
     </BradixPresence>
 }
 
 @code {
     private ElementReference _contentElement;
+    private ElementReference _exitProxyElement;
     private bool _registered;
     private bool _viewportContentRegistered;
+    private bool _focusBridgeRegistered;
 
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
@@ -42,7 +52,7 @@
 
     private bool IsOpen => Item?.IsOpen == true;
 
-    private bool ShouldRenderInline => NavigationMenu?.HasViewport != true;
+    private bool ShouldRenderInline => NavigationMenu?.IsRootMenu != true || NavigationMenu.HasViewport != true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -62,6 +72,39 @@
 
             _viewportContentRegistered = true;
         }
+
+        if (!ShouldRenderInline || !(ForceMount || IsOpen))
+        {
+            if (_focusBridgeRegistered)
+            {
+                await Interop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
+                _focusBridgeRegistered = false;
+            }
+
+            return;
+        }
+
+        if (_registered is false && NavigationMenu is not null && Item is not null)
+        {
+            NavigationMenu.RegisterContent(Item.ResolvedValue, _contentElement);
+            _registered = true;
+        }
+
+        if (NavigationMenu is not null &&
+            Item is not null &&
+            NavigationMenu.TryGetFocusProxy(Item.ResolvedValue, out ElementReference startProxy) &&
+            NavigationMenu.TryGetTrigger(Item.ResolvedValue, out IBradixNavigationMenuTrigger trigger))
+        {
+            if (_focusBridgeRegistered)
+            {
+                await Interop.UpdateNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
+            }
+            else
+            {
+                await Interop.RegisterNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
+                _focusBridgeRegistered = true;
+            }
+        }
     }
 
     private IReadOnlyDictionary<string, object> ContentAttributes
@@ -75,31 +118,20 @@
             attributes["data-state"] = IsOpen ? "open" : "closed";
             attributes["data-orientation"] = NavigationMenu?.Orientation ?? "horizontal";
             attributes["aria-labelledby"] = Item?.TriggerId ?? string.Empty;
-            attributes["tabindex"] = -1;
             return attributes;
         }
     }
 
     public async ValueTask DisposeAsync()
     {
+        if (_focusBridgeRegistered)
+            await Interop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
+
         if (_registered && Item is not null)
             NavigationMenu?.UnregisterContent(Item.ResolvedValue);
 
         if (Item is not null)
             NavigationMenu?.UnregisterViewportContent(Item.ResolvedValue);
-    }
-
-    private Task HandleElementReferenceCapturedAsync(ElementReference element)
-    {
-        _contentElement = element;
-
-        if (Item is not null)
-        {
-            NavigationMenu?.RegisterContent(Item.ResolvedValue, element);
-            _registered = true;
-        }
-
-        return Task.CompletedTask;
     }
 
     private async Task HandleEscapeKeyDownAsync()
@@ -110,7 +142,7 @@
 
     private async Task HandlePointerDownOutsideAsync()
     {
-        if (NavigationMenu is not null)
+        if (NavigationMenu?.IsRootMenu == true)
             await NavigationMenu.DismissAsync();
     }
 

@@ -30,7 +30,6 @@
     [Parameter]
     public bool Disabled { get; set; }
 
-    [Microsoft.AspNetCore.Components.PersistentState]
     public string? TabStopId { get; private set; }
 
     internal bool IsPressed => Group.IsItemPressed(Value);

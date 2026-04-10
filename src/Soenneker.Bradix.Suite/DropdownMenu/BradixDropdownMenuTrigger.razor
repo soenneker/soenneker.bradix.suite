@@ -5,6 +5,7 @@
     <BradixMenuAnchor>
         <button @ref="_button"
                 @onpointerdown="HandlePointerDownAsync"
+                @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
                 @onkeydown="HandleKeyDownAsync"
                 @attributes="ButtonAttributes">
             @ChildContent
@@ -23,6 +24,10 @@
 
     [Parameter]
     public bool Disabled { get; set; }
+
+    // Match Radix trigger semantics: when opening from pointerdown, keep focus
+    // off the trigger so the menu content can claim it without competition.
+    private bool PreventTriggerFocusOnOpen => !Disabled && DropdownMenu?.CurrentOpen != true;
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),

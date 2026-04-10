@@ -9,15 +9,27 @@
 @inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
 
 <CascadingValue Value="this">
-    <nav @ref="_rootElement"
-         @attributes="RootAttributes">
-        @ChildContent
-    </nav>
+    @if (IsRootMenu)
+    {
+        <nav @ref="_rootElement"
+             @attributes="RootAttributes">
+            @ChildContent
+        </nav>
+    }
+    else
+    {
+        <div @ref="_rootElement"
+             @attributes="RootAttributes">
+            @ChildContent
+        </div>
+    }
 </CascadingValue>
 
 @code {
     private readonly BradixCollectionRegistry<IBradixNavigationMenuTrigger> _triggers = new();
     private readonly Dictionary<string, ElementReference> _contentElements = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ElementReference> _focusProxyElements = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<IBradixNavigationMenuFocusGroupItem>> _focusGroups = new(StringComparer.Ordinal);
     private readonly Dictionary<string, BradixNavigationMenuViewportRegistration> _viewportContents = new(StringComparer.Ordinal);
     private ElementReference _rootElement;
     private bool _initialized;
@@ -57,7 +69,9 @@
     [Parameter]
     public int SkipDelayDuration { get; set; } = 300;
 
-    [Microsoft.AspNetCore.Components.PersistentState]
+    [Parameter]
+    public bool IsRootMenu { get; set; } = true;
+
     internal string? BaseId { get; private set; }
 
     internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
@@ -77,7 +91,7 @@
     internal string ActiveViewportValue => HasOpenItem ? CurrentValue : PreviousValue;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("aria-label", "Main"),
+        ("aria-label", IsRootMenu ? "Main" : null),
         ("data-orientation", Orientation),
         ("dir", ResolvedDirection));
 
@@ -130,6 +144,16 @@
         return resolvedTrigger is not null;
     }
 
+    internal bool TryGetTrigger(string value, out IBradixNavigationMenuTrigger trigger)
+    {
+        IBradixNavigationMenuTrigger? resolvedTrigger = _triggers.Snapshot()
+            .Select(entry => entry.Item)
+            .FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.Ordinal));
+
+        trigger = resolvedTrigger!;
+        return resolvedTrigger is not null;
+    }
+
     internal void RegisterTrigger(IBradixNavigationMenuTrigger trigger)
     {
         _triggers.Register(trigger.Value, trigger);
@@ -154,8 +178,73 @@
         _contentElements.Remove(value);
     }
 
+    internal void RegisterFocusProxy(string value, ElementReference element)
+    {
+        _focusProxyElements[value] = element;
+    }
+
+    internal void UnregisterFocusProxy(string value)
+    {
+        _focusProxyElements.Remove(value);
+    }
+
+    internal bool TryGetFocusProxy(string value, out ElementReference element)
+    {
+        return _focusProxyElements.TryGetValue(value, out element);
+    }
+
+    internal void RegisterFocusGroupItem(string groupId, IBradixNavigationMenuFocusGroupItem item)
+    {
+        if (!_focusGroups.TryGetValue(groupId, out List<IBradixNavigationMenuFocusGroupItem>? items))
+        {
+            items = [];
+            _focusGroups[groupId] = items;
+        }
+
+        if (!items.Contains(item))
+            items.Add(item);
+    }
+
+    internal void UnregisterFocusGroupItem(string groupId, IBradixNavigationMenuFocusGroupItem item)
+    {
+        if (!_focusGroups.TryGetValue(groupId, out List<IBradixNavigationMenuFocusGroupItem>? items))
+            return;
+
+        items.Remove(item);
+
+        if (items.Count == 0)
+            _focusGroups.Remove(groupId);
+    }
+
+    internal async Task HandleFocusGroupItemKeyDownAsync(string groupId, IBradixNavigationMenuFocusGroupItem item, KeyboardEventArgs args)
+    {
+        if (args.CtrlKey || args.AltKey || args.MetaKey)
+            return;
+
+        if (!_focusGroups.TryGetValue(groupId, out List<IBradixNavigationMenuFocusGroupItem>? items) || items.Count == 0)
+            return;
+
+        string previousKey = ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
+        string nextKey = ResolvedDirection == "rtl" ? "ArrowLeft" : "ArrowRight";
+
+        IBradixNavigationMenuFocusGroupItem? target = args.Key switch
+        {
+            "Home" => items[0],
+            "End" => items[^1],
+            var key when key == previousKey || key == "ArrowUp" => ResolveAdjacentFocusGroupItem(items, item, -1),
+            var key when key == nextKey || key == "ArrowDown" => ResolveAdjacentFocusGroupItem(items, item, 1),
+            _ => null
+        };
+
+        if (target is not null)
+            await target.FocusAsync();
+    }
+
     internal void RegisterViewport()
     {
+        if (!IsRootMenu)
+            return;
+
         if (_hasViewport)
             return;
 
@@ -165,6 +254,9 @@
 
     internal void UnregisterViewport()
     {
+        if (!IsRootMenu)
+            return;
+
         if (!_hasViewport)
             return;
 
@@ -174,6 +266,9 @@
 
     internal void RegisterViewportContent(BradixNavigationMenuViewportRegistration registration)
     {
+        if (!IsRootMenu)
+            return;
+
         if (_viewportContents.TryGetValue(registration.Value, out BradixNavigationMenuViewportRegistration? existing) &&
             string.Equals(existing.TriggerId, registration.TriggerId, StringComparison.Ordinal) &&
             string.Equals(existing.ContentId, registration.ContentId, StringComparison.Ordinal) &&
@@ -191,12 +286,21 @@
 
     internal void UnregisterViewportContent(string value)
     {
+        if (!IsRootMenu)
+            return;
+
         if (_viewportContents.Remove(value))
             _ = InvokeAsync(StateHasChanged);
     }
 
     internal bool TryGetViewportContent(string value, out BradixNavigationMenuViewportRegistration registration)
     {
+        if (!IsRootMenu)
+        {
+            registration = null!;
+            return false;
+        }
+
         return _viewportContents.TryGetValue(value, out registration!);
     }
 
@@ -214,6 +318,12 @@
 
     internal async Task HandleTriggerPointerMoveAsync(string value)
     {
+        if (!IsRootMenu)
+        {
+            await OpenValueAsync(value);
+            return;
+        }
+
         CancelCloseDelay();
 
         if (_isOpenDelayed)
@@ -229,6 +339,9 @@
 
     internal Task HandleTriggerPointerLeaveAsync()
     {
+        if (!IsRootMenu)
+            return Task.CompletedTask;
+
         CancelOpenDelay();
         StartCloseDelay();
         return Task.CompletedTask;
@@ -242,6 +355,9 @@
 
     internal Task HandleContentPointerLeaveAsync()
     {
+        if (!IsRootMenu)
+            return Task.CompletedTask;
+
         StartCloseDelay();
         return Task.CompletedTask;
     }
@@ -251,9 +367,11 @@
         CancelOpenDelay();
         CancelCloseDelay();
 
-        string? nextValue = string.Equals(CurrentValue, value, StringComparison.Ordinal)
-            ? string.Empty
-            : value;
+        string? nextValue = !IsRootMenu
+            ? value
+            : string.Equals(CurrentValue, value, StringComparison.Ordinal)
+                ? string.Empty
+                : value;
 
         await SetValueAsync(nextValue);
         SetCurrentTabStop(value);
@@ -416,6 +534,20 @@
             .Select(entry => entry.Item)
             .Where(trigger => !trigger.Disabled)
             .ToList();
+    }
+
+    private static IBradixNavigationMenuFocusGroupItem? ResolveAdjacentFocusGroupItem(List<IBradixNavigationMenuFocusGroupItem> items,
+        IBradixNavigationMenuFocusGroupItem currentItem, int delta)
+    {
+        int currentIndex = items.IndexOf(currentItem);
+        if (currentIndex < 0)
+            return null;
+
+        int nextIndex = currentIndex + delta;
+        if (nextIndex < 0 || nextIndex >= items.Count)
+            return null;
+
+        return items[nextIndex];
     }
 
     private void StartSkipDelay()

@@ -1,0 +1,11 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<CascadingValue Name="BradixToastPortalDisabled" Value="Disabled">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public bool Disabled { get; set; }
+}

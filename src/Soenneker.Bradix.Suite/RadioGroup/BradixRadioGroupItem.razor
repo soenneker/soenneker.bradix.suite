@@ -35,7 +35,6 @@
     [Parameter]
     public string InputValue { get; set; } = "on";
 
-    [Microsoft.AspNetCore.Components.PersistentState]
     internal string? TabStopId { get; private set; }
 
     internal bool IsDisabled => Group.Disabled || Disabled;

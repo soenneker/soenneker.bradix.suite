@@ -32,8 +32,7 @@
     [Parameter]
     public EventCallback<bool> OnOpenChange { get; set; }
 
-    [Microsoft.AspNetCore.Components.PersistentState]
-    internal string? BaseId { get; private set; }
+    public string? BaseId { get; private set; }
 
     internal string TriggerId => $"{BaseId}-trigger";
 

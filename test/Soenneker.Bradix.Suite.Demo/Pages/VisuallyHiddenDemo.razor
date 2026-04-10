@@ -5,7 +5,7 @@
 <section class="stack">
     <header class="stack stack--compact">
         <h2>BradixVisuallyHidden</h2>
-        <p>Provides screen-reader-only content without imposing visible layout, matching Radix’s utility semantics.</p>
+        <p>Provides screen-reader-only content without imposing visible layout, including slot-backed native element rendering for Radix-style `asChild` composition.</p>
     </header>
 
     <div class="demo-grid">
@@ -16,5 +16,25 @@
                 <span aria-hidden="true">S</span>
             </button>
         </section>
+
+        <section class="card stack stack--compact">
+            <h3>Slot-backed native element</h3>
+            <div class="stack stack--compact">
+                <input id="hidden-search-label" class="primitive__trigger" placeholder="Search..." />
+                <BradixVisuallyHidden AsChild
+                                     ChildElementName="label"
+                                     ChildAttributes="@_labelAttributes">
+                    Search the command menu
+                </BradixVisuallyHidden>
+            </div>
+        </section>
     </div>
 </section>
+
+@code {
+    private readonly IReadOnlyDictionary<string, object> _labelAttributes = new Dictionary<string, object>
+    {
+        ["for"] = "hidden-search-label",
+        ["class"] = "visually-hidden__label"
+    };
+}

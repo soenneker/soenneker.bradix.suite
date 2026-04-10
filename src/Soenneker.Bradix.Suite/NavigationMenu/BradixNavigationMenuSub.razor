@@ -1,0 +1,31 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<BradixNavigationMenu Value="@Value"
+                      DefaultValue="@DefaultValue"
+                      ValueChanged="@ValueChanged"
+                      OnValueChange="@OnValueChange"
+                      Orientation="@Orientation"
+                      IsRootMenu="false"
+                      Class="@Class"
+                      Style="@Style"
+                      AdditionalAttributes="@AdditionalAttributes">
+    @ChildContent
+</BradixNavigationMenu>
+
+@code {
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    [Parameter]
+    public string Orientation { get; set; } = "horizontal";
+}

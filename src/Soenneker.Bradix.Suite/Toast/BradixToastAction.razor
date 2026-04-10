@@ -1,0 +1,31 @@
+@using System
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<button @onclick="HandleClickAsync"
+        @attributes="ButtonAttributes">
+    @ChildContent
+</button>
+
+@code {
+    [CascadingParameter]
+    private BradixToast? Toast { get; set; }
+
+    [Parameter]
+    public string AltText { get; set; } = string.Empty;
+
+    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+        ("type", "button"),
+        ("aria-label", AltText));
+
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(AltText))
+            throw new InvalidOperationException("BradixToastAction requires a non-empty AltText.");
+    }
+
+    private Task HandleClickAsync()
+    {
+        return Toast?.TriggerCloseAsync() ?? Task.CompletedTask;
+    }
+}

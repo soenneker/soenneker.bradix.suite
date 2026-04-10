@@ -1,0 +1,268 @@
+@using System
+@using System.Linq
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<CascadingValue Value="this">
+    <form @ref="_formElement"
+          @onsubmit="HandleSubmitAsync"
+          @onreset="HandleResetAsync"
+          @attributes="FormAttributes">
+        @ChildContent
+    </form>
+</CascadingValue>
+
+@code {
+    private const string _defaultInvalidMessage = "This value is not valid";
+
+    private readonly Dictionary<string, BradixFormValiditySnapshot?> _validityMap = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Dictionary<string, BradixFormCustomMatcherEntry>> _customMatchersByField = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Dictionary<string, bool>> _customErrorsByField = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, long> _validationVersions = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, HashSet<string>> _messageIdsByField = new(StringComparer.Ordinal);
+    private ElementReference _formElement;
+    private bool _registered;
+
+    [Parameter]
+    public EventCallback OnClearServerErrors { get; set; }
+
+    private Dictionary<string, object> FormAttributes => BuildAttributes();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await Interop.RegisterFormRoot(_formElement);
+        _registered = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered)
+            await Interop.UnregisterFormRoot(_formElement);
+    }
+
+    internal BradixFormValiditySnapshot? GetFieldValidity(string fieldName)
+    {
+        return _validityMap.TryGetValue(fieldName, out BradixFormValiditySnapshot? validity)
+            ? validity
+            : null;
+    }
+
+    internal string? GetFieldDescription(string fieldName)
+    {
+        if (!_messageIdsByField.TryGetValue(fieldName, out HashSet<string>? ids) || ids.Count == 0)
+            return null;
+
+        return string.Join(" ", ids);
+    }
+
+    internal bool GetFieldCustomError(string fieldName, string matcherId)
+    {
+        return _customErrorsByField.TryGetValue(fieldName, out Dictionary<string, bool>? fieldErrors) &&
+               fieldErrors.TryGetValue(matcherId, out bool matches) &&
+               matches;
+    }
+
+    internal void SetFieldValidity(string fieldName, BradixFormValiditySnapshot? validity)
+    {
+        if (validity is null)
+            _validityMap.Remove(fieldName);
+        else
+            _validityMap[fieldName] = validity;
+
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void RegisterFieldCustomMatcher(string fieldName, BradixFormCustomMatcherEntry entry)
+    {
+        if (!_customMatchersByField.TryGetValue(fieldName, out Dictionary<string, BradixFormCustomMatcherEntry>? fieldEntries))
+        {
+            fieldEntries = new Dictionary<string, BradixFormCustomMatcherEntry>(StringComparer.Ordinal);
+            _customMatchersByField[fieldName] = fieldEntries;
+        }
+
+        fieldEntries[entry.Id] = entry;
+    }
+
+    internal void UnregisterFieldCustomMatcher(string fieldName, string matcherId)
+    {
+        if (!_customMatchersByField.TryGetValue(fieldName, out Dictionary<string, BradixFormCustomMatcherEntry>? fieldEntries))
+            return;
+
+        fieldEntries.Remove(matcherId);
+
+        if (fieldEntries.Count == 0)
+            _customMatchersByField.Remove(fieldName);
+
+        if (_customErrorsByField.TryGetValue(fieldName, out Dictionary<string, bool>? fieldErrors))
+        {
+            fieldErrors.Remove(matcherId);
+
+            if (fieldErrors.Count == 0)
+                _customErrorsByField.Remove(fieldName);
+        }
+    }
+
+    internal async Task UpdateControlStateAsync(ElementReference element, string fieldName, BradixFormControlSnapshot snapshot)
+    {
+        long version = NextValidationVersion(fieldName);
+        BradixFormValiditySnapshot validity = snapshot.Validity ?? new BradixFormValiditySnapshot();
+
+        if (HasBuiltInError(validity))
+        {
+            await Interop.SetFormControlCustomValidity(element, null);
+            SetFieldCustomErrors(fieldName, null);
+            SetFieldValidity(fieldName, validity);
+            return;
+        }
+
+        if (!_customMatchersByField.TryGetValue(fieldName, out Dictionary<string, BradixFormCustomMatcherEntry>? matcherEntries) ||
+            matcherEntries.Count == 0)
+        {
+            await Interop.SetFormControlCustomValidity(element, null);
+            SetFieldCustomErrors(fieldName, null);
+            SetFieldValidity(fieldName, validity);
+            return;
+        }
+
+        Dictionary<string, bool> syncResults = [];
+        List<BradixFormCustomMatcherEntry> asyncMatchers = [];
+
+        foreach (BradixFormCustomMatcherEntry entry in matcherEntries.Values)
+        {
+            ValueTask<bool> task = entry.MatchAsync(snapshot.Value, snapshot.FormData);
+
+            if (task.IsCompletedSuccessfully)
+            {
+                syncResults[entry.Id] = task.Result;
+                continue;
+            }
+
+            asyncMatchers.Add(entry);
+        }
+
+        bool hasSyncErrors = syncResults.Values.Any(static value => value);
+
+        await Interop.SetFormControlCustomValidity(element, hasSyncErrors ? _defaultInvalidMessage : null);
+
+        BradixFormValiditySnapshot syncValidity = await Interop.GetFormControlValidity(element);
+        SetFieldCustomErrors(fieldName, syncResults);
+        SetFieldValidity(fieldName, syncValidity);
+
+        if (hasSyncErrors || asyncMatchers.Count == 0 || !IsLatestValidation(fieldName, version))
+            return;
+
+        Dictionary<string, bool> asyncResults = new(syncResults, StringComparer.Ordinal);
+
+        foreach (BradixFormCustomMatcherEntry entry in asyncMatchers)
+        {
+            asyncResults[entry.Id] = await entry.MatchAsync(snapshot.Value, snapshot.FormData);
+
+            if (!IsLatestValidation(fieldName, version))
+                return;
+        }
+
+        bool hasAsyncErrors = asyncResults.Values.Any(static value => value);
+
+        await Interop.SetFormControlCustomValidity(element, hasAsyncErrors ? _defaultInvalidMessage : null);
+
+        BradixFormValiditySnapshot asyncValidity = await Interop.GetFormControlValidity(element);
+
+        if (!IsLatestValidation(fieldName, version))
+            return;
+
+        SetFieldCustomErrors(fieldName, asyncResults);
+        SetFieldValidity(fieldName, asyncValidity);
+    }
+
+    internal void RegisterFieldMessageId(string fieldName, string id)
+    {
+        if (!_messageIdsByField.TryGetValue(fieldName, out HashSet<string>? ids))
+        {
+            ids = new HashSet<string>(StringComparer.Ordinal);
+            _messageIdsByField[fieldName] = ids;
+        }
+
+        if (ids.Add(id))
+            _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterFieldMessageId(string fieldName, string id)
+    {
+        if (!_messageIdsByField.TryGetValue(fieldName, out HashSet<string>? ids))
+            return;
+
+        if (ids.Remove(id))
+        {
+            if (ids.Count == 0)
+                _messageIdsByField.Remove(fieldName);
+
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        if (OnClearServerErrors.HasDelegate)
+            await OnClearServerErrors.InvokeAsync();
+    }
+
+    private async Task HandleResetAsync()
+    {
+        await Interop.ClearFormCustomValidity(_formElement);
+
+        _validityMap.Clear();
+        _customErrorsByField.Clear();
+        _validationVersions.Clear();
+
+        if (OnClearServerErrors.HasDelegate)
+            await OnClearServerErrors.InvokeAsync();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static bool HasBuiltInError(BradixFormValiditySnapshot validity)
+    {
+        return validity.BadInput ||
+               validity.PatternMismatch ||
+               validity.RangeOverflow ||
+               validity.RangeUnderflow ||
+               validity.StepMismatch ||
+               validity.TooLong ||
+               validity.TooShort ||
+               validity.TypeMismatch ||
+               validity.ValueMissing;
+    }
+
+    private long NextValidationVersion(string fieldName)
+    {
+        long next = _validationVersions.TryGetValue(fieldName, out long current)
+            ? current + 1
+            : 1;
+
+        _validationVersions[fieldName] = next;
+        return next;
+    }
+
+    private bool IsLatestValidation(string fieldName, long version)
+    {
+        return _validationVersions.TryGetValue(fieldName, out long current) && current == version;
+    }
+
+    private void SetFieldCustomErrors(string fieldName, IReadOnlyDictionary<string, bool>? errors)
+    {
+        if (errors is null || errors.Count == 0)
+        {
+            _customErrorsByField.Remove(fieldName);
+            _ = InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        _customErrorsByField[fieldName] = new Dictionary<string, bool>(errors, StringComparer.Ordinal);
+        _ = InvokeAsync(StateHasChanged);
+    }
+}

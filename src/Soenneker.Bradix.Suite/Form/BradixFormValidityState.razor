@@ -1,0 +1,25 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits ComponentBase
+
+@if (ChildContent is not null)
+{
+    @ChildContent(ResolvedValidity)
+}
+
+@code {
+    [CascadingParameter]
+    private BradixForm? Form { get; set; }
+
+    [CascadingParameter]
+    private BradixFormField? Field { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public RenderFragment<BradixFormValiditySnapshot?>? ChildContent { get; set; }
+
+    private BradixFormValiditySnapshot? ResolvedValidity => !string.IsNullOrWhiteSpace(Name ?? Field?.Name)
+        ? Form?.GetFieldValidity(Name ?? Field?.Name ?? string.Empty)
+        : null;
+}

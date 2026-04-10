@@ -1,0 +1,103 @@
+@using System
+@using System.Collections.Generic
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private readonly HashSet<BradixToast> _toasts = [];
+
+    [Parameter]
+    public string Label { get; set; } = "Notification";
+
+    [Parameter]
+    public int Duration { get; set; } = 5000;
+
+    [Parameter]
+    public string SwipeDirection { get; set; } = "right";
+
+    [Parameter]
+    public double SwipeThreshold { get; set; } = 50;
+
+    internal string? ViewportId { get; private set; }
+
+    internal int ToastCount => _toasts.Count;
+
+    internal bool HasViewport { get; private set; }
+
+    internal bool IsClosePaused { get; private set; }
+
+    protected override void OnInitialized()
+    {
+        ViewportId ??= IdGenerator.New("bradix-toast-viewport");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+            throw new InvalidOperationException("BradixToastProvider requires a non-empty Label.");
+
+        if (Duration < 0)
+            throw new InvalidOperationException("BradixToastProvider Duration must be zero or greater.");
+    }
+
+    internal void RegisterViewport()
+    {
+        if (HasViewport)
+            return;
+
+        HasViewport = true;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterViewport()
+    {
+        if (!HasViewport)
+            return;
+
+        HasViewport = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void RegisterToast(BradixToast toast)
+    {
+        if (_toasts.Add(toast))
+            _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterToast(BradixToast toast)
+    {
+        if (_toasts.Remove(toast))
+            _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task PauseToastsAsync()
+    {
+        if (IsClosePaused)
+            return;
+
+        IsClosePaused = true;
+
+        foreach (BradixToast toast in _toasts.ToArray())
+        {
+            await toast.PauseAsync();
+        }
+    }
+
+    internal async Task ResumeToastsAsync()
+    {
+        if (!IsClosePaused)
+            return;
+
+        IsClosePaused = false;
+
+        foreach (BradixToast toast in _toasts.ToArray())
+        {
+            await toast.ResumeAsync();
+        }
+    }
+}
