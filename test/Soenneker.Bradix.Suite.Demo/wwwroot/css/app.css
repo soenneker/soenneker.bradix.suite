@@ -202,6 +202,286 @@ code {
     flex-wrap: wrap;
 }
 
+.tabs-root {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tabs-list {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tabs-list--vertical {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.tabs-trigger {
+    width: auto;
+}
+
+.tabs-content {
+    padding: 1rem;
+    border-radius: 0.85rem;
+    background: rgba(30, 41, 59, 0.9);
+}
+
+.popper-content {
+    padding: 0.9rem 1rem;
+    border-radius: 0.85rem;
+    background: rgba(30, 41, 59, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.popper-arrow {
+    width: 0;
+    height: 0;
+}
+
+.popper-arrow-shape {
+    display: block;
+    width: 0.8rem;
+    height: 0.8rem;
+    background: rgba(30, 41, 59, 0.96);
+    border-left: 1px solid rgba(148, 163, 184, 0.25);
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+    transform: rotate(45deg);
+}
+
+.presence-surface {
+    padding: 1rem;
+    border-radius: 0.85rem;
+    background: rgba(30, 41, 59, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    transform-origin: top center;
+}
+
+.presence-surface--open {
+    animation: presence-enter 180ms ease-out;
+}
+
+.presence-surface--closed {
+    animation: presence-exit 180ms ease-in forwards;
+}
+
+@keyframes presence-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes presence-exit {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+.radio-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.radio-row {
+    display: inline-flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.radio-item {
+    position: relative;
+    width: 1.25rem;
+    height: 1.25rem;
+    min-width: 1.25rem;
+    padding: 0;
+    border-radius: 999px;
+    justify-content: center;
+}
+
+.radio-indicator {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.checkbox-row {
+    display: inline-flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.checkbox-root {
+    width: 1.35rem;
+    height: 1.35rem;
+    min-width: 1.35rem;
+    padding: 0;
+    justify-content: center;
+}
+
+.checkbox-indicator {
+    line-height: 1;
+    font-size: 0.9rem;
+}
+
+.switch-row {
+    display: inline-flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.switch-root {
+    width: 2.75rem;
+    min-width: 2.75rem;
+    height: 1.5rem;
+    padding: 0.15rem;
+    justify-content: flex-start;
+    border-radius: 999px;
+}
+
+.switch-thumb {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.toolbar-root {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.toolbar-root--vertical {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.toolbar-separator {
+    align-self: stretch;
+}
+
+.toolbar-toggle-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.toolbar-toggle-group--vertical {
+    flex-direction: column;
+}
+
+.toolbar-toggle-item {
+    width: auto;
+}
+
+.slider-root {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 22rem;
+    height: 2rem;
+}
+
+.slider-root--vertical {
+    width: 2rem;
+    height: 14rem;
+}
+
+.slider-track {
+    position: relative;
+    width: 100%;
+    height: 0.35rem;
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 999px;
+}
+
+.slider-track--vertical {
+    width: 0.35rem;
+    height: 100%;
+}
+
+.slider-range {
+    position: absolute;
+    background: currentColor;
+    border-radius: 999px;
+}
+
+.slider-thumb {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 999px;
+    background: currentColor;
+    outline: 2px solid rgba(15, 23, 42, 0.85);
+}
+
+.slider-vertical-wrap {
+    height: 14rem;
+}
+
+.scroll-area-root {
+    position: relative;
+}
+
+.scroll-area-viewport {
+    width: 100%;
+    height: 100%;
+}
+
+.scroll-area-content {
+    width: 28rem;
+    line-height: 1.5;
+}
+
+.scroll-area-scrollbar {
+    width: 0.75rem;
+    background: rgba(148, 163, 184, 0.2);
+}
+
+.scroll-area-scrollbar--horizontal {
+    height: 0.75rem;
+    width: auto;
+}
+
+.scroll-area-thumb {
+    position: relative;
+    display: block;
+    background: currentColor;
+    min-height: 1.125rem;
+    min-width: 1.125rem;
+    border-radius: 999px;
+}
+
+.scroll-area-corner {
+    background: rgba(148, 163, 184, 0.2);
+}
+
+.portal-target,
+.portal-surface {
+    padding: 1rem;
+    border-radius: 0.85rem;
+    background: rgba(30, 41, 59, 0.9);
+}
+
 .icon-button {
     width: auto;
     min-width: 3rem;

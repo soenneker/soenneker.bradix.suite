@@ -1,0 +1,76 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@using Microsoft.JSInterop
+
+@if (ScrollArea.ShouldRenderScrollbar(Orientation, ForceMount))
+{
+    <CascadingValue Value="this">
+        <div @ref="_scrollbar"
+             @attributes="ScrollbarAttributes">
+            @ChildContent
+        </div>
+    </CascadingValue>
+}
+
+@code {
+    private ElementReference _scrollbar;
+    private ElementReference _thumb;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _registered;
+
+    [CascadingParameter]
+    internal BradixScrollArea ScrollArea { get; set; } = null!;
+
+    [Parameter]
+    public string Orientation { get; set; } = "vertical";
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Orientation = Orientation == "horizontal" ? "horizontal" : "vertical";
+        ScrollArea.RegisterScrollbar(Orientation, ForceMount);
+
+        if (!ScrollArea.ShouldRenderScrollbar(Orientation, ForceMount) || !ScrollArea.HasViewport)
+            return;
+
+        if (_dotNetReference is null)
+            _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
+
+        await Interop.RegisterScrollAreaScrollbar(_scrollbar, _thumb, ScrollArea.ViewportElement, Orientation, ScrollArea.ResolvedDirection, _dotNetReference);
+        _registered = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        ScrollArea.UnregisterScrollbar(Orientation);
+
+        if (_registered)
+            await Interop.UnregisterScrollAreaScrollbar(_scrollbar);
+
+        _dotNetReference?.Dispose();
+    }
+
+    internal void RegisterThumb(ElementReference thumb)
+    {
+        _thumb = thumb;
+    }
+
+    private Dictionary<string, object> ScrollbarAttributes => BuildAttributes(
+        ("data-orientation", Orientation),
+        ("data-state", ScrollArea.GetScrollbarState(Orientation)),
+        ("style", BuildScrollbarStyle()));
+
+    private string BuildScrollbarStyle()
+    {
+        string baseStyle = ScrollArea.GetScrollbarStyle(Orientation);
+
+        if (string.IsNullOrWhiteSpace(Style))
+            return baseStyle;
+
+        return $"{baseStyle} {Style}";
+    }
+}

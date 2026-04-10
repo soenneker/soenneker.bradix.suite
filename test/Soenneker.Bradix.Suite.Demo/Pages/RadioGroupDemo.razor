@@ -1,0 +1,97 @@
+@page "/radio-group"
+
+<PageTitle>Bradix RadioGroup</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixRadioGroup</h2>
+        <p>Implements Radix-style radio group semantics with roving focus, indicator composition, controlled and uncontrolled selection, and group-level disabled/required/name support.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Uncontrolled</h3>
+            <BradixRadioGroup Class="radio-group" Name="pet" DefaultValue="cat" Required>
+                <BradixLabel Class="radio-row">
+                    <BradixRadioGroupItem Class="radio-item" Value="cat" InputValue="cat">
+                        <BradixRadioGroupIndicator Class="radio-indicator" />
+                    </BradixRadioGroupItem>
+                    <span>Cat</span>
+                </BradixLabel>
+                <BradixLabel Class="radio-row">
+                    <BradixRadioGroupItem Class="radio-item" Value="dog" InputValue="dog" Disabled>
+                        <BradixRadioGroupIndicator Class="radio-indicator" />
+                    </BradixRadioGroupItem>
+                    <span>Dog (disabled)</span>
+                </BradixLabel>
+                <BradixLabel Class="radio-row">
+                    <BradixRadioGroupItem Class="radio-item" Value="rabbit" InputValue="rabbit">
+                        <BradixRadioGroupIndicator Class="radio-indicator" />
+                    </BradixRadioGroupItem>
+                    <span>Rabbit</span>
+                </BradixLabel>
+            </BradixRadioGroup>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Controlled vertical</h3>
+            <p class="state-line">Value: <strong>@_value</strong></p>
+            <BradixRadioGroup Class="radio-group"
+                              Orientation="vertical"
+                              Value="@_value"
+                              OnValueChange="HandleValueChanged">
+                <BradixRadioGroupItem Class="radio-item" Value="starter" InputValue="starter">
+                    <BradixRadioGroupIndicator Class="radio-indicator" />
+                </BradixRadioGroupItem>
+                <BradixRadioGroupItem Class="radio-item" Value="pro" InputValue="pro">
+                    <BradixRadioGroupIndicator Class="radio-indicator" />
+                </BradixRadioGroupItem>
+                <BradixRadioGroupItem Class="radio-item" Value="team" InputValue="team">
+                    <BradixRadioGroupIndicator Class="radio-indicator" />
+                </BradixRadioGroupItem>
+            </BradixRadioGroup>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Inherited direction</h3>
+            <BradixDirectionProvider Dir="rtl">
+                <BradixRadioGroup Class="radio-group" DefaultValue="left" Orientation="horizontal">
+                    <BradixRadioGroupItem Class="radio-item" Value="left" InputValue="left">
+                        <BradixRadioGroupIndicator Class="radio-indicator" />
+                    </BradixRadioGroupItem>
+                    <BradixRadioGroupItem Class="radio-item" Value="middle" InputValue="middle">
+                        <BradixRadioGroupIndicator Class="radio-indicator" />
+                    </BradixRadioGroupItem>
+                    <BradixRadioGroupItem Class="radio-item" Value="right" InputValue="right">
+                        <BradixRadioGroupIndicator Class="radio-indicator" />
+                    </BradixRadioGroupItem>
+                </BradixRadioGroup>
+            </BradixDirectionProvider>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Force mounted indicators</h3>
+            <BradixRadioGroup Class="radio-group">
+                <BradixRadioGroupItem Class="radio-item" Value="one" InputValue="one">
+                    <BradixRadioGroupIndicator Class="radio-indicator" ForceMount />
+                </BradixRadioGroupItem>
+                <BradixRadioGroupItem Class="radio-item" Value="two" InputValue="two">
+                    <BradixRadioGroupIndicator Class="radio-indicator" ForceMount />
+                </BradixRadioGroupItem>
+                <BradixRadioGroupItem Class="radio-item" Value="three" InputValue="three">
+                    <BradixRadioGroupIndicator Class="radio-indicator" ForceMount />
+                </BradixRadioGroupItem>
+            </BradixRadioGroup>
+        </section>
+    </div>
+</section>
+
+@code {
+    private string? _value = "pro";
+
+    private Task HandleValueChanged(string? value)
+    {
+        _value = value;
+        return Task.CompletedTask;
+    }
+}

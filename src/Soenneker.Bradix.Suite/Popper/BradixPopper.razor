@@ -1,0 +1,17 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    internal ElementReference AnchorElement { get; private set; }
+    internal bool HasAnchor { get; private set; }
+
+    internal void RegisterAnchor(ElementReference element)
+    {
+        AnchorElement = element;
+        HasAnchor = true;
+    }
+}

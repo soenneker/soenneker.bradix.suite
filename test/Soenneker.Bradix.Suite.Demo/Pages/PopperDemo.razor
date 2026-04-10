@@ -1,0 +1,65 @@
+@page "/popper"
+
+<PageTitle>Bradix Popper</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixPopper</h2>
+        <p>Provides collision-aware anchored positioning with side and align data attributes, available-space CSS variables, and optional arrow rendering.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Default placement</h3>
+            <BradixPopper>
+                <BradixPopperAnchor>
+                    <button class="primitive__trigger" type="button">Anchor</button>
+                </BradixPopperAnchor>
+
+                <BradixPopperContent Class="popper-content"
+                                     Side="bottom"
+                                     Align="center"
+                                     SideOffset="8"
+                                     CollisionPadding="12"
+                                     OnPlaced="HandlePlaced">
+                    <p class="state-line">Placed: @_placedCount time(s)</p>
+                    <BradixPopperArrow Class="popper-arrow">
+                        <span class="popper-arrow-shape"></span>
+                    </BradixPopperArrow>
+                </BradixPopperContent>
+            </BradixPopper>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Start aligned</h3>
+            <BradixPopper>
+                <BradixPopperAnchor>
+                    <button class="primitive__trigger" type="button">Start anchor</button>
+                </BradixPopperAnchor>
+
+                <BradixPopperContent Class="popper-content"
+                                     Side="right"
+                                     Align="start"
+                                     SideOffset="12"
+                                     AlignOffset="4"
+                                     ArrowPadding="8"
+                                     CollisionPadding="16">
+                    <p class="state-line">Right / start placement with arrow padding.</p>
+                    <BradixPopperArrow Class="popper-arrow">
+                        <span class="popper-arrow-shape"></span>
+                    </BradixPopperArrow>
+                </BradixPopperContent>
+            </BradixPopper>
+        </section>
+    </div>
+</section>
+
+@code {
+    private int _placedCount;
+
+    private Task HandlePlaced()
+    {
+        _placedCount++;
+        return Task.CompletedTask;
+    }
+}

@@ -1,0 +1,23 @@
+@implements IAsyncDisposable
+
+<BradixDismissableLayerBranch>
+    <BradixPopperAnchor>
+        @ChildContent
+    </BradixPopperAnchor>
+</BradixDismissableLayerBranch>
+
+@code {
+    [CascadingParameter]
+    private BradixPopover? Popover { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Popover?.AddCustomAnchor();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        Popover?.RemoveCustomAnchor();
+        return ValueTask.CompletedTask;
+    }
+}

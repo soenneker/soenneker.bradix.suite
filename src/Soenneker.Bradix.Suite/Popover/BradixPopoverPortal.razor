@@ -1,0 +1,16 @@
+<CascadingValue Name="BradixPopoverPortalForceMount" Value="ForceMount">
+    <BradixPortal ContainerSelector="ContainerSelector">
+        @ChildContent
+    </BradixPortal>
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public string? ContainerSelector { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

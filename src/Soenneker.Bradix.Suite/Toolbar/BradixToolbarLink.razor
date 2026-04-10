@@ -1,0 +1,102 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@implements IBradixToolbarItem
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<a @ref="_element"
+   @onclick="HandleClick"
+   @onmousedown="HandleMouseDown"
+   @onfocus="HandleFocus"
+   @onkeydown="HandleKeyDown"
+   @attributes="LinkAttributes">
+    @ChildContent
+</a>
+
+@code {
+    private ElementReference _element;
+    private bool _registered;
+
+    [CascadingParameter]
+    internal BradixToolbar Toolbar { get; set; } = null!;
+
+    [Parameter]
+    public string? Href { get; set; }
+
+    [Parameter]
+    public string? Target { get; set; }
+
+    [Parameter]
+    public string? Rel { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    public string? TabStopId { get; private set; }
+
+    bool IBradixToolbarItem.IsDisabled => false;
+
+    private Dictionary<string, object> LinkAttributes => BuildAttributes(
+        ("href", Href),
+        ("target", Target),
+        ("rel", Rel),
+        ("tabindex", Toolbar.IsCurrentTabStop(this) ? 0 : -1));
+
+    protected override void OnInitialized()
+    {
+        TabStopId ??= IdGenerator.New("bradix-toolbar-link");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        Toolbar.RegisterItem(this);
+        _registered = true;
+        await Interop.RegisterRovingFocusNavigationKeys(_element);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnregisterRovingFocusNavigationKeys(_element);
+
+        if (_registered)
+            Toolbar.UnregisterItem(this);
+    }
+
+    public ValueTask FocusAsync() => _element.FocusAsync();
+
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        Toolbar.SetCurrentTabStop(TabStopId);
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
+    }
+
+    private Task HandleMouseDown(MouseEventArgs _)
+    {
+        Toolbar.SetCurrentTabStop(TabStopId);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleFocus(FocusEventArgs _)
+    {
+        Toolbar.SetCurrentTabStop(TabStopId);
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == " ")
+        {
+            await Interop.ClickElement(_element);
+            return;
+        }
+
+        await Toolbar.HandleItemKeyDownAsync(this, args);
+    }
+}

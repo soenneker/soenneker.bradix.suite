@@ -1,0 +1,105 @@
+@page "/tabs"
+
+<PageTitle>Bradix Tabs</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixTabs</h2>
+        <p>Implements the Radix tab root/list/trigger/content split with roving focus, controlled state, activation modes, and stable trigger-to-panel relationships.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Automatic activation</h3>
+            <BradixTabs Class="tabs-root" DefaultValue="account">
+                <BradixTabsList Class="tabs-list" aria-label="Account tabs">
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="account">Account</BradixTabsTrigger>
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="password" Disabled>Password</BradixTabsTrigger>
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="security">Security</BradixTabsTrigger>
+                </BradixTabsList>
+                <BradixTabsContent Class="tabs-content" Value="account">
+                    <p>Automatic activation changes the selected value when focus moves between enabled triggers.</p>
+                </BradixTabsContent>
+                <BradixTabsContent Class="tabs-content" Value="password">
+                    <p>This panel is unreachable because its trigger is disabled.</p>
+                </BradixTabsContent>
+                <BradixTabsContent Class="tabs-content" Value="security">
+                    <p>Selected content is linked by `aria-controls` and `aria-labelledby` using Bradix-managed ids.</p>
+                </BradixTabsContent>
+            </BradixTabs>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Manual activation</h3>
+            <p class="state-line">Value: <strong>@_manualValue</strong></p>
+            <BradixTabs Class="tabs-root"
+                        Orientation="vertical"
+                        ActivationMode="manual"
+                        Value="@_manualValue"
+                        OnValueChange="HandleManualChanged">
+                <BradixTabsList Class="tabs-list tabs-list--vertical" aria-label="Settings tabs">
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="profile">Profile</BradixTabsTrigger>
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="billing">Billing</BradixTabsTrigger>
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="team">Team</BradixTabsTrigger>
+                </BradixTabsList>
+                <BradixTabsContent Class="tabs-content" Value="profile">
+                    <p>In manual mode, focus movement does not activate a panel until click, Enter, or Space.</p>
+                </BradixTabsContent>
+                <BradixTabsContent Class="tabs-content" Value="billing">
+                    <p>This keeps keyboard navigation and selection as separate concerns, matching Radix.</p>
+                </BradixTabsContent>
+                <BradixTabsContent Class="tabs-content" Value="team">
+                    <p>Vertical orientation switches the roving-focus intent to up and down keys.</p>
+                </BradixTabsContent>
+            </BradixTabs>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Inherited direction</h3>
+            <BradixDirectionProvider Dir="rtl">
+                <BradixTabs Class="tabs-root" DefaultValue="one">
+                    <BradixTabsList Class="tabs-list" aria-label="RTL tabs">
+                        <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="one">One</BradixTabsTrigger>
+                        <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="two">Two</BradixTabsTrigger>
+                        <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="three">Three</BradixTabsTrigger>
+                    </BradixTabsList>
+                    <BradixTabsContent Class="tabs-content" Value="one">
+                        <p>Horizontal arrow behavior resolves through the shared Bradix direction context.</p>
+                    </BradixTabsContent>
+                    <BradixTabsContent Class="tabs-content" Value="two">
+                        <p>This mirrors the direction inheritance Radix exposes through its provider.</p>
+                    </BradixTabsContent>
+                    <BradixTabsContent Class="tabs-content" Value="three">
+                        <p>The same direction substrate now serves Accordion, ToggleGroup, and Tabs.</p>
+                    </BradixTabsContent>
+                </BradixTabs>
+            </BradixDirectionProvider>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Force mounted content</h3>
+            <BradixTabs Class="tabs-root">
+                <BradixTabsList Class="tabs-list" aria-label="Force mounted tabs">
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="first">First</BradixTabsTrigger>
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="second">Second</BradixTabsTrigger>
+                </BradixTabsList>
+                <BradixTabsContent Class="tabs-content" Value="first" ForceMount>
+                    <p>Force-mounted content stays in the DOM even while inactive.</p>
+                </BradixTabsContent>
+                <BradixTabsContent Class="tabs-content" Value="second" ForceMount>
+                    <p>This is useful for animation libraries or stateful descendants that must stay mounted.</p>
+                </BradixTabsContent>
+            </BradixTabs>
+        </section>
+    </div>
+</section>
+
+@code {
+    private string? _manualValue = "profile";
+
+    private Task HandleManualChanged(string? value)
+    {
+        _manualValue = value;
+        return Task.CompletedTask;
+    }
+}

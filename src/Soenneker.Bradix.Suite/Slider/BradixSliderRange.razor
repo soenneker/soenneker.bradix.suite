@@ -1,0 +1,40 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<span @attributes="RangeAttributes"></span>
+
+@code {
+    [CascadingParameter]
+    internal BradixSlider Slider { get; set; } = null!;
+
+    private Dictionary<string, object> RangeAttributes => BuildAttributes(
+        ("data-orientation", Slider.Orientation),
+        ("data-disabled", Slider.Disabled ? string.Empty : null),
+        ("style", BuildRangeStyle()));
+
+    private string BuildRangeStyle()
+    {
+        IReadOnlyList<double> values = Slider.CurrentValues;
+        List<double> percentages = values.Select(Slider.GetPercentForValue).ToList();
+        double offsetStart = percentages.Count > 1 ? percentages.Min() : 0;
+        double offsetEnd = 100 - percentages.Max();
+
+        string startEdge;
+        string endEdge;
+
+        if (Slider.Orientation == "horizontal")
+        {
+            bool fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
+            startEdge = fromLeft ? "left" : "right";
+            endEdge = fromLeft ? "right" : "left";
+        }
+        else
+        {
+            bool fromBottom = !Slider.Inverted;
+            startEdge = fromBottom ? "bottom" : "top";
+            endEdge = fromBottom ? "top" : "bottom";
+        }
+
+        return $"{startEdge}: {offsetStart.ToString(System.Globalization.CultureInfo.InvariantCulture)}%; {endEdge}: {offsetEnd.ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+    }
+}

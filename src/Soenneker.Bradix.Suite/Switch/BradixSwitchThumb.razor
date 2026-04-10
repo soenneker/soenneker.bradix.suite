@@ -1,0 +1,15 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<span @attributes="ThumbAttributes">
+    @ChildContent
+</span>
+
+@code {
+    [CascadingParameter]
+    internal BradixSwitch Switch { get; set; } = null!;
+
+    private Dictionary<string, object> ThumbAttributes => BuildAttributes(
+        ("data-state", Switch.CurrentChecked ? "checked" : "unchecked"),
+        ("data-disabled", Switch.IsDisabled ? string.Empty : null));
+}

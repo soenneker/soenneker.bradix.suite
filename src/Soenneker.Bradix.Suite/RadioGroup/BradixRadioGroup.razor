@@ -1,0 +1,199 @@
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.RovingFocus
+@inherits BradixComponentBase
+
+<CascadingValue Value="this">
+    <div @attributes="RootAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private readonly List<BradixRadioGroupItem> _items = [];
+    private bool _initialized;
+    private bool _selectOnFocusAfterNavigation;
+    private string? _uncontrolledValue;
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public bool Required { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    [Parameter]
+    public string? Orientation { get; set; }
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    [Parameter]
+    public bool Loop { get; set; } = true;
+
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+
+    internal string? CurrentValue => Value ?? _uncontrolledValue;
+
+    internal string? CurrentTabStopId { get; private set; }
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("role", "radiogroup"),
+        ("aria-required", Required ? "true" : null),
+        ("aria-orientation", Orientation),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("dir", ResolvedDirection));
+
+    protected override void OnParametersSet()
+    {
+        Orientation = Orientation is "horizontal" or "vertical" ? Orientation : null;
+
+        if (_initialized)
+        {
+            EnsureCurrentTabStopId();
+            return;
+        }
+
+        _uncontrolledValue = DefaultValue;
+        _initialized = true;
+        EnsureCurrentTabStopId();
+    }
+
+    internal bool IsChecked(string value)
+    {
+        return string.Equals(CurrentValue, value, StringComparison.Ordinal);
+    }
+
+    internal bool IsCurrentTabStop(BradixRadioGroupItem item)
+    {
+        return string.Equals(CurrentTabStopId, item.TabStopId, StringComparison.Ordinal);
+    }
+
+    internal void RegisterItem(BradixRadioGroupItem item)
+    {
+        if (_items.Contains(item))
+            return;
+
+        _items.Add(item);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterItem(BradixRadioGroupItem item)
+    {
+        _items.Remove(item);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void SetCurrentTabStop(string? tabStopId)
+    {
+        if (string.Equals(CurrentTabStopId, tabStopId, StringComparison.Ordinal))
+            return;
+
+        CurrentTabStopId = tabStopId;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal bool TryConsumeSelectOnFocus()
+    {
+        bool shouldSelect = _selectOnFocusAfterNavigation;
+        _selectOnFocusAfterNavigation = false;
+        return shouldSelect;
+    }
+
+    internal async Task SelectValueAsync(string value)
+    {
+        if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
+            return;
+
+        if (Value is null)
+            _uncontrolledValue = value;
+
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(value);
+
+        if (OnValueChange.HasDelegate)
+            await OnValueChange.InvokeAsync(value);
+
+        EnsureCurrentTabStopId();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task HandleItemKeyDownAsync(BradixRadioGroupItem item, KeyboardEventArgs args)
+    {
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+            return;
+
+        if (args.Key is " " or "Spacebar")
+        {
+            await SelectValueAsync(item.Value);
+            return;
+        }
+
+        if (args.Key == "Enter")
+            return;
+
+        List<BradixRadioGroupItem> focusableItems = _items
+            .Where(candidate => !candidate.IsDisabled)
+            .ToList();
+
+        int currentIndex = focusableItems.IndexOf(item);
+
+        if (currentIndex < 0)
+            return;
+
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(
+                args.Key,
+                Orientation,
+                ResolvedDirection,
+                currentIndex,
+                focusableItems.Count,
+                Loop,
+                out int targetIndex))
+        {
+            return;
+        }
+
+        BradixRadioGroupItem target = focusableItems[targetIndex];
+        CurrentTabStopId = target.TabStopId;
+        _selectOnFocusAfterNavigation = true;
+        await target.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void EnsureCurrentTabStopId()
+    {
+        List<BradixRadioGroupItem> focusableItems = _items
+            .Where(item => !item.IsDisabled)
+            .ToList();
+
+        if (focusableItems.Count == 0)
+        {
+            CurrentTabStopId = null;
+            return;
+        }
+
+        if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
+            return;
+
+        BradixRadioGroupItem? checkedItem = focusableItems.FirstOrDefault(item => item.IsChecked);
+        CurrentTabStopId = checkedItem?.TabStopId ?? focusableItems[0].TabStopId;
+    }
+}

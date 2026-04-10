@@ -1,0 +1,334 @@
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<CascadingValue Value="this">
+    <span @ref="_element"
+          @attributes="RootAttributes">
+        @ChildContent
+    </span>
+</CascadingValue>
+
+@code {
+    private static readonly HashSet<string> PageKeys = ["PageUp", "PageDown"];
+    private static readonly HashSet<string> ArrowKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+
+    private readonly List<BradixSliderThumb> _thumbs = [];
+    private bool _initialized;
+    private bool _registered;
+    private IReadOnlyList<double> _valuesBeforeSlideStart = [];
+    private List<double> _uncontrolledValues = [];
+    private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string Orientation { get; set; } = "horizontal";
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    [Parameter]
+    public double Min { get; set; }
+
+    [Parameter]
+    public double Max { get; set; } = 100;
+
+    [Parameter]
+    public double Step { get; set; } = 1;
+
+    [Parameter]
+    public double MinStepsBetweenThumbs { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<double>? Values { get; set; }
+
+    [Parameter]
+    public IEnumerable<double>? DefaultValues { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyList<double>> ValuesChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyList<double>> OnValuesChange { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyList<double>> OnValueCommit { get; set; }
+
+    [Parameter]
+    public bool Inverted { get; set; }
+
+    [Parameter]
+    public string? Form { get; set; }
+
+    internal int CurrentThumbIndex { get; private set; }
+
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+
+    internal IReadOnlyList<double> CurrentValues => Values ?? _uncontrolledValues;
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("data-orientation", Orientation),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("aria-disabled", Disabled ? "true" : null),
+        ("dir", ResolvedDirection));
+
+    protected override void OnParametersSet()
+    {
+        Orientation = Orientation == "vertical" ? "vertical" : "horizontal";
+        Max = Max < Min ? Min : Max;
+        Step = Step <= 0 ? 1 : Step;
+        MinStepsBetweenThumbs = Math.Max(0, MinStepsBetweenThumbs);
+
+        if (_initialized)
+            return;
+
+        _uncontrolledValues = BradixSliderMath.NormalizeValues(DefaultValues, Min, Max).ToList();
+        _initialized = true;
+        _valuesBeforeSlideStart = CurrentValues.ToArray();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterSliderPointerBridge(_element, _dotNetReference);
+        _registered = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered)
+            await Interop.UnregisterSliderPointerBridge(_element);
+
+        _dotNetReference?.Dispose();
+    }
+
+    internal void RegisterThumb(BradixSliderThumb thumb)
+    {
+        if (_thumbs.Contains(thumb))
+            return;
+
+        _thumbs.Add(thumb);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterThumb(BradixSliderThumb thumb)
+    {
+        _thumbs.Remove(thumb);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal int GetThumbIndex(BradixSliderThumb thumb)
+    {
+        return _thumbs.IndexOf(thumb);
+    }
+
+    internal double? GetThumbValue(int index)
+    {
+        return index >= 0 && index < CurrentValues.Count ? CurrentValues[index] : null;
+    }
+
+    internal string? GetThumbInputName(BradixSliderThumb thumb)
+    {
+        int index = GetThumbIndex(thumb);
+
+        if (index < 0)
+            return null;
+
+        if (!string.IsNullOrWhiteSpace(thumb.Name))
+            return thumb.Name;
+
+        if (string.IsNullOrWhiteSpace(Name))
+            return null;
+
+        return CurrentValues.Count > 1 ? $"{Name}[]" : Name;
+    }
+
+    internal double GetPercentForValue(double value)
+    {
+        return BradixSliderMath.ConvertValueToPercentage(value, Min, Max);
+    }
+
+    internal async Task FocusThumbAsync(int index)
+    {
+        if (index < 0 || index >= _thumbs.Count)
+            return;
+
+        await _thumbs[index].FocusAsync();
+    }
+
+    internal void HandleThumbFocus(int index)
+    {
+        if (index >= 0)
+            CurrentThumbIndex = index;
+    }
+
+    internal async Task HandleThumbKeyDownAsync(int index, KeyboardEventArgs args)
+    {
+        if (Disabled || index < 0)
+            return;
+
+        CurrentThumbIndex = index;
+
+        if (args.Key == "Home")
+        {
+            await UpdateValueAsync(Min, index, commit: true);
+            return;
+        }
+
+        if (args.Key == "End")
+        {
+            await UpdateValueAsync(Max, index, commit: true);
+            return;
+        }
+
+        if (!PageKeys.Contains(args.Key) && !ArrowKeys.Contains(args.Key))
+            return;
+
+        bool isSkipKey = PageKeys.Contains(args.Key) || (args.ShiftKey && ArrowKeys.Contains(args.Key));
+        double multiplier = isSkipKey ? 10 : 1;
+        int direction = IsBackKey(args.Key) ? -1 : 1;
+        double currentValue = CurrentValues[index];
+        await UpdateValueAsync(currentValue + (Step * multiplier * direction), index, commit: true);
+    }
+
+    [JSInvokable]
+    public async Task HandlePointerStartAsync(double xFraction, double yFraction, int thumbIndex)
+    {
+        if (Disabled)
+            return;
+
+        _valuesBeforeSlideStart = CurrentValues.ToArray();
+
+        if (thumbIndex >= 0)
+        {
+            CurrentThumbIndex = thumbIndex;
+            await FocusThumbAsync(thumbIndex);
+            return;
+        }
+
+        double nextValue = GetValueFromFractions(xFraction, yFraction);
+        int closestIndex = BradixSliderMath.GetClosestValueIndex(CurrentValues, nextValue);
+        CurrentThumbIndex = closestIndex;
+        await UpdateValueAsync(nextValue, closestIndex, commit: false);
+    }
+
+    [JSInvokable]
+    public Task HandlePointerMoveAsync(double xFraction, double yFraction)
+    {
+        if (Disabled)
+            return Task.CompletedTask;
+
+        double nextValue = GetValueFromFractions(xFraction, yFraction);
+        return UpdateValueAsync(nextValue, CurrentThumbIndex, commit: false);
+    }
+
+    [JSInvokable]
+    public async Task HandlePointerEndAsync()
+    {
+        if (Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
+            return;
+
+        double previousValue = _valuesBeforeSlideStart.Count > CurrentThumbIndex ? _valuesBeforeSlideStart[CurrentThumbIndex] : CurrentValues[CurrentThumbIndex];
+        double nextValue = CurrentValues[CurrentThumbIndex];
+
+        if (previousValue != nextValue && OnValueCommit.HasDelegate)
+            await OnValueCommit.InvokeAsync(CurrentValues.ToArray());
+    }
+
+    private async Task UpdateValueAsync(double value, int atIndex, bool commit)
+    {
+        if (atIndex < 0 || atIndex >= CurrentValues.Count)
+            return;
+
+        int decimalCount = BradixSliderMath.GetDecimalCount(Step);
+        double snappedValue = BradixSliderMath.RoundValue(Math.Round((value - Min) / Step) * Step + Min, decimalCount);
+        double clampedValue = BradixSliderMath.Clamp(snappedValue, Min, Max);
+
+        List<double> nextValues = BradixSliderMath.GetNextSortedValues(CurrentValues, clampedValue, atIndex);
+
+        if (!BradixSliderMath.HasMinStepsBetweenValues(nextValues, MinStepsBetweenThumbs * Step))
+            return;
+
+        int nextIndex = nextValues.IndexOf(clampedValue);
+
+        if (nextValues.SequenceEqual(CurrentValues))
+            return;
+
+        CurrentThumbIndex = nextIndex;
+
+        if (Values is null)
+            _uncontrolledValues = nextValues;
+
+        IReadOnlyList<double> result = nextValues.ToArray();
+
+        if (ValuesChanged.HasDelegate)
+            await ValuesChanged.InvokeAsync(result);
+
+        if (OnValuesChange.HasDelegate)
+            await OnValuesChange.InvokeAsync(result);
+
+        if (commit && OnValueCommit.HasDelegate)
+            await OnValueCommit.InvokeAsync(result);
+
+        await InvokeAsync(StateHasChanged);
+        await FocusThumbAsync(CurrentThumbIndex);
+    }
+
+    private double GetValueFromFractions(double xFraction, double yFraction)
+    {
+        double range = Max - Min;
+
+        if (range <= 0)
+            return Min;
+
+        if (Orientation == "horizontal")
+        {
+            bool slidingFromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
+            return slidingFromLeft
+                ? Min + (xFraction * range)
+                : Max - (xFraction * range);
+        }
+
+        bool slidingFromBottom = !Inverted;
+        return slidingFromBottom
+            ? Max - (yFraction * range)
+            : Min + (yFraction * range);
+    }
+
+    private bool IsBackKey(string key)
+    {
+        return Orientation == "horizontal"
+            ? GetHorizontalBackKeys().Contains(key)
+            : GetVerticalBackKeys().Contains(key);
+    }
+
+    private HashSet<string> GetHorizontalBackKeys()
+    {
+        bool fromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
+        return fromLeft
+            ? ["Home", "PageDown", "ArrowDown", "ArrowLeft"]
+            : ["Home", "PageDown", "ArrowDown", "ArrowRight"];
+    }
+
+    private HashSet<string> GetVerticalBackKeys()
+    {
+        bool fromBottom = !Inverted;
+        return fromBottom
+            ? ["Home", "PageDown", "ArrowDown", "ArrowLeft"]
+            : ["Home", "PageDown", "ArrowUp", "ArrowLeft"];
+    }
+}

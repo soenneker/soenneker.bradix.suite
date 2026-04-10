@@ -1,0 +1,51 @@
+@page "/focus-scope"
+
+<PageTitle>Bradix FocusScope</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixFocusScope</h2>
+        <p>Provides a managed focus boundary with optional looping and trapping, plus mount and unmount autofocus hooks for overlay families.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Looping scope</h3>
+            <BradixFocusScope Class="portal-surface" Loop>
+                <button class="primitive__trigger" type="button">First</button>
+                <button class="primitive__trigger" type="button">Second</button>
+                <button class="primitive__trigger" type="button">Third</button>
+            </BradixFocusScope>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Trapped scope</h3>
+            <p class="state-line">Mounted autofocus: <strong>@_mounted</strong></p>
+            <p class="state-line">Unmount autofocus: <strong>@_unmounted</strong></p>
+            <BradixFocusScope Class="portal-surface"
+                              Trapped
+                              OnMountAutoFocus="HandleMountAutoFocus"
+                              OnUnmountAutoFocus="HandleUnmountAutoFocus">
+                <input class="primitive__trigger" value="Focusable input" />
+                <button class="primitive__trigger" type="button">Action</button>
+            </BradixFocusScope>
+        </section>
+    </div>
+</section>
+
+@code {
+    private bool _mounted;
+    private bool _unmounted;
+
+    private Task HandleMountAutoFocus()
+    {
+        _mounted = true;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleUnmountAutoFocus()
+    {
+        _unmounted = true;
+        return Task.CompletedTask;
+    }
+}

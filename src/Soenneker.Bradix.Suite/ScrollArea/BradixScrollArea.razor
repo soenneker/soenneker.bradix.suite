@@ -1,0 +1,378 @@
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@using System
+@using System.Linq
+@using System.Threading
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<CascadingValue Value="this">
+    <div @ref="_element"
+         @attributes="RootAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private const string HoverType = "hover";
+    private const string ScrollType = "scroll";
+    private const string AutoType = "auto";
+    private const string AlwaysType = "always";
+
+    private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private CancellationTokenSource? _hideXTokenSource;
+    private CancellationTokenSource? _hideYTokenSource;
+    private bool _registered;
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
+    [Parameter]
+    public string Type { get; set; } = HoverType;
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    [Parameter]
+    public int ScrollHideDelay { get; set; } = 600;
+
+    internal ElementReference ViewportElement { get; private set; }
+    internal ElementReference ContentElement { get; private set; }
+    internal bool HasViewport { get; private set; }
+    internal bool HasContent { get; private set; }
+
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+
+    internal bool IsHovering { get; private set; }
+    internal bool IsScrollingX { get; private set; }
+    internal bool IsScrollingY { get; private set; }
+    internal bool ScrollbarXMounted { get; private set; }
+    internal bool ScrollbarYMounted { get; private set; }
+    internal bool ForceMountThumbX { get; private set; }
+    internal bool ForceMountThumbY { get; private set; }
+
+    internal double ScrollLeft { get; private set; }
+    internal double ScrollTop { get; private set; }
+    internal double ViewportWidth { get; private set; }
+    internal double ViewportHeight { get; private set; }
+    internal double ContentWidth { get; private set; }
+    internal double ContentHeight { get; private set; }
+    internal double HorizontalScrollbarWidth { get; private set; }
+    internal double HorizontalScrollbarHeight { get; private set; }
+    internal double HorizontalScrollbarPaddingStart { get; private set; }
+    internal double HorizontalScrollbarPaddingEnd { get; private set; }
+    internal double VerticalScrollbarWidth { get; private set; }
+    internal double VerticalScrollbarHeight { get; private set; }
+    internal double VerticalScrollbarPaddingStart { get; private set; }
+    internal double VerticalScrollbarPaddingEnd { get; private set; }
+
+    internal double CornerWidth => VerticalScrollbarWidth;
+    internal double CornerHeight => HorizontalScrollbarHeight;
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("dir", ResolvedDirection),
+        ("style", BuildRootStyle()));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterScrollAreaRoot(_element, _dotNetReference);
+        _registered = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _hideXTokenSource?.Cancel();
+        _hideYTokenSource?.Cancel();
+        _hideXTokenSource?.Dispose();
+        _hideYTokenSource?.Dispose();
+
+        if (_registered)
+            await Interop.UnregisterScrollAreaRoot(_element);
+
+        _dotNetReference?.Dispose();
+    }
+
+    internal void RegisterViewport(ElementReference viewport, ElementReference content)
+    {
+        ViewportElement = viewport;
+        ContentElement = content;
+        HasViewport = true;
+        HasContent = true;
+    }
+
+    internal void RegisterScrollbar(string orientation, bool forceMountThumb)
+    {
+        if (orientation == "horizontal")
+        {
+            ScrollbarXMounted = true;
+            ForceMountThumbX = forceMountThumb;
+        }
+        else
+        {
+            ScrollbarYMounted = true;
+            ForceMountThumbY = forceMountThumb;
+        }
+    }
+
+    internal void UnregisterScrollbar(string orientation)
+    {
+        if (orientation == "horizontal")
+        {
+            ScrollbarXMounted = false;
+            ForceMountThumbX = false;
+        }
+        else
+        {
+            ScrollbarYMounted = false;
+            ForceMountThumbY = false;
+        }
+    }
+
+    internal bool IsScrollbarVisible(string orientation)
+    {
+        bool mounted = orientation == "horizontal" ? ScrollbarXMounted : ScrollbarYMounted;
+        bool overflow = orientation == "horizontal" ? HasOverflowX : HasOverflowY;
+
+        if (!mounted)
+            return false;
+
+        return Type switch
+        {
+            AlwaysType => true,
+            AutoType => overflow,
+            HoverType => overflow && IsHovering,
+            ScrollType => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
+            _ => overflow && IsHovering
+        };
+    }
+
+    internal bool ShouldRenderScrollbar(string orientation, bool forceMount)
+    {
+        bool overflow = orientation == "horizontal" ? HasOverflowX : HasOverflowY;
+
+        if (forceMount)
+            return true;
+
+        return Type switch
+        {
+            AlwaysType => true,
+            AutoType => overflow,
+            HoverType => overflow && IsHovering,
+            ScrollType => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
+            _ => overflow && IsHovering
+        };
+    }
+
+    internal bool ShouldRenderThumb(string orientation, bool forceMount)
+    {
+        if (forceMount)
+            return true;
+
+        return orientation == "horizontal" ? HasThumbX : HasThumbY;
+    }
+
+    internal string GetScrollbarState(string orientation)
+    {
+        return IsScrollbarVisible(orientation) ? "visible" : "hidden";
+    }
+
+    internal string GetThumbState(string orientation)
+    {
+        return orientation == "horizontal"
+            ? (HasThumbX ? "visible" : "hidden")
+            : (HasThumbY ? "visible" : "hidden");
+    }
+
+    internal string GetScrollbarStyle(string orientation)
+    {
+        return orientation == "horizontal"
+            ? $"position: absolute; bottom: 0; left: {(ResolvedDirection == "rtl" ? "var(--radix-scroll-area-corner-width)" : "0")}; right: {(ResolvedDirection == "ltr" ? "var(--radix-scroll-area-corner-width)" : "0")};"
+            : $"position: absolute; top: 0; {(ResolvedDirection == "ltr" ? "right: 0;" : "left: 0;")} bottom: var(--radix-scroll-area-corner-height);";
+    }
+
+    internal string GetThumbStyle(string orientation)
+    {
+        if (orientation == "horizontal")
+        {
+            double thumbSize = GetThumbSize(true);
+            double offset = GetThumbOffset(true);
+            return $"width: {thumbSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translate3d({offset.ToString(System.Globalization.CultureInfo.InvariantCulture)}px, 0, 0);";
+        }
+
+        double verticalThumbSize = GetThumbSize(false);
+        double verticalOffset = GetThumbOffset(false);
+        return $"height: {verticalThumbSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translate3d(0, {verticalOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}px, 0);";
+    }
+
+    internal bool ShouldRenderCorner => Type != ScrollType && ScrollbarXMounted && ScrollbarYMounted && IsScrollbarVisible("horizontal") && IsScrollbarVisible("vertical");
+
+    internal string GetCornerStyle()
+    {
+        return $"width: {CornerWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; height: {CornerHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; position: absolute; bottom: 0; {(ResolvedDirection == "ltr" ? "right: 0;" : "left: 0;")}";
+    }
+
+    [JSInvokable]
+    public Task HandleHoverChangedAsync(bool hovering)
+    {
+        IsHovering = hovering;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public Task HandleViewportMetricsChangedAsync(double scrollLeft, double scrollTop, double scrollWidth, double scrollHeight, double viewportWidth, double viewportHeight)
+    {
+        bool xChanged = ScrollLeft != scrollLeft;
+        bool yChanged = ScrollTop != scrollTop;
+
+        ScrollLeft = scrollLeft;
+        ScrollTop = scrollTop;
+        ContentWidth = scrollWidth;
+        ContentHeight = scrollHeight;
+        ViewportWidth = viewportWidth;
+        ViewportHeight = viewportHeight;
+
+        if (Type == ScrollType)
+        {
+            if (xChanged)
+                ShowScrollingTemporarily(true);
+
+            if (yChanged)
+                ShowScrollingTemporarily(false);
+        }
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public Task HandleScrollbarMetricsChangedAsync(string orientation, double clientWidth, double clientHeight, double paddingStart, double paddingEnd)
+    {
+        if (orientation == "horizontal")
+        {
+            HorizontalScrollbarWidth = clientWidth;
+            HorizontalScrollbarHeight = clientHeight;
+            HorizontalScrollbarPaddingStart = paddingStart;
+            HorizontalScrollbarPaddingEnd = paddingEnd;
+        }
+        else
+        {
+            VerticalScrollbarWidth = clientWidth;
+            VerticalScrollbarHeight = clientHeight;
+            VerticalScrollbarPaddingStart = paddingStart;
+            VerticalScrollbarPaddingEnd = paddingEnd;
+        }
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private bool HasOverflowX => ViewportWidth > 0 && ContentWidth > ViewportWidth;
+    private bool HasOverflowY => ViewportHeight > 0 && ContentHeight > ViewportHeight;
+    private bool HasThumbX => GetThumbRatio(true) > 0 && GetThumbRatio(true) < 1;
+    private bool HasThumbY => GetThumbRatio(false) > 0 && GetThumbRatio(false) < 1;
+
+    private string BuildRootStyle()
+    {
+        string cornerWidth = CornerWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string cornerHeight = CornerHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string scrollAreaStyle = $"position: relative; --radix-scroll-area-corner-width: {cornerWidth}px; --radix-scroll-area-corner-height: {cornerHeight}px;";
+
+        if (string.IsNullOrWhiteSpace(Style))
+            return scrollAreaStyle;
+
+        return $"{scrollAreaStyle} {Style}";
+    }
+
+    private double GetThumbRatio(bool horizontal)
+    {
+        double viewport = horizontal ? ViewportWidth : ViewportHeight;
+        double content = horizontal ? ContentWidth : ContentHeight;
+
+        if (viewport <= 0 || content <= 0)
+            return 0;
+
+        double ratio = viewport / content;
+        return double.IsNaN(ratio) ? 0 : ratio;
+    }
+
+    private double GetThumbSize(bool horizontal)
+    {
+        double ratio = GetThumbRatio(horizontal);
+        double scrollbarSize = horizontal ? HorizontalScrollbarWidth : VerticalScrollbarHeight;
+        double padding = horizontal
+            ? HorizontalScrollbarPaddingStart + HorizontalScrollbarPaddingEnd
+            : VerticalScrollbarPaddingStart + VerticalScrollbarPaddingEnd;
+
+        double thumbSize = (scrollbarSize - padding) * ratio;
+        return Math.Max(thumbSize, 18);
+    }
+
+    private double GetThumbOffset(bool horizontal)
+    {
+        double thumbSize = GetThumbSize(horizontal);
+        double viewport = horizontal ? ViewportWidth : ViewportHeight;
+        double content = horizontal ? ContentWidth : ContentHeight;
+        double maxScrollPos = content - viewport;
+
+        if (maxScrollPos <= 0)
+            return 0;
+
+        double scrollbarSize = horizontal ? HorizontalScrollbarWidth : VerticalScrollbarHeight;
+        double padding = horizontal
+            ? HorizontalScrollbarPaddingStart + HorizontalScrollbarPaddingEnd
+            : VerticalScrollbarPaddingStart + VerticalScrollbarPaddingEnd;
+        double maxThumbPos = (scrollbarSize - padding) - thumbSize;
+        double scrollPos = horizontal ? ScrollLeft : ScrollTop;
+
+        if (horizontal && ResolvedDirection == "rtl")
+            scrollPos = Math.Clamp(scrollPos, -maxScrollPos, 0) + maxScrollPos;
+        else
+            scrollPos = Math.Clamp(scrollPos, 0, maxScrollPos);
+
+        return maxScrollPos == 0 ? 0 : (scrollPos / maxScrollPos) * maxThumbPos;
+    }
+
+    private void ShowScrollingTemporarily(bool horizontal)
+    {
+        CancellationTokenSource source = horizontal
+            ? ReplaceHideToken(ref _hideXTokenSource)
+            : ReplaceHideToken(ref _hideYTokenSource);
+
+        if (horizontal)
+            IsScrollingX = true;
+        else
+            IsScrollingY = true;
+
+        _ = HideAfterDelayAsync(horizontal, source.Token);
+    }
+
+    private async Task HideAfterDelayAsync(bool horizontal, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(ScrollHideDelay, cancellationToken);
+
+            if (horizontal)
+                IsScrollingX = false;
+            else
+                IsScrollingY = false;
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private static CancellationTokenSource ReplaceHideToken(ref CancellationTokenSource? existing)
+    {
+        existing?.Cancel();
+        existing?.Dispose();
+        existing = new CancellationTokenSource();
+        return existing;
+    }
+}

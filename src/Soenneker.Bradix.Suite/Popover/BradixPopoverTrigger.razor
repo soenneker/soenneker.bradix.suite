@@ -1,0 +1,57 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<BradixDismissableLayerBranch>
+    @if (Popover?.HasCustomAnchor == true)
+    {
+        <button @ref="_button"
+                @onclick="HandleClickAsync"
+                @attributes="ButtonAttributes">
+            @ChildContent
+        </button>
+    }
+    else
+    {
+        <BradixPopperAnchor>
+            <button @ref="_button"
+                    @onclick="HandleClickAsync"
+                    @attributes="ButtonAttributes">
+                @ChildContent
+            </button>
+        </BradixPopperAnchor>
+    }
+</BradixDismissableLayerBranch>
+
+@code {
+    private ElementReference _button;
+
+    [CascadingParameter]
+    private BradixPopover? Popover { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+        ("type", "button"),
+        ("aria-haspopup", "dialog"),
+        ("aria-expanded", Popover?.CurrentOpen == true ? "true" : "false"),
+        ("aria-controls", Popover?.ContentId),
+        ("data-state", Popover?.CurrentOpen == true ? "open" : "closed"),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("disabled", Disabled ? true : null));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            Popover?.RegisterTrigger(_button);
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandleClickAsync()
+    {
+        return Disabled || Popover is null
+            ? Task.CompletedTask
+            : Popover.ToggleOpenAsync();
+    }
+}

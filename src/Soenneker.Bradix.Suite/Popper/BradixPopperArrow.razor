@@ -1,0 +1,55 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<span @ref="_element"
+      @attributes="ArrowAttributes">
+    @ChildContent
+</span>
+
+@code {
+    private ElementReference _element;
+
+    [CascadingParameter]
+    private BradixPopperContent? Content { get; set; }
+
+    private Dictionary<string, object> ArrowAttributes => BuildAttributes(
+        ("style", BuildArrowStyle()));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            Content?.RegisterArrow(_element);
+
+        return Task.CompletedTask;
+    }
+
+    private string BuildArrowStyle()
+    {
+        if (Content is null)
+            return Style ?? string.Empty;
+
+        string oppositeSide = Content.PlacedSide switch
+        {
+            "top" => "bottom",
+            "right" => "left",
+            "bottom" => "top",
+            "left" => "right",
+            _ => "top"
+        };
+
+        string positionStyle = $"position: absolute; {oppositeSide}: 0;";
+
+        if (Content.ArrowX.HasValue)
+            positionStyle += $" left: {Content.ArrowX.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translateX(-50%);";
+        else if (Content.ArrowY.HasValue)
+            positionStyle += $" top: {Content.ArrowY.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translateY(-50%);";
+
+        if (Content.ShouldHideArrow)
+            positionStyle += " visibility: hidden;";
+
+        if (string.IsNullOrWhiteSpace(Style))
+            return positionStyle;
+
+        return $"{positionStyle} {Style}";
+    }
+}

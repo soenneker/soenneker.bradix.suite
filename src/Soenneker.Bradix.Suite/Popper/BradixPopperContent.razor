@@ -1,0 +1,182 @@
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<CascadingValue Value="this">
+    <div @ref="_element"
+         @attributes="ContentAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private ElementReference _element;
+    private ElementReference _arrow;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _registered;
+    private string _placedSide = "bottom";
+    private string _placedAlign = "center";
+    private double _left;
+    private double _top;
+    private double _availableWidth;
+    private double _availableHeight;
+    private double _anchorWidth;
+    private double _anchorHeight;
+    private double? _arrowX;
+    private double? _arrowY;
+    private bool _hideArrow;
+    private bool _hidden;
+    private string _transformOriginX = "50%";
+    private string _transformOriginY = "50%";
+    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached)? _lastOptions;
+    private bool _lastHadArrow;
+
+    [CascadingParameter]
+    private BradixPopper? Popper { get; set; }
+
+    [Parameter]
+    public string Side { get; set; } = "bottom";
+
+    [Parameter]
+    public double SideOffset { get; set; }
+
+    [Parameter]
+    public string Align { get; set; } = "center";
+
+    [Parameter]
+    public double AlignOffset { get; set; }
+
+    [Parameter]
+    public double ArrowPadding { get; set; }
+
+    [Parameter]
+    public bool AvoidCollisions { get; set; } = true;
+
+    [Parameter]
+    public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public bool HideWhenDetached { get; set; }
+
+    [Parameter]
+    public EventCallback OnPlaced { get; set; }
+
+    internal string PlacedSide => _placedSide;
+    internal double? ArrowX => _arrowX;
+    internal double? ArrowY => _arrowY;
+    internal bool ShouldHideArrow => _hideArrow;
+
+    private Dictionary<string, object> ContentAttributes => BuildAttributes(
+        ("data-side", _placedSide),
+        ("data-align", _placedAlign),
+        ("style", BuildContentStyle()));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Popper is null || !Popper.HasAnchor)
+        {
+            if (firstRender)
+                await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        var options = CurrentOptions;
+        bool hasArrow = !string.IsNullOrEmpty(_arrow.Id);
+
+        if (firstRender)
+        {
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterPopperContent(Popper.AnchorElement, _element, _arrow, _dotNetReference, new
+            {
+                side = options.Side,
+                sideOffset = options.SideOffset,
+                align = options.Align,
+                alignOffset = options.AlignOffset,
+                arrowPadding = options.ArrowPadding,
+                avoidCollisions = options.AvoidCollisions,
+                collisionPadding = options.CollisionPadding,
+                hideWhenDetached = options.HideWhenDetached
+            });
+            _registered = true;
+            _lastOptions = options;
+            _lastHadArrow = hasArrow;
+            return;
+        }
+
+        if (_lastOptions != options || _lastHadArrow != hasArrow)
+        {
+            await Interop.UpdatePopperContent(_element, _arrow, new
+            {
+                side = options.Side,
+                sideOffset = options.SideOffset,
+                align = options.Align,
+                alignOffset = options.AlignOffset,
+                arrowPadding = options.ArrowPadding,
+                avoidCollisions = options.AvoidCollisions,
+                collisionPadding = options.CollisionPadding,
+                hideWhenDetached = options.HideWhenDetached
+            });
+            _lastOptions = options;
+            _lastHadArrow = hasArrow;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered)
+            await Interop.UnregisterPopperContent(_element);
+
+        _dotNetReference?.Dispose();
+    }
+
+    internal void RegisterArrow(ElementReference element)
+    {
+        _arrow = element;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task HandlePositionChangedAsync(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth, double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY)
+    {
+        bool newlyPlaced = _left != left || _top != top || _placedSide != side || _placedAlign != align;
+
+        _placedSide = side;
+        _placedAlign = align;
+        _left = left;
+        _top = top;
+        _availableWidth = availableWidth;
+        _availableHeight = availableHeight;
+        _anchorWidth = anchorWidth;
+        _anchorHeight = anchorHeight;
+        _arrowX = arrowX;
+        _arrowY = arrowY;
+        _hideArrow = shouldHideArrow;
+        _hidden = hidden;
+        _transformOriginX = transformOriginX;
+        _transformOriginY = transformOriginY;
+
+        await InvokeAsync(StateHasChanged);
+
+        if (newlyPlaced && OnPlaced.HasDelegate)
+            await OnPlaced.InvokeAsync();
+    }
+
+    private string BuildContentStyle()
+    {
+        string baseStyle =
+            $"position: fixed; left: {_left.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; top: {_top.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; min-width: max-content; --radix-popper-available-width: {_availableWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-available-height: {_availableHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-anchor-width: {_anchorWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-anchor-height: {_anchorHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-transform-origin: {_transformOriginX} {_transformOriginY};";
+
+        if (_hidden)
+            baseStyle += " visibility: hidden; pointer-events: none;";
+
+        if (string.IsNullOrWhiteSpace(Style))
+            return baseStyle;
+
+        return $"{baseStyle} {Style}";
+    }
+
+    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached) CurrentOptions
+        => (Side, SideOffset, Align, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, HideWhenDetached);
+}

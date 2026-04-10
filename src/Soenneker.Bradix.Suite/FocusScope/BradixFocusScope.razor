@@ -1,0 +1,77 @@
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<div @ref="_element"
+     @attributes="ScopeAttributes">
+    @ChildContent
+</div>
+
+@code {
+    private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _registered;
+    private bool? _lastLoop;
+    private bool? _lastTrapped;
+
+    [Parameter]
+    public bool Loop { get; set; }
+
+    [Parameter]
+    public bool Trapped { get; set; }
+
+    [Parameter]
+    public EventCallback OnMountAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback OnUnmountAutoFocus { get; set; }
+
+    private Dictionary<string, object> ScopeAttributes => BuildAttributes(
+        ("tabindex", -1));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterFocusScope(_element, _dotNetReference, Loop, Trapped);
+            _registered = true;
+            _lastLoop = Loop;
+            _lastTrapped = Trapped;
+            return;
+        }
+
+        if (_lastLoop != Loop || _lastTrapped != Trapped)
+        {
+            await Interop.UpdateFocusScope(_element, Loop, Trapped);
+            _lastLoop = Loop;
+            _lastTrapped = Trapped;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered)
+            await Interop.UnregisterFocusScope(_element);
+
+        _dotNetReference?.Dispose();
+    }
+
+    [JSInvokable]
+    public Task HandleMountAutoFocusAsync()
+    {
+        return OnMountAutoFocus.HasDelegate
+            ? OnMountAutoFocus.InvokeAsync()
+            : Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleUnmountAutoFocusAsync()
+    {
+        return OnUnmountAutoFocus.HasDelegate
+            ? OnUnmountAutoFocus.InvokeAsync()
+            : Task.CompletedTask;
+    }
+}

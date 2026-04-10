@@ -1,0 +1,167 @@
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<CascadingValue Value="this">
+    <button @ref="_buttonElement"
+            @onclick="HandleClick"
+            @attributes="ButtonAttributes">
+        @ChildContent
+    </button>
+</CascadingValue>
+
+@if (ShouldRenderBubbleInput)
+{
+    <input @ref="_bubbleInputElement"
+           @attributes="BubbleInputAttributes" />
+}
+
+@code {
+    private bool _initialized;
+    private bool _registered;
+    private bool _hasSyncedBubbleInput;
+    private bool _initialUncheckedState;
+    private bool _uncontrolledChecked;
+    private bool _lastRenderedState;
+    private ElementReference _buttonElement;
+    private ElementReference _bubbleInputElement;
+    private DotNetObjectReference<object>? _dotNetReference;
+
+    [Parameter]
+    public bool? Checked { get; set; }
+
+    [Parameter]
+    public bool DefaultChecked { get; set; }
+
+    [Parameter]
+    public bool Required { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public string? Form { get; set; }
+
+    [Parameter]
+    public string Value { get; set; } = "on";
+
+    [Parameter]
+    public EventCallback<bool> CheckedChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnCheckedChange { get; set; }
+
+    internal bool CurrentChecked => Checked ?? _uncontrolledChecked;
+
+    internal bool IsDisabled => Disabled;
+
+    private bool ShouldRenderBubbleInput => !string.IsNullOrWhiteSpace(Name) || !string.IsNullOrWhiteSpace(Form) || Required;
+
+    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+        ("type", "button"),
+        ("role", "switch"),
+        ("aria-checked", CurrentChecked ? "true" : "false"),
+        ("aria-required", Required ? "true" : null),
+        ("data-state", CurrentChecked ? "checked" : "unchecked"),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("disabled", Disabled ? true : null),
+        ("value", Value));
+
+    private Dictionary<string, object> BubbleInputAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = new()
+            {
+                ["type"] = "checkbox",
+                ["value"] = Value,
+                ["checked"] = CurrentChecked,
+                ["required"] = Required,
+                ["disabled"] = Disabled,
+                ["tabindex"] = -1,
+                ["aria-hidden"] = "true",
+                ["style"] = "position:absolute;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);"
+            };
+
+            if (!string.IsNullOrWhiteSpace(Name))
+                attributes["name"] = Name;
+
+            if (!string.IsNullOrWhiteSpace(Form))
+                attributes["form"] = Form;
+
+            return attributes;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _initialUncheckedState = DefaultChecked;
+        _uncontrolledChecked = DefaultChecked;
+        _lastRenderedState = CurrentChecked;
+        _initialized = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterCheckboxRoot(_buttonElement, _dotNetReference);
+            _registered = true;
+        }
+
+        if (ShouldRenderBubbleInput)
+        {
+            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedState != CurrentChecked;
+            await Interop.SyncCheckboxBubbleInputState(_bubbleInputElement, CurrentChecked, false, dispatchEvent);
+            _hasSyncedBubbleInput = true;
+        }
+
+        _lastRenderedState = CurrentChecked;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered)
+            await Interop.UnregisterCheckboxRoot(_buttonElement);
+
+        _dotNetReference?.Dispose();
+    }
+
+    [Microsoft.JSInterop.JSInvokable]
+    public Task HandleFormResetAsync()
+    {
+        if (Checked is not null)
+            return Task.CompletedTask;
+
+        _uncontrolledChecked = _initialUncheckedState;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task HandleClick()
+    {
+        return Disabled ? Task.CompletedTask : SetCheckedAsync(!CurrentChecked);
+    }
+
+    private async Task SetCheckedAsync(bool value)
+    {
+        if (Checked is null)
+            _uncontrolledChecked = value;
+
+        if (CheckedChanged.HasDelegate)
+            await CheckedChanged.InvokeAsync(value);
+
+        if (OnCheckedChange.HasDelegate)
+            await OnCheckedChange.InvokeAsync(value);
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

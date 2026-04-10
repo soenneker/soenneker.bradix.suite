@@ -1,0 +1,121 @@
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.RovingFocus
+@inherits BradixComponentBase
+
+<CascadingValue Value="this">
+    <div @attributes="RootAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private readonly List<IBradixToolbarItem> _items = [];
+
+    [CascadingParameter(Name = "BradixDirection")]
+    private string? CascadedDirection { get; set; }
+
+    [Parameter]
+    public string Orientation { get; set; } = "horizontal";
+
+    [Parameter]
+    public bool Loop { get; set; } = true;
+
+    [Parameter]
+    public string? Dir { get; set; }
+
+    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+
+    internal string? CurrentTabStopId { get; private set; }
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("role", "toolbar"),
+        ("aria-orientation", Orientation),
+        ("dir", ResolvedDirection));
+
+    protected override void OnParametersSet()
+    {
+        Orientation = Orientation == "vertical" ? "vertical" : "horizontal";
+        EnsureCurrentTabStopId();
+    }
+
+    internal bool IsCurrentTabStop(IBradixToolbarItem item)
+    {
+        return string.Equals(CurrentTabStopId, item.TabStopId, StringComparison.Ordinal);
+    }
+
+    internal void RegisterItem(IBradixToolbarItem item)
+    {
+        if (_items.Contains(item))
+            return;
+
+        _items.Add(item);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void UnregisterItem(IBradixToolbarItem item)
+    {
+        _items.Remove(item);
+        EnsureCurrentTabStopId();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void SetCurrentTabStop(string? tabStopId)
+    {
+        if (string.Equals(CurrentTabStopId, tabStopId, StringComparison.Ordinal))
+            return;
+
+        CurrentTabStopId = tabStopId;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal async Task HandleItemKeyDownAsync(IBradixToolbarItem item, KeyboardEventArgs args)
+    {
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+            return;
+
+        List<IBradixToolbarItem> focusableItems = _items
+            .Where(candidate => !candidate.IsDisabled)
+            .ToList();
+
+        int currentIndex = focusableItems.IndexOf(item);
+
+        if (currentIndex < 0)
+            return;
+
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(
+                args.Key,
+                Orientation,
+                ResolvedDirection,
+                currentIndex,
+                focusableItems.Count,
+                Loop,
+                out int targetIndex))
+        {
+            return;
+        }
+
+        IBradixToolbarItem target = focusableItems[targetIndex];
+        CurrentTabStopId = target.TabStopId;
+        await target.FocusAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void EnsureCurrentTabStopId()
+    {
+        List<IBradixToolbarItem> focusableItems = _items
+            .Where(item => !item.IsDisabled)
+            .ToList();
+
+        if (focusableItems.Count == 0)
+        {
+            CurrentTabStopId = null;
+            return;
+        }
+
+        if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
+            return;
+
+        CurrentTabStopId = focusableItems[0].TabStopId;
+    }
+}

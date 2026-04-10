@@ -1,0 +1,57 @@
+@page "/presence"
+
+<PageTitle>Bradix Presence</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixPresence</h2>
+        <p>Keeps a node mounted while its exit animation runs, then unmounts it cleanly when the animation finishes.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Animated mount / unmount</h3>
+            <div class="button-row">
+                <button class="primitive__trigger" type="button" @onclick="TogglePresent">Toggle presence</button>
+                <span class="state-line">Present: <strong>@_present</strong></span>
+                <span class="state-line">Exit complete count: <strong>@_exitCompleteCount</strong></span>
+            </div>
+
+            <BradixPresence Present="_present"
+                            Class="@(_present ? "presence-surface presence-surface--open" : "presence-surface presence-surface--closed")"
+                            OnExitComplete="HandleExitComplete">
+                <p class="state-line">This node stays mounted for the close animation.</p>
+            </BradixPresence>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Alternate tag</h3>
+            <BradixPresence Present="_articlePresent"
+                            Tag="article"
+                            Class="@(_articlePresent ? "presence-surface presence-surface--open" : "presence-surface presence-surface--closed")">
+                <p class="state-line">Presence can render a semantic element instead of forcing a wrapper tag.</p>
+            </BradixPresence>
+
+            <button class="primitive__trigger" type="button" @onclick="@(() => _articlePresent = !_articlePresent)">
+                Toggle article
+            </button>
+        </section>
+    </div>
+</section>
+
+@code {
+    private bool _present = true;
+    private bool _articlePresent = true;
+    private int _exitCompleteCount;
+
+    private void TogglePresent()
+    {
+        _present = !_present;
+    }
+
+    private Task HandleExitComplete()
+    {
+        _exitCompleteCount++;
+        return Task.CompletedTask;
+    }
+}

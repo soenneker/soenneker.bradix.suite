@@ -1,0 +1,24 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<div @ref="_element"
+     @attributes="AnchorAttributes">
+    @ChildContent
+</div>
+
+@code {
+    private ElementReference _element;
+
+    [CascadingParameter]
+    private BradixPopper? Popper { get; set; }
+
+    private Dictionary<string, object> AnchorAttributes => BuildAttributes();
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            Popper?.RegisterAnchor(_element);
+
+        return Task.CompletedTask;
+    }
+}

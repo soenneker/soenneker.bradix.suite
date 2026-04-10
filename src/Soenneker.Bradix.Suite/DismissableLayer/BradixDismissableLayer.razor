@@ -1,0 +1,108 @@
+@using Soenneker.Bradix.Suite.Base
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<div @ref="_element"
+     @attributes="LayerAttributes">
+    @ChildContent
+</div>
+
+@code {
+    private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _registered;
+    private bool? _lastDisableOutsidePointerEvents;
+
+    [Parameter]
+    public bool DisableOutsidePointerEvents { get; set; }
+
+    [Parameter]
+    public bool DismissOnEscapeKeyDown { get; set; } = true;
+
+    [Parameter]
+    public bool DismissOnPointerDownOutside { get; set; } = true;
+
+    [Parameter]
+    public bool DismissOnFocusOutside { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnFocusOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnDismiss { get; set; }
+
+    private Dictionary<string, object> LayerAttributes => BuildAttributes();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDismissableLayer(_element, _dotNetReference, DisableOutsidePointerEvents);
+            _registered = true;
+            _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
+            return;
+        }
+
+        if (_lastDisableOutsidePointerEvents != DisableOutsidePointerEvents)
+        {
+            await Interop.UpdateDismissableLayer(_element, DisableOutsidePointerEvents);
+            _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered)
+            await Interop.UnregisterDismissableLayer(_element);
+
+        _dotNetReference?.Dispose();
+    }
+
+    [JSInvokable]
+    public async Task HandleEscapeKeyDownAsync()
+    {
+        if (OnEscapeKeyDown.HasDelegate)
+            await OnEscapeKeyDown.InvokeAsync();
+
+        if (DismissOnEscapeKeyDown && OnDismiss.HasDelegate)
+            await OnDismiss.InvokeAsync();
+    }
+
+    [JSInvokable]
+    public async Task HandlePointerDownOutsideAsync()
+    {
+        if (OnPointerDownOutside.HasDelegate)
+            await OnPointerDownOutside.InvokeAsync();
+
+        if (OnInteractOutside.HasDelegate)
+            await OnInteractOutside.InvokeAsync();
+
+        if (DismissOnPointerDownOutside && OnDismiss.HasDelegate)
+            await OnDismiss.InvokeAsync();
+    }
+
+    [JSInvokable]
+    public async Task HandleFocusOutsideAsync()
+    {
+        if (OnFocusOutside.HasDelegate)
+            await OnFocusOutside.InvokeAsync();
+
+        if (OnInteractOutside.HasDelegate)
+            await OnInteractOutside.InvokeAsync();
+
+        if (DismissOnFocusOutside && OnDismiss.HasDelegate)
+            await OnDismiss.InvokeAsync();
+    }
+}

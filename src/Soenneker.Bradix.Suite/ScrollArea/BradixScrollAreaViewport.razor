@@ -1,0 +1,63 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@using Microsoft.JSInterop
+
+<>
+    <style>
+        [data-radix-scroll-area-viewport] { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+        [data-radix-scroll-area-viewport]::-webkit-scrollbar { display: none; }
+    </style>
+    <div @ref="_viewport"
+         @attributes="ViewportAttributes">
+        <div @ref="_content" style="min-width: 100%; display: table;">
+            @ChildContent
+        </div>
+    </div>
+</>
+
+@code {
+    private ElementReference _viewport;
+    private ElementReference _content;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _registered;
+
+    [CascadingParameter]
+    internal BradixScrollArea ScrollArea { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        ScrollArea.RegisterViewport(_viewport, _content);
+
+        if (_dotNetReference is null)
+            _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
+
+        await Interop.RegisterScrollAreaViewport(_viewport, _content, _dotNetReference);
+        _registered = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered)
+            await Interop.UnregisterScrollAreaViewport(_viewport);
+
+        _dotNetReference?.Dispose();
+    }
+
+    private Dictionary<string, object> ViewportAttributes => BuildAttributes(
+        ("data-radix-scroll-area-viewport", string.Empty),
+        ("style", BuildViewportStyle()));
+
+    private string BuildViewportStyle()
+    {
+        string overflowX = ScrollArea.ScrollbarXMounted ? "scroll" : "hidden";
+        string overflowY = ScrollArea.ScrollbarYMounted ? "scroll" : "hidden";
+        string baseStyle = $"overflow-x: {overflowX}; overflow-y: {overflowY};";
+
+        if (string.IsNullOrWhiteSpace(Style))
+            return baseStyle;
+
+        return $"{baseStyle} {Style}";
+    }
+}

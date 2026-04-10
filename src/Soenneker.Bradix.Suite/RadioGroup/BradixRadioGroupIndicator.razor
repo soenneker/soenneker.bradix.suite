@@ -1,0 +1,21 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+@if (ForceMount || Item.IsChecked)
+{
+    <span @attributes="IndicatorAttributes">
+        @ChildContent
+    </span>
+}
+
+@code {
+    [CascadingParameter]
+    internal BradixRadioGroupItem Item { get; set; } = null!;
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    private Dictionary<string, object> IndicatorAttributes => BuildAttributes(
+        ("data-state", Item.IsChecked ? "checked" : "unchecked"),
+        ("data-disabled", Item.IsDisabled ? string.Empty : null));
+}

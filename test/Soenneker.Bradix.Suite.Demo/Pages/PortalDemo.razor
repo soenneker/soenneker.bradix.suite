@@ -1,0 +1,35 @@
+@page "/portal"
+
+<PageTitle>Bradix Portal</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixPortal</h2>
+        <p>Moves its rendered subtree into `document.body` by default, or into a caller-provided container selector, so overlay primitives can escape local stacking and clipping contexts.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Default body portal</h3>
+            <p>This content starts inline on first render, then Bradix reparents it into `body` after mount.</p>
+            <BradixPortal>
+                <div class="portal-surface">
+                    Portaled into body.
+                </div>
+            </BradixPortal>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Custom container</h3>
+            <div id="portal-target" class="portal-target">
+                Custom portal target
+            </div>
+
+            <BradixPortal ContainerSelector="#portal-target">
+                <div class="portal-surface">
+                    Portaled into `#portal-target`.
+                </div>
+            </BradixPortal>
+        </section>
+    </div>
+</section>

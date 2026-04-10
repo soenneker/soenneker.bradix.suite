@@ -1,0 +1,41 @@
+@page "/dismissable-layer"
+
+<PageTitle>Bradix DismissableLayer</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixDismissableLayer</h2>
+        <p>Handles outside pointer and focus interactions, escape dismissal, and optional outside pointer blocking for overlay families.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Default dismissal</h3>
+            <p class="state-line">Dismissed: <strong>@_dismissed</strong></p>
+            <BradixDismissableLayer Class="portal-surface"
+                                    OnDismiss="HandleDismiss">
+                <p>Outside pointer, outside focus, or escape can dismiss this layer.</p>
+            </BradixDismissableLayer>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Branch content</h3>
+            <BradixDismissableLayer Class="portal-surface">
+                <p>Interactions inside the branch should be treated as inside content.</p>
+                <BradixDismissableLayerBranch Class="portal-target">
+                    Branch subtree
+                </BradixDismissableLayerBranch>
+            </BradixDismissableLayer>
+        </section>
+    </div>
+</section>
+
+@code {
+    private bool _dismissed;
+
+    private Task HandleDismiss()
+    {
+        _dismissed = true;
+        return Task.CompletedTask;
+    }
+}

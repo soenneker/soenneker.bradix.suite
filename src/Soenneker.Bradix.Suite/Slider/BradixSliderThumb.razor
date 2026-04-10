@@ -1,0 +1,121 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+
+<span @attributes="WrapperAttributes">
+    <span @ref="_element"
+          @onfocus="HandleFocus"
+          @onkeydown="HandleKeyDown"
+          @attributes="ThumbAttributes">
+    </span>
+
+    @if (InputName is not null && Value is not null)
+    {
+        <input type="hidden"
+               name="@InputName"
+               form="@Slider.Form"
+               value="@Value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+    }
+</span>
+
+@code {
+    private ElementReference _element;
+    private bool _registered;
+
+    [CascadingParameter]
+    internal BradixSlider Slider { get; set; } = null!;
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public string? AriaLabel { get; set; }
+
+    private int Index => Slider.GetThumbIndex(this);
+
+    private double? Value => Slider.GetThumbValue(Index);
+
+    private string? InputName => Slider.GetThumbInputName(this);
+
+    private Dictionary<string, object> WrapperAttributes
+    {
+        get
+        {
+            if (Value is null)
+            {
+                return BuildAttributes(("style", "display: none;"));
+            }
+
+            double percent = Slider.GetPercentForValue(Value.Value);
+            string startEdge;
+            string transform;
+
+            if (Slider.Orientation == "horizontal")
+            {
+                bool fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
+                startEdge = fromLeft ? "left" : "right";
+                transform = "translateX(-50%)";
+            }
+            else
+            {
+                bool fromBottom = !Slider.Inverted;
+                startEdge = fromBottom ? "bottom" : "top";
+                transform = "translateY(50%)";
+            }
+
+            string style = $"position: absolute; {startEdge}: {percent.ToString(System.Globalization.CultureInfo.InvariantCulture)}%; transform: {transform};";
+            return BuildAttributes(("style", style));
+        }
+    }
+
+    private Dictionary<string, object> ThumbAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = BuildAttributes(
+                ("role", "slider"),
+                ("aria-label", AriaLabel ?? BradixSliderMath.GetThumbLabel(Index, Slider.CurrentValues.Count)),
+                ("aria-valuemin", Slider.Min.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("aria-valuenow", Value?.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("aria-valuemax", Slider.Max.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("aria-orientation", Slider.Orientation),
+                ("data-orientation", Slider.Orientation),
+                ("data-disabled", Slider.Disabled ? string.Empty : null),
+                ("data-bradix-slider-thumb-index", Index >= 0 ? Index : null),
+                ("tabindex", Slider.Disabled ? null : 0),
+                ("style", Value is null ? "display: none;" : null));
+
+            return attributes;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        Slider.RegisterThumb(this);
+        _registered = true;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (_registered)
+            Slider.UnregisterThumb(this);
+
+        return ValueTask.CompletedTask;
+    }
+
+    internal ValueTask FocusAsync() => _element.FocusAsync();
+
+    private Task HandleFocus(FocusEventArgs _)
+    {
+        Slider.HandleThumbFocus(Index);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        return Slider.HandleThumbKeyDownAsync(Index, args);
+    }
+}

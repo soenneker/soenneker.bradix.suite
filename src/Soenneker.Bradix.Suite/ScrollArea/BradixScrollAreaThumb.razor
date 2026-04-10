@@ -1,0 +1,38 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+@if (Scrollbar.ScrollArea.ShouldRenderThumb(Scrollbar.Orientation, ForceMount))
+{
+    <div @ref="_thumb"
+         @attributes="ThumbAttributes"></div>
+}
+
+@code {
+    private ElementReference _thumb;
+
+    [CascadingParameter]
+    internal BradixScrollAreaScrollbar Scrollbar { get; set; } = null!;
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        Scrollbar.RegisterThumb(_thumb);
+    }
+
+    private Dictionary<string, object> ThumbAttributes => BuildAttributes(
+        ("data-bradix-scroll-area-thumb", string.Empty),
+        ("data-state", Scrollbar.ScrollArea.GetThumbState(Scrollbar.Orientation)),
+        ("style", BuildThumbStyle()));
+
+    private string BuildThumbStyle()
+    {
+        string baseStyle = Scrollbar.ScrollArea.GetThumbStyle(Scrollbar.Orientation);
+
+        if (string.IsNullOrWhiteSpace(Style))
+            return baseStyle;
+
+        return $"{baseStyle} {Style}";
+    }
+}

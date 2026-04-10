@@ -1,0 +1,32 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+<div @ref="_element"
+     @attributes="PortalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    private ElementReference _element;
+    private bool _mounted;
+
+    [Parameter]
+    public string? ContainerSelector { get; set; }
+
+    private Dictionary<string, object> PortalAttributes => BuildAttributes(
+        ("data-bradix-portal", string.Empty));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await Interop.MountPortal(_element, ContainerSelector);
+        _mounted = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_mounted)
+            await Interop.UnmountPortal(_element);
+    }
+}

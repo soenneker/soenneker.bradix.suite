@@ -1,0 +1,112 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<BradixPopper>
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</BradixPopper>
+
+@code {
+    private bool _initialized;
+    private bool _uncontrolledOpen;
+    private int _customAnchorCount;
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter]
+    public bool Modal { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+
+    internal bool HasCustomAnchor => _customAnchorCount > 0;
+
+    internal string ContentId => $"{BaseId}-content";
+
+    internal ElementReference TriggerElement { get; private set; }
+
+    internal bool HasTrigger { get; private set; }
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-popover");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _uncontrolledOpen = DefaultOpen;
+        _initialized = true;
+    }
+
+    internal async Task SetOpenAsync(bool open)
+    {
+        if (CurrentOpen == open)
+            return;
+
+        if (Open is null)
+            _uncontrolledOpen = open;
+
+        if (OpenChanged.HasDelegate)
+            await OpenChanged.InvokeAsync(open);
+
+        if (OnOpenChange.HasDelegate)
+            await OnOpenChange.InvokeAsync(open);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal Task ToggleOpenAsync()
+    {
+        return SetOpenAsync(!CurrentOpen);
+    }
+
+    internal void RegisterTrigger(ElementReference element)
+    {
+        TriggerElement = element;
+        HasTrigger = true;
+    }
+
+    internal async Task FocusTriggerAsync()
+    {
+        if (!HasTrigger)
+            return;
+
+        try
+        {
+            await TriggerElement.FocusAsync();
+        }
+        catch
+        {
+        }
+    }
+
+    internal void AddCustomAnchor()
+    {
+        _customAnchorCount++;
+    }
+
+    internal void RemoveCustomAnchor()
+    {
+        if (_customAnchorCount == 0)
+            return;
+
+        _customAnchorCount--;
+    }
+}

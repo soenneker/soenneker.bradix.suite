@@ -1,0 +1,25 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+@if (ScrollArea.ShouldRenderCorner)
+{
+    <div @attributes="CornerAttributes"></div>
+}
+
+@code {
+    [CascadingParameter]
+    internal BradixScrollArea ScrollArea { get; set; } = null!;
+
+    private Dictionary<string, object> CornerAttributes => BuildAttributes(
+        ("style", BuildCornerStyle()));
+
+    private string BuildCornerStyle()
+    {
+        string baseStyle = ScrollArea.GetCornerStyle();
+
+        if (string.IsNullOrWhiteSpace(Style))
+            return baseStyle;
+
+        return $"{baseStyle} {Style}";
+    }
+}

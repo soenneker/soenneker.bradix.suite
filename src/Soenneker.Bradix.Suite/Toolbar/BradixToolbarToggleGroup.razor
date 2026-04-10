@@ -1,0 +1,146 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<CascadingValue Value="this">
+    <div @attributes="RootAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private const string SingleType = "single";
+    private const string MultipleType = "multiple";
+
+    private bool _initialized;
+    private string? _uncontrolledValue;
+    private List<string> _uncontrolledValues = [];
+
+    [CascadingParameter]
+    internal BradixToolbar Toolbar { get; set; } = null!;
+
+    [Parameter]
+    public string Type { get; set; } = SingleType;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    [Parameter]
+    public IReadOnlyCollection<string>? Values { get; set; }
+
+    [Parameter]
+    public IEnumerable<string>? DefaultValues { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyCollection<string>> ValuesChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyCollection<string>> OnValuesChange { get; set; }
+
+    internal bool IsSingle => Type != MultipleType;
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("role", "group"),
+        ("dir", Toolbar.ResolvedDirection),
+        ("data-orientation", Toolbar.Orientation));
+
+    protected override void OnParametersSet()
+    {
+        Type = Type == MultipleType ? MultipleType : SingleType;
+
+        if (_initialized)
+            return;
+
+        _uncontrolledValue = DefaultValue;
+        _uncontrolledValues = DefaultValues?.Distinct(StringComparer.Ordinal).ToList() ?? [];
+        _initialized = true;
+    }
+
+    internal bool IsItemPressed(string value)
+    {
+        if (IsSingle)
+            return string.Equals(Value ?? _uncontrolledValue, value, StringComparison.Ordinal);
+
+        IReadOnlyCollection<string> values = Values ?? _uncontrolledValues;
+        return values.Contains(value);
+    }
+
+    internal async Task ActivateItemAsync(string value)
+    {
+        if (IsSingle)
+        {
+            await SetSingleValueAsync(value);
+            return;
+        }
+
+        List<string> next = Values?.ToList() ?? [.. _uncontrolledValues];
+
+        if (next.Contains(value, StringComparer.Ordinal))
+            return;
+
+        next.Add(value);
+        await SetMultipleValuesAsync(next);
+    }
+
+    internal async Task DeactivateItemAsync(string value)
+    {
+        if (IsSingle)
+        {
+            await SetSingleValueAsync(null);
+            return;
+        }
+
+        List<string> next = Values?.ToList() ?? [.. _uncontrolledValues];
+
+        if (!next.Remove(value))
+            return;
+
+        await SetMultipleValuesAsync(next);
+    }
+
+    private async Task SetSingleValueAsync(string? value)
+    {
+        if (string.Equals(Value ?? _uncontrolledValue, value, StringComparison.Ordinal))
+            return;
+
+        if (Value is null)
+            _uncontrolledValue = value;
+
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(value);
+
+        if (OnValueChange.HasDelegate)
+            await OnValueChange.InvokeAsync(value);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SetMultipleValuesAsync(IReadOnlyCollection<string> values)
+    {
+        List<string> next = values.Distinct(StringComparer.Ordinal).ToList();
+
+        if (Values is null)
+            _uncontrolledValues = next;
+
+        IReadOnlyCollection<string> result = next.ToArray();
+
+        if (ValuesChanged.HasDelegate)
+            await ValuesChanged.InvokeAsync(result);
+
+        if (OnValuesChange.HasDelegate)
+            await OnValuesChange.InvokeAsync(result);
+
+        await InvokeAsync(StateHasChanged);
+    }
+}
