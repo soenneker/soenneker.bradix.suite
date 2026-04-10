@@ -1,0 +1,24 @@
+<BradixDialog Open="Open"
+              DefaultOpen="DefaultOpen"
+              OpenChanged="OpenChanged"
+              OnOpenChange="OnOpenChange"
+              Modal="true">
+    @ChildContent
+</BradixDialog>
+
+@code {
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

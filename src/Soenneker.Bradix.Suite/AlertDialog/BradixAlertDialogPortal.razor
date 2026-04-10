@@ -1,8 +1,7 @@
-<CascadingValue Name="BradixPopoverPortalForceMount" Value="ForceMount">
-    <BradixPortal ContainerSelector="@ContainerSelector">
-        @ChildContent
-    </BradixPortal>
-</CascadingValue>
+<BradixDialogPortal ContainerSelector="@ContainerSelector"
+                    ForceMount="ForceMount">
+    @ChildContent
+</BradixDialogPortal>
 
 @code {
     [Parameter]

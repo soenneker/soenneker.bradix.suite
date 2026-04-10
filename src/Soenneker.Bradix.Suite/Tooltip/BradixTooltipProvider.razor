@@ -1,0 +1,77 @@
+@using System.Threading
+@implements IAsyncDisposable
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private CancellationTokenSource? _skipDelayTokenSource;
+    private BradixTooltip? _openTooltip;
+
+    [Parameter]
+    public int DelayDuration { get; set; } = 700;
+
+    [Parameter]
+    public int SkipDelayDuration { get; set; } = 300;
+
+    [Parameter]
+    public bool DisableHoverableContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    internal bool IsOpenDelayed { get; private set; } = true;
+
+    internal async Task NotifyOpenAsync(BradixTooltip tooltip)
+    {
+        CancelSkipDelayTimer();
+        IsOpenDelayed = false;
+
+        if (_openTooltip is not null && _openTooltip != tooltip)
+            await _openTooltip.CloseFromProviderAsync();
+
+        _openTooltip = tooltip;
+    }
+
+    internal void NotifyClose(BradixTooltip tooltip)
+    {
+        if (_openTooltip == tooltip)
+            _openTooltip = null;
+
+        StartSkipDelayTimer();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        CancelSkipDelayTimer();
+        _skipDelayTokenSource?.Dispose();
+        return ValueTask.CompletedTask;
+    }
+
+    private void StartSkipDelayTimer()
+    {
+        CancelSkipDelayTimer();
+        _skipDelayTokenSource = new CancellationTokenSource();
+        _ = ResetDelayedOpenAsync(_skipDelayTokenSource.Token);
+    }
+
+    private async Task ResetDelayedOpenAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(SkipDelayDuration, cancellationToken);
+            IsOpenDelayed = true;
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private void CancelSkipDelayTimer()
+    {
+        _skipDelayTokenSource?.Cancel();
+        _skipDelayTokenSource?.Dispose();
+        _skipDelayTokenSource = null;
+    }
+}

@@ -1,0 +1,38 @@
+@page "/alert-dialog"
+
+<PageTitle>Bradix AlertDialog</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixAlertDialog</h2>
+        <p>Critical-confirmation dialog behavior with modal isolation, cancel-button autofocus, and prevented outside dismissal.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Confirmation flow</h3>
+
+            <BradixAlertDialog>
+                <BradixAlertDialogTrigger Class="primitive__trigger">Delete repository</BradixAlertDialogTrigger>
+
+                <BradixAlertDialogPortal>
+                    <BradixAlertDialogOverlay Class="dialog-overlay" />
+
+                    <BradixAlertDialogContent Class="dialog-surface dialog-surface--animated">
+                        <div class="stack stack--compact">
+                            <BradixAlertDialogTitle>Delete repository?</BradixAlertDialogTitle>
+                            <BradixAlertDialogDescription>
+                                This action is permanent and will remove source history, pull requests, and release metadata.
+                            </BradixAlertDialogDescription>
+
+                            <div class="button-row">
+                                <BradixAlertDialogCancel Class="primitive__trigger">Cancel</BradixAlertDialogCancel>
+                                <BradixAlertDialogAction Class="primitive__trigger">Delete</BradixAlertDialogAction>
+                            </div>
+                        </div>
+                    </BradixAlertDialogContent>
+                </BradixAlertDialogPortal>
+            </BradixAlertDialog>
+        </section>
+    </div>
+</section>

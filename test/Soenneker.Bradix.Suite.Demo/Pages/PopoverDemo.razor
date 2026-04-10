@@ -1,0 +1,77 @@
+@page "/popover"
+
+<PageTitle>Bradix Popover</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixPopover</h2>
+        <p>Anchored layered content built from the Bradix overlay substrates, including custom anchors, portal mounting, focus management, dismissal, and exit preservation.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Default trigger anchor</h3>
+
+            <BradixPopover>
+                <BradixPopoverTrigger Class="primitive__trigger">Open popover</BradixPopoverTrigger>
+                <BradixPopoverPortal>
+                    <BradixPopoverContent Class="popover-surface"
+                                          Side="bottom"
+                                          SideOffset="8"
+                                          CollisionPadding="12">
+                        <div class="stack stack--compact">
+                            <p class="state-line">Default trigger anchoring with portal-mounted content.</p>
+                            <BradixPopoverClose Class="primitive__trigger">Close</BradixPopoverClose>
+                        </div>
+                    </BradixPopoverContent>
+                </BradixPopoverPortal>
+            </BradixPopover>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Custom anchor</h3>
+
+            <BradixPopover>
+                <BradixPopoverAnchor>
+                    <div class="button-row">
+                        <span class="state-line">Anchor label</span>
+                        <BradixPopoverTrigger Class="primitive__trigger">Details</BradixPopoverTrigger>
+                    </div>
+                </BradixPopoverAnchor>
+
+                <BradixPopoverContent Class="popover-surface popover-surface--animated"
+                                      Side="right"
+                                      Align="start"
+                                      SideOffset="12"
+                                      ArrowPadding="8">
+                    <div class="stack stack--compact">
+                        <p class="state-line">This popover uses a custom anchor instead of auto-wrapping the trigger.</p>
+                        <BradixPopoverArrow Class="popper-arrow">
+                            <span class="popper-arrow-shape"></span>
+                        </BradixPopoverArrow>
+                    </div>
+                </BradixPopoverContent>
+            </BradixPopover>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Modal popover</h3>
+
+            <BradixPopover Modal>
+                <BradixPopoverTrigger Class="primitive__trigger">Open modal popover</BradixPopoverTrigger>
+                <BradixPopoverPortal>
+                    <BradixPopoverContent Class="popover-surface popover-surface--animated"
+                                          Side="bottom"
+                                          Align="center"
+                                          SideOffset="10">
+                        <div class="stack stack--compact">
+                            <p class="state-line">Modal mode traps focus while open and restores focus to the trigger on close.</p>
+                            <input class="text-input" value="Focusable input" />
+                            <BradixPopoverClose Class="primitive__trigger">Dismiss</BradixPopoverClose>
+                        </div>
+                    </BradixPopoverContent>
+                </BradixPopoverPortal>
+            </BradixPopover>
+        </section>
+    </div>
+</section>

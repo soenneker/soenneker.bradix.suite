@@ -1,0 +1,78 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<BradixPopperAnchor>
+    <button @onclick="HandleClickAsync"
+            @onpointerenter="HandlePointerEnterAsync"
+            @onpointerleave="HandlePointerLeaveAsync"
+            @onpointerdown="HandlePointerDown"
+            @onpointerup="HandlePointerUp"
+            @onfocus="HandleFocusAsync"
+            @onblur="HandleBlurAsync"
+            @attributes="TriggerAttributes">
+        @ChildContent
+    </button>
+</BradixPopperAnchor>
+
+@code {
+    private bool _pointerDown;
+
+    [CascadingParameter]
+    private BradixTooltip? Tooltip { get; set; }
+
+    private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("aria-describedby", Tooltip?.CurrentOpen == true ? Tooltip.ContentId : null),
+        ("data-state", Tooltip?.StateAttribute));
+
+    private Task HandlePointerEnterAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch" || Tooltip is null)
+            return Task.CompletedTask;
+
+        return Tooltip.HandleTriggerEnterAsync();
+    }
+
+    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    {
+        if (Tooltip is null)
+            return Task.CompletedTask;
+
+        return Tooltip.HandleTriggerLeaveAsync();
+    }
+
+    private void HandlePointerDown(PointerEventArgs args)
+    {
+        _pointerDown = true;
+
+        if (Tooltip is not null)
+            _ = Tooltip.CloseAsync();
+    }
+
+    private void HandlePointerUp(PointerEventArgs args)
+    {
+        _pointerDown = false;
+    }
+
+    private Task HandleFocusAsync(FocusEventArgs _)
+    {
+        return Tooltip is null
+            ? Task.CompletedTask
+            : Tooltip.HandleTriggerFocusAsync(_pointerDown);
+    }
+
+    private Task HandleBlurAsync(FocusEventArgs _)
+    {
+        return Tooltip is null
+            ? Task.CompletedTask
+            : Tooltip.HandleTriggerBlurAsync();
+    }
+
+    private Task HandleClickAsync()
+    {
+        _pointerDown = false;
+
+        return Tooltip is null
+            ? Task.CompletedTask
+            : Tooltip.HandleTriggerClickAsync();
+    }
+}

@@ -42,6 +42,9 @@
     [Parameter]
     public EventCallback OnDismiss { get; set; }
 
+    [Parameter]
+    public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
+
     private Dictionary<string, object> LayerAttributes => BuildAttributes();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -52,6 +55,10 @@
             await Interop.RegisterDismissableLayer(_element, _dotNetReference, DisableOutsidePointerEvents);
             _registered = true;
             _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
+
+            if (OnElementReferenceCaptured.HasDelegate)
+                await OnElementReferenceCaptured.InvokeAsync(_element);
+
             return;
         }
 

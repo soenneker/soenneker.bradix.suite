@@ -1,0 +1,19 @@
+<BradixPopperArrow Class="@Class"
+                   Style="@Style"
+                   AdditionalAttributes="@AdditionalAttributes">
+    @ChildContent
+</BradixPopperArrow>
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

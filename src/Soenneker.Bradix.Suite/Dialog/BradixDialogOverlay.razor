@@ -1,0 +1,39 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+@if (ShouldRenderOverlay)
+{
+    <BradixPresence Present="Dialog?.CurrentOpen == true || ForceMount || PortalForceMount"
+                    Tag="div"
+                    Class="@Class"
+                    Style="@Style"
+                    AdditionalAttributes="OverlayAttributes">
+        @ChildContent
+    </BradixPresence>
+}
+
+@code {
+    [CascadingParameter]
+    private BradixDialog? Dialog { get; set; }
+
+    [CascadingParameter(Name = "BradixDialogPortalForceMount")]
+    private bool PortalForceMount { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    private bool ShouldRenderOverlay => Dialog?.Modal == true && (Dialog.CurrentOpen || ForceMount || PortalForceMount);
+
+    private IReadOnlyDictionary<string, object> OverlayAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["data-state"] = Dialog?.CurrentOpen == true ? "open" : "closed";
+            return attributes;
+        }
+    }
+}

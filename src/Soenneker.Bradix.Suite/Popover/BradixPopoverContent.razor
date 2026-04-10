@@ -1,0 +1,268 @@
+@using Soenneker.Bradix.Suite.Base
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+@if (ShouldRenderContainer)
+{
+    @if (Popover?.Modal == true)
+    {
+        <BradixRemoveScroll AllowPinchZoom>
+            @RenderContentTree()
+        </BradixRemoveScroll>
+    }
+    else
+    {
+        @RenderContentTree()
+    }
+}
+
+@code {
+    private bool _wasPresent;
+    private bool _isExiting;
+    private bool _hasInteractedOutside;
+    private bool _hideOthersRegistered;
+    private ElementReference _contentElement;
+
+    [CascadingParameter]
+    private BradixPopover? Popover { get; set; }
+
+    [CascadingParameter(Name = "BradixPopoverPortalForceMount")]
+    private bool PortalForceMount { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public string Side { get; set; } = "bottom";
+
+    [Parameter]
+    public double SideOffset { get; set; }
+
+    [Parameter]
+    public string Align { get; set; } = "center";
+
+    [Parameter]
+    public double AlignOffset { get; set; }
+
+    [Parameter]
+    public double ArrowPadding { get; set; }
+
+    [Parameter]
+    public bool AvoidCollisions { get; set; } = true;
+
+    [Parameter]
+    public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public bool HideWhenDetached { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpenAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnFocusOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnPlaced { get; set; }
+
+    private bool IsPresent => ForceMount || PortalForceMount || Popover?.CurrentOpen == true;
+
+    private bool ShouldRenderContainer => IsPresent || _isExiting;
+
+    private bool ShouldTrapFocus => Popover?.Modal == true && Popover.CurrentOpen;
+
+    private bool ShouldDisableOutsidePointerEvents => Popover?.Modal == true && Popover.CurrentOpen;
+
+    private string? ResolvedContentId => string.IsNullOrWhiteSpace(Id) ? Popover?.ContentId : Id;
+
+    private string PositionerStyle =>
+        "--radix-popover-content-transform-origin: var(--radix-popper-transform-origin); --radix-popover-content-available-width: var(--radix-popper-available-width); --radix-popover-content-available-height: var(--radix-popper-available-height); --radix-popover-trigger-width: var(--radix-popper-anchor-width); --radix-popover-trigger-height: var(--radix-popper-anchor-height);";
+
+    private string? PresenceStyle
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Style))
+                return null;
+
+            return Style;
+        }
+    }
+
+    private IReadOnlyDictionary<string, object> PresenceAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["role"] = "dialog";
+            attributes["data-state"] = Popover?.CurrentOpen == true ? "open" : "closed";
+
+            if (Popover?.Modal == true)
+                attributes["aria-modal"] = "true";
+
+            return attributes;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        bool present = IsPresent;
+
+        if (_wasPresent && !present)
+            _isExiting = true;
+        else if (present)
+            _isExiting = false;
+
+        _wasPresent = present;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hideOthersRegistered)
+        {
+            await Interop.UnregisterHideOthers(_contentElement);
+            _hideOthersRegistered = false;
+        }
+    }
+
+    private async Task HandleOpenAutoFocusAsync()
+    {
+        if (OnOpenAutoFocus.HasDelegate)
+            await OnOpenAutoFocus.InvokeAsync();
+    }
+
+    private async Task HandleCloseAutoFocusAsync()
+    {
+        if (OnCloseAutoFocus.HasDelegate)
+            await OnCloseAutoFocus.InvokeAsync();
+
+        if (Popover is not null && (Popover.Modal || !_hasInteractedOutside))
+            await Popover.FocusTriggerAsync();
+
+        _hasInteractedOutside = false;
+    }
+
+    private async Task HandleEscapeKeyDownAsync()
+    {
+        if (OnEscapeKeyDown.HasDelegate)
+            await OnEscapeKeyDown.InvokeAsync();
+
+        if (Popover is not null)
+            await Popover.SetOpenAsync(false);
+    }
+
+    private async Task HandlePointerDownOutsideAsync()
+    {
+        if (OnPointerDownOutside.HasDelegate)
+            await OnPointerDownOutside.InvokeAsync();
+
+        if (OnInteractOutside.HasDelegate)
+            await OnInteractOutside.InvokeAsync();
+
+        if (Popover is not null && !Popover.Modal)
+            _hasInteractedOutside = true;
+
+        if (Popover is not null)
+            await Popover.SetOpenAsync(false);
+    }
+
+    private async Task HandleFocusOutsideAsync()
+    {
+        if (OnFocusOutside.HasDelegate)
+            await OnFocusOutside.InvokeAsync();
+
+        if (Popover?.Modal == true)
+            return;
+
+        if (OnInteractOutside.HasDelegate)
+            await OnInteractOutside.InvokeAsync();
+
+        _hasInteractedOutside = true;
+
+        if (Popover is not null)
+            await Popover.SetOpenAsync(false);
+    }
+
+    private Task HandleExitCompleteAsync()
+    {
+        _isExiting = false;
+        return CleanupAfterExitAsync();
+    }
+
+    private RenderFragment RenderContentTree() => @<BradixFocusGuards>
+        <BradixFocusScope Loop
+                          Trapped="ShouldTrapFocus"
+                          OnMountAutoFocus="HandleOpenAutoFocusAsync"
+                          OnUnmountAutoFocus="HandleCloseAutoFocusAsync">
+            <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
+                                    DismissOnEscapeKeyDown="false"
+                                    DismissOnPointerDownOutside="false"
+                                    DismissOnFocusOutside="false"
+                                    OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
+                                    OnPointerDownOutside="@HandlePointerDownOutsideAsync"
+                                    OnFocusOutside="@HandleFocusOutsideAsync"
+                                    OnElementReferenceCaptured="@HandleElementReferenceCapturedAsync">
+                <BradixPopperContent Side="@Side"
+                                     SideOffset="SideOffset"
+                                     Align="@Align"
+                                     AlignOffset="AlignOffset"
+                                     ArrowPadding="ArrowPadding"
+                                     AvoidCollisions="AvoidCollisions"
+                                     CollisionPadding="CollisionPadding"
+                                     HideWhenDetached="HideWhenDetached"
+                                     Style="@PositionerStyle"
+                                     OnPlaced="@OnPlaced">
+                    <BradixPresence Present="IsPresent"
+                                    Tag="div"
+                                    Id="@ResolvedContentId"
+                                    Class="@Class"
+                                    Style="@PresenceStyle"
+                                    AdditionalAttributes="@PresenceAttributes"
+                                    OnExitComplete="@HandleExitCompleteAsync">
+                        @ChildContent
+                    </BradixPresence>
+                </BradixPopperContent>
+            </BradixDismissableLayer>
+        </BradixFocusScope>
+    </BradixFocusGuards>;
+
+    private async Task HandleElementReferenceCapturedAsync(ElementReference element)
+    {
+        _contentElement = element;
+
+        if (Popover?.Modal == true && !_hideOthersRegistered)
+        {
+            await Interop.RegisterHideOthers(_contentElement);
+            _hideOthersRegistered = true;
+        }
+    }
+
+    private async Task CleanupAfterExitAsync()
+    {
+        _isExiting = false;
+
+        if (_hideOthersRegistered)
+        {
+            await Interop.UnregisterHideOthers(_contentElement);
+            _hideOthersRegistered = false;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

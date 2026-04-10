@@ -1,0 +1,26 @@
+@implements IAsyncDisposable
+@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+
+@ChildContent
+
+@code {
+    private bool _registered;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await Interop.RegisterFocusGuards();
+        _registered = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_registered)
+            await Interop.UnregisterFocusGuards();
+    }
+}

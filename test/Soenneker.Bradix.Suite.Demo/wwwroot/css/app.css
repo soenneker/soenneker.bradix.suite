@@ -291,6 +291,68 @@ code {
     }
 }
 
+.popover-surface {
+    padding: 1rem;
+    border-radius: 0.85rem;
+    background: rgba(30, 41, 59, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    width: min(20rem, calc(100vw - 2rem));
+}
+
+.popover-surface--animated[data-state="open"] {
+    animation: presence-enter 180ms ease-out;
+}
+
+.popover-surface--animated[data-state="closed"] {
+    animation: presence-exit 180ms ease-in forwards;
+}
+
+.dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+}
+
+.dialog-surface {
+    width: min(28rem, calc(100vw - 2rem));
+    padding: 1.25rem;
+    border-radius: 1rem;
+    background: rgba(15, 23, 42, 0.98);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.dialog-surface--animated[data-state="open"] {
+    animation: presence-enter 180ms ease-out;
+}
+
+.dialog-surface--animated[data-state="closed"] {
+    animation: presence-exit 180ms ease-in forwards;
+}
+
+.remove-scroll-surface {
+    padding: 1rem;
+    border-radius: 0.85rem;
+    background: rgba(30, 41, 59, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.tooltip-surface {
+    padding: 0.65rem 0.8rem;
+    border-radius: 0.75rem;
+    background: rgba(30, 41, 59, 0.98);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    font-size: 0.9rem;
+}
+
+.tooltip-surface--animated[data-state="delayed-open"],
+.tooltip-surface--animated[data-state="instant-open"] {
+    animation: presence-enter 140ms ease-out;
+}
+
+.tooltip-surface--animated[data-state="closed"] {
+    animation: presence-exit 120ms ease-in forwards;
+}
+
 .radio-group {
     display: flex;
     gap: 0.75rem;

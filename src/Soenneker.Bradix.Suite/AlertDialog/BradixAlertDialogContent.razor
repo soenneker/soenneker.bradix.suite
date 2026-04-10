@@ -1,0 +1,76 @@
+<CascadingValue Value="this">
+    <BradixDialogContent Class="@Class"
+                         Style="@Style"
+                         Id="@Id"
+                         AdditionalAttributes="@AdditionalAttributes"
+                         ForceMount="ForceMount"
+                         Role="alertdialog"
+                         CloseOnPointerDownOutside="false"
+                         CloseOnFocusOutside="false"
+                         OnOpenAutoFocus="@HandleOpenAutoFocusAsync"
+                         OnCloseAutoFocus="OnCloseAutoFocus"
+                         OnEscapeKeyDown="OnEscapeKeyDown"
+                         OnPointerDownOutside="OnPointerDownOutside"
+                         OnFocusOutside="OnFocusOutside"
+                         OnInteractOutside="OnInteractOutside">
+        @ChildContent
+    </BradixDialogContent>
+</CascadingValue>
+
+@code {
+    private ElementReference _cancelElement;
+    private bool _hasCancelElement;
+
+    [Parameter]
+    public string? Id { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnFocusOutside { get; set; }
+
+    [Parameter]
+    public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    internal void RegisterCancelElement(ElementReference element)
+    {
+        _cancelElement = element;
+        _hasCancelElement = true;
+    }
+
+    private async Task HandleOpenAutoFocusAsync()
+    {
+        if (!_hasCancelElement)
+            return;
+
+        try
+        {
+            await _cancelElement.FocusAsync();
+        }
+        catch
+        {
+        }
+    }
+}

@@ -1,0 +1,14 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<p @attributes="DescriptionAttributes">
+    @ChildContent
+</p>
+
+@code {
+    [CascadingParameter]
+    private BradixDialog? Dialog { get; set; }
+
+    private Dictionary<string, object> DescriptionAttributes => BuildAttributes(
+        ("id", string.IsNullOrWhiteSpace(Id) ? Dialog?.DescriptionId : Id));
+}

@@ -16,6 +16,11 @@ const focusScopeHandlers = new WeakMap();
 const focusScopeStack = [];
 const popperContentHandlers = new WeakMap();
 const presenceHandlers = new WeakMap();
+let focusGuardsCount = 0;
+const hideOthersState = new WeakMap();
+let removeScrollCount = 0;
+let originalBodyOverflow = "";
+let originalBodyPaddingRight = "";
 const rovingFocusKeys = new Set([
   "ArrowLeft",
   "ArrowRight",
@@ -1225,6 +1230,108 @@ export function unregisterPresence(element) {
   element.removeEventListener("animationcancel", handlers.handleAnimationEnd);
   element.removeEventListener("animationend", handlers.handleAnimationEnd);
   presenceHandlers.delete(element);
+}
+
+function createFocusGuard() {
+  const element = document.createElement("span");
+  element.setAttribute("data-radix-focus-guard", "");
+  element.tabIndex = 0;
+  element.style.outline = "none";
+  element.style.opacity = "0";
+  element.style.position = "fixed";
+  element.style.pointerEvents = "none";
+  return element;
+}
+
+export function registerFocusGuards() {
+  const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
+  document.body.insertAdjacentElement("afterbegin", edgeGuards[0] || createFocusGuard());
+  document.body.insertAdjacentElement("beforeend", edgeGuards[1] || createFocusGuard());
+  focusGuardsCount += 1;
+}
+
+export function unregisterFocusGuards() {
+  if (focusGuardsCount <= 1) {
+    document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
+  }
+
+  focusGuardsCount = Math.max(focusGuardsCount - 1, 0);
+}
+
+export function registerHideOthers(element) {
+  if (!element || !document.body) {
+    return;
+  }
+
+  unregisterHideOthers(element);
+
+  const changed = [];
+  const bodyChildren = Array.from(document.body.children);
+
+  for (const child of bodyChildren) {
+    if (child === element || child.contains(element) || element.contains(child)) {
+      continue;
+    }
+
+    changed.push({
+      element: child,
+      previous: child.getAttribute("aria-hidden")
+    });
+
+    child.setAttribute("aria-hidden", "true");
+  }
+
+  hideOthersState.set(element, changed);
+}
+
+export function unregisterHideOthers(element) {
+  const changed = hideOthersState.get(element);
+  if (!changed) {
+    return;
+  }
+
+  for (const entry of changed) {
+    if (entry.previous === null) {
+      entry.element.removeAttribute("aria-hidden");
+    } else {
+      entry.element.setAttribute("aria-hidden", entry.previous);
+    }
+  }
+
+  hideOthersState.delete(element);
+}
+
+export function registerRemoveScroll() {
+  if (!document.body || !document.documentElement) {
+    return;
+  }
+
+  if (removeScrollCount === 0) {
+    originalBodyOverflow = document.body.style.overflow || "";
+    originalBodyPaddingRight = document.body.style.paddingRight || "";
+
+    const scrollbarWidth = Math.max(window.innerWidth - document.documentElement.clientWidth, 0);
+    document.body.style.overflow = "hidden";
+
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+  }
+
+  removeScrollCount += 1;
+}
+
+export function unregisterRemoveScroll() {
+  if (!document.body) {
+    return;
+  }
+
+  removeScrollCount = Math.max(removeScrollCount - 1, 0);
+
+  if (removeScrollCount === 0) {
+    document.body.style.overflow = originalBodyOverflow;
+    document.body.style.paddingRight = originalBodyPaddingRight;
+  }
 }
 
 export function registerLabelTextSelectionGuard(element) {

@@ -1,0 +1,226 @@
+@using Soenneker.Bradix.Suite.Base
+@using System.Threading
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+
+<BradixPopper>
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</BradixPopper>
+
+@code {
+    private bool _initialized;
+    private bool _uncontrolledOpen;
+    private bool _openedWithDelay;
+    private CancellationTokenSource? _openDelayTokenSource;
+    private CancellationTokenSource? _closeDelayTokenSource;
+
+    [CascadingParameter]
+    private BradixTooltipProvider? Provider { get; set; }
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter]
+    public int? DelayDuration { get; set; }
+
+    [Parameter]
+    public bool? DisableHoverableContent { get; set; }
+
+    [Microsoft.AspNetCore.Components.PersistentState]
+    internal string? BaseId { get; private set; }
+
+    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+
+    internal string ContentId => $"{BaseId}-content";
+
+    internal string StateAttribute => CurrentOpen
+        ? (_openedWithDelay ? "delayed-open" : "instant-open")
+        : "closed";
+
+    internal bool EffectiveDisableHoverableContent => DisableHoverableContent ?? Provider?.DisableHoverableContent ?? false;
+
+    internal int EffectiveDelayDuration => DelayDuration ?? Provider?.DelayDuration ?? 700;
+
+    protected override void OnInitialized()
+    {
+        BaseId ??= IdGenerator.New("bradix-tooltip");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _uncontrolledOpen = DefaultOpen;
+        _initialized = true;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        CancelOpenDelay();
+        CancelCloseDelay();
+        return ValueTask.CompletedTask;
+    }
+
+    internal async Task HandleTriggerEnterAsync()
+    {
+        CancelCloseDelay();
+
+        if ((Provider?.IsOpenDelayed).GetValueOrDefault(true))
+        {
+            StartOpenDelay();
+        }
+        else
+        {
+            await OpenNowAsync(false);
+        }
+    }
+
+    internal Task HandleTriggerLeaveAsync()
+    {
+        if (EffectiveDisableHoverableContent)
+            return CloseAsync();
+
+        StartCloseDelay();
+        return Task.CompletedTask;
+    }
+
+    internal Task HandleContentEnterAsync()
+    {
+        CancelCloseDelay();
+        return Task.CompletedTask;
+    }
+
+    internal Task HandleContentLeaveAsync()
+    {
+        return CloseAsync();
+    }
+
+    internal Task HandleTriggerFocusAsync(bool pointerDown)
+    {
+        return pointerDown ? Task.CompletedTask : OpenNowAsync(false);
+    }
+
+    internal Task HandleTriggerBlurAsync()
+    {
+        return CloseAsync();
+    }
+
+    internal Task HandleTriggerClickAsync()
+    {
+        return CloseAsync();
+    }
+
+    internal async Task CloseFromProviderAsync()
+    {
+        await SetOpenAsync(false, false, false);
+    }
+
+    internal async Task CloseAsync()
+    {
+        CancelOpenDelay();
+        CancelCloseDelay();
+        await SetOpenAsync(false, false, true);
+    }
+
+    private void StartOpenDelay()
+    {
+        CancelOpenDelay();
+        _openDelayTokenSource = new CancellationTokenSource();
+        _ = OpenAfterDelayAsync(_openDelayTokenSource.Token);
+    }
+
+    private async Task OpenAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(EffectiveDelayDuration, cancellationToken);
+            await OpenNowAsync(true);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private void StartCloseDelay()
+    {
+        CancelCloseDelay();
+        _closeDelayTokenSource = new CancellationTokenSource();
+        _ = CloseAfterDelayAsync(_closeDelayTokenSource.Token);
+    }
+
+    private async Task CloseAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(100, cancellationToken);
+            await CloseAsync();
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private async Task OpenNowAsync(bool delayed)
+    {
+        CancelOpenDelay();
+        CancelCloseDelay();
+        await SetOpenAsync(true, delayed, true);
+    }
+
+    private async Task SetOpenAsync(bool open, bool delayed, bool notifyProvider)
+    {
+        if (CurrentOpen == open)
+        {
+            if (open)
+                _openedWithDelay = delayed;
+
+            return;
+        }
+
+        if (open && notifyProvider && Provider is not null)
+            await Provider.NotifyOpenAsync(this);
+
+        if (Open is null)
+            _uncontrolledOpen = open;
+
+        _openedWithDelay = open && delayed;
+
+        if (OpenChanged.HasDelegate)
+            await OpenChanged.InvokeAsync(open);
+
+        if (OnOpenChange.HasDelegate)
+            await OnOpenChange.InvokeAsync(open);
+
+        if (!open && notifyProvider)
+            Provider?.NotifyClose(this);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void CancelOpenDelay()
+    {
+        _openDelayTokenSource?.Cancel();
+        _openDelayTokenSource?.Dispose();
+        _openDelayTokenSource = null;
+    }
+
+    private void CancelCloseDelay()
+    {
+        _closeDelayTokenSource?.Cancel();
+        _closeDelayTokenSource?.Dispose();
+        _closeDelayTokenSource = null;
+    }
+}

@@ -1,0 +1,137 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+@if (IsPresent)
+{
+    <BradixDismissableLayer DisableOutsidePointerEvents="false"
+                            DismissOnEscapeKeyDown="false"
+                            DismissOnPointerDownOutside="false"
+                            DismissOnFocusOutside="false"
+                            OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
+                            OnPointerDownOutside="@HandlePointerDownOutsideAsync">
+        <BradixPopperContent Side="@Side"
+                             SideOffset="SideOffset"
+                             Align="@Align"
+                             AlignOffset="AlignOffset"
+                             ArrowPadding="ArrowPadding"
+                             AvoidCollisions="AvoidCollisions"
+                             CollisionPadding="CollisionPadding"
+                             HideWhenDetached="HideWhenDetached"
+                             Style="@PositionerStyle">
+            <BradixPresence Present="IsPresent"
+                            Tag="div"
+                            Id="@ResolvedContentId"
+                            Class="@Class"
+                            Style="@Style"
+                            AdditionalAttributes="@TooltipAttributes">
+                <div @onpointerenter="HandlePointerEnterAsync"
+                     @onpointerleave="HandlePointerLeaveAsync">
+                    @ChildContent
+                </div>
+            </BradixPresence>
+        </BradixPopperContent>
+    </BradixDismissableLayer>
+}
+
+@code {
+    [CascadingParameter]
+    private BradixTooltip? Tooltip { get; set; }
+
+    [CascadingParameter(Name = "BradixTooltipPortalForceMount")]
+    private bool PortalForceMount { get; set; }
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public string Side { get; set; } = "top";
+
+    [Parameter]
+    public double SideOffset { get; set; }
+
+    [Parameter]
+    public string Align { get; set; } = "center";
+
+    [Parameter]
+    public double AlignOffset { get; set; }
+
+    [Parameter]
+    public double ArrowPadding { get; set; }
+
+    [Parameter]
+    public bool AvoidCollisions { get; set; } = true;
+
+    [Parameter]
+    public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public bool HideWhenDetached { get; set; }
+
+    [Parameter]
+    public string? AriaLabel { get; set; }
+
+    [Parameter]
+    public EventCallback OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback OnPointerDownOutside { get; set; }
+
+    private bool IsPresent => ForceMount || PortalForceMount || Tooltip?.CurrentOpen == true;
+
+    private string? ResolvedContentId => string.IsNullOrWhiteSpace(Id) ? Tooltip?.ContentId : Id;
+
+    private string PositionerStyle =>
+        "--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-available-width: var(--radix-popper-available-width); --radix-tooltip-content-available-height: var(--radix-popper-available-height); --radix-tooltip-trigger-width: var(--radix-popper-anchor-width); --radix-tooltip-trigger-height: var(--radix-popper-anchor-height);";
+
+    private IReadOnlyDictionary<string, object> TooltipAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["role"] = "tooltip";
+            attributes["data-state"] = Tooltip?.StateAttribute ?? "closed";
+
+            if (!string.IsNullOrWhiteSpace(AriaLabel))
+                attributes["aria-label"] = AriaLabel;
+
+            return attributes;
+        }
+    }
+
+    private async Task HandleEscapeKeyDownAsync()
+    {
+        if (OnEscapeKeyDown.HasDelegate)
+            await OnEscapeKeyDown.InvokeAsync();
+
+        if (Tooltip is not null)
+            await Tooltip.CloseAsync();
+    }
+
+    private async Task HandlePointerDownOutsideAsync()
+    {
+        if (OnPointerDownOutside.HasDelegate)
+            await OnPointerDownOutside.InvokeAsync();
+
+        if (Tooltip is not null)
+            await Tooltip.CloseAsync();
+    }
+
+    private Task HandlePointerEnterAsync(PointerEventArgs _)
+    {
+        if (Tooltip?.EffectiveDisableHoverableContent == true)
+            return Task.CompletedTask;
+
+        return Tooltip?.HandleContentEnterAsync() ?? Task.CompletedTask;
+    }
+
+    private Task HandlePointerLeaveAsync(PointerEventArgs _)
+    {
+        if (Tooltip?.EffectiveDisableHoverableContent == true)
+            return Task.CompletedTask;
+
+        return Tooltip?.HandleContentLeaveAsync() ?? Task.CompletedTask;
+    }
+}

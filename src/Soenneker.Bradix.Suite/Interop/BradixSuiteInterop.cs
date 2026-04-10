@@ -229,6 +229,42 @@ public sealed class BradixSuiteInterop : ISuiteInterop
         await module.InvokeVoidAsync("unregisterPresence", cancellationToken, element).ConfigureAwait(false);
     }
 
+    public async ValueTask RegisterFocusGuards(CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerFocusGuards", cancellationToken).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterFocusGuards(CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterFocusGuards", cancellationToken).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterHideOthers(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerHideOthers", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterHideOthers(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterHideOthers", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterRemoveScroll(CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerRemoveScroll", cancellationToken).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterRemoveScroll(CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterRemoveScroll", cancellationToken).ConfigureAwait(false);
+    }
+
     public async ValueTask RegisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);

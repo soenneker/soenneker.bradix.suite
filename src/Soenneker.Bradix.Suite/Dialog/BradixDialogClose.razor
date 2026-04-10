@@ -1,0 +1,34 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<button @onclick="HandleClickAsync"
+        @ref="_button"
+        @attributes="ButtonAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private ElementReference _button;
+
+    [CascadingParameter]
+    private BradixDialog? Dialog { get; set; }
+
+    [Parameter]
+    public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
+
+    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+        ("type", "button"));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && OnElementReferenceCaptured.HasDelegate)
+            await OnElementReferenceCaptured.InvokeAsync(_button);
+    }
+
+    private Task HandleClickAsync()
+    {
+        return Dialog is null
+            ? Task.CompletedTask
+            : Dialog.SetOpenAsync(false);
+    }
+}

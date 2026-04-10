@@ -1,0 +1,58 @@
+@page "/tooltip"
+
+<PageTitle>Bradix Tooltip</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixTooltip</h2>
+        <p>Delayed tooltip behavior for hover and focus interactions, with shared provider timing, popper positioning, portal rendering, and optional hoverable content.</p>
+    </header>
+
+    <BradixTooltipProvider DelayDuration="400" SkipDelayDuration="300">
+        <div class="demo-grid">
+            <section class="card stack stack--compact">
+                <h3>Provider-controlled delay</h3>
+
+                <div class="button-row">
+                    <BradixTooltip>
+                        <BradixTooltipTrigger Class="primitive__trigger">First trigger</BradixTooltipTrigger>
+                        <BradixTooltipPortal>
+                            <BradixTooltipContent Class="tooltip-surface tooltip-surface--animated" Side="top" SideOffset="8">
+                                <span>Opens with provider delay.</span>
+                                <BradixTooltipArrow Class="popper-arrow">
+                                    <span class="popper-arrow-shape"></span>
+                                </BradixTooltipArrow>
+                            </BradixTooltipContent>
+                        </BradixTooltipPortal>
+                    </BradixTooltip>
+
+                    <BradixTooltip>
+                        <BradixTooltipTrigger Class="primitive__trigger">Second trigger</BradixTooltipTrigger>
+                        <BradixTooltipPortal>
+                            <BradixTooltipContent Class="tooltip-surface tooltip-surface--animated" Side="top" SideOffset="8">
+                                <span>Reuses provider skip-delay behavior.</span>
+                            </BradixTooltipContent>
+                        </BradixTooltipPortal>
+                    </BradixTooltip>
+                </div>
+            </section>
+
+            <section class="card stack stack--compact">
+                <h3>Disable hoverable content</h3>
+
+                <BradixTooltip DisableHoverableContent="true">
+                    <BradixTooltipTrigger Class="primitive__trigger">Non-hoverable</BradixTooltipTrigger>
+                    <BradixTooltipPortal>
+                        <BradixTooltipContent Class="tooltip-surface tooltip-surface--animated"
+                                              Side="right"
+                                              Align="start"
+                                              SideOffset="10"
+                                              AriaLabel="Tooltip description">
+                            <span>Closes as soon as the pointer leaves the trigger.</span>
+                        </BradixTooltipContent>
+                    </BradixTooltipPortal>
+                </BradixTooltip>
+            </section>
+        </div>
+    </BradixTooltipProvider>
+</section>

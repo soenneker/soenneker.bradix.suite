@@ -1,0 +1,34 @@
+@page "/focus-guards"
+
+<PageTitle>Bradix FocusGuards</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixFocusGuards</h2>
+        <p>Requests the document-edge focus sentinels that portalled focus scopes rely on to observe focus consistently at DOM boundaries.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Mounted guards</h3>
+            <button class="primitive__trigger" type="button" @onclick="@(() => _mounted = !_mounted)">
+                Toggle guards
+            </button>
+            <p class="state-line">Mounted: <strong>@_mounted</strong></p>
+
+            @if (_mounted)
+            {
+                <BradixFocusGuards>
+                    <div class="stack stack--compact">
+                        <button class="primitive__trigger" type="button">First focus target</button>
+                        <button class="primitive__trigger" type="button">Second focus target</button>
+                    </div>
+                </BradixFocusGuards>
+            }
+        </section>
+    </div>
+</section>
+
+@code {
+    private bool _mounted = true;
+}

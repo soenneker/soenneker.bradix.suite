@@ -1,0 +1,54 @@
+@page "/dialog"
+
+<PageTitle>Bradix Dialog</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixDialog</h2>
+        <p>Modal and non-modal layered content with portal mounting, overlays, dismissal handling, focus restoration, and title/description semantics.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Modal dialog</h3>
+
+            <BradixDialog>
+                <BradixDialogTrigger Class="primitive__trigger">Open dialog</BradixDialogTrigger>
+
+                <BradixDialogPortal>
+                    <BradixDialogOverlay Class="dialog-overlay" />
+
+                    <BradixDialogContent Class="dialog-surface dialog-surface--animated">
+                        <div class="stack stack--compact">
+                            <BradixDialogTitle>Delete project</BradixDialogTitle>
+                            <BradixDialogDescription>This action cannot be undone and will remove associated records.</BradixDialogDescription>
+                            <div class="button-row">
+                                <BradixDialogClose Class="primitive__trigger">Cancel</BradixDialogClose>
+                                <button class="primitive__trigger" type="button">Confirm</button>
+                            </div>
+                        </div>
+                    </BradixDialogContent>
+                </BradixDialogPortal>
+            </BradixDialog>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Non-modal dialog</h3>
+
+            <BradixDialog Modal="false">
+                <BradixDialogTrigger Class="primitive__trigger">Open non-modal</BradixDialogTrigger>
+
+                <BradixDialogPortal>
+                    <BradixDialogContent Class="dialog-surface dialog-surface--animated">
+                        <div class="stack stack--compact">
+                            <BradixDialogTitle>Inspector</BradixDialogTitle>
+                            <BradixDialogDescription>This non-modal dialog can coexist with surrounding content and restore focus appropriately.</BradixDialogDescription>
+                            <input class="text-input" value="Editable field" />
+                            <BradixDialogClose Class="primitive__trigger">Close</BradixDialogClose>
+                        </div>
+                    </BradixDialogContent>
+                </BradixDialogPortal>
+            </BradixDialog>
+        </section>
+    </div>
+</section>

@@ -1,0 +1,42 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<button @ref="_button"
+        @onclick="HandleClickAsync"
+        @attributes="ButtonAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private ElementReference _button;
+
+    [CascadingParameter]
+    private BradixDialog? Dialog { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+        ("type", "button"),
+        ("aria-haspopup", "dialog"),
+        ("aria-expanded", Dialog?.CurrentOpen == true ? "true" : "false"),
+        ("aria-controls", Dialog?.ContentId),
+        ("data-state", Dialog?.CurrentOpen == true ? "open" : "closed"),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("disabled", Disabled ? true : null));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            Dialog?.RegisterTrigger(_button);
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandleClickAsync()
+    {
+        return Disabled || Dialog is null
+            ? Task.CompletedTask
+            : Dialog.ToggleOpenAsync();
+    }
+}

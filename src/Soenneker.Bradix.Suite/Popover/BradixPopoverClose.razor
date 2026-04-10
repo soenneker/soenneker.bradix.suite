@@ -1,0 +1,22 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<button @onclick="HandleClickAsync"
+        @attributes="ButtonAttributes">
+    @ChildContent
+</button>
+
+@code {
+    [CascadingParameter]
+    private BradixPopover? Popover { get; set; }
+
+    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+        ("type", "button"));
+
+    private Task HandleClickAsync()
+    {
+        return Popover is null
+            ? Task.CompletedTask
+            : Popover.SetOpenAsync(false);
+    }
+}

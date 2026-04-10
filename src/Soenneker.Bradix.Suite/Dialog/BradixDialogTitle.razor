@@ -1,0 +1,14 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<h2 @attributes="TitleAttributes">
+    @ChildContent
+</h2>
+
+@code {
+    [CascadingParameter]
+    private BradixDialog? Dialog { get; set; }
+
+    private Dictionary<string, object> TitleAttributes => BuildAttributes(
+        ("id", string.IsNullOrWhiteSpace(Id) ? Dialog?.TitleId : Id));
+}

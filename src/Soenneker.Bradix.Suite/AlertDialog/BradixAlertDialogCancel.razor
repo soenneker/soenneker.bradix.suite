@@ -1,0 +1,29 @@
+<BradixDialogClose Class="@Class"
+                   Style="@Style"
+                   AdditionalAttributes="@AdditionalAttributes"
+                   OnElementReferenceCaptured="@HandleElementCapturedAsync">
+    @ChildContent
+</BradixDialogClose>
+
+@code {
+    [CascadingParameter]
+    private BradixAlertDialogContent? Content { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private Task HandleElementCapturedAsync(ElementReference element)
+    {
+        Content?.RegisterCancelElement(element);
+        return Task.CompletedTask;
+    }
+}
