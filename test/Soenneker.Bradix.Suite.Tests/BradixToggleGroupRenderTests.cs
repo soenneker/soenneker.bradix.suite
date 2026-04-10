@@ -1,24 +1,22 @@
-using Bunit;
 using System.Collections.Generic;
+using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Direction;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.ToggleGroup;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixToggleGroupRenderTests : Bunit.BunitContext
+public sealed class BradixToggleGroupRenderTests : BunitContext
 {
     public BradixToggleGroupRenderTests()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerRovingFocusNavigationKeys", _ => true);
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true);
+        module.SetupVoid("registerDelegatedInteraction", _ => true);
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();

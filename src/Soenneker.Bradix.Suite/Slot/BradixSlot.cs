@@ -5,9 +5,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
-using Soenneker.Bradix.Suite.Base;
 
-namespace Soenneker.Bradix.Suite.Slot;
+namespace Soenneker.Bradix;
 
 public sealed class BradixSlot : BradixComponentBase
 {

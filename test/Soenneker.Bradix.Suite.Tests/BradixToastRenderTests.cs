@@ -1,20 +1,15 @@
+using System;
+using System.Threading.Tasks;
 using Bunit;
-using Bunit.JSInterop;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Presence;
-using Soenneker.Bradix.Suite.Toast;
-using System;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixToastRenderTests : Bunit.BunitContext
+public sealed class BradixToastRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 

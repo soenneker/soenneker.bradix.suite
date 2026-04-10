@@ -1,4 +1,4 @@
-namespace Soenneker.Bradix.Suite.Checkbox;
+namespace Soenneker.Bradix;
 
 public enum BradixCheckboxCheckedState
 {

@@ -1,6 +1,7 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject IBradixIdGenerator IdGenerator
 
 <CascadingValue Value="this">
     @ChildContent

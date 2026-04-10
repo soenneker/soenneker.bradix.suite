@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
-namespace Soenneker.Bradix.Suite.Select;
+namespace Soenneker.Bradix;
 
 internal interface IBradixSelectItem
 {

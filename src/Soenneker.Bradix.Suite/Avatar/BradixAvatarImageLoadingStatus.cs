@@ -1,4 +1,4 @@
-namespace Soenneker.Bradix.Suite.Avatar;
+namespace Soenneker.Bradix;
 
 public enum BradixAvatarImageLoadingStatus
 {

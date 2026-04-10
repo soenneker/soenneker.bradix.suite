@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Components;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
 
-namespace Soenneker.Bradix.Suite.NavigationMenu;
+namespace Soenneker.Bradix;
 
 internal interface IBradixNavigationMenuTrigger
 {

@@ -1,7 +1,7 @@
-@using Soenneker.Bradix.Suite.Base
-@using Soenneker.Bradix.Suite.Collapsible
+@namespace Soenneker.Bradix
+
 @inherits BradixComponentBase
-@inject Id.IBradixIdGenerator IdGenerator
+@inject IBradixIdGenerator IdGenerator
 
 <CascadingValue Value="this">
     <BradixCollapsible Id="@Id"

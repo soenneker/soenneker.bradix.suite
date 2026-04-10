@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Soenneker.Bradix.Suite.Form;
+namespace Soenneker.Bradix;
 
 public sealed class BradixFormDataSnapshot
 {

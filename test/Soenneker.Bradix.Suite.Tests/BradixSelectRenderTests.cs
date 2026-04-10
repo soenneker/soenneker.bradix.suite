@@ -1,20 +1,15 @@
+using System.Linq;
+using System.Threading.Tasks;
 using Bunit;
-using Bunit.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Presence;
-using Soenneker.Bradix.Suite.Select;
-using System.Threading.Tasks;
-using System.Linq;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixSelectRenderTests : Bunit.BunitContext
+public sealed class BradixSelectRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 
@@ -62,7 +57,7 @@ public sealed class BradixSelectRenderTests : Bunit.BunitContext
         var cut = Render(CreateSelect());
         var trigger = cut.Find("button[role='combobox']");
 
-        trigger.KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowDown" });
+        trigger.KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
 
         cut.WaitForAssertion(() =>
         {
@@ -79,7 +74,7 @@ public sealed class BradixSelectRenderTests : Bunit.BunitContext
         var cut = Render(CreateSelect(defaultValue: "orange"));
         var trigger = cut.Find("button[role='combobox']");
 
-        trigger.KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "l" });
+        trigger.KeyDown(new KeyboardEventArgs { Key = "l" });
 
         cut.WaitForAssertion(() =>
         {
@@ -95,7 +90,7 @@ public sealed class BradixSelectRenderTests : Bunit.BunitContext
 
         var lime = cut.FindAll("[role='option']").First(item => item.TextContent.Contains("Lime"));
 
-        lime.KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+        lime.KeyDown(new KeyboardEventArgs { Key = "Enter" });
 
         cut.WaitForAssertion(() =>
         {

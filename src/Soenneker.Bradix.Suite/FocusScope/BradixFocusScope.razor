@@ -1,8 +1,9 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 <div @ref="_element"
      @attributes="ScopeAttributes">
@@ -15,6 +16,8 @@
     private bool _registered;
     private bool? _lastLoop;
     private bool? _lastTrapped;
+    private bool? _lastPreventMountAutoFocus;
+    private bool? _lastPreventUnmountAutoFocus;
 
     [Parameter]
     public bool Loop { get; set; }
@@ -28,6 +31,12 @@
     [Parameter]
     public EventCallback OnUnmountAutoFocus { get; set; }
 
+    [Parameter]
+    public bool PreventMountAutoFocus { get; set; }
+
+    [Parameter]
+    public bool PreventUnmountAutoFocus { get; set; }
+
     private Dictionary<string, object> ScopeAttributes => BuildAttributes(
         ("tabindex", -1));
 
@@ -36,18 +45,22 @@
         if (firstRender)
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterFocusScope(_element, _dotNetReference, Loop, Trapped);
+            await Interop.RegisterFocusScope(_element, _dotNetReference, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus);
             _registered = true;
             _lastLoop = Loop;
             _lastTrapped = Trapped;
+            _lastPreventMountAutoFocus = PreventMountAutoFocus;
+            _lastPreventUnmountAutoFocus = PreventUnmountAutoFocus;
             return;
         }
 
-        if (_lastLoop != Loop || _lastTrapped != Trapped)
+        if (_lastLoop != Loop || _lastTrapped != Trapped || _lastPreventMountAutoFocus != PreventMountAutoFocus || _lastPreventUnmountAutoFocus != PreventUnmountAutoFocus)
         {
-            await Interop.UpdateFocusScope(_element, Loop, Trapped);
+            await Interop.UpdateFocusScope(_element, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus);
             _lastLoop = Loop;
             _lastTrapped = Trapped;
+            _lastPreventMountAutoFocus = PreventMountAutoFocus;
+            _lastPreventUnmountAutoFocus = PreventUnmountAutoFocus;
         }
     }
 

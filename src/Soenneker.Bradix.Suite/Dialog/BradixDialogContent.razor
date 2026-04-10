@@ -1,7 +1,8 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 @if (ShouldRenderContainer)
 {
@@ -203,6 +204,7 @@
     private RenderFragment RenderContentTree() => @<BradixFocusGuards>
         <BradixFocusScope Loop
                           Trapped="ShouldTrapFocus"
+                          PreventUnmountAutoFocus="true"
                           OnMountAutoFocus="HandleOpenAutoFocusAsync"
                           OnUnmountAutoFocus="HandleCloseAutoFocusAsync">
             <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"

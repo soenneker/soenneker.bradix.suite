@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Soenneker.Bradix.Suite.Typeahead;
+namespace Soenneker.Bradix;
 
 /// <summary>
 /// Implements the matching rules Radix uses for transient typeahead selection.

@@ -1,4 +1,4 @@
-namespace Soenneker.Bradix.Suite.Presence;
+namespace Soenneker.Bradix;
 
 public sealed class BradixPresenceSnapshot
 {

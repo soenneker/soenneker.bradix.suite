@@ -1,4 +1,4 @@
-namespace Soenneker.Bradix.Suite.Menubar;
+namespace Soenneker.Bradix;
 
 public sealed class BradixMenubarActiveElementState
 {

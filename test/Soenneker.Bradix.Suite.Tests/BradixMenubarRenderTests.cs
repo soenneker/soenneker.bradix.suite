@@ -1,20 +1,13 @@
 using Bunit;
-using Bunit.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Checkbox;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Menubar;
-using Soenneker.Bradix.Suite.Presence;
-using System.Linq;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixMenubarRenderTests : Bunit.BunitContext
+public sealed class BradixMenubarRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 

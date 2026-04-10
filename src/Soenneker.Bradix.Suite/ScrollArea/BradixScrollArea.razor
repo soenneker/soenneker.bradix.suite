@@ -1,11 +1,10 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @using Microsoft.JSInterop
-@using System
-@using System.Linq
 @using System.Threading
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 <CascadingValue Value="this">
     <div @ref="_element"

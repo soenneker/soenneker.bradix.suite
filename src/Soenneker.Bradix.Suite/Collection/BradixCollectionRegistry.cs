@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Soenneker.Bradix.Suite.Collection;
+namespace Soenneker.Bradix;
 
 /// <summary>
 /// Reusable ordered registry for menu/select style item collections.

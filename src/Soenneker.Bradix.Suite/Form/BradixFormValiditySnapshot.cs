@@ -1,4 +1,4 @@
-namespace Soenneker.Bradix.Suite.Form;
+namespace Soenneker.Bradix;
 
 public sealed class BradixFormValiditySnapshot
 {

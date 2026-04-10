@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
 
-namespace Soenneker.Bradix.Suite.Base;
+namespace Soenneker.Bradix;
 
 /// <summary>
 /// Minimal primitive base for id/class/style/attribute composition.

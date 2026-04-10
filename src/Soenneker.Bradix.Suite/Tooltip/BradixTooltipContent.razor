@@ -1,5 +1,9 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject BradixSuiteInterop Interop
 
 @if (IsPresent)
 {
@@ -20,20 +24,29 @@
                              Style="@PositionerStyle">
             <BradixPresence Present="IsPresent"
                             Tag="div"
-                            Id="@ResolvedContentId"
                             Class="@Class"
                             Style="@Style"
                             AdditionalAttributes="@TooltipAttributes">
-                <div @onpointerenter="HandlePointerEnterAsync"
+                <div @ref="_contentElement"
+                     @onpointerenter="HandlePointerEnterAsync"
                      @onpointerleave="HandlePointerLeaveAsync">
                     @ChildContent
                 </div>
+                <BradixVisuallyHidden Id="@Tooltip?.ContentId"
+                                      AdditionalAttributes="@AccessibleTooltipAttributes">
+                    @AccessibleTooltipContent
+                </BradixVisuallyHidden>
             </BradixPresence>
         </BradixPopperContent>
     </BradixDismissableLayer>
 }
 
 @code {
+    private ElementReference _contentElement;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _contentRegistered;
+    private string? _accessibleLabel;
+
     [CascadingParameter]
     private BradixTooltip? Tooltip { get; set; }
 
@@ -78,10 +91,10 @@
 
     private bool IsPresent => ForceMount || PortalForceMount || Tooltip?.CurrentOpen == true;
 
-    private string? ResolvedContentId => string.IsNullOrWhiteSpace(Id) ? Tooltip?.ContentId : Id;
-
     private string PositionerStyle =>
         "--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-available-width: var(--radix-popper-available-width); --radix-tooltip-content-available-height: var(--radix-popper-available-height); --radix-tooltip-trigger-width: var(--radix-popper-anchor-width); --radix-tooltip-trigger-height: var(--radix-popper-anchor-height);";
+
+    private string AccessibleTooltipContent => AriaLabel ?? _accessibleLabel ?? string.Empty;
 
     private IReadOnlyDictionary<string, object> TooltipAttributes
     {
@@ -91,14 +104,58 @@
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
-            attributes["role"] = "tooltip";
             attributes["data-state"] = Tooltip?.StateAttribute ?? "closed";
-
-            if (!string.IsNullOrWhiteSpace(AriaLabel))
-                attributes["aria-label"] = AriaLabel;
 
             return attributes;
         }
+    }
+
+    private IReadOnlyDictionary<string, object> AccessibleTooltipAttributes =>
+        new Dictionary<string, object>
+        {
+            ["role"] = "tooltip"
+        };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!IsPresent || Tooltip is null)
+        {
+            if (_contentRegistered)
+            {
+                await Interop.UnregisterTooltipContent(_contentElement);
+                _contentRegistered = false;
+            }
+
+            return;
+        }
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+
+        if (!_contentRegistered)
+        {
+            await Interop.RegisterTooltipContent(_contentElement, Tooltip.TriggerElement, _dotNetReference, Tooltip.ContentId,
+                !Tooltip.EffectiveDisableHoverableContent);
+            _contentRegistered = true;
+        }
+
+        if (string.IsNullOrWhiteSpace(AriaLabel))
+        {
+            string textContent = await Interop.GetTextContent(_contentElement);
+
+            if (!string.Equals(_accessibleLabel, textContent, StringComparison.Ordinal))
+            {
+                _accessibleLabel = textContent;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_contentRegistered)
+            await Interop.UnregisterTooltipContent(_contentElement);
+
+        _dotNetReference?.Dispose();
     }
 
     private async Task HandleEscapeKeyDownAsync()
@@ -133,5 +190,30 @@
             return Task.CompletedTask;
 
         return Tooltip?.HandleContentLeaveAsync() ?? Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleTooltipOpenFromOutsideAsync()
+    {
+        return Tooltip?.CloseAsync() ?? Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleTooltipTriggerScrollAsync()
+    {
+        return Tooltip?.CloseAsync() ?? Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleTooltipGraceAreaExitAsync()
+    {
+        return Tooltip?.CloseAsync() ?? Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandlePointerGraceAreaChangedAsync(bool inTransit)
+    {
+        Tooltip?.SetPointerInTransit(inTransit);
+        return Task.CompletedTask;
     }
 }

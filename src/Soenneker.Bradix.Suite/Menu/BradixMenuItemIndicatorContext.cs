@@ -1,6 +1,4 @@
-using Soenneker.Bradix.Suite.Checkbox;
-
-namespace Soenneker.Bradix.Suite.Menu;
+namespace Soenneker.Bradix;
 
 internal sealed class BradixMenuItemIndicatorContext
 {

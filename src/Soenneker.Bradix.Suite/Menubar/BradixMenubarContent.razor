@@ -1,8 +1,7 @@
-@using System.Collections.Generic
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 @if (ShouldRenderContainer)
 {
@@ -13,6 +12,7 @@
     private bool _wasPresent;
     private bool _isExiting;
     private bool _hasInteractedOutside;
+    private ElementReference _contentElement;
 
     [CascadingParameter]
     private BradixMenubar? Menubar { get; set; }
@@ -130,8 +130,13 @@
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
 
-        if (Menu is not null)
+        if (Menu is null)
+            return;
+
+        if (MenubarMenu?.WasKeyboardTriggerOpen == true)
             await Menu.FocusFirstItemAsync();
+        else
+            await _contentElement.FocusAsync();
     }
 
     private async Task HandleCloseAutoFocusAsync()
@@ -220,9 +225,17 @@
         return InvokeAsync(StateHasChanged);
     }
 
+    private Task HandleContentElementCapturedAsync(ElementReference element)
+    {
+        _contentElement = element;
+        return Task.CompletedTask;
+    }
+
     private RenderFragment RenderContentTree() => @<BradixFocusGuards>
         <BradixFocusScope Loop="@Loop"
                           Trapped="false"
+                          PreventMountAutoFocus="true"
+                          PreventUnmountAutoFocus="true"
                           OnMountAutoFocus="HandleOpenAutoFocusAsync"
                           OnUnmountAutoFocus="HandleCloseAutoFocusAsync">
             <BradixDismissableLayer DisableOutsidePointerEvents="false"
@@ -248,6 +261,7 @@
                                     Class="@Class"
                                     Style="@MergedContentStyle"
                                     AdditionalAttributes="@PresenceAttributes"
+                                    OnElementReferenceCaptured="@HandleContentElementCapturedAsync"
                                     OnExitComplete="@HandleExitCompleteAsync">
                         @ChildContent
                     </BradixPresence>

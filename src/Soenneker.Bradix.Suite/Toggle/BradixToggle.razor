@@ -1,5 +1,9 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject BradixSuiteInterop Interop
 
 <button @ref="_element"
         @onclick="HandleClick"
@@ -13,7 +17,9 @@
 @code {
     private bool _initialized;
     private bool _uncontrolledPressed;
+    private bool _delegatedInteractionReady;
     private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [Parameter]
     public bool? Pressed { get; set; }
@@ -64,6 +70,27 @@
         _initialized = true;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+        {
+            click = new
+            {
+                method = nameof(HandleDelegatedClickAsync)
+            }
+        });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnregisterDelegatedInteraction(_element);
+        _dotNetReference?.Dispose();
+    }
+
     internal ValueTask FocusAsync()
     {
         return _element.FocusAsync();
@@ -74,7 +101,7 @@
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);
 
-        if (Disabled)
+        if (_delegatedInteractionReady || Disabled)
             return;
 
         await SetPressedAsync(!IsPressed);
@@ -113,5 +140,18 @@
             await OnPressedChange.InvokeAsync(pressed);
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        _delegatedInteractionReady = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    {
+        return Disabled ? Task.CompletedTask : SetPressedAsync(!IsPressed);
     }
 }

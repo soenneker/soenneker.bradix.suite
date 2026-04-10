@@ -1,18 +1,12 @@
+using System.Threading.Tasks;
 using Bunit;
-using Bunit.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.DismissableLayer;
-using Soenneker.Bradix.Suite.HoverCard;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Presence;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixHoverCardRenderTests : Bunit.BunitContext
+public sealed class BradixHoverCardRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 
@@ -46,6 +40,14 @@ public sealed class BradixHoverCardRenderTests : Bunit.BunitContext
         var cut = Render(CreateHoverCard(defaultOpen: true));
 
         Assert.Contains("Hover card body", cut.Markup);
+    }
+
+    [Fact]
+    public void Trigger_does_not_add_synthetic_tabindex_when_href_is_missing()
+    {
+        var cut = Render(CreateHoverCard());
+
+        Assert.Null(cut.Find("a").GetAttribute("tabindex"));
     }
 
     [Fact]

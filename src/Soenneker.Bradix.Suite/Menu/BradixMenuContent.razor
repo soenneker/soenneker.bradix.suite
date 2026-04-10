@@ -1,8 +1,8 @@
-@using System.Collections.Generic
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 @if (ShouldRenderContainer)
 {
@@ -23,6 +23,7 @@
     private bool _isExiting;
     private bool _hasInteractedOutside;
     private bool _hideOthersRegistered;
+    private ElementReference _contentElement;
     private ElementReference _layerElement;
 
     [CascadingParameter]
@@ -171,8 +172,13 @@
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
 
-        if (Menu is not null)
+        if (Menu is null)
+            return;
+
+        if (Menu.ConsumeFocusFirstItemOnOpen())
             await Menu.FocusFirstItemAsync();
+        else
+            await _contentElement.FocusAsync();
     }
 
     private async Task HandleCloseAutoFocusAsync()
@@ -242,6 +248,8 @@
         <BradixFocusGuards>
             <BradixFocusScope Loop="@Loop"
                               Trapped="ShouldTrapFocus"
+                              PreventMountAutoFocus="true"
+                              PreventUnmountAutoFocus="true"
                               OnMountAutoFocus="HandleOpenAutoFocusAsync"
                               OnUnmountAutoFocus="HandleCloseAutoFocusAsync">
                 <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
@@ -268,6 +276,7 @@
                                         Class="@Class"
                                         Style="@MergedContentStyle"
                                         AdditionalAttributes="@PresenceAttributes"
+                                        OnElementReferenceCaptured="@HandleContentElementCapturedAsync"
                                         OnExitComplete="@HandleExitCompleteAsync">
                             @ChildContent
                         </BradixPresence>
@@ -286,6 +295,12 @@
             await Interop.RegisterHideOthers(_layerElement);
             _hideOthersRegistered = true;
         }
+    }
+
+    private Task HandleContentElementCapturedAsync(ElementReference element)
+    {
+        _contentElement = element;
+        return Task.CompletedTask;
     }
 
     private async Task CleanupAfterExitAsync()

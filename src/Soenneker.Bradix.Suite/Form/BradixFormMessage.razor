@@ -1,8 +1,8 @@
-@using System
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @implements IDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject IBradixIdGenerator IdGenerator
 
 @if (ShouldDisplay)
 {

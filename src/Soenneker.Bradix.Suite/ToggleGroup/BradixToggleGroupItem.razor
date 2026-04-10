@@ -1,9 +1,10 @@
-@using Soenneker.Bradix.Suite.Base
-@using Soenneker.Bradix.Suite.Toggle
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject IBradixIdGenerator IdGenerator
+@inject BradixSuiteInterop Interop
 
 <BradixToggle @ref="_toggle"
               Id="@Id"
@@ -22,7 +23,9 @@
 
 @code {
     private BradixToggle? _toggle;
+    private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
+    private bool _rovingFocusBridgeReady;
 
     [CascadingParameter]
     internal BradixToggleGroup Group { get; set; } = null!;
@@ -58,7 +61,21 @@
             }
 
             if (Group.RovingFocus)
+            {
                 attributes["tabindex"] = Group.IsCurrentTabStop(this) ? 0 : -1;
+                attributes["data-bradix-roving-group"] = Group.GroupId;
+                attributes["data-bradix-roving-item"] = string.Empty;
+
+                if (TabStopId is not null)
+                    attributes["data-bradix-roving-item-id"] = TabStopId;
+
+                if (Group.Orientation is not null)
+                    attributes["data-bradix-roving-orientation"] = Group.Orientation;
+
+                attributes["data-bradix-roving-dir"] = Group.ResolvedDirection;
+                attributes["data-bradix-roving-loop"] = Group.Loop ? "true" : "false";
+                attributes["data-bradix-prevent-mousedown-when-disabled"] = "true";
+            }
 
             if (Group.Orientation is not null)
                 attributes["data-orientation"] = Group.Orientation;
@@ -81,13 +98,18 @@
         _registered = true;
 
         if (Group.RovingFocus && _toggle is not null)
-            await Interop.RegisterRovingFocusNavigationKeys(_toggle.Element);
+        {
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterRovingFocusNavigationKeys(_toggle.Element, _dotNetReference);
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
         if (Group.RovingFocus && _toggle is not null)
             await Interop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
+
+        _dotNetReference?.Dispose();
 
         if (_registered)
             Group.UnregisterItem(this);
@@ -116,6 +138,9 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
+            return Task.CompletedTask;
+
         return Group.HandleItemKeyDownAsync(this, args);
     }
 
@@ -124,5 +149,12 @@
         return pressed
             ? Group.ActivateItemAsync(Value)
             : Group.DeactivateItemAsync(Value);
+    }
+
+    [JSInvokable]
+    public Task HandleRovingFocusBridgeReadyAsync()
+    {
+        _rovingFocusBridgeReady = true;
+        return Task.CompletedTask;
     }
 }

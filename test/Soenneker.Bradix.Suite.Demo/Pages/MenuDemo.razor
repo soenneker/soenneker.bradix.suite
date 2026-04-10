@@ -85,8 +85,10 @@
             </BradixMenu>
 
             <p><strong>Last selection:</strong> @(_selection ?? "(none)")</p>
-            <p><strong>Bookmarks:</strong> @(_bookmarksChecked == Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
-            <p><strong>Line numbers:</strong> @(_lineNumbersChecked == Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
+            <p><strong>Bookmarks:</strong> @(_bookmarksChecked == BradixCheckboxCheckedState.Checked ? "on" : "off")
+            </p>
+            <p><strong>Line numbers:</strong> @(_lineNumbersChecked == BradixCheckboxCheckedState.Checked ? "on" : "off")
+            </p>
             <p><strong>Sort:</strong> @_sortValue</p>
         </article>
 
@@ -114,8 +116,8 @@
 @code {
     private bool _modalOpen;
     private bool _nonModalOpen;
-    private Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState _bookmarksChecked = Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState.Checked;
-    private Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState _lineNumbersChecked = Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState.Unchecked;
+    private BradixCheckboxCheckedState _bookmarksChecked = BradixCheckboxCheckedState.Checked;
+    private BradixCheckboxCheckedState _lineNumbersChecked = BradixCheckboxCheckedState.Unchecked;
     private string? _selection;
     private string _sortValue = "name";
 
@@ -149,13 +151,13 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleBookmarksChanged(Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState state)
+    private Task HandleBookmarksChanged(BradixCheckboxCheckedState state)
     {
         _bookmarksChecked = state;
         return Task.CompletedTask;
     }
 
-    private Task HandleLineNumbersChanged(Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState state)
+    private Task HandleLineNumbersChanged(BradixCheckboxCheckedState state)
     {
         _lineNumbersChecked = state;
         return Task.CompletedTask;

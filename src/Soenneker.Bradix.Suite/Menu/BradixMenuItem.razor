@@ -1,12 +1,9 @@
-@using System
-@using System.Collections.Generic
-@using Soenneker.Bradix.Suite.Base
-@using Microsoft.JSInterop
+@namespace Soenneker.Bradix
 @implements IAsyncDisposable
 @implements IBradixMenuItem
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject IBradixIdGenerator IdGenerator
+@inject BradixSuiteInterop Interop
 
 <div @ref="_element"
      @onclick="HandleClickAsync"

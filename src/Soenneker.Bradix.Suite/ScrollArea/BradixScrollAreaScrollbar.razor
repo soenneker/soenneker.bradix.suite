@@ -1,7 +1,8 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 @using Microsoft.JSInterop
 
 @if (ScrollArea.ShouldRenderScrollbar(Orientation, ForceMount))

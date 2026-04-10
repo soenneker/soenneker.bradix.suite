@@ -1,20 +1,13 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Bunit;
-using Bunit.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.DismissableLayer;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Popover;
-using Soenneker.Bradix.Suite.Presence;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixPopoverRenderTests : Bunit.BunitContext
+public sealed class BradixPopoverRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 
@@ -40,6 +33,8 @@ public sealed class BradixPopoverRenderTests : Bunit.BunitContext
         _module.SetupVoid("unregisterHideOthers", _ => true).SetVoidResult();
         _module.SetupVoid("registerRemoveScroll", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 

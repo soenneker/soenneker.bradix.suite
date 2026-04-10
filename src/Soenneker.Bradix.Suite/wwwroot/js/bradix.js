@@ -1,6 +1,9 @@
 const collapsibleObservers = new WeakMap();
 const rovingFocusHandlers = new WeakMap();
 const radioGroupItemHandlers = new WeakMap();
+const delegatedInteractionHandlers = new WeakMap();
+const tooltipTriggerHandlers = new WeakMap();
+const tooltipContentHandlers = new WeakMap();
 const checkboxRootHandlers = new WeakMap();
 const formRootHandlers = new WeakMap();
 const sliderPointerHandlers = new WeakMap();
@@ -29,6 +32,7 @@ const popperContentHandlers = new WeakMap();
 const selectItemAlignedHandlers = new WeakMap();
 const presenceHandlers = new WeakMap();
 let focusGuardsCount = 0;
+let delegatedInteractionListenersRegistered = false;
 const hideOthersState = new WeakMap();
 let removeScrollCount = 0;
 const removeScrollAllowPinchZoomStack = [];
@@ -45,6 +49,7 @@ const rovingFocusKeys = new Set([
   "PageUp",
   "PageDown"
 ]);
+const TOOLTIP_OPEN_EVENT = "bradix.tooltip.open";
 
 function updateCollapsibleSize(element) {
   if (!element || element.hidden) {
@@ -88,31 +93,91 @@ export function unobserveCollapsibleContent(element) {
   collapsibleObservers.delete(element);
 }
 
-export function registerRovingFocusNavigationKeys(element) {
+export function registerRovingFocusNavigationKeys(element, dotNetRef) {
   if (!element) {
     return;
   }
 
   unregisterRovingFocusNavigationKeys(element);
 
-  const handler = (event) => {
-    if (rovingFocusKeys.has(event.key)) {
+  const keydown = (event) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (readBooleanDataAttribute(element, "bradixPreventEnter") && event.key === "Enter") {
+      event.preventDefault();
+      return;
+    }
+
+    if (readBooleanDataAttribute(element, "bradixSpaceClick") && (event.key === " " || event.key === "Spacebar")) {
+      event.preventDefault();
+      element.click();
+      return;
+    }
+
+    const groupId = element.getAttribute("data-bradix-roving-group");
+
+    if (!groupId) {
+      if (rovingFocusKeys.has(event.key)) {
+        event.preventDefault();
+      }
+
+      return;
+    }
+
+    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+      return;
+    }
+
+    const target = getRovingFocusTarget(element, event.key);
+
+    if (!target) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const clickOnFocus = readBooleanDataAttribute(element, "bradixRovingClickOnFocus");
+
+    setTimeout(() => {
+      target.focus();
+
+      if (clickOnFocus) {
+        target.click();
+      }
+    }, 0);
+  };
+
+  const mousedown = (event) => {
+    if (readBooleanDataAttribute(element, "bradixPreventNonprimaryMousedown") && (event.button !== 0 || event.ctrlKey)) {
+      event.preventDefault();
+      return;
+    }
+
+    if (readBooleanDataAttribute(element, "bradixPreventMousedownWhenDisabled") && !isRovingFocusableElement(element)) {
       event.preventDefault();
     }
   };
 
-  element.addEventListener("keydown", handler);
-  rovingFocusHandlers.set(element, handler);
+  element.addEventListener("keydown", keydown);
+  element.addEventListener("mousedown", mousedown);
+  rovingFocusHandlers.set(element, { keydown, mousedown });
+
+  if (dotNetRef) {
+    dotNetRef.invokeMethodAsync("HandleRovingFocusBridgeReadyAsync").catch(() => {});
+  }
 }
 
 export function unregisterRovingFocusNavigationKeys(element) {
-  const handler = rovingFocusHandlers.get(element);
+  const handlers = rovingFocusHandlers.get(element);
 
-  if (!handler) {
+  if (!handlers) {
     return;
   }
 
-  element.removeEventListener("keydown", handler);
+  element.removeEventListener("keydown", handlers.keydown);
+  element.removeEventListener("mousedown", handlers.mousedown);
   rovingFocusHandlers.delete(element);
 }
 
@@ -124,7 +189,7 @@ export function registerRadioGroupItemKeys(element) {
   unregisterRadioGroupItemKeys(element);
 
   const handler = (event) => {
-    if (rovingFocusKeys.has(event.key) || event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+    if (event.key === "Enter") {
       event.preventDefault();
     }
   };
@@ -142,6 +207,287 @@ export function unregisterRadioGroupItemKeys(element) {
 
   element.removeEventListener("keydown", handler);
   radioGroupItemHandlers.delete(element);
+}
+
+export function registerDelegatedInteraction(element, dotNetRef, options) {
+  if (!element || !dotNetRef) {
+    return;
+  }
+
+  delegatedInteractionHandlers.set(element, { dotNetRef, options: options || {} });
+  ensureDelegatedInteractionListeners();
+
+  dotNetRef.invokeMethodAsync("HandleDelegatedInteractionReadyAsync").catch(() => {});
+}
+
+export function unregisterDelegatedInteraction(element) {
+  if (!element) {
+    return;
+  }
+
+  delegatedInteractionHandlers.delete(element);
+}
+
+export function registerTooltipTrigger(element, dotNetRef) {
+  if (!element || !dotNetRef) {
+    return;
+  }
+
+  unregisterTooltipTrigger(element);
+
+  const pointerUp = () => {
+    dotNetRef.invokeMethodAsync("HandleDocumentPointerUpAsync").catch(() => {});
+  };
+
+  document.addEventListener("pointerup", pointerUp);
+  tooltipTriggerHandlers.set(element, { pointerUp });
+}
+
+export function unregisterTooltipTrigger(element) {
+  const handlers = tooltipTriggerHandlers.get(element);
+
+  if (!handlers) {
+    return;
+  }
+
+  document.removeEventListener("pointerup", handlers.pointerUp);
+  tooltipTriggerHandlers.delete(element);
+}
+
+export function dispatchTooltipOpen(contentId) {
+  document.dispatchEvent(new CustomEvent(TOOLTIP_OPEN_EVENT, {
+    detail: { contentId: contentId || "" }
+  }));
+}
+
+export function registerTooltipContent(content, trigger, dotNetRef, contentId, hoverableContent) {
+  if (!content || !trigger || !dotNetRef) {
+    return;
+  }
+
+  unregisterTooltipContent(content);
+
+  const tooltipOpen = (event) => {
+    if (event.detail && event.detail.contentId === contentId) {
+      return;
+    }
+
+    dotNetRef.invokeMethodAsync("HandleTooltipOpenFromOutsideAsync").catch(() => {});
+  };
+
+  const scroll = (event) => {
+    const target = event.target;
+
+    if (target instanceof HTMLElement && target.contains(trigger)) {
+      dotNetRef.invokeMethodAsync("HandleTooltipTriggerScrollAsync").catch(() => {});
+    }
+  };
+
+  document.addEventListener(TOOLTIP_OPEN_EVENT, tooltipOpen);
+  window.addEventListener("scroll", scroll, { capture: true });
+
+  const state = {
+    trigger,
+    tooltipOpen,
+    scroll,
+    triggerLeave: null,
+    contentLeave: null,
+    pointerMove: null,
+    pointerGraceArea: null
+  };
+
+  if (hoverableContent) {
+    const removeGraceArea = () => {
+      state.pointerGraceArea = null;
+
+      if (state.pointerMove) {
+        document.removeEventListener("pointermove", state.pointerMove);
+        state.pointerMove = null;
+      }
+
+      dotNetRef.invokeMethodAsync("HandlePointerGraceAreaChangedAsync", false).catch(() => {});
+    };
+
+    const createGraceArea = (event, hoverTarget) => {
+      const currentTarget = event.currentTarget;
+
+      if (!(currentTarget instanceof HTMLElement) || !(hoverTarget instanceof HTMLElement)) {
+        return;
+      }
+
+      const exitPoint = { x: event.clientX, y: event.clientY };
+      const exitSide = getExitSideFromRect(exitPoint, currentTarget.getBoundingClientRect());
+      const paddedExitPoints = getPaddedExitPoints(exitPoint, exitSide);
+      const hoverTargetPoints = getPointsFromRect(hoverTarget.getBoundingClientRect());
+      state.pointerGraceArea = getHull([...paddedExitPoints, ...hoverTargetPoints]);
+
+      dotNetRef.invokeMethodAsync("HandlePointerGraceAreaChangedAsync", true).catch(() => {});
+
+      if (state.pointerMove) {
+        document.removeEventListener("pointermove", state.pointerMove);
+      }
+
+      state.pointerMove = (moveEvent) => {
+        const target = moveEvent.target;
+        const pointerPosition = { x: moveEvent.clientX, y: moveEvent.clientY };
+        const hasEnteredTarget =
+          (trigger instanceof HTMLElement && trigger.contains(target)) ||
+          (content instanceof HTMLElement && content.contains(target));
+        const isPointerOutsideGraceArea =
+          state.pointerGraceArea && !isPointInPolygon(pointerPosition, state.pointerGraceArea);
+
+        if (hasEnteredTarget) {
+          removeGraceArea();
+        } else if (isPointerOutsideGraceArea) {
+          removeGraceArea();
+          dotNetRef.invokeMethodAsync("HandleTooltipGraceAreaExitAsync").catch(() => {});
+        }
+      };
+
+      document.addEventListener("pointermove", state.pointerMove);
+    };
+
+    state.triggerLeave = (event) => createGraceArea(event, content);
+    state.contentLeave = (event) => createGraceArea(event, trigger);
+
+    trigger.addEventListener("pointerleave", state.triggerLeave);
+    content.addEventListener("pointerleave", state.contentLeave);
+  }
+
+  tooltipContentHandlers.set(content, state);
+}
+
+export function unregisterTooltipContent(content) {
+  const handlers = tooltipContentHandlers.get(content);
+
+  if (!handlers) {
+    return;
+  }
+
+  document.removeEventListener(TOOLTIP_OPEN_EVENT, handlers.tooltipOpen);
+  window.removeEventListener("scroll", handlers.scroll, { capture: true });
+
+  if (handlers.triggerLeave && handlers.trigger) {
+    handlers.trigger.removeEventListener("pointerleave", handlers.triggerLeave);
+  }
+
+  if (handlers.contentLeave) {
+    content.removeEventListener("pointerleave", handlers.contentLeave);
+  }
+
+  if (handlers.pointerMove) {
+    document.removeEventListener("pointermove", handlers.pointerMove);
+  }
+
+  tooltipContentHandlers.delete(content);
+}
+
+function ensureDelegatedInteractionListeners() {
+  if (delegatedInteractionListenersRegistered) {
+    return;
+  }
+
+  delegatedInteractionListenersRegistered = true;
+
+  document.addEventListener("click", (event) => dispatchDelegatedInteraction("click", event));
+  document.addEventListener("mousedown", (event) => dispatchDelegatedInteraction("mousedown", event));
+  document.addEventListener("keydown", (event) => dispatchDelegatedInteraction("keydown", event));
+  document.addEventListener("focusin", (event) => dispatchDelegatedInteraction("focusin", event));
+}
+
+function dispatchDelegatedInteraction(type, event) {
+  const registration = findDelegatedInteractionRegistration(event.target);
+
+  if (!registration) {
+    return;
+  }
+
+  const config = registration.options && registration.options[type];
+
+  if (!config) {
+    return;
+  }
+
+  if (config.currentTargetOnly !== false && event.target !== registration.element) {
+    return;
+  }
+
+  if (config.checkForDefaultPrevented !== false && event.defaultPrevented) {
+    return;
+  }
+
+  if (Array.isArray(config.keys) && !config.keys.includes(event.key)) {
+    return;
+  }
+
+  if (typeof config.filter === "string" && config.filter === "primaryMousedown") {
+    if (event.button !== 0 || event.ctrlKey) {
+      return;
+    }
+  }
+
+  if (config.preventDefault) {
+    event.preventDefault();
+  }
+
+  if (!config.method) {
+    return;
+  }
+
+  registration.dotNetRef.invokeMethodAsync(config.method, createDelegatedEventSnapshot(type, event)).catch(() => {});
+}
+
+function findDelegatedInteractionRegistration(start) {
+  let node = start instanceof Node ? start : null;
+
+  while (node) {
+    if (node instanceof HTMLElement) {
+      const registration = delegatedInteractionHandlers.get(node);
+
+      if (registration) {
+        return {
+          element: node,
+          dotNetRef: registration.dotNetRef,
+          options: registration.options
+        };
+      }
+    }
+
+    node = node.parentNode;
+  }
+
+  return null;
+}
+
+function createDelegatedEventSnapshot(type, event) {
+  if (type === "click" || type === "mousedown") {
+    return {
+      button: typeof event.button === "number" ? event.button : 0,
+      ctrlKey: !!event.ctrlKey,
+      shiftKey: !!event.shiftKey,
+      altKey: !!event.altKey,
+      metaKey: !!event.metaKey,
+      detail: typeof event.detail === "number" ? event.detail : 0,
+      defaultPrevented: !!event.defaultPrevented
+    };
+  }
+
+  if (type === "keydown") {
+    return {
+      key: event.key || "",
+      code: event.code || "",
+      ctrlKey: !!event.ctrlKey,
+      shiftKey: !!event.shiftKey,
+      altKey: !!event.altKey,
+      metaKey: !!event.metaKey,
+      repeat: !!event.repeat,
+      defaultPrevented: !!event.defaultPrevented
+    };
+  }
+
+  return {
+    defaultPrevented: !!event.defaultPrevented
+  };
 }
 
 export function registerCheckboxRoot(element, dotNetRef) {
@@ -285,11 +631,129 @@ export function unregisterCheckboxRoot(element) {
   checkboxRootHandlers.delete(element);
 }
 
+export function isFormControl(element) {
+  if (!element) {
+    return false;
+  }
+
+  return !!(element.form || (typeof element.closest === "function" ? element.closest("form") : null));
+}
+
 function isInvalidFormControl(element) {
   return !!element && "validity" in element && (
     (element.validity && element.validity.valid === false) ||
     element.getAttribute("aria-invalid") === "true"
   );
+}
+
+function readBooleanDataAttribute(element, name) {
+  const value = element.getAttribute(`data-${toKebabCase(name)}`);
+  return value !== null && value !== "false";
+}
+
+function toKebabCase(value) {
+  return value.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+}
+
+function isRovingFocusableElement(element) {
+  if (!element) {
+    return false;
+  }
+
+  if (element.hasAttribute("disabled")) {
+    return false;
+  }
+
+  if (element.getAttribute("aria-disabled") === "true") {
+    return false;
+  }
+
+  return !element.hasAttribute("data-disabled");
+}
+
+function getRovingFocusTarget(element, key) {
+  const groupId = element.getAttribute("data-bradix-roving-group");
+
+  if (!groupId) {
+    return null;
+  }
+
+  const items = Array.from(document.querySelectorAll(`[data-bradix-roving-group="${cssEscape(groupId)}"]`))
+    .filter((candidate) => candidate instanceof HTMLElement)
+    .filter((candidate) => candidate.hasAttribute("data-bradix-roving-item"))
+    .filter((candidate) => isRovingFocusableElement(candidate));
+
+  const currentIndex = items.indexOf(element);
+
+  if (currentIndex < 0 || items.length === 0) {
+    return null;
+  }
+
+  const orientation = element.getAttribute("data-bradix-roving-orientation");
+  const dir = element.getAttribute("data-bradix-roving-dir") === "rtl" ? "rtl" : "ltr";
+  const loop = readBooleanDataAttribute(element, "bradixRovingLoop");
+  const intent = getRovingFocusIntent(key, orientation, dir);
+
+  if (!intent) {
+    return null;
+  }
+
+  if (intent === "first") {
+    return items[0];
+  }
+
+  if (intent === "last") {
+    return items[items.length - 1];
+  }
+
+  const nextIndex = currentIndex + intent;
+
+  if (nextIndex >= 0 && nextIndex < items.length) {
+    return items[nextIndex];
+  }
+
+  if (!loop) {
+    return null;
+  }
+
+  return intent < 0 ? items[items.length - 1] : items[0];
+}
+
+function getRovingFocusIntent(key, orientation, dir) {
+  const horizontal = orientation !== "vertical";
+  const previousKey = dir === "rtl" ? "ArrowRight" : "ArrowLeft";
+  const nextKey = dir === "rtl" ? "ArrowLeft" : "ArrowRight";
+
+  switch (key) {
+    case "Home":
+    case "PageUp":
+      return "first";
+    case "End":
+    case "PageDown":
+      return "last";
+    case "ArrowUp":
+      return horizontal ? null : -1;
+    case "ArrowDown":
+      return horizontal ? null : 1;
+    default:
+      if (key === previousKey) {
+        return horizontal ? -1 : null;
+      }
+
+      if (key === nextKey) {
+        return horizontal ? 1 : null;
+      }
+
+      return null;
+  }
+}
+
+function cssEscape(value) {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+    return CSS.escape(value);
+  }
+
+  return String(value).replace(/["\\]/g, "\\$&");
 }
 
 function createFormValiditySnapshot(element) {
@@ -331,16 +795,39 @@ function serializeFormDataSnapshot(form) {
   return { values };
 }
 
-export function syncCheckboxBubbleInputState(element, isChecked, isIndeterminate, dispatchEvent) {
+export function syncCheckboxBubbleInputState(element, isChecked, isIndeterminate, dispatchEvent, bubbles = true) {
   if (!element) {
     return;
   }
 
+  const control = element.previousElementSibling instanceof HTMLElement ? element.previousElementSibling : null;
+
+  if (control) {
+    const rect = control.getBoundingClientRect();
+
+    if (rect.width > 0) {
+      element.style.width = `${rect.width}px`;
+    }
+
+    if (rect.height > 0) {
+      element.style.height = `${rect.height}px`;
+    }
+  }
+
+  const inputProto = window.HTMLInputElement.prototype;
+  const descriptor = Object.getOwnPropertyDescriptor(inputProto, "checked");
+  const setChecked = descriptor && typeof descriptor.set === "function" ? descriptor.set : null;
+
   element.indeterminate = !!isIndeterminate;
-  element.checked = !!isChecked;
+
+  if (setChecked) {
+    setChecked.call(element, !!isChecked);
+  } else {
+    element.checked = !!isChecked;
+  }
 
   if (dispatchEvent) {
-    element.dispatchEvent(new Event("change", { bubbles: true }));
+    element.dispatchEvent(new Event("click", { bubbles: !!bubbles }));
   }
 }
 
@@ -1718,18 +2205,20 @@ function removeFocusScopeFromStack(scope) {
   }
 }
 
-export function registerFocusScope(element, dotNetRef, loop, trapped) {
+export async function registerFocusScope(element, dotNetRef, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus) {
   if (!element) {
     return;
   }
 
-  unregisterFocusScope(element);
+  await unregisterFocusScope(element);
 
   const scope = {
     element,
     dotNetRef,
     loop: !!loop,
     trapped: !!trapped,
+    preventMountAutoFocus: !!preventMountAutoFocus,
+    preventUnmountAutoFocus: !!preventUnmountAutoFocus,
     paused: false,
     lastFocusedElement: null,
     previouslyFocusedElement: document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -1826,17 +2315,19 @@ export function registerFocusScope(element, dotNetRef, loop, trapped) {
   const previous = scope.previouslyFocusedElement;
   const hasFocusedCandidate = previous && scope.element.contains(previous);
   if (!hasFocusedCandidate) {
-    dotNetRef.invokeMethodAsync("HandleMountAutoFocusAsync");
-    focusFirst(removeLinks(getTabbableCandidates(scope.element)), true);
-    if (document.activeElement === previous) {
-      focusElement(scope.element, false);
+    await dotNetRef.invokeMethodAsync("HandleMountAutoFocusAsync");
+    if (!scope.preventMountAutoFocus) {
+      focusFirst(removeLinks(getTabbableCandidates(scope.element)), true);
+      if (document.activeElement === previous) {
+        focusElement(scope.element, false);
+      }
     }
   }
 
   focusScopeHandlers.set(element, { scope, focusin, focusout, keydown, mutationObserver });
 }
 
-export function updateFocusScope(element, loop, trapped) {
+export function updateFocusScope(element, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus) {
   const handlers = focusScopeHandlers.get(element);
 
   if (!handlers) {
@@ -1845,9 +2336,11 @@ export function updateFocusScope(element, loop, trapped) {
 
   handlers.scope.loop = !!loop;
   handlers.scope.trapped = !!trapped;
+  handlers.scope.preventMountAutoFocus = !!preventMountAutoFocus;
+  handlers.scope.preventUnmountAutoFocus = !!preventUnmountAutoFocus;
 }
 
-export function unregisterFocusScope(element) {
+export async function unregisterFocusScope(element) {
   const handlers = focusScopeHandlers.get(element);
 
   if (!handlers) {
@@ -1859,8 +2352,10 @@ export function unregisterFocusScope(element) {
   element.removeEventListener("keydown", handlers.keydown);
   handlers.mutationObserver.disconnect();
 
-  handlers.scope.dotNetRef.invokeMethodAsync("HandleUnmountAutoFocusAsync");
-  focusElement(handlers.scope.previouslyFocusedElement || document.body, true);
+  await handlers.scope.dotNetRef.invokeMethodAsync("HandleUnmountAutoFocusAsync");
+  if (!handlers.scope.preventUnmountAutoFocus) {
+    focusElement(handlers.scope.previouslyFocusedElement || document.body, true);
+  }
   removeFocusScopeFromStack(handlers.scope);
 
   focusScopeHandlers.delete(element);
@@ -1996,22 +2491,60 @@ function updateRegisteredPopperContent(content) {
   const contentRect = handlers.content.getBoundingClientRect();
 
   const position = resolvePopperPosition(anchorRect, contentRect, handlers.options);
+  const nextPosition = {
+    placedSide: position.placedSide,
+    placedAlign: position.placedAlign,
+    left: position.left,
+    top: position.top,
+    availableWidth: position.availableWidth,
+    availableHeight: position.availableHeight,
+    anchorWidth: position.anchorWidth,
+    anchorHeight: position.anchorHeight,
+    arrowX: position.arrowX,
+    arrowY: position.arrowY,
+    shouldHideArrow: position.shouldHideArrow,
+    hidden: handlers.options.hideWhenDetached === true && position.referenceHidden,
+    transformOriginX: position.transformOriginX,
+    transformOriginY: position.transformOriginY
+  };
+
+  if (
+    handlers.lastPosition &&
+    handlers.lastPosition.placedSide === nextPosition.placedSide &&
+    handlers.lastPosition.placedAlign === nextPosition.placedAlign &&
+    handlers.lastPosition.left === nextPosition.left &&
+    handlers.lastPosition.top === nextPosition.top &&
+    handlers.lastPosition.availableWidth === nextPosition.availableWidth &&
+    handlers.lastPosition.availableHeight === nextPosition.availableHeight &&
+    handlers.lastPosition.anchorWidth === nextPosition.anchorWidth &&
+    handlers.lastPosition.anchorHeight === nextPosition.anchorHeight &&
+    handlers.lastPosition.arrowX === nextPosition.arrowX &&
+    handlers.lastPosition.arrowY === nextPosition.arrowY &&
+    handlers.lastPosition.shouldHideArrow === nextPosition.shouldHideArrow &&
+    handlers.lastPosition.hidden === nextPosition.hidden &&
+    handlers.lastPosition.transformOriginX === nextPosition.transformOriginX &&
+    handlers.lastPosition.transformOriginY === nextPosition.transformOriginY
+  ) {
+    return;
+  }
+
+  handlers.lastPosition = nextPosition;
   handlers.dotNetRef.invokeMethodAsync(
     "HandlePositionChangedAsync",
-    position.placedSide,
-    position.placedAlign,
-    position.left,
-    position.top,
-    position.availableWidth,
-    position.availableHeight,
-    position.anchorWidth,
-    position.anchorHeight,
-    position.arrowX,
-    position.arrowY,
-    position.shouldHideArrow,
-    handlers.options.hideWhenDetached === true && position.referenceHidden,
-    position.transformOriginX,
-    position.transformOriginY);
+    nextPosition.placedSide,
+    nextPosition.placedAlign,
+    nextPosition.left,
+    nextPosition.top,
+    nextPosition.availableWidth,
+    nextPosition.availableHeight,
+    nextPosition.anchorWidth,
+    nextPosition.anchorHeight,
+    nextPosition.arrowX,
+    nextPosition.arrowY,
+    nextPosition.shouldHideArrow,
+    nextPosition.hidden,
+    nextPosition.transformOriginX,
+    nextPosition.transformOriginY);
 }
 
 function createVirtualAnchor(x, y) {
@@ -2053,7 +2586,8 @@ export function registerPopperContent(anchor, content, arrow, dotNetRef, options
     dotNetRef,
     options: options || {},
     resizeObserver,
-    update
+    update,
+    lastPosition: null
   });
 
   update();
@@ -2084,7 +2618,8 @@ export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, op
     dotNetRef,
     options: options || {},
     resizeObserver,
-    update
+    update,
+    lastPosition: null
   });
 
   update();
@@ -2098,6 +2633,7 @@ export function updatePopperContent(content, arrow, options) {
 
   handlers.arrow = arrow instanceof Element ? arrow : null;
   handlers.options = options || {};
+  handlers.lastPosition = null;
   handlers.resizeObserver.disconnect();
   handlers.resizeObserver.observe(handlers.anchor);
   handlers.resizeObserver.observe(handlers.content);
@@ -2117,6 +2653,7 @@ export function updateVirtualPopperContent(content, arrow, x, y, options) {
   handlers.anchor = createVirtualAnchor(x, y);
   handlers.arrow = arrow instanceof Element ? arrow : null;
   handlers.options = options || {};
+  handlers.lastPosition = null;
   handlers.resizeObserver.disconnect();
   handlers.resizeObserver.observe(handlers.content);
   if (handlers.arrow) {

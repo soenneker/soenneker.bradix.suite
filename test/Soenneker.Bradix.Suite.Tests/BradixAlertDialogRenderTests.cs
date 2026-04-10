@@ -1,18 +1,13 @@
-using Bunit;
-using Bunit.JSInterop;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.AlertDialog;
-using Soenneker.Bradix.Suite.DismissableLayer;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Bunit;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixAlertDialogRenderTests : Bunit.BunitContext
+public sealed class BradixAlertDialogRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 
@@ -35,8 +30,10 @@ public sealed class BradixAlertDialogRenderTests : Bunit.BunitContext
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
         _module.SetupVoid("mountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
-        _module.Setup<Soenneker.Bradix.Suite.Presence.BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new Soenneker.Bradix.Suite.Presence.BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
+        _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
+            .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();

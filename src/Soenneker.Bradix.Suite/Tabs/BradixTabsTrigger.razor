@@ -1,7 +1,9 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 <button @ref="_element"
         @onmousedown="HandleMouseDown"
@@ -13,7 +15,10 @@
 
 @code {
     private ElementReference _element;
+    private bool _delegatedInteractionReady;
+    private bool _rovingFocusBridgeReady;
     private bool _registered;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     internal BradixTabs Tabs { get; set; } = null!;
@@ -54,6 +59,13 @@
         ("data-state", IsSelected ? "active" : "inactive"),
         ("data-disabled", Disabled ? string.Empty : null),
         ("data-orientation", Tabs.Orientation),
+        ("data-bradix-roving-group", Tabs.BaseId),
+        ("data-bradix-roving-item", string.Empty),
+        ("data-bradix-roving-item-id", TabStopId),
+        ("data-bradix-roving-orientation", Tabs.Orientation),
+        ("data-bradix-roving-dir", Tabs.ResolvedDirection),
+        ("data-bradix-roving-loop", (List?.Loop ?? true) ? "true" : "false"),
+        ("data-bradix-prevent-nonprimary-mousedown", "true"),
         ("disabled", Disabled ? true : null),
         ("id", TriggerId),
         ("tabindex", Tabs.IsCurrentTabStop(this) ? 0 : -1));
@@ -65,12 +77,28 @@
 
         Tabs.RegisterTrigger(this);
         _registered = true;
-        await Interop.RegisterRovingFocusNavigationKeys(_element);
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+        await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+        {
+            mousedown = new
+            {
+                method = nameof(HandleDelegatedMouseDownAsync),
+                filter = "primaryMousedown"
+            },
+            keydown = new
+            {
+                method = nameof(HandleDelegatedKeyDownAsync),
+                keys = new[] { "Enter", " ", "Spacebar" }
+            }
+        });
     }
 
     public async ValueTask DisposeAsync()
     {
         await Interop.UnregisterRovingFocusNavigationKeys(_element);
+        await Interop.UnregisterDelegatedInteraction(_element);
+        _dotNetReference?.Dispose();
 
         if (_registered)
             Tabs.UnregisterTrigger(this);
@@ -89,6 +117,9 @@
         if (Disabled)
             return;
 
+        if (_delegatedInteractionReady)
+            return;
+
         if (args.Button == 0 && !args.CtrlKey)
             await Tabs.SetValueAsync(Value);
     }
@@ -99,6 +130,12 @@
             await OnKeyDown.InvokeAsync(args);
 
         if (Disabled)
+            return;
+
+        if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
+            return;
+
+        if (_delegatedInteractionReady)
             return;
 
         if (args.Key is " " or "Enter")
@@ -122,5 +159,36 @@
 
         if (!IsSelected && Tabs.IsAutomaticActivation)
             await Tabs.SetValueAsync(Value);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        _delegatedInteractionReady = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedMouseDownAsync(BradixDelegatedMouseEvent _)
+    {
+        return Disabled ? Task.CompletedTask : Tabs.SetValueAsync(Value);
+    }
+
+    [JSInvokable]
+    public Task HandleRovingFocusBridgeReadyAsync()
+    {
+        _rovingFocusBridgeReady = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedKeyDownAsync(BradixDelegatedKeyboardEvent args)
+    {
+        if (Disabled)
+            return Task.CompletedTask;
+
+        return args.Key is " " or "Enter" or "Spacebar"
+            ? Tabs.SetValueAsync(Value)
+            : Task.CompletedTask;
     }
 }

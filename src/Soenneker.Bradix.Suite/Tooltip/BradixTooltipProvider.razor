@@ -1,3 +1,4 @@
+@namespace Soenneker.Bradix
 @using System.Threading
 @implements IAsyncDisposable
 
@@ -23,6 +24,8 @@
 
     internal bool IsOpenDelayed { get; private set; } = true;
 
+    internal bool IsPointerInTransit { get; private set; }
+
     internal async Task NotifyOpenAsync(BradixTooltip tooltip)
     {
         CancelSkipDelayTimer();
@@ -40,6 +43,11 @@
             _openTooltip = null;
 
         StartSkipDelayTimer();
+    }
+
+    internal void SetPointerInTransit(bool inTransit)
+    {
+        IsPointerInTransit = inTransit;
     }
 
     public ValueTask DisposeAsync()

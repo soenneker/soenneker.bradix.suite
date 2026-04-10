@@ -1,6 +1,6 @@
-@using Soenneker.Bradix.Suite.Base
-@using Soenneker.Bradix.Suite.RovingFocus
+@namespace Soenneker.Bradix
 @inherits BradixComponentBase
+@inject IBradixIdGenerator IdGenerator
 
 <CascadingValue Value="this">
     <div @attributes="RootAttributes">
@@ -23,6 +23,8 @@
     [Parameter]
     public string? Dir { get; set; }
 
+    internal string GroupId { get; private set; } = string.Empty;
+
     internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
 
     internal string? CurrentTabStopId { get; private set; }
@@ -31,6 +33,11 @@
         ("role", "toolbar"),
         ("aria-orientation", Orientation),
         ("dir", ResolvedDirection));
+
+    protected override void OnInitialized()
+    {
+        GroupId = IdGenerator.New("bradix-toolbar");
+    }
 
     protected override void OnParametersSet()
     {

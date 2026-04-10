@@ -1,8 +1,9 @@
+@namespace Soenneker.Bradix
 @using System.Threading
-@using Soenneker.Bradix.Suite.Base
+
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject IBradixIdGenerator IdGenerator
 
 <BradixPopper>
     <CascadingValue Value="this">

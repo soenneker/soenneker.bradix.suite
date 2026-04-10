@@ -1,19 +1,13 @@
+using System;
+using System.Collections.Generic;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using Soenneker.Bradix.Suite.AccessibleIcon;
-using Soenneker.Bradix.Suite.AspectRatio;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Label;
-using Soenneker.Bradix.Suite.Separator;
-using Soenneker.Bradix.Suite.VisuallyHidden;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixCorePrimitiveRenderTests : Bunit.BunitContext
+public sealed class BradixCorePrimitiveRenderTests : BunitContext
 {
     public BradixCorePrimitiveRenderTests()
     {

@@ -1,4 +1,4 @@
-namespace Soenneker.Bradix.Suite.Toast;
+namespace Soenneker.Bradix;
 
 public sealed class BradixToastSwipeEventArgs
 {

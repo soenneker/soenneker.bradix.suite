@@ -1,11 +1,10 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Soenneker.Bradix.Suite.Progress;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixProgressRenderTests : Bunit.BunitContext
+public sealed class BradixProgressRenderTests : BunitContext
 {
     [Fact]
     public void Progress_renders_loading_state_and_aria_values()

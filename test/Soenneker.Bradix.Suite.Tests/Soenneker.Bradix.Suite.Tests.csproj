@@ -8,7 +8,7 @@
         <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
         <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
         <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
-
+        <Features>use-roslyn-tokenizer;$(Features)</Features>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,15 +1,13 @@
+using System.Linq;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Popper;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixPopperRenderTests : Bunit.BunitContext
+public sealed class BradixPopperRenderTests : BunitContext
 {
     public BradixPopperRenderTests()
     {
@@ -77,6 +75,46 @@ public sealed class BradixPopperRenderTests : Bunit.BunitContext
     }
 
     [Fact]
+    public async Task Duplicate_position_updates_do_not_trigger_additional_rerenders()
+    {
+        int placedCount = 0;
+
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixPopper>(0);
+            builder.AddAttribute(1, nameof(BradixPopper.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixPopperAnchor>(0);
+                content.AddAttribute(1, nameof(BradixPopperAnchor.ChildContent), (RenderFragment)(anchor =>
+                {
+                    anchor.OpenElement(0, "button");
+                    anchor.AddContent(1, "Anchor");
+                    anchor.CloseElement();
+                }));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixPopperContent>(2);
+                content.AddAttribute(3, nameof(BradixPopperContent.OnPlaced), EventCallback.Factory.Create(this, () => placedCount++));
+                content.AddAttribute(4, nameof(BradixPopperContent.ChildContent), (RenderFragment)(popperContent =>
+                {
+                    popperContent.AddContent(0, "Content");
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        var content = cut.FindComponent<BradixPopperContent>();
+        await content.Instance.HandlePositionChangedAsync("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
+        string markup = cut.Markup;
+
+        await content.Instance.HandlePositionChangedAsync("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
+
+        Assert.Equal(markup, cut.Markup);
+        Assert.Equal(1, placedCount);
+    }
+
+    [Fact]
     public void Popper_registers_rtl_direction_in_positioning_options()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
@@ -86,7 +124,7 @@ public sealed class BradixPopperRenderTests : Bunit.BunitContext
 
         Render(builder =>
         {
-            builder.OpenComponent<Soenneker.Bradix.Suite.Direction.BradixDirectionProvider>(0);
+            builder.OpenComponent<BradixDirectionProvider>(0);
             builder.AddAttribute(1, "Dir", "rtl");
             builder.AddAttribute(2, "ChildContent", (RenderFragment)(content =>
             {

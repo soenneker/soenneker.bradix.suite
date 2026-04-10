@@ -1,12 +1,8 @@
-@using System
-@using System.Collections.Generic
+@namespace Soenneker.Bradix
 @using System.Linq
-@using Soenneker.Bradix.Suite.Base
-@using Soenneker.Bradix.Suite.Collection
-@using Soenneker.Bradix.Suite.RovingFocus
-@using Soenneker.Bradix.Suite.Typeahead
+
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject IBradixIdGenerator IdGenerator
 
 <BradixPopper>
     <CascadingValue Name="BradixMenuRoot" Value="RootMenu">
@@ -20,6 +16,7 @@
     private readonly BradixCollectionRegistry<IBradixMenuItem> _items = new();
     private readonly BradixTypeaheadBuffer _typeahead = new();
     private bool _initialized;
+    private bool _focusFirstItemOnOpen;
     private bool _uncontrolledOpen;
 
     [CascadingParameter(Name = "BradixDirection")]
@@ -144,6 +141,18 @@
         _typeahead.Reset();
     }
 
+    internal void SetFocusFirstItemOnOpen(bool value)
+    {
+        _focusFirstItemOnOpen = value;
+    }
+
+    internal bool ConsumeFocusFirstItemOnOpen()
+    {
+        bool shouldFocusFirstItemOnOpen = _focusFirstItemOnOpen;
+        _focusFirstItemOnOpen = false;
+        return shouldFocusFirstItemOnOpen;
+    }
+
     internal async Task FocusFirstItemAsync()
     {
         IBradixMenuItem? first = GetEnabledItems().FirstOrDefault();
@@ -195,7 +204,10 @@
             _uncontrolledOpen = open;
 
         if (!open)
+        {
             ResetTypeahead();
+            _focusFirstItemOnOpen = false;
+        }
 
         if (OpenChanged.HasDelegate)
             await OpenChanged.InvokeAsync(open);

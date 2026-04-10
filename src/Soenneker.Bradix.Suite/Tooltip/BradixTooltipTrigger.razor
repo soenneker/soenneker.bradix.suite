@@ -1,9 +1,14 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject BradixSuiteInterop Interop
 
 <BradixPopperAnchor>
-    <button @onclick="HandleClickAsync"
-            @onpointerenter="HandlePointerEnterAsync"
+    <button @ref="_triggerElement"
+            @onclick="HandleClickAsync"
+            @onpointermove="HandlePointerMoveAsync"
             @onpointerleave="HandlePointerLeaveAsync"
             @onpointerdown="HandlePointerDown"
             @onpointerup="HandlePointerUp"
@@ -15,7 +20,10 @@
 </BradixPopperAnchor>
 
 @code {
+    private bool _hasPointerMoveOpened;
     private bool _pointerDown;
+    private ElementReference _triggerElement;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     private BradixTooltip? Tooltip { get; set; }
@@ -24,16 +32,35 @@
         ("aria-describedby", Tooltip?.CurrentOpen == true ? Tooltip.ContentId : null),
         ("data-state", Tooltip?.StateAttribute));
 
-    private Task HandlePointerEnterAsync(PointerEventArgs args)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (args.PointerType == "touch" || Tooltip is null)
+        if (!firstRender || Tooltip is null)
+            return;
+
+        Tooltip.RegisterTrigger(_triggerElement);
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterTooltipTrigger(_triggerElement, _dotNetReference);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnregisterTooltipTrigger(_triggerElement);
+        _dotNetReference?.Dispose();
+    }
+
+    private Task HandlePointerMoveAsync(PointerEventArgs args)
+    {
+        if (args.PointerType == "touch" || Tooltip is null || _hasPointerMoveOpened || Tooltip.IsPointerInTransit)
             return Task.CompletedTask;
 
+        _hasPointerMoveOpened = true;
         return Tooltip.HandleTriggerEnterAsync();
     }
 
     private Task HandlePointerLeaveAsync(PointerEventArgs args)
     {
+        _hasPointerMoveOpened = false;
+
         if (Tooltip is null)
             return Task.CompletedTask;
 
@@ -74,5 +101,12 @@
         return Tooltip is null
             ? Task.CompletedTask
             : Tooltip.HandleTriggerClickAsync();
+    }
+
+    [JSInvokable]
+    public Task HandleDocumentPointerUpAsync()
+    {
+        _pointerDown = false;
+        return Task.CompletedTask;
     }
 }

@@ -1,14 +1,11 @@
 using Bunit;
-using Bunit.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.RemoveScroll;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixRemoveScrollRenderTests : Bunit.BunitContext
+public sealed class BradixRemoveScrollRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 

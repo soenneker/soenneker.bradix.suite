@@ -1,6 +1,7 @@
-@using Soenneker.Bradix.Suite.Base
-@using Soenneker.Bradix.Suite.RovingFocus
+@namespace Soenneker.Bradix
+
 @inherits BradixComponentBase
+@inject IBradixIdGenerator IdGenerator
 
 <CascadingValue Value="this">
     <div @attributes="RootAttributes">
@@ -62,6 +63,8 @@
     [Parameter]
     public EventCallback<IReadOnlyCollection<string>> OnValuesChange { get; set; }
 
+    internal string GroupId { get; private set; } = string.Empty;
+
     internal string? CurrentTabStopId { get; private set; }
 
     internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
@@ -74,6 +77,11 @@
         ("role", "group"),
         ("dir", ResolvedDirection),
         ("data-orientation", NormalizedOrientation));
+
+    protected override void OnInitialized()
+    {
+        GroupId = IdGenerator.New("bradix-toggle-group");
+    }
 
     protected override void OnParametersSet()
     {

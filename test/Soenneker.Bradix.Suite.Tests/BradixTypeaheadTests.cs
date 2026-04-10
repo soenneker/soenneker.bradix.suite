@@ -1,4 +1,3 @@
-using Soenneker.Bradix.Suite.Typeahead;
 using System;
 using Xunit;
 

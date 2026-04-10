@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using System.Collections.Generic;
 
-namespace Soenneker.Bradix.Suite.NavigationMenu;
+namespace Soenneker.Bradix;
 
 public sealed class BradixNavigationMenuViewportRegistration
 {

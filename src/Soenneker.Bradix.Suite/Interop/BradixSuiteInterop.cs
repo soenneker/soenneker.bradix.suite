@@ -1,15 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Soenneker.Bradix.Suite.Presence;
-using Soenneker.Bradix.Suite.Abstract;
-using Soenneker.Bradix.Suite.Form;
-using Soenneker.Bradix.Suite.Menubar;
 
-namespace Soenneker.Bradix.Suite.Interop;
+namespace Soenneker.Bradix;
 
 public sealed class BradixSuiteInterop : ISuiteInterop
 {
@@ -39,10 +34,11 @@ public sealed class BradixSuiteInterop : ISuiteInterop
         await module.InvokeVoidAsync("unobserveCollapsibleContent", cancellationToken, element).ConfigureAwait(false);
     }
 
-    public async ValueTask RegisterRovingFocusNavigationKeys(ElementReference element, CancellationToken cancellationToken = default)
+    public async ValueTask RegisterRovingFocusNavigationKeys(ElementReference element, DotNetObjectReference<object>? dotNetReference = null,
+        CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
-        await module.InvokeVoidAsync("registerRovingFocusNavigationKeys", cancellationToken, element).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerRovingFocusNavigationKeys", cancellationToken, element, dotNetReference).ConfigureAwait(false);
     }
 
     public async ValueTask UnregisterRovingFocusNavigationKeys(ElementReference element, CancellationToken cancellationToken = default)
@@ -67,6 +63,50 @@ public sealed class BradixSuiteInterop : ISuiteInterop
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
         await module.InvokeVoidAsync("registerCheckboxRoot", cancellationToken, element, dotNetReference).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterDelegatedInteraction(ElementReference element, DotNetObjectReference<object> dotNetReference, object options,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerDelegatedInteraction", cancellationToken, element, dotNetReference, options).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterDelegatedInteraction(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterDelegatedInteraction", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterTooltipTrigger(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerTooltipTrigger", cancellationToken, element, dotNetReference).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterTooltipTrigger(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterTooltipTrigger", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask RegisterTooltipContent(ElementReference content, ElementReference trigger, DotNetObjectReference<object> dotNetReference, string contentId,
+        bool hoverableContent, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerTooltipContent", cancellationToken, content, trigger, dotNetReference, contentId, hoverableContent).ConfigureAwait(false);
+    }
+
+    public async ValueTask UnregisterTooltipContent(ElementReference content, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("unregisterTooltipContent", cancellationToken, content).ConfigureAwait(false);
+    }
+
+    public async ValueTask DispatchTooltipOpen(string contentId, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("dispatchTooltipOpen", cancellationToken, contentId).ConfigureAwait(false);
     }
 
     public async ValueTask RegisterFormRoot(ElementReference element, CancellationToken cancellationToken = default)
@@ -121,10 +161,18 @@ public sealed class BradixSuiteInterop : ISuiteInterop
         await module.InvokeVoidAsync("unregisterCheckboxRoot", cancellationToken, element).ConfigureAwait(false);
     }
 
-    public async ValueTask SyncCheckboxBubbleInputState(ElementReference element, bool isChecked, bool isIndeterminate, bool dispatchEvent, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> IsFormControl(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
-        await module.InvokeVoidAsync("syncCheckboxBubbleInputState", cancellationToken, element, isChecked, isIndeterminate, dispatchEvent).ConfigureAwait(false);
+        return await module.InvokeAsync<bool>("isFormControl", cancellationToken, element).ConfigureAwait(false);
+    }
+
+    public async ValueTask SyncCheckboxBubbleInputState(ElementReference element, bool isChecked, bool isIndeterminate, bool dispatchEvent, bool bubbles = true,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
+        await module.InvokeVoidAsync("syncCheckboxBubbleInputState", cancellationToken, element, isChecked, isIndeterminate, dispatchEvent, bubbles)
+            .ConfigureAwait(false);
     }
 
     public async ValueTask ClickElement(ElementReference element, CancellationToken cancellationToken = default)
@@ -271,16 +319,20 @@ public sealed class BradixSuiteInterop : ISuiteInterop
         await module.InvokeVoidAsync("unregisterDismissableLayerBranch", cancellationToken, element).ConfigureAwait(false);
     }
 
-    public async ValueTask RegisterFocusScope(ElementReference element, DotNetObjectReference<object> dotNetReference, bool loop, bool trapped, CancellationToken cancellationToken = default)
+    public async ValueTask RegisterFocusScope(ElementReference element, DotNetObjectReference<object> dotNetReference, bool loop, bool trapped,
+        bool preventMountAutoFocus, bool preventUnmountAutoFocus, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
-        await module.InvokeVoidAsync("registerFocusScope", cancellationToken, element, dotNetReference, loop, trapped).ConfigureAwait(false);
+        await module.InvokeVoidAsync("registerFocusScope", cancellationToken, element, dotNetReference, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus)
+            .ConfigureAwait(false);
     }
 
-    public async ValueTask UpdateFocusScope(ElementReference element, bool loop, bool trapped, CancellationToken cancellationToken = default)
+    public async ValueTask UpdateFocusScope(ElementReference element, bool loop, bool trapped, bool preventMountAutoFocus, bool preventUnmountAutoFocus,
+        CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await GetModule(cancellationToken).ConfigureAwait(false);
-        await module.InvokeVoidAsync("updateFocusScope", cancellationToken, element, loop, trapped).ConfigureAwait(false);
+        await module.InvokeVoidAsync("updateFocusScope", cancellationToken, element, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus)
+            .ConfigureAwait(false);
     }
 
     public async ValueTask UnregisterFocusScope(ElementReference element, CancellationToken cancellationToken = default)

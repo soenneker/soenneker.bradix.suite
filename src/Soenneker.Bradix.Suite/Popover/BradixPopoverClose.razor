@@ -1,22 +1,65 @@
-@using Soenneker.Bradix.Suite.Base
-@inherits BradixComponentBase
+@namespace Soenneker.Bradix
 
-<button @onclick="HandleClickAsync"
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject BradixSuiteInterop Interop
+
+<button @ref="_button"
+        @onclick="HandleClickAsync"
         @attributes="ButtonAttributes">
     @ChildContent
 </button>
 
 @code {
+    private ElementReference _button;
+    private bool _delegatedInteractionReady;
+    private DotNetObjectReference<object>? _dotNetReference;
+
     [CascadingParameter]
     private BradixPopover? Popover { get; set; }
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"));
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+        {
+            click = new
+            {
+                method = nameof(HandleDelegatedClickAsync)
+            }
+        });
+    }
+
     private Task HandleClickAsync()
     {
-        return Popover is null
+        return Popover is null || _delegatedInteractionReady
             ? Task.CompletedTask
             : Popover.SetOpenAsync(false);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnregisterDelegatedInteraction(_button);
+        _dotNetReference?.Dispose();
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        _delegatedInteractionReady = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    {
+        return Popover is null ? Task.CompletedTask : Popover.SetOpenAsync(false);
     }
 }

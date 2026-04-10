@@ -1,21 +1,15 @@
+using System.Linq;
+using System.Threading.Tasks;
 using Bunit;
-using Bunit.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.NavigationMenu;
-using Soenneker.Bradix.Suite.Presence;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixNavigationMenuRenderTests : Bunit.BunitContext
+public sealed class BradixNavigationMenuRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 

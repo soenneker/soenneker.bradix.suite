@@ -6,8 +6,13 @@
         <Nullable>enable</Nullable>
         <Platforms>AnyCPU</Platforms>
         <NoWarn>$(NoWarn);1591</NoWarn>
+        <Features>use-roslyn-tokenizer;$(Features)</Features>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-        <TailwindGeneratorBuildEnabled>true</TailwindGeneratorBuildEnabled>
+        <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' != 'Release'">
+        <CompressionEnabled>false</CompressionEnabled>
     </PropertyGroup>
 
     <ItemGroup>

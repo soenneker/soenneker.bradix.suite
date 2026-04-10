@@ -1,14 +1,12 @@
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.FocusScope;
-using Soenneker.Bradix.Suite.Interop;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixFocusScopeRenderTests : Bunit.BunitContext
+public sealed class BradixFocusScopeRenderTests : BunitContext
 {
     public BradixFocusScopeRenderTests()
     {

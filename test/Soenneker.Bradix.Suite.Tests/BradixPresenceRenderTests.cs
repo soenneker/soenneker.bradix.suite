@@ -1,15 +1,13 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Presence;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixPresenceRenderTests : Bunit.BunitContext
+public sealed class BradixPresenceRenderTests : BunitContext
 {
     public BradixPresenceRenderTests()
     {

@@ -1,4 +1,4 @@
-namespace Soenneker.Bradix.Suite.Id;
+namespace Soenneker.Bradix;
 
 public interface IBradixIdGenerator
 {

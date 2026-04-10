@@ -1,8 +1,9 @@
-@using System
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 <button @ref="_button"
         @onpointerenter="HandlePointerEnterAsync"
@@ -35,8 +36,10 @@
     private ElementReference _button;
     private ElementReference _focusProxy;
     private bool _hasPointerMoveOpened;
+    private bool _rovingFocusBridgeReady;
     private bool _wasClickClose;
     private bool _focusProxyRegistered;
+    private DotNetObjectReference<object>? _dotNetReference;
     private TriggerRegistration? _registration;
 
     [CascadingParameter]
@@ -56,6 +59,12 @@
         ("disabled", Disabled ? true : null),
         ("data-disabled", Disabled ? string.Empty : null),
         ("data-state", IsOpen ? "open" : "closed"),
+        ("data-bradix-roving-group", NavigationMenu is not null ? $"{NavigationMenu.BaseId}-triggers" : null),
+        ("data-bradix-roving-item", string.Empty),
+        ("data-bradix-roving-item-id", Item?.ResolvedValue),
+        ("data-bradix-roving-orientation", NavigationMenu?.Orientation),
+        ("data-bradix-roving-dir", NavigationMenu?.ResolvedDirection),
+        ("data-bradix-roving-loop", "true"),
         ("aria-expanded", IsOpen ? "true" : "false"),
         ("aria-controls", Item?.ContentId),
         ("tabindex", NavigationMenu is not null && Item is not null && NavigationMenu.IsCurrentTabStop(Item) ? 0 : -1));
@@ -66,7 +75,8 @@
         {
             _registration = new TriggerRegistration(Item.ResolvedValue, Item.TriggerId, Disabled, _button);
             NavigationMenu.RegisterTrigger(_registration);
-            await Interop.RegisterRovingFocusNavigationKeys(_button);
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterRovingFocusNavigationKeys(_button, _dotNetReference);
         }
 
         if (NavigationMenu is not null && Item is not null)
@@ -88,6 +98,7 @@
     public async ValueTask DisposeAsync()
     {
         await Interop.UnregisterRovingFocusNavigationKeys(_button);
+        _dotNetReference?.Dispose();
 
         if (_focusProxyRegistered && Item is not null)
             NavigationMenu?.UnregisterFocusProxy(Item.ResolvedValue);
@@ -153,6 +164,9 @@
 
         if (args.Key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown" or "Home" or "End")
         {
+            if (_rovingFocusBridgeReady && args.Key is "ArrowLeft" or "ArrowRight" or "Home" or "End")
+                return;
+
             if (_registration is not null)
                 await NavigationMenu.HandleTriggerNavigationAsync(_registration, args);
 
@@ -161,6 +175,13 @@
 
         if (args.Key is "Enter" or " " or "Spacebar")
             await NavigationMenu.ToggleItemAsync(Item.ResolvedValue);
+    }
+
+    [JSInvokable]
+    public Task HandleRovingFocusBridgeReadyAsync()
+    {
+        _rovingFocusBridgeReady = true;
+        return Task.CompletedTask;
     }
 
     private sealed class TriggerRegistration(string value, string triggerId, bool disabled, ElementReference triggerElement) : IBradixNavigationMenuTrigger

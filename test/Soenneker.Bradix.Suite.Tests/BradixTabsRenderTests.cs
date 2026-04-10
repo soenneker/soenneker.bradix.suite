@@ -3,21 +3,19 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Direction;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Tabs;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixTabsRenderTests : Bunit.BunitContext
+public sealed class BradixTabsRenderTests : BunitContext
 {
     public BradixTabsRenderTests()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerRovingFocusNavigationKeys", _ => true);
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true);
+        module.SetupVoid("registerDelegatedInteraction", _ => true);
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
@@ -74,13 +72,13 @@ public sealed class BradixTabsRenderTests : Bunit.BunitContext
     }
 
     [Fact]
-    public void Force_mount_keeps_inactive_panel_in_dom_hidden()
+    public void Force_mount_keeps_inactive_panel_present_without_hidden_attribute()
     {
         var cut = Render(CreateTabs(defaultValue: "tab1", forceMount: true));
 
         var tab2Panel = cut.Find("#" + cut.FindAll("button")[1].GetAttribute("aria-controls"));
 
-        Assert.True(tab2Panel.HasAttribute("hidden"));
+        Assert.False(tab2Panel.HasAttribute("hidden"));
         Assert.Contains("Content 2", tab2Panel.TextContent);
     }
 

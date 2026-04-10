@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Soenneker.Bradix.Suite.Menu;
+namespace Soenneker.Bradix;
 
 internal sealed class BradixMenuRadioGroupContext
 {

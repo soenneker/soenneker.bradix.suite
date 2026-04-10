@@ -1,14 +1,12 @@
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.DismissableLayer;
-using Soenneker.Bradix.Suite.Interop;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixDismissableLayerRenderTests : Bunit.BunitContext
+public sealed class BradixDismissableLayerRenderTests : BunitContext
 {
     public BradixDismissableLayerRenderTests()
     {

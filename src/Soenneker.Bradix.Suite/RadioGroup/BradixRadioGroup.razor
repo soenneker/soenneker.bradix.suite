@@ -1,6 +1,7 @@
-@using Soenneker.Bradix.Suite.Base
-@using Soenneker.Bradix.Suite.RovingFocus
+@namespace Soenneker.Bradix
+
 @inherits BradixComponentBase
+@inject IBradixIdGenerator IdGenerator
 
 <CascadingValue Value="this">
     <div @attributes="RootAttributes">
@@ -47,6 +48,8 @@
     [Parameter]
     public bool Loop { get; set; } = true;
 
+    internal string GroupId { get; private set; } = string.Empty;
+
     internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
 
     internal string? CurrentValue => Value ?? _uncontrolledValue;
@@ -59,6 +62,11 @@
         ("aria-orientation", Orientation),
         ("data-disabled", Disabled ? string.Empty : null),
         ("dir", ResolvedDirection));
+
+    protected override void OnInitialized()
+    {
+        GroupId = IdGenerator.New("bradix-radio-group");
+    }
 
     protected override void OnParametersSet()
     {

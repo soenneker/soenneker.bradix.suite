@@ -1,9 +1,7 @@
-using Bunit;
-using Microsoft.AspNetCore.Components;
-using Soenneker.Bradix.Suite.Slot;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Bunit;
+using Microsoft.AspNetCore.Components;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;

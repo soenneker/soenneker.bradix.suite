@@ -1,11 +1,8 @@
-@using System
-@using System.Collections.Generic
+@namespace Soenneker.Bradix
 @using System.Linq
-@using Soenneker.Bradix.Suite.Base
-@using Soenneker.Bradix.Suite.Collection
-@using Soenneker.Bradix.Suite.Typeahead
+
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject IBradixIdGenerator IdGenerator
 
 <BradixPopper>
     <CascadingValue Value="this">
@@ -369,7 +366,7 @@
         if (currentIndex < 0)
             return;
 
-        if (!RovingFocus.BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, true, out int targetIndex))
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, true, out int targetIndex))
             return;
 
         IBradixSelectItem target = enabledItems[targetIndex];

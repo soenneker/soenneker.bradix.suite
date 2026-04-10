@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace Soenneker.Bradix.Suite.Slider;
+namespace Soenneker.Bradix;
 
 internal static class BradixSliderMath
 {

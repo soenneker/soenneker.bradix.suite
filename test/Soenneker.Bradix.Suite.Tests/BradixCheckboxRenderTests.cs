@@ -1,21 +1,21 @@
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Checkbox;
-using Soenneker.Bradix.Suite.Interop;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixCheckboxRenderTests : Bunit.BunitContext
+public sealed class BradixCheckboxRenderTests : BunitContext
 {
     public BradixCheckboxRenderTests()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        module.Setup<bool>("isFormControl", _ => true).SetResult(false);
         module.SetupVoid("registerCheckboxRoot", _ => true);
         module.SetupVoid("unregisterCheckboxRoot", _ => true);
+        module.SetupVoid("registerDelegatedInteraction", _ => true);
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
         module.SetupVoid("syncCheckboxBubbleInputState", _ => true);
 
         Services.AddScoped<BradixSuiteInterop>();
@@ -61,7 +61,8 @@ public sealed class BradixCheckboxRenderTests : Bunit.BunitContext
     {
         var cut = Render(CreateCheckbox(forceMountIndicator: true));
 
-        Assert.Single(cut.FindAll("span"));
+        var indicator = cut.Find("span");
+        Assert.Contains("pointer-events: none", indicator.GetAttribute("style"));
     }
 
     [Fact]

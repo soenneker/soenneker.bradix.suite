@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Soenneker.Bradix.Suite.NavigationMenu;
+namespace Soenneker.Bradix;
 
 internal interface IBradixNavigationMenuFocusGroupItem
 {

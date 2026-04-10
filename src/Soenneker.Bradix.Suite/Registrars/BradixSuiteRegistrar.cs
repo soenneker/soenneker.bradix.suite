@@ -1,10 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Soenneker.Blazor.Utils.ResourceLoader.Registrars;
-using Soenneker.Bradix.Suite.Abstract;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
 
-namespace Soenneker.Bradix.Suite.Registrars;
+namespace Soenneker.Bradix;
 
 /// <summary>
 /// Registration for the interop and utility services.

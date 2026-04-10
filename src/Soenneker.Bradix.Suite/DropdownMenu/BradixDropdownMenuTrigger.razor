@@ -1,4 +1,5 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @inherits BradixComponentBase
 
 <BradixDismissableLayerBranch>
@@ -49,6 +50,7 @@
 
     private Task HandlePointerDownAsync(PointerEventArgs args)
     {
+        Menu?.SetFocusFirstItemOnOpen(false);
         return Disabled || DropdownMenu is null || args.Button != 0 || args.CtrlKey
             ? Task.CompletedTask
             : DropdownMenu.ToggleOpenAsync();
@@ -58,6 +60,9 @@
     {
         if (Disabled || DropdownMenu is null)
             return Task.CompletedTask;
+
+        if (args.Key is "Enter" or " " or "Spacebar" or "ArrowDown")
+            Menu?.SetFocusFirstItemOnOpen(true);
 
         return args.Key switch
         {

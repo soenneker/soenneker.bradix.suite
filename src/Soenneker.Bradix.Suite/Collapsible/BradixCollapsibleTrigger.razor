@@ -1,5 +1,9 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject BradixSuiteInterop Interop
 
 <button @ref="_element"
         @onclick="HandleClick"
@@ -9,7 +13,9 @@
 </button>
 
 @code {
+    private bool _delegatedInteractionReady;
     private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     internal BradixCollapsible Collapsible { get; set; } = null!;
@@ -22,6 +28,8 @@
 
     [Parameter]
     public string? AriaDisabled { get; set; }
+
+    internal ElementReference Element => _element;
 
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
         ("type", "button"),
@@ -37,10 +45,34 @@
         return _element.FocusAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+        {
+            click = new
+            {
+                method = nameof(HandleDelegatedClickAsync)
+            }
+        });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnregisterDelegatedInteraction(_element);
+        _dotNetReference?.Dispose();
+    }
+
     private async Task HandleClick(MouseEventArgs args)
     {
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);
+
+        if (_delegatedInteractionReady)
+            return;
 
         await Collapsible.ToggleAsync();
     }
@@ -49,5 +81,18 @@
     {
         if (OnKeyDown.HasDelegate)
             await OnKeyDown.InvokeAsync(args);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        _delegatedInteractionReady = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    {
+        return Collapsible.ToggleAsync();
     }
 }

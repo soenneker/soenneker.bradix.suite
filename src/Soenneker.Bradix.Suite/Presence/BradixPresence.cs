@@ -3,10 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
-using Soenneker.Bradix.Suite.Base;
-using Soenneker.Bradix.Suite.Interop;
 
-namespace Soenneker.Bradix.Suite.Presence;
+namespace Soenneker.Bradix;
 
 public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
 {

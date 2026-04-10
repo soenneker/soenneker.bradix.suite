@@ -64,7 +64,8 @@
 
             <p><strong>Open:</strong> @_open</p>
             <p><strong>Last selection:</strong> @(_selection ?? "(none)")</p>
-            <p><strong>Bookmarks:</strong> @(_bookmarks == Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
+            <p><strong>Bookmarks:</strong> @(_bookmarks == BradixCheckboxCheckedState.Checked ? "on" : "off")
+            </p>
             <p><strong>Sort:</strong> @_sort</p>
         </article>
 
@@ -88,7 +89,7 @@
 @code {
     private bool _open;
     private string? _selection;
-    private Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState _bookmarks = Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState.Checked;
+    private BradixCheckboxCheckedState _bookmarks = BradixCheckboxCheckedState.Checked;
     private string _sort = "name";
 
     private Task HandleOpenChanged(bool open)
@@ -103,7 +104,7 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleBookmarksChanged(Soenneker.Bradix.Suite.Checkbox.BradixCheckboxCheckedState state)
+    private Task HandleBookmarksChanged(BradixCheckboxCheckedState state)
     {
         _bookmarks = state;
         return Task.CompletedTask;

@@ -1,8 +1,10 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject IBradixIdGenerator IdGenerator
+@inject BradixSuiteInterop Interop
 
 <CascadingValue Value="this">
     <button @ref="_element"
@@ -21,7 +23,9 @@
 
 @code {
     private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
+    private bool _rovingFocusBridgeReady;
 
     [CascadingParameter]
     internal BradixRadioGroup Group { get; set; } = null!;
@@ -50,6 +54,13 @@
         ("data-state", IsChecked ? "checked" : "unchecked"),
         ("data-disabled", IsDisabled ? string.Empty : null),
         ("data-orientation", Group.Orientation),
+        ("data-bradix-roving-group", Group.GroupId),
+        ("data-bradix-roving-item", string.Empty),
+        ("data-bradix-roving-item-id", TabStopId),
+        ("data-bradix-roving-orientation", Group.Orientation),
+        ("data-bradix-roving-dir", Group.ResolvedDirection),
+        ("data-bradix-roving-loop", Group.Loop ? "true" : "false"),
+        ("data-bradix-roving-click-on-focus", "true"),
         ("disabled", IsDisabled ? true : null),
         ("value", InputValue),
         ("tabindex", Group.IsCurrentTabStop(this) ? 0 : -1));
@@ -79,7 +90,8 @@
 
         Group.RegisterItem(this);
         _registered = true;
-        await Interop.RegisterRovingFocusNavigationKeys(_element);
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
         await Interop.RegisterRadioGroupItemKeys(_element);
     }
 
@@ -87,6 +99,7 @@
     {
         await Interop.UnregisterRovingFocusNavigationKeys(_element);
         await Interop.UnregisterRadioGroupItemKeys(_element);
+        _dotNetReference?.Dispose();
 
         if (_registered)
             Group.UnregisterItem(this);
@@ -115,8 +128,18 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
+            return Task.CompletedTask;
+
         return IsDisabled
             ? Task.CompletedTask
             : Group.HandleItemKeyDownAsync(this, args);
+    }
+
+    [JSInvokable]
+    public Task HandleRovingFocusBridgeReadyAsync()
+    {
+        _rovingFocusBridgeReady = true;
+        return Task.CompletedTask;
     }
 }

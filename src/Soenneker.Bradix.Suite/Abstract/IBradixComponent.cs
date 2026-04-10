@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Soenneker.Bradix.Suite.Abstract;
+namespace Soenneker.Bradix;
 
 /// <summary>
 /// A higher-level Blazor utility built on top of <see cref="ISuiteInterop"/>.

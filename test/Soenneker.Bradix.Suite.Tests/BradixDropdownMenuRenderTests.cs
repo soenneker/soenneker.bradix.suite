@@ -1,18 +1,12 @@
+using System.Linq;
 using Bunit;
-using Bunit.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Checkbox;
-using Soenneker.Bradix.Suite.DropdownMenu;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Presence;
-using System.Linq;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixDropdownMenuRenderTests : Bunit.BunitContext
+public sealed class BradixDropdownMenuRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 
@@ -82,6 +76,17 @@ public sealed class BradixDropdownMenuRenderTests : Bunit.BunitContext
             Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
             Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
         });
+    }
+
+    [Fact]
+    public void Opening_dropdown_registers_focus_scope_with_manual_autofocus_flags()
+    {
+        _ = Render(CreateDropdownMenu(defaultOpen: true));
+
+        var invocation = _module.Invocations.Single(call => call.Identifier == "registerFocusScope");
+
+        Assert.Equal(true, invocation.Arguments[4]);
+        Assert.Equal(true, invocation.Arguments[5]);
     }
 
     [Fact]

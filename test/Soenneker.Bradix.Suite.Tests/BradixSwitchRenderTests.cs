@@ -1,20 +1,21 @@
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Switch;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixSwitchRenderTests : Bunit.BunitContext
+public sealed class BradixSwitchRenderTests : BunitContext
 {
     public BradixSwitchRenderTests()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        module.Setup<bool>("isFormControl", _ => true).SetResult(false);
         module.SetupVoid("registerCheckboxRoot", _ => true);
         module.SetupVoid("unregisterCheckboxRoot", _ => true);
+        module.SetupVoid("registerDelegatedInteraction", _ => true);
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
         module.SetupVoid("syncCheckboxBubbleInputState", _ => true);
 
         Services.AddScoped<BradixSuiteInterop>();

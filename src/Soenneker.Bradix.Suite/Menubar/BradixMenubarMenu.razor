@@ -1,6 +1,6 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject IBradixIdGenerator IdGenerator
 
 <BradixMenu Open="@IsOpen"
             OpenChanged="HandleMenuOpenChangedAsync"
@@ -30,7 +30,7 @@
 
     internal string ContentId => $"{BaseId}-content";
 
-    internal bool IsOpen => string.Equals(Menubar?.CurrentValue, CurrentValue, System.StringComparison.Ordinal);
+    internal bool IsOpen => string.Equals(Menubar?.CurrentValue, CurrentValue, StringComparison.Ordinal);
 
     protected override void OnInitialized()
     {

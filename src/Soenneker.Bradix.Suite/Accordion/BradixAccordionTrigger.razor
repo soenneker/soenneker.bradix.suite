@@ -1,7 +1,10 @@
-@using Soenneker.Bradix.Suite.Base
-@using Soenneker.Bradix.Suite.Collapsible
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
 @implements IDisposable
+@implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject BradixSuiteInterop Interop
 
 <BradixCollapsibleTrigger @ref="_trigger"
                           Id="@Item.TriggerId"
@@ -15,6 +18,8 @@
 
 @code {
     private BradixCollapsibleTrigger? _trigger;
+    private bool _delegatedInteractionReady;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     internal BradixAccordion Accordion { get; set; } = null!;
@@ -43,15 +48,38 @@
         }
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-            Accordion.RegisterTrigger(this);
+        if (!firstRender)
+            return;
+
+        Accordion.RegisterTrigger(this);
+
+        if (_trigger is not null)
+        {
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDelegatedInteraction(_trigger.Element, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    method = nameof(HandleDelegatedKeyDownAsync),
+                    keys = new[] { "Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight" }
+                }
+            });
+        }
     }
 
     public void Dispose()
     {
         Accordion.UnregisterTrigger(this);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_trigger is not null)
+            await Interop.UnregisterDelegatedInteraction(_trigger.Element);
+
+        _dotNetReference?.Dispose();
     }
 
     internal ValueTask FocusAsync()
@@ -64,6 +92,31 @@
         if (OnKeyDown.HasDelegate)
             await OnKeyDown.InvokeAsync(args);
 
+        if (_delegatedInteractionReady)
+            return;
+
         await Accordion.HandleTriggerKeyDownAsync(this, args);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        _delegatedInteractionReady = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedKeyDownAsync(BradixDelegatedKeyboardEvent args)
+    {
+        return Accordion.HandleTriggerKeyDownAsync(this, new KeyboardEventArgs
+        {
+            Key = args.Key,
+            Code = args.Code,
+            CtrlKey = args.CtrlKey,
+            ShiftKey = args.ShiftKey,
+            AltKey = args.AltKey,
+            MetaKey = args.MetaKey,
+            Repeat = args.Repeat
+        });
     }
 }

@@ -1,16 +1,12 @@
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Direction;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.ScrollArea;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixScrollAreaRenderTests : Bunit.BunitContext
+public sealed class BradixScrollAreaRenderTests : BunitContext
 {
     public BradixScrollAreaRenderTests()
     {

@@ -1,8 +1,10 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
 @implements IAsyncDisposable
 @implements IBradixNavigationMenuFocusGroupItem
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 <a @ref="_element"
    @onclick="HandleClickAsync"
@@ -13,7 +15,9 @@
 
 @code {
     private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
+    private bool _rovingFocusBridgeReady;
 
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
@@ -29,7 +33,12 @@
 
     private Dictionary<string, object> LinkAttributes => BuildAttributes(
         ("data-active", Active ? string.Empty : null),
-        ("aria-current", Active ? "page" : null));
+        ("aria-current", Active ? "page" : null),
+        ("data-bradix-roving-group", FocusGroupId),
+        ("data-bradix-roving-item", string.Empty),
+        ("data-bradix-roving-orientation", NavigationMenu?.Orientation),
+        ("data-bradix-roving-dir", NavigationMenu?.ResolvedDirection),
+        ("data-bradix-roving-loop", "true"));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -42,12 +51,14 @@
             _registered = true;
         }
 
-        await Interop.RegisterRovingFocusNavigationKeys(_element);
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
     }
 
     public async ValueTask DisposeAsync()
     {
         await Interop.UnregisterRovingFocusNavigationKeys(_element);
+        _dotNetReference?.Dispose();
 
         if (_registered && NavigationMenu is not null && !string.IsNullOrWhiteSpace(FocusGroupId))
             NavigationMenu.UnregisterFocusGroupItem(FocusGroupId, this);
@@ -69,6 +80,16 @@
         if (NavigationMenu is null || string.IsNullOrWhiteSpace(FocusGroupId))
             return;
 
+        if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
+            return;
+
         await NavigationMenu.HandleFocusGroupItemKeyDownAsync(FocusGroupId, this, args);
+    }
+
+    [JSInvokable]
+    public Task HandleRovingFocusBridgeReadyAsync()
+    {
+        _rovingFocusBridgeReady = true;
+        return Task.CompletedTask;
     }
 }

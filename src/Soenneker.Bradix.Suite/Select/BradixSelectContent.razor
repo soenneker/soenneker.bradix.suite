@@ -1,17 +1,18 @@
-@using System
-@using System.Collections.Generic
+@namespace Soenneker.Bradix
 @using System.Threading
-@using Soenneker.Bradix.Suite.Base
+
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 @if (Select?.CurrentOpen == true || ForceMount)
 {
     <BradixRemoveScroll AllowPinchZoom>
         <BradixFocusGuards>
             <BradixFocusScope Trapped="true"
+                              PreventMountAutoFocus="true"
+                              PreventUnmountAutoFocus="true"
                               OnMountAutoFocus="@HandleOpenAutoFocusAsync"
                               OnUnmountAutoFocus="@HandleCloseAutoFocusAsync">
                 <BradixDismissableLayer DisableOutsidePointerEvents="true"

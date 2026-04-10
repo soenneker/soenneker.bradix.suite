@@ -1,8 +1,10 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @using System.Threading
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
+@inject IBradixIdGenerator IdGenerator
+@inject BradixSuiteInterop Interop
 
 <BradixPopper>
     <CascadingValue Value="this">
@@ -38,6 +40,8 @@
     [Parameter]
     public bool? DisableHoverableContent { get; set; }
 
+    internal ElementReference TriggerElement { get; private set; }
+
     internal string? BaseId { get; private set; }
 
     internal bool CurrentOpen => Open ?? _uncontrolledOpen;
@@ -51,6 +55,18 @@
     internal bool EffectiveDisableHoverableContent => DisableHoverableContent ?? Provider?.DisableHoverableContent ?? false;
 
     internal int EffectiveDelayDuration => DelayDuration ?? Provider?.DelayDuration ?? 700;
+
+    internal bool IsPointerInTransit => Provider?.IsPointerInTransit ?? false;
+
+    internal void SetPointerInTransit(bool inTransit)
+    {
+        Provider?.SetPointerInTransit(inTransit);
+    }
+
+    internal void RegisterTrigger(ElementReference triggerElement)
+    {
+        TriggerElement = triggerElement;
+    }
 
     protected override void OnInitialized()
     {
@@ -92,7 +108,7 @@
         if (EffectiveDisableHoverableContent)
             return CloseAsync();
 
-        StartCloseDelay();
+        CancelOpenDelay();
         return Task.CompletedTask;
     }
 
@@ -196,6 +212,9 @@
             _uncontrolledOpen = open;
 
         _openedWithDelay = open && delayed;
+
+        if (open)
+            await Interop.DispatchTooltipOpen(ContentId);
 
         if (OpenChanged.HasDelegate)
             await OpenChanged.InvokeAsync(open);

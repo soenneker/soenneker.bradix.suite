@@ -1,8 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Soenneker.Bradix.Suite.Abstract;
 
-namespace Soenneker.Bradix.Suite.Interop;
+namespace Soenneker.Bradix;
 
 public sealed class BradixComponent : IBradixComponent
 {

@@ -8,10 +8,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Serilog;
 using Serilog.Debugging;
-using Soenneker.Bradix.Suite.Registrars;
 using Soenneker.Serilog.Sinks.Browser.Blazor.Registrars;
 
-namespace Soenneker.Bradix.Suite.Demo;
+namespace Soenneker.Bradix.Demo;
 
 public sealed class Program
 {

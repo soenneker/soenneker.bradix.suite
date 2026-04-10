@@ -1,11 +1,10 @@
-@using System
-@using System.Collections.Generic
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @implements IAsyncDisposable
 @implements IBradixMenuItem
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject IBradixIdGenerator IdGenerator
+@inject BradixSuiteInterop Interop
 
 <div @ref="_element"
      @onclick="HandleClickAsync"
@@ -102,6 +101,7 @@
         if (Disabled)
             return;
 
+        SubMenu.SetFocusFirstItemOnOpen(false);
         await _element.FocusAsync();
         await SubMenu.SetOpenAsync(true);
     }
@@ -133,6 +133,7 @@
 
         if (isOpenKey)
         {
+            SubMenu.SetFocusFirstItemOnOpen(true);
             await SubMenu.SetOpenAsync(true);
             return;
         }
@@ -154,6 +155,9 @@
         await ParentContent.HandlePointerMoveAsync(this);
 
         if (!SubMenu.CurrentOpen)
+        {
+            SubMenu.SetFocusFirstItemOnOpen(false);
             await SubMenu.SetOpenAsync(true);
+        }
     }
 }

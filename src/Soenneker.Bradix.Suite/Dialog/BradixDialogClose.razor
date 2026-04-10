@@ -1,5 +1,9 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject BradixSuiteInterop Interop
 
 <button @onclick="HandleClickAsync"
         @ref="_button"
@@ -9,6 +13,8 @@
 
 @code {
     private ElementReference _button;
+    private bool _delegatedInteractionReady;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     private BradixDialog? Dialog { get; set; }
@@ -21,14 +27,45 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && OnElementReferenceCaptured.HasDelegate)
+        if (!firstRender)
+            return;
+
+        if (OnElementReferenceCaptured.HasDelegate)
             await OnElementReferenceCaptured.InvokeAsync(_button);
+
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+        {
+            click = new
+            {
+                method = nameof(HandleDelegatedClickAsync)
+            }
+        });
     }
 
     private Task HandleClickAsync()
     {
-        return Dialog is null
+        return Dialog is null || _delegatedInteractionReady
             ? Task.CompletedTask
             : Dialog.SetOpenAsync(false);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnregisterDelegatedInteraction(_button);
+        _dotNetReference?.Dispose();
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        _delegatedInteractionReady = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    {
+        return Dialog is null ? Task.CompletedTask : Dialog.SetOpenAsync(false);
     }
 }

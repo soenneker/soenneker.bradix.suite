@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Soenneker.Bradix.Suite.Collection;
+namespace Soenneker.Bradix;
 
 /// <summary>
 /// Ordered key/value storage modeled after the Radix collection substrate.

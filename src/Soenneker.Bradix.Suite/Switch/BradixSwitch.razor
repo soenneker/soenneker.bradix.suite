@@ -1,12 +1,14 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 <CascadingValue Value="this">
     <button @ref="_buttonElement"
             @onclick="HandleClick"
+            @onclick:stopPropagation="ShouldRenderBubbleInput"
             @attributes="ButtonAttributes">
         @ChildContent
     </button>
@@ -20,6 +22,8 @@
 
 @code {
     private bool _initialized;
+    private bool _delegatedInteractionReady;
+    private bool _isFormControl;
     private bool _registered;
     private bool _hasSyncedBubbleInput;
     private bool _initialUncheckedState;
@@ -60,7 +64,7 @@
 
     internal bool IsDisabled => Disabled;
 
-    private bool ShouldRenderBubbleInput => !string.IsNullOrWhiteSpace(Name) || !string.IsNullOrWhiteSpace(Form) || Required;
+    private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Name) || !string.IsNullOrWhiteSpace(Form) || Required;
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
@@ -115,7 +119,28 @@
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await Interop.RegisterCheckboxRoot(_buttonElement, _dotNetReference);
+            await Interop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new
+            {
+                click = new
+                {
+                    method = nameof(HandleDelegatedClickAsync)
+                },
+                keydown = new
+                {
+                    keys = new[] { "Enter" },
+                    preventDefault = true
+                }
+            });
             _registered = true;
+        }
+
+        bool isFormControl = await Interop.IsFormControl(_buttonElement);
+
+        if (_isFormControl != isFormControl)
+        {
+            _isFormControl = isFormControl;
+            await InvokeAsync(StateHasChanged);
+            return;
         }
 
         if (ShouldRenderBubbleInput)
@@ -131,12 +156,22 @@
     public async ValueTask DisposeAsync()
     {
         if (_registered)
+        {
+            await Interop.UnregisterDelegatedInteraction(_buttonElement);
             await Interop.UnregisterCheckboxRoot(_buttonElement);
+        }
 
         _dotNetReference?.Dispose();
     }
 
-    [Microsoft.JSInterop.JSInvokable]
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        _delegatedInteractionReady = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
     public Task HandleFormResetAsync()
     {
         if (Checked is not null)
@@ -147,6 +182,12 @@
     }
 
     private Task HandleClick()
+    {
+        return Disabled || _delegatedInteractionReady ? Task.CompletedTask : SetCheckedAsync(!CurrentChecked);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
     {
         return Disabled ? Task.CompletedTask : SetCheckedAsync(!CurrentChecked);
     }

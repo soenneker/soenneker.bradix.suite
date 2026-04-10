@@ -1,4 +1,4 @@
-namespace Soenneker.Bradix.Suite.Select;
+namespace Soenneker.Bradix;
 
 internal sealed class BradixSelectGroupContext
 {

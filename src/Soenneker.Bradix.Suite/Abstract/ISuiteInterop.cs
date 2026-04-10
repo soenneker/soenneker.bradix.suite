@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Soenneker.Bradix.Suite.Abstract;
+namespace Soenneker.Bradix;
 
 /// <summary>
 /// Blazor interop for browser-facing functionality exposed by this package.

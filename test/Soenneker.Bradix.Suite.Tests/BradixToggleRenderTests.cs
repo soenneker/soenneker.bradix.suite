@@ -1,12 +1,21 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Soenneker.Bradix.Suite.Toggle;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixToggleRenderTests : Bunit.BunitContext
+public sealed class BradixToggleRenderTests : BunitContext
 {
+    public BradixToggleRenderTests()
+    {
+        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        module.SetupVoid("registerDelegatedInteraction", _ => true);
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
+
+        Services.AddScoped<BradixSuiteInterop>();
+    }
+
     [Fact]
     public void Uncontrolled_toggle_updates_pressed_state_metadata()
     {

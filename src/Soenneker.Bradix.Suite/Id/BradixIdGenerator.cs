@@ -1,6 +1,6 @@
 using System.Threading;
 
-namespace Soenneker.Bradix.Suite.Id;
+namespace Soenneker.Bradix;
 
 /// <summary>
 /// Scoped id generator for Bradix primitives.

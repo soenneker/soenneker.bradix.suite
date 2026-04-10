@@ -1,25 +1,25 @@
-using Bunit;
-using Bunit.JSInterop;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.DismissableLayer;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
-using Soenneker.Bradix.Suite.Presence;
-using Soenneker.Bradix.Suite.Tooltip;
 using System.Linq;
 using System.Threading.Tasks;
+using Bunit;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixTooltipRenderTests : Bunit.BunitContext
+public sealed class BradixTooltipRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 
     public BradixTooltipRenderTests()
     {
         _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.SetupVoid("registerTooltipTrigger", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterTooltipTrigger", _ => true).SetVoidResult();
+        _module.SetupVoid("registerTooltipContent", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterTooltipContent", _ => true).SetVoidResult();
+        _module.SetupVoid("dispatchTooltipOpen", _ => true).SetVoidResult();
+        _module.Setup<string>("getTextContent", _ => true).SetResult("Tooltip body");
         _module.SetupVoid("registerDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("updateDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
@@ -50,6 +50,7 @@ public sealed class BradixTooltipRenderTests : Bunit.BunitContext
             var tooltip = cut.Find("[role='tooltip']");
             Assert.Equal(tooltip.Id, trigger.GetAttribute("aria-describedby"));
             Assert.Equal("instant-open", trigger.GetAttribute("data-state"));
+            Assert.DoesNotContain("role", cut.Find(".tooltip-content").Attributes.Select(attribute => attribute.Name));
         });
     }
 
@@ -100,7 +101,23 @@ public sealed class BradixTooltipRenderTests : Bunit.BunitContext
         Assert.Single(cut.FindAll(".tooltip-arrow-shape"));
     }
 
-    private static RenderFragment CreateTooltip(string triggerText = "Trigger", string contentText = "Tooltip body", bool defaultOpen = false, bool includeArrow = false)
+    [Fact]
+    public void Aria_label_is_rendered_in_hidden_tooltip_node()
+    {
+        var cut = Render(CreateTooltip(ariaLabel: "Accessible tooltip"));
+
+        cut.Find("button").Focus();
+
+        cut.WaitForAssertion(() =>
+        {
+            var tooltip = cut.Find("[role='tooltip']");
+            Assert.Equal("Accessible tooltip", tooltip.TextContent.Trim());
+            Assert.Null(cut.Find(".tooltip-content").GetAttribute("aria-label"));
+        });
+    }
+
+    private static RenderFragment CreateTooltip(string triggerText = "Trigger", string contentText = "Tooltip body", bool defaultOpen = false, bool includeArrow = false,
+        string? ariaLabel = null)
     {
         return builder =>
         {
@@ -121,7 +138,8 @@ public sealed class BradixTooltipRenderTests : Bunit.BunitContext
                 {
                     portal.OpenComponent<BradixTooltipContent>(0);
                     portal.AddAttribute(1, nameof(BradixTooltipContent.Class), "tooltip-content");
-                    portal.AddAttribute(2, nameof(BradixTooltipContent.ChildContent), (RenderFragment)(tooltipContent =>
+                    portal.AddAttribute(2, nameof(BradixTooltipContent.AriaLabel), ariaLabel);
+                    portal.AddAttribute(3, nameof(BradixTooltipContent.ChildContent), (RenderFragment)(tooltipContent =>
                     {
                         tooltipContent.AddContent(0, contentText);
 

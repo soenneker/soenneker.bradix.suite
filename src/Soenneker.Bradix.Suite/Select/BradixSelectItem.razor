@@ -1,11 +1,9 @@
-@using System
-@using Soenneker.Bradix.Suite.Base
-@using Microsoft.JSInterop
+@namespace Soenneker.Bradix
 @implements IAsyncDisposable
 @implements IBradixSelectItem
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Id.IBradixIdGenerator IdGenerator
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject IBradixIdGenerator IdGenerator
+@inject BradixSuiteInterop Interop
 
 <CascadingValue Value="this">
     <div @ref="_element"

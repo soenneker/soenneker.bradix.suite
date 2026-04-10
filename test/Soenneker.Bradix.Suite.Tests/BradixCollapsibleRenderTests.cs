@@ -3,9 +3,6 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Collapsible;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
@@ -17,6 +14,8 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("observeCollapsibleContent", _ => true);
         module.SetupVoid("unobserveCollapsibleContent", _ => true);
+        module.SetupVoid("registerDelegatedInteraction", _ => true);
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();

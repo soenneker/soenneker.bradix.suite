@@ -1,17 +1,13 @@
-using Bunit;
-using Bunit.JSInterop;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.Avatar;
-using Soenneker.Bradix.Suite.Id;
-using Soenneker.Bradix.Suite.Interop;
 using System;
 using System.Threading.Tasks;
+using Bunit;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixAvatarRenderTests : Bunit.BunitContext
+public sealed class BradixAvatarRenderTests : BunitContext
 {
     private readonly BunitJSModuleInterop _module;
 

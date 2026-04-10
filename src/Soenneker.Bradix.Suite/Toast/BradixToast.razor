@@ -1,9 +1,9 @@
+@namespace Soenneker.Bradix
 @using System.Threading
-@using Soenneker.Bradix.Suite.Base
-@using Soenneker.Bradix.Suite.Presence
+
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 @if (Provider?.HasViewport == true)
 {

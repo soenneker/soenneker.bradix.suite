@@ -1,10 +1,11 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @inherits BradixComponentBase
 
-@if (ForceMount || IsSelected)
+@if (Present)
 {
     <div @attributes="ContentAttributes">
-        @if (ForceMount || IsSelected)
+        @if (Present)
         {
             @ChildContent
         }
@@ -23,6 +24,8 @@
     [Parameter]
     public bool ForceMount { get; set; }
 
+    private bool Present => ForceMount || IsSelected;
+
     private bool IsSelected => string.Equals(Tabs.CurrentValue, Value, StringComparison.Ordinal);
 
     private string TriggerId => Tabs.MakeTriggerId(Value);
@@ -32,7 +35,7 @@
     private Dictionary<string, object> ContentAttributes => BuildAttributes(
         ("role", "tabpanel"),
         ("aria-labelledby", TriggerId),
-        ("hidden", !IsSelected ? true : null),
+        ("hidden", !Present ? true : null),
         ("id", ContentId),
         ("tabindex", 0),
         ("data-state", IsSelected ? "active" : "inactive"),

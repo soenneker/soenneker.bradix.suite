@@ -1,7 +1,8 @@
-@using Soenneker.Bradix.Suite.Base
+@namespace Soenneker.Bradix
+
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject Soenneker.Bradix.Suite.Interop.BradixSuiteInterop Interop
+@inject BradixSuiteInterop Interop
 
 <div @ref="_element"
      @attributes="PortalAttributes">
@@ -11,6 +12,7 @@
 @code {
     private ElementReference _element;
     private bool _mounted;
+    private string? _lastContainerSelector;
 
     [Parameter]
     public string? ContainerSelector { get; set; }
@@ -20,8 +22,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender && string.Equals(_lastContainerSelector, ContainerSelector, StringComparison.Ordinal))
+            return;
+
         await Interop.MountPortal(_element, ContainerSelector);
         _mounted = true;
+        _lastContainerSelector = ContainerSelector;
     }
 
     public async ValueTask DisposeAsync()

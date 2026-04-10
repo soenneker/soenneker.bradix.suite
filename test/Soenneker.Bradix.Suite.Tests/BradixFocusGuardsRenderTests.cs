@@ -1,13 +1,11 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Soenneker.Bradix.Suite.FocusGuards;
-using Soenneker.Bradix.Suite.Interop;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixFocusGuardsRenderTests : Bunit.BunitContext
+public sealed class BradixFocusGuardsRenderTests : BunitContext
 {
     public BradixFocusGuardsRenderTests()
     {

@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 
-namespace Soenneker.Bradix.Suite.RovingFocus;
+namespace Soenneker.Bradix;
 
 internal static class BradixRovingFocusNavigator
 {

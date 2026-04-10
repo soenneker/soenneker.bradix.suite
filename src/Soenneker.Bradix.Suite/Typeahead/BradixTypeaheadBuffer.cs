@@ -1,6 +1,6 @@
 using System;
 
-namespace Soenneker.Bradix.Suite.Typeahead;
+namespace Soenneker.Bradix;
 
 /// <summary>
 /// Tracks the transient typeahead search buffer Radix uses for menu/select navigation.
