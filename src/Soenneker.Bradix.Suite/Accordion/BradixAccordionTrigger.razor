@@ -1,0 +1,69 @@
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Collapsible
+@implements IDisposable
+@inherits BradixComponentBase
+
+<BradixCollapsibleTrigger @ref="_trigger"
+                          Id="@Item.TriggerId"
+                          Class="@Class"
+                          Style="@Style"
+                          AriaDisabled="@AriaDisabled"
+                          OnKeyDown="HandleKeyDown"
+                          AdditionalAttributes="TriggerAttributes">
+    @ChildContent
+</BradixCollapsibleTrigger>
+
+@code {
+    private BradixCollapsibleTrigger? _trigger;
+
+    [CascadingParameter]
+    internal BradixAccordion Accordion { get; set; } = null!;
+
+    [CascadingParameter]
+    internal BradixAccordionItem Item { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
+    internal bool IsDisabled => Item.IsDisabled;
+
+    private string? AriaDisabled => Item.IsOpen && !Accordion.IsCollapsible ? "true" : null;
+
+    private IReadOnlyDictionary<string, object> TriggerAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : [];
+
+            attributes["data-orientation"] = Accordion.Orientation;
+
+            return attributes;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            Accordion.RegisterTrigger(this);
+    }
+
+    public void Dispose()
+    {
+        Accordion.UnregisterTrigger(this);
+    }
+
+    internal ValueTask FocusAsync()
+    {
+        return _trigger?.FocusAsync() ?? ValueTask.CompletedTask;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (OnKeyDown.HasDelegate)
+            await OnKeyDown.InvokeAsync(args);
+
+        await Accordion.HandleTriggerKeyDownAsync(this, args);
+    }
+}

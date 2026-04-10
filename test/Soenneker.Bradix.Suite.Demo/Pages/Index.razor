@@ -1,15 +1,33 @@
 @page "/"
 @using Soenneker.Bradix.Suite.Abstract
-
 @inject IBradixComponent Suite
 
-<PageTitle>Soenneker.Bradix.Suite Demo</PageTitle>
+<PageTitle>Bradix Demo</PageTitle>
 
-<Div Space="Space.Y.Is4">
-    <Paragraph TextSize="TextSize.Sm" Class="text-muted-foreground">
-        Replace this page with package-specific demos. Initialization runs on first render below.
-    </Paragraph>
-</Div>
+<section class="stack">
+    <div class="card">
+        <h2>Current slice</h2>
+        <p>
+            This workspace now includes the foundational Bradix infrastructure plus fully demoable
+            <code>Collapsible</code> and <code>Accordion</code> primitives with controlled and uncontrolled state,
+            state metadata, and ARIA wiring aligned to Radix.
+        </p>
+    </div>
+
+    <div class="grid">
+        <article class="card">
+            <h3>Collapsible</h3>
+            <p>Open/closed state, trigger semantics, content ids, `forceMount`, and measured CSS variables.</p>
+            <NavLink class="demo-link" href="/collapsible">Open demo</NavLink>
+        </article>
+
+        <article class="card">
+            <h3>Accordion</h3>
+            <p>Single and multiple modes, collapsible policy, item/header/trigger/content decomposition, and keyboard navigation.</p>
+            <NavLink class="demo-link" href="/accordion">Open demo</NavLink>
+        </article>
+    </div>
+</section>
 
 @code {
     protected override async Task OnAfterRenderAsync(bool firstRender)

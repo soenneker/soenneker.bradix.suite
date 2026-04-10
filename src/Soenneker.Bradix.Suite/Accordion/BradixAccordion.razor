@@ -1,0 +1,221 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<CascadingValue Value="this">
+    <div @attributes="RootAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private const string SingleType = "single";
+    private const string MultipleType = "multiple";
+    private const string VerticalOrientation = "vertical";
+    private const string HorizontalOrientation = "horizontal";
+
+    private readonly List<BradixAccordionTrigger> _triggers = [];
+    private bool _initialized;
+    private string? _uncontrolledValue;
+    private HashSet<string> _uncontrolledValues = [];
+
+    [Parameter]
+    public string Type { get; set; } = SingleType;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string Orientation { get; set; } = VerticalOrientation;
+
+    [Parameter]
+    public string Dir { get; set; } = "ltr";
+
+    [Parameter]
+    public bool Collapsible { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    [Parameter]
+    public IReadOnlyCollection<string>? Values { get; set; }
+
+    [Parameter]
+    public IEnumerable<string>? DefaultValues { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyCollection<string>> ValuesChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyCollection<string>> OnValuesChange { get; set; }
+
+    internal bool IsCollapsible => Type == MultipleType || Collapsible;
+
+    private bool IsSingle => Type == SingleType;
+
+    private IReadOnlyDictionary<string, object> RootAttributes => BuildAttributes(
+        ("data-orientation", Orientation),
+        ("dir", Dir));
+
+    protected override void OnParametersSet()
+    {
+        Type = Type == MultipleType ? MultipleType : SingleType;
+        Orientation = Orientation == HorizontalOrientation ? HorizontalOrientation : VerticalOrientation;
+        Dir = Dir == "rtl" ? "rtl" : "ltr";
+
+        if (_initialized)
+            return;
+
+        _uncontrolledValue = DefaultValue;
+        _uncontrolledValues = DefaultValues is not null
+            ? new HashSet<string>(DefaultValues, StringComparer.Ordinal)
+            : [];
+
+        _initialized = true;
+    }
+
+    internal bool IsItemOpen(string value)
+    {
+        if (IsSingle)
+            return string.Equals(Value ?? _uncontrolledValue, value, StringComparison.Ordinal);
+
+        IReadOnlyCollection<string> values = Values ?? _uncontrolledValues;
+        return values.Contains(value);
+    }
+
+    internal async Task OpenItemAsync(string value)
+    {
+        if (IsSingle)
+        {
+            await SetSingleValueAsync(value);
+            return;
+        }
+
+        HashSet<string> next = Values is not null
+            ? new HashSet<string>(Values, StringComparer.Ordinal)
+            : new HashSet<string>(_uncontrolledValues, StringComparer.Ordinal);
+
+        if (next.Add(value))
+            await SetMultipleValuesAsync(next);
+    }
+
+    internal async Task CloseItemAsync(string value)
+    {
+        if (IsSingle)
+        {
+            if (!IsCollapsible)
+                return;
+
+            await SetSingleValueAsync(null);
+            return;
+        }
+
+        HashSet<string> next = Values is not null
+            ? new HashSet<string>(Values, StringComparer.Ordinal)
+            : new HashSet<string>(_uncontrolledValues, StringComparer.Ordinal);
+
+        if (next.Remove(value))
+            await SetMultipleValuesAsync(next);
+    }
+
+    internal void RegisterTrigger(BradixAccordionTrigger trigger)
+    {
+        if (_triggers.Contains(trigger))
+            return;
+
+        _triggers.Add(trigger);
+    }
+
+    internal void UnregisterTrigger(BradixAccordionTrigger trigger)
+    {
+        _triggers.Remove(trigger);
+    }
+
+    internal async Task HandleTriggerKeyDownAsync(BradixAccordionTrigger trigger, KeyboardEventArgs args)
+    {
+        List<BradixAccordionTrigger> enabledTriggers = _triggers
+            .Where(item => !item.IsDisabled)
+            .ToList();
+
+        if (enabledTriggers.Count == 0)
+            return;
+
+        int currentIndex = enabledTriggers.IndexOf(trigger);
+
+        if (currentIndex < 0)
+            return;
+
+        int nextIndex = currentIndex;
+
+        switch (args.Key)
+        {
+            case "Home":
+                nextIndex = 0;
+                break;
+            case "End":
+                nextIndex = enabledTriggers.Count - 1;
+                break;
+            case "ArrowDown" when Orientation == VerticalOrientation:
+                nextIndex = (currentIndex + 1) % enabledTriggers.Count;
+                break;
+            case "ArrowUp" when Orientation == VerticalOrientation:
+                nextIndex = (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;
+                break;
+            case "ArrowRight" when Orientation == HorizontalOrientation:
+                nextIndex = Dir == "rtl"
+                    ? (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count
+                    : (currentIndex + 1) % enabledTriggers.Count;
+                break;
+            case "ArrowLeft" when Orientation == HorizontalOrientation:
+                nextIndex = Dir == "rtl"
+                    ? (currentIndex + 1) % enabledTriggers.Count
+                    : (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;
+                break;
+            default:
+                return;
+        }
+
+        await enabledTriggers[nextIndex].FocusAsync();
+    }
+
+    private async Task SetSingleValueAsync(string? value)
+    {
+        if (string.Equals(Value ?? _uncontrolledValue, value, StringComparison.Ordinal))
+            return;
+
+        if (Value is null)
+            _uncontrolledValue = value;
+
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(value);
+
+        if (OnValueChange.HasDelegate)
+            await OnValueChange.InvokeAsync(value);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SetMultipleValuesAsync(HashSet<string> next)
+    {
+        IReadOnlyCollection<string> ordered = next.OrderBy(item => item, StringComparer.Ordinal).ToArray();
+
+        if (Values is null)
+            _uncontrolledValues = new HashSet<string>(next, StringComparer.Ordinal);
+
+        if (ValuesChanged.HasDelegate)
+            await ValuesChanged.InvokeAsync(ordered);
+
+        if (OnValuesChange.HasDelegate)
+            await OnValuesChange.InvokeAsync(ordered);
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

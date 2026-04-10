@@ -1,0 +1,65 @@
+@page "/collapsible"
+
+<PageTitle>Bradix Collapsible</PageTitle>
+
+<section class="stack">
+    <header class="stack stack--compact">
+        <h2>BradixCollapsible</h2>
+        <p>Mirrors Radix's root/trigger/content split with open state, aria wiring, and content measurement hooks.</p>
+    </header>
+
+    <div class="demo-grid">
+        <section class="card stack stack--compact">
+            <h3>Uncontrolled</h3>
+            <BradixCollapsible Class="primitive">
+                <BradixCollapsibleTrigger Class="primitive__trigger">Toggle details</BradixCollapsibleTrigger>
+                <BradixCollapsibleContent Class="primitive__content">
+                    <p>Uncontrolled content closes and opens itself while preserving the proper content id and state metadata.</p>
+                </BradixCollapsibleContent>
+            </BradixCollapsible>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Controlled</h3>
+            <p class="state-line">Open: <strong>@_controlledOpen</strong></p>
+            <BradixCollapsible Class="primitive" Open="@_controlledOpen" OnOpenChange="HandleControlledOpenChanged">
+                <BradixCollapsibleTrigger Class="primitive__trigger">
+                    @(_controlledOpen ? "Close controlled panel" : "Open controlled panel")
+                </BradixCollapsibleTrigger>
+                <BradixCollapsibleContent Class="primitive__content">
+                    <p>The parent owns the state and receives every open change request.</p>
+                </BradixCollapsibleContent>
+            </BradixCollapsible>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Disabled</h3>
+            <BradixCollapsible Class="primitive" DefaultOpen Disabled>
+                <BradixCollapsibleTrigger Class="primitive__trigger">Disabled trigger</BradixCollapsibleTrigger>
+                <BradixCollapsibleContent Class="primitive__content">
+                    <p>Disabled propagates to the trigger and emits the matching `data-disabled` metadata.</p>
+                </BradixCollapsibleContent>
+            </BradixCollapsible>
+        </section>
+
+        <section class="card stack stack--compact">
+            <h3>Force mount</h3>
+            <BradixCollapsible Class="primitive">
+                <BradixCollapsibleTrigger Class="primitive__trigger">Toggle mounted content</BradixCollapsibleTrigger>
+                <BradixCollapsibleContent Class="primitive__content" ForceMount>
+                    <p>This content stays mounted so animations or observers can keep hold of the element.</p>
+                </BradixCollapsibleContent>
+            </BradixCollapsible>
+        </section>
+    </div>
+</section>
+
+@code {
+    private bool _controlledOpen;
+
+    private Task HandleControlledOpenChanged(bool open)
+    {
+        _controlledOpen = open;
+        return Task.CompletedTask;
+    }
+}

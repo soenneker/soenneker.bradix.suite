@@ -1,0 +1,51 @@
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Collapsible
+@inherits BradixComponentBase
+
+<BradixCollapsibleContent Id="@Id"
+                          Class="@Class"
+                          Style="@MergedStyle"
+                          ForceMount="@ForceMount"
+                          Role="region"
+                          AriaLabelledBy="@Item.TriggerId"
+                          AdditionalAttributes="ContentAttributes">
+    @ChildContent
+</BradixCollapsibleContent>
+
+@code {
+    [CascadingParameter]
+    internal BradixAccordion Accordion { get; set; } = null!;
+
+    [CascadingParameter]
+    internal BradixAccordionItem Item { get; set; } = null!;
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    private string MergedStyle
+    {
+        get
+        {
+            const string radixAliasStyles =
+                "--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);";
+
+            return string.IsNullOrWhiteSpace(Style)
+                ? radixAliasStyles
+                : $"{radixAliasStyles} {Style}";
+        }
+    }
+
+    private IReadOnlyDictionary<string, object> ContentAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : [];
+
+            attributes["data-orientation"] = Accordion.Orientation;
+
+            return attributes;
+        }
+    }
+}

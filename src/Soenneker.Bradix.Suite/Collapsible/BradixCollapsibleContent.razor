@@ -1,0 +1,51 @@
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Interop
+@implements IAsyncDisposable
+@inherits BradixComponentBase
+@inject BradixSuiteInterop Interop
+
+<div @ref="_element"
+     @attributes="ContentAttributes">
+    @if (ForceMount || Collapsible.IsOpen)
+    {
+        @ChildContent
+    }
+</div>
+
+@code {
+    private ElementReference _element;
+
+    [CascadingParameter]
+    internal BradixCollapsible Collapsible { get; set; } = null!;
+
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public string? Role { get; set; }
+
+    [Parameter]
+    public string? AriaLabelledBy { get; set; }
+
+    [Parameter]
+    public string? AriaDescribedBy { get; set; }
+
+    private Dictionary<string, object> ContentAttributes => BuildAttributes(
+        ("id", Collapsible.ContentId),
+        ("role", Role),
+        ("aria-labelledby", AriaLabelledBy),
+        ("aria-describedby", AriaDescribedBy),
+        ("hidden", !Collapsible.IsOpen ? true : null),
+        ("data-state", DataState(Collapsible.IsOpen)),
+        ("data-disabled", Collapsible.Disabled ? string.Empty : null));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await Interop.ObserveCollapsibleContent(_element);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Interop.UnobserveCollapsibleContent(_element);
+    }
+}

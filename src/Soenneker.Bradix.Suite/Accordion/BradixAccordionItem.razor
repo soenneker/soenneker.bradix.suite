@@ -1,0 +1,59 @@
+@using Soenneker.Bradix.Suite.Base
+@using Soenneker.Bradix.Suite.Collapsible
+@inherits BradixComponentBase
+@inject Id.IBradixIdGenerator IdGenerator
+
+<CascadingValue Value="this">
+    <BradixCollapsible Id="@Id"
+                       Class="@Class"
+                       Style="@Style"
+                       Open="@IsOpen"
+                       Disabled="@IsDisabled"
+                       OnOpenChange="HandleOpenChange"
+                       AdditionalAttributes="ItemAttributes">
+        @ChildContent
+    </BradixCollapsible>
+</CascadingValue>
+
+@code {
+    [CascadingParameter]
+    internal BradixAccordion Accordion { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = null!;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    internal string? TriggerId { get; private set; }
+
+    internal bool IsOpen => Accordion.IsItemOpen(Value);
+
+    internal bool IsDisabled => Accordion.Disabled || Disabled;
+
+    protected override void OnInitialized()
+    {
+        TriggerId ??= IdGenerator.New("bradix-accordion-trigger");
+    }
+
+    private IReadOnlyDictionary<string, object> ItemAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : [];
+
+            attributes["data-orientation"] = Accordion.Orientation;
+
+            return attributes;
+        }
+    }
+
+    private Task HandleOpenChange(bool open)
+    {
+        return open
+            ? Accordion.OpenItemAsync(Value)
+            : Accordion.CloseItemAsync(Value);
+    }
+}

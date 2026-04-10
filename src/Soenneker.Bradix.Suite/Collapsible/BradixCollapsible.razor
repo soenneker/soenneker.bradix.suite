@@ -1,0 +1,73 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+@inject Id.IBradixIdGenerator IdGenerator
+
+<CascadingValue Value="this">
+    <div @attributes="RootAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private bool _initialized;
+    private bool _uncontrolledOpen;
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    internal string? ContentId { get; private set; }
+
+    internal bool IsOpen => Open ?? _uncontrolledOpen;
+
+    private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("data-state", DataState(IsOpen)),
+        ("data-disabled", Disabled ? string.Empty : null));
+
+    protected override void OnInitialized()
+    {
+        ContentId ??= IdGenerator.New("bradix-collapsible-content");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized)
+            return;
+
+        _uncontrolledOpen = DefaultOpen;
+        _initialized = true;
+    }
+
+    internal Task ToggleAsync()
+    {
+        return SetOpenAsync(!IsOpen);
+    }
+
+    internal async Task SetOpenAsync(bool open)
+    {
+        if (Disabled || open == IsOpen)
+            return;
+
+        if (Open is null)
+            _uncontrolledOpen = open;
+
+        if (OpenChanged.HasDelegate)
+            await OpenChanged.InvokeAsync(open);
+
+        if (OnOpenChange.HasDelegate)
+            await OnOpenChange.InvokeAsync(open);
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

@@ -1,0 +1,19 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<h3 @attributes="HeaderAttributes">
+    @ChildContent
+</h3>
+
+@code {
+    [CascadingParameter]
+    internal BradixAccordion Accordion { get; set; } = null!;
+
+    [CascadingParameter]
+    internal BradixAccordionItem Item { get; set; } = null!;
+
+    private IReadOnlyDictionary<string, object> HeaderAttributes => BuildAttributes(
+        ("data-orientation", Accordion.Orientation),
+        ("data-state", DataState(Item.IsOpen)),
+        ("data-disabled", Item.IsDisabled ? string.Empty : null));
+}

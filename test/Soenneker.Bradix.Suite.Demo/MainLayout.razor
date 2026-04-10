@@ -1,37 +1,21 @@
 @inherits LayoutComponentBase
 
-<Container>
-    <Div Space="Space.Y.Is6" Padding="Padding.Is6.OnY">
-        <Div Display="Display.Flex"
-             Flex="Flex.Wrap"
-             AlignUtility="Align.ItemsCenter.JustifyBetween"
-             Gap="Gap.Is3"
-             Border="Border.Is1.FromBottom"
-             BorderColor="BorderColor.Border"
-             Padding="Padding.Is4.FromBottom">
-            <H1 Margin="Margin.Is0" TextSize="TextSize.TwoXl" FontWeight="FontWeight.Semibold">
-                @DemoTitle
-            </H1>
+<div class="shell">
+    <header class="shell__header">
+        <div>
+            <p class="eyebrow">Bradix demo</p>
+            <h1>Soenneker.Bradix.Suite</h1>
+            <p class="lede">Behavior-first Blazor primitives modeled after Radix UI.</p>
+        </div>
 
-            <Anchor To="@RepositoryUrl"
-                    Target="Target.Blank"
-                    Rel="noreferrer"
-                    Display="Display.InlineFlex"
-                    AlignUtility="Align.ItemsCenter"
-                    Rounded="Rounded.Lg"
-                    BackgroundColor="BackgroundColor.Primary"
-                    Padding='Padding.Token("4").OnX.Token("2").OnY'
-                    FontWeight="FontWeight.Medium"
-                    TextColor="TextColor.PrimaryForeground">
-                GitHub
-            </Anchor>
-        </Div>
+        <nav class="shell__nav" aria-label="Primitive demos">
+            <NavLink href="/" Match="NavLinkMatch.All">Overview</NavLink>
+            <NavLink href="/collapsible">Collapsible</NavLink>
+            <NavLink href="/accordion">Accordion</NavLink>
+        </nav>
+    </header>
 
+    <main class="shell__content">
         @Body
-    </Div>
-</Container>
-
-@code {
-    private static string DemoTitle => typeof(MainLayout).Assembly.GetName().Name ?? "Soenneker Demo";
-    private const string RepositoryUrl = "https://soenneker.com";
-}
+    </main>
+</div>

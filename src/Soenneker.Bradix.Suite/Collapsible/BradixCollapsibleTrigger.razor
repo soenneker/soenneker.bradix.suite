@@ -1,0 +1,53 @@
+@using Soenneker.Bradix.Suite.Base
+@inherits BradixComponentBase
+
+<button @ref="_element"
+        @onclick="HandleClick"
+        @onkeydown="HandleKeyDown"
+        @attributes="TriggerAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private ElementReference _element;
+
+    [CascadingParameter]
+    internal BradixCollapsible Collapsible { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
+    [Parameter]
+    public string? AriaDisabled { get; set; }
+
+    private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("type", "button"),
+        ("aria-controls", Collapsible.ContentId),
+        ("aria-expanded", Collapsible.IsOpen ? "true" : "false"),
+        ("aria-disabled", AriaDisabled),
+        ("data-state", DataState(Collapsible.IsOpen)),
+        ("data-disabled", Collapsible.Disabled ? string.Empty : null),
+        ("disabled", Collapsible.Disabled ? true : null));
+
+    internal ValueTask FocusAsync()
+    {
+        return _element.FocusAsync();
+    }
+
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
+
+        await Collapsible.ToggleAsync();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (OnKeyDown.HasDelegate)
+            await OnKeyDown.InvokeAsync(args);
+    }
+}
