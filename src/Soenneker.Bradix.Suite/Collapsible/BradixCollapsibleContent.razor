@@ -4,16 +4,22 @@
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
 
-<div @ref="_element"
-     @attributes="ContentAttributes">
-    @if (ForceMount || Collapsible.IsOpen)
+<BradixPresence Present="Present"
+                Tag="div"
+                AdditionalAttributes="@ContentAttributes"
+                OnElementReferenceCaptured="@HandleElementCapturedAsync"
+                OnExitComplete="@HandleExitCompleteAsync">
+    @if (ShouldRenderChildren)
     {
         @ChildContent
     }
-</div>
+</BradixPresence>
 
 @code {
     private ElementReference _element;
+    private bool _hasElement;
+    private bool _isPresent;
+    private bool _observing;
 
     [CascadingParameter]
     internal BradixCollapsible Collapsible { get; set; } = null!;
@@ -30,22 +36,98 @@
     [Parameter]
     public string? AriaDescribedBy { get; set; }
 
-    private Dictionary<string, object> ContentAttributes => BuildAttributes(
-        ("id", Collapsible.ContentId),
-        ("role", Role),
-        ("aria-labelledby", AriaLabelledBy),
-        ("aria-describedby", AriaDescribedBy),
-        ("hidden", !Collapsible.IsOpen ? true : null),
-        ("data-state", DataState(Collapsible.IsOpen)),
-        ("data-disabled", Collapsible.Disabled ? string.Empty : null));
+    private bool Present => ForceMount || Collapsible.IsOpen;
+
+    private bool IsOpenOrPresent => Present || _isPresent;
+
+    private bool ShouldRenderChildren => IsOpenOrPresent;
+
+    private IReadOnlyDictionary<string, object> ContentAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
+                ? new Dictionary<string, object>(AdditionalAttributes)
+                : new Dictionary<string, object>();
+
+            attributes["id"] = Collapsible.ContentId!;
+            attributes["hidden"] = !IsOpenOrPresent;
+            attributes["data-state"] = DataState(Collapsible.IsOpen);
+
+            if (Collapsible.Disabled)
+                attributes["data-disabled"] = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(Role))
+                attributes["role"] = Role;
+
+            if (!string.IsNullOrWhiteSpace(AriaLabelledBy))
+                attributes["aria-labelledby"] = AriaLabelledBy;
+
+            if (!string.IsNullOrWhiteSpace(AriaDescribedBy))
+                attributes["aria-describedby"] = AriaDescribedBy;
+
+            if (!string.IsNullOrWhiteSpace(Class))
+                attributes["class"] = Class;
+
+            string? mergedStyle = BuildMergedStyle(attributes.TryGetValue("style", out object? existingStyle) ? existingStyle?.ToString() : null);
+
+            if (!string.IsNullOrWhiteSpace(mergedStyle))
+                attributes["style"] = mergedStyle;
+
+            return attributes;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Present)
+            _isPresent = true;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await Interop.ObserveCollapsibleContent(_element);
+        if (_hasElement && !_observing)
+        {
+            await Interop.ObserveCollapsibleContent(_element);
+            _observing = true;
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnobserveCollapsibleContent(_element);
+        if (_observing)
+            await Interop.UnobserveCollapsibleContent(_element);
+    }
+
+    private Task HandleElementCapturedAsync(ElementReference element)
+    {
+        _element = element;
+        _hasElement = true;
+        _observing = false;
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleExitCompleteAsync()
+    {
+        if (_observing)
+        {
+            await Interop.UnobserveCollapsibleContent(_element);
+            _observing = false;
+        }
+
+        _isPresent = false;
+        _hasElement = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string? BuildMergedStyle(string? additionalStyle)
+    {
+        if (string.IsNullOrWhiteSpace(additionalStyle))
+            return Style;
+
+        if (string.IsNullOrWhiteSpace(Style))
+            return additionalStyle;
+
+        return $"{additionalStyle} {Style}";
     }
 }

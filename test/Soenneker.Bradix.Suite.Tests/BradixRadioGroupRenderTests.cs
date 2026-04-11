@@ -13,10 +13,12 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     public BradixRadioGroupRenderTests()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("registerRovingFocusNavigationKeys", _ => true);
-        module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true);
-        module.SetupVoid("registerRadioGroupItemKeys", _ => true);
-        module.SetupVoid("unregisterRadioGroupItemKeys", _ => true);
+        module.Setup<bool>("isFormControl", _ => true).SetResult(false);
+        module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        module.SetupVoid("registerRadioGroupItemKeys", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterRadioGroupItemKeys", _ => true).SetVoidResult();
+        module.SetupVoid("syncCheckboxBubbleInputState", _ => true).SetVoidResult();
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
@@ -24,19 +26,17 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Fact]
-    public void Radio_group_renders_checked_state_and_hidden_input()
+    public void Radio_group_renders_checked_state_without_hidden_input_outside_form()
     {
         var cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", required: true));
 
         var group = cut.Find("[role='radiogroup']");
         var buttons = cut.FindAll("button");
-        var inputs = cut.FindAll("input[type='radio']");
 
         Assert.Equal("true", group.GetAttribute("aria-required"));
         Assert.Equal("true", buttons[0].GetAttribute("aria-checked"));
         Assert.Equal("checked", buttons[0].GetAttribute("data-state"));
-        Assert.Equal("plan", inputs[0].GetAttribute("name"));
-        Assert.NotNull(inputs.Single(input => input.HasAttribute("checked")));
+        Assert.Empty(cut.FindAll("input[type='radio']"));
     }
 
     [Fact]

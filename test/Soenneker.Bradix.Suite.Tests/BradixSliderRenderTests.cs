@@ -13,8 +13,10 @@ public sealed class BradixSliderRenderTests : BunitContext
     public BradixSliderRenderTests()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("registerSliderPointerBridge", _ => true);
-        module.SetupVoid("unregisterSliderPointerBridge", _ => true);
+        module.Setup<bool>("isFormControl", _ => true).SetResult(false);
+        module.SetupVoid("registerSliderPointerBridge", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterSliderPointerBridge", _ => true).SetVoidResult();
+        module.SetupVoid("syncSliderBubbleInputValue", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
@@ -71,14 +73,10 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Fact]
-    public void Slider_renders_hidden_inputs_for_named_values()
+    public void Slider_with_name_outside_form_does_not_render_bubble_inputs()
     {
         var cut = Render(CreateSlider(defaultValues: [10, 30], name: "price"));
-
-        var inputs = cut.FindAll("input[type='hidden']");
-
-        Assert.Equal(2, inputs.Count);
-        Assert.All(inputs, input => Assert.Equal("price[]", input.GetAttribute("name")));
+        Assert.Empty(cut.FindAll("input"));
     }
 
     [Fact]

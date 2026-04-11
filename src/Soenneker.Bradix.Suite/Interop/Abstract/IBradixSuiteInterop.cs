@@ -75,6 +75,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnregisterSliderPointerBridge(ElementReference element, CancellationToken cancellationToken = default);
 
+    ValueTask SyncSliderBubbleInputValue(ElementReference element, double value, bool dispatchEvent, CancellationToken cancellationToken = default);
+
     ValueTask RegisterScrollAreaRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     ValueTask UnregisterScrollAreaRoot(ElementReference element, CancellationToken cancellationToken = default);
@@ -226,6 +228,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
     ValueTask UnregisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default);
 
     ValueTask<string> GetTextContent(ElementReference element, CancellationToken cancellationToken = default);
+
+    ValueTask<string[]> GetToastAnnounceText(ElementReference element, CancellationToken cancellationToken = default);
 
     ValueTask<string> GetActiveElementId(CancellationToken cancellationToken = default);
 

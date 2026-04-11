@@ -2,6 +2,7 @@
 
 @implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject IBradixSuiteInterop Interop
 
 <span @attributes="WrapperAttributes">
     <span @ref="_element"
@@ -10,17 +11,19 @@
           @attributes="ThumbAttributes">
     </span>
 
-    @if (InputName is not null && Value is not null)
+    @if (ShouldRenderBubbleInput && Value is not null)
     {
-        <input type="hidden"
-               name="@InputName"
-               form="@Slider.Form"
-               value="@Value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+        <input @ref="_bubbleInputElement"
+               @attributes="BubbleInputAttributes" />
     }
 </span>
 
 @code {
     private ElementReference _element;
+    private ElementReference _bubbleInputElement;
+    private bool _hasSyncedBubbleInput;
+    private bool _isFormControl = true;
+    private double? _lastRenderedValue;
     private bool _registered;
 
     [CascadingParameter]
@@ -37,6 +40,8 @@
     private double? Value => Slider.GetThumbValue(Index);
 
     private string? InputName => Slider.GetThumbInputName(this);
+
+    private bool ShouldRenderBubbleInput => _isFormControl;
 
     private Dictionary<string, object> WrapperAttributes
     {
@@ -90,13 +95,52 @@
         }
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    private IReadOnlyDictionary<string, object> BubbleInputAttributes
     {
-        if (!firstRender)
-            return;
+        get
+        {
+            Dictionary<string, object> attributes = new()
+            {
+                ["style"] = "display:none;",
+                ["value"] = Value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty
+            };
 
-        Slider.RegisterThumb(this);
-        _registered = true;
+            if (InputName is not null)
+                attributes["name"] = InputName;
+
+            if (!string.IsNullOrWhiteSpace(Slider.Form))
+                attributes["form"] = Slider.Form;
+
+            return attributes;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Slider.RegisterThumb(this);
+            _registered = true;
+            _lastRenderedValue = Value;
+        }
+
+        bool isFormControl = await Interop.IsFormControl(_element);
+
+        if (_isFormControl != isFormControl)
+        {
+            _isFormControl = isFormControl;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (ShouldRenderBubbleInput && Value is not null)
+        {
+            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedValue != Value;
+            await Interop.SyncSliderBubbleInputValue(_bubbleInputElement, Value.Value, dispatchEvent);
+            _hasSyncedBubbleInput = true;
+        }
+
+        _lastRenderedValue = Value;
     }
 
     public ValueTask DisposeAsync()

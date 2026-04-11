@@ -22,7 +22,9 @@
     private bool _wasPresent;
     private bool _isExiting;
     private bool _hasInteractedOutside;
+    private bool _hasPointerDownOutside;
     private bool _hideOthersRegistered;
+    private bool _isRightClickOutside;
     private ElementReference _contentElement;
 
     [CascadingParameter]
@@ -142,62 +144,87 @@
         }
     }
 
-    private async Task HandleOpenAutoFocusAsync()
+    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs _)
     {
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
     }
 
-    private async Task HandleCloseAutoFocusAsync()
+    private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
         if (OnCloseAutoFocus.HasDelegate)
             await OnCloseAutoFocus.InvokeAsync();
 
-        if (Popover is not null && (Popover.Modal || !_hasInteractedOutside))
-            await Popover.FocusTriggerAsync();
+        if (Popover?.Modal == true)
+        {
+            args.PreventDefault();
+
+            if (!_isRightClickOutside)
+                await Popover.FocusTriggerAsync();
+        }
+        else if (!args.DefaultPrevented)
+        {
+            if (Popover is not null && !_hasInteractedOutside)
+                await Popover.FocusTriggerAsync();
+
+            args.PreventDefault();
+        }
 
         _hasInteractedOutside = false;
+        _hasPointerDownOutside = false;
+        _isRightClickOutside = false;
     }
 
-    private async Task HandleEscapeKeyDownAsync()
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
-
-        if (Popover is not null)
-            await Popover.SetOpenAsync(false);
     }
 
-    private async Task HandlePointerDownOutsideAsync()
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
 
-        if (OnInteractOutside.HasDelegate)
-            await OnInteractOutside.InvokeAsync();
-
-        if (Popover is not null && !Popover.Modal)
-            _hasInteractedOutside = true;
-
-        if (Popover is not null)
-            await Popover.SetOpenAsync(false);
+        bool ctrlLeftClick = args.OriginalEvent.Button == 0 && args.OriginalEvent.CtrlKey;
+        _isRightClickOutside = args.OriginalEvent.Button == 2 || ctrlLeftClick;
     }
 
-    private async Task HandleFocusOutsideAsync()
+    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
     {
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
 
         if (Popover?.Modal == true)
+        {
+            args.PreventDefault();
             return;
+        }
+    }
 
+    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
+    {
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();
 
-        _hasInteractedOutside = true;
+        if (Popover?.Modal == true)
+            return;
 
-        if (Popover is not null)
-            await Popover.SetOpenAsync(false);
+        if (!args.DefaultPrevented)
+        {
+            _hasInteractedOutside = true;
+
+            if (args.OriginalEventType == "pointerdown")
+                _hasPointerDownOutside = true;
+        }
+
+        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside)
+            args.PreventDefault();
+    }
+
+    private Task HandleDismissAsync()
+    {
+        return Popover?.SetOpenAsync(false) ?? Task.CompletedTask;
     }
 
     private Task HandleExitCompleteAsync()
@@ -210,15 +237,17 @@
         <BradixFocusScope Loop
                           Trapped="ShouldTrapFocus"
                           PreventUnmountAutoFocus="true"
-                          OnMountAutoFocus="HandleOpenAutoFocusAsync"
-                          OnUnmountAutoFocus="HandleCloseAutoFocusAsync">
+                          OnMountAutoFocusDetailed="HandleOpenAutoFocusAsync"
+                          OnUnmountAutoFocusDetailed="HandleCloseAutoFocusAsync">
             <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
-                                    DismissOnEscapeKeyDown="false"
-                                    DismissOnPointerDownOutside="false"
-                                    DismissOnFocusOutside="false"
-                                    OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
-                                    OnPointerDownOutside="@HandlePointerDownOutsideAsync"
-                                    OnFocusOutside="@HandleFocusOutsideAsync"
+                                    DismissOnEscapeKeyDown="true"
+                                    DismissOnPointerDownOutside="true"
+                                    DismissOnFocusOutside="true"
+                                    OnDismiss="@HandleDismissAsync"
+                                    OnInteractOutsideDetailed="@HandleInteractOutsideAsync"
+                                    OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
+                                    OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
+                                    OnFocusOutsideDetailed="@HandleFocusOutsideAsync"
                                     OnElementReferenceCaptured="@HandleElementReferenceCapturedAsync">
                 <BradixPopperContent Side="@Side"
                                      SideOffset="SideOffset"

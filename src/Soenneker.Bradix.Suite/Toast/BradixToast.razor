@@ -1,9 +1,31 @@
 @namespace Soenneker.Bradix
+@using System.Linq
 @using System.Threading
 
 @implements IAsyncDisposable
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
+
+@if (_announceVisible)
+{
+    <BradixPortal>
+        <BradixVisuallyHidden AdditionalAttributes="@AnnounceAttributes">
+            @if (_renderAnnounceText)
+            {
+                @Provider?.Label
+                @(" ")
+                @for (var i = 0; i < _announceTextSegments.Length; i++)
+                {
+                    @(_announceTextSegments[i])
+                    @if (i < _announceTextSegments.Length - 1)
+                    {
+                        @(" ")
+                    }
+                }
+            }
+        </BradixVisuallyHidden>
+    </BradixPortal>
+}
 
 @if (Provider?.HasViewport == true)
 {
@@ -25,12 +47,18 @@
     private bool _uncontrolledOpen = true;
     private bool _registered;
     private bool _portalMounted;
+    private bool _announceVisible;
+    private bool _renderAnnounceText;
+    private bool _announceRenderScheduled;
+    private bool _announceDismissScheduled;
     private bool _timerPaused;
     private DateTime _timerStartedUtc;
     private double _remainingDuration;
     private CancellationTokenSource? _closeTimerCts;
+    private CancellationTokenSource? _announceCts;
     private ElementReference _toastElement;
     private ElementReference _closeButtonElement;
+    private string[] _announceTextSegments = [];
     private double? _pointerStartX;
     private double? _pointerStartY;
     private string? _swipeState;
@@ -138,6 +166,10 @@
         }
     }
 
+    private IReadOnlyDictionary<string, object> AnnounceAttributes => BuildAttributes(
+        ("role", "status"),
+        ("aria-live", IsForeground ? "assertive" : "polite"));
+
     protected override void OnParametersSet()
     {
         if (!_initialized)
@@ -157,6 +189,7 @@
             {
                 _remainingDuration = ResolvedDuration;
                 _timerPaused = false;
+                ResetAnnouncement();
 
                 if (_registered && !(Provider?.IsClosePaused ?? false))
                     StartCloseTimer();
@@ -164,13 +197,36 @@
             else
             {
                 CancelCloseTimer();
+                CancelAnnouncement();
             }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_announceVisible && !_renderAnnounceText && !_announceRenderScheduled)
+        {
+            _announceRenderScheduled = true;
+            await Task.Yield();
+            _renderAnnounceText = true;
+            _announceRenderScheduled = false;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (_announceVisible && _renderAnnounceText && !_announceDismissScheduled)
+        {
+            _announceDismissScheduled = true;
+            CancelAnnouncementTimer();
+            _announceCts = new CancellationTokenSource();
+            _ = CompleteAnnouncementAsync(_announceCts.Token);
         }
     }
 
     public async ValueTask DisposeAsync()
     {
         CancelCloseTimer();
+        CancelAnnouncement();
 
         if (_registered)
             Provider?.UnregisterToast(this);
@@ -238,6 +294,8 @@
             Provider?.RegisterToast(this);
             _registered = true;
         }
+
+        await UpdateAnnounceTextAsync();
 
         if (CurrentOpen && !(Provider?.IsClosePaused ?? false))
             StartCloseTimer();
@@ -462,5 +520,68 @@
         return direction is "left" or "up"
             ? Math.Min(0, delta)
             : Math.Max(0, delta);
+    }
+
+    private async Task UpdateAnnounceTextAsync()
+    {
+        if (!CurrentOpen)
+            return;
+
+        string[] announceText = await Interop.GetToastAnnounceText(_toastElement);
+
+        if (_announceTextSegments.SequenceEqual(announceText, StringComparer.Ordinal))
+            return;
+
+        _announceTextSegments = announceText;
+
+        if (_announceTextSegments.Length == 0)
+        {
+            CancelAnnouncement();
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        _announceVisible = true;
+        _renderAnnounceText = false;
+        _announceDismissScheduled = false;
+        CancelAnnouncementTimer();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CompleteAnnouncementAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+            _announceVisible = false;
+            _renderAnnounceText = false;
+            _announceDismissScheduled = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void ResetAnnouncement()
+    {
+        _announceVisible = false;
+        _renderAnnounceText = false;
+        _announceRenderScheduled = false;
+        _announceDismissScheduled = false;
+        _announceTextSegments = [];
+        CancelAnnouncementTimer();
+    }
+
+    private void CancelAnnouncement()
+    {
+        ResetAnnouncement();
+    }
+
+    private void CancelAnnouncementTimer()
+    {
+        _announceCts?.Cancel();
+        _announceCts?.Dispose();
+        _announceCts = null;
     }
 }

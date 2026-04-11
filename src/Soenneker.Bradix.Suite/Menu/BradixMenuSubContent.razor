@@ -15,11 +15,11 @@
                        Class="@Class"
                        Style="@Style"
                        AdditionalAttributes="@ContentAttributes"
-                       OnEscapeKeyDown="HandleEscapeKeyDownAsync"
+                       OnEscapeKeyDownDetailed="HandleEscapeKeyDownAsync"
                        OnContentKeyDown="HandleContentKeyDownAsync"
-                       OnCloseAutoFocus="HandleCloseAutoFocusAsync"
+                       OnCloseAutoFocusDetailed="HandleCloseAutoFocusAsync"
                        OnPointerDownOutside="OnPointerDownOutside"
-                       OnFocusOutside="HandleFocusOutsideAsync"
+                       OnFocusOutsideDetailed="HandleFocusOutsideAsync"
                        OnInteractOutside="OnInteractOutside"
                        OnPlaced="OnPlaced">
         @ChildContent
@@ -99,18 +99,24 @@
         }
     }
 
-    private Task HandleCloseAutoFocusAsync()
+    private Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
-        return SubMenu.FocusTriggerAsync();
+        args.PreventDefault();
+        return Task.CompletedTask;
     }
 
-    private Task HandleFocusOutsideAsync()
+    private Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
     {
-        return SubMenu.SetOpenAsync(false);
+        if (!string.Equals(args.OriginalEvent.TargetId, Sub.TriggerId, StringComparison.Ordinal))
+            return SubMenu.SetOpenAsync(false);
+
+        args.PreventDefault();
+        return Task.CompletedTask;
     }
 
-    private async Task HandleEscapeKeyDownAsync()
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
     {
+        args.PreventDefault();
         await RootMenu.SetOpenAsync(false);
     }
 

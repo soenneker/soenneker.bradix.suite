@@ -12,11 +12,11 @@ public sealed class BradixSwitchRenderTests : BunitContext
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.Setup<bool>("isFormControl", _ => true).SetResult(false);
-        module.SetupVoid("registerCheckboxRoot", _ => true);
-        module.SetupVoid("unregisterCheckboxRoot", _ => true);
-        module.SetupVoid("registerDelegatedInteraction", _ => true);
-        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
-        module.SetupVoid("syncCheckboxBubbleInputState", _ => true);
+        module.SetupVoid("registerCheckboxRoot", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterCheckboxRoot", _ => true).SetVoidResult();
+        module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        module.SetupVoid("syncCheckboxBubbleInputState", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
@@ -59,14 +59,10 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Fact]
-    public void Switch_with_name_renders_hidden_input()
+    public void Switch_with_name_outside_form_does_not_render_hidden_input()
     {
         var cut = Render(CreateSwitch(defaultChecked: true, name: "notifications"));
-
-        var input = cut.Find("input[type='checkbox']");
-
-        Assert.Equal("notifications", input.GetAttribute("name"));
-        Assert.True(input.HasAttribute("checked"));
+        Assert.Empty(cut.FindAll("input[type='checkbox']"));
     }
 
     [Fact]

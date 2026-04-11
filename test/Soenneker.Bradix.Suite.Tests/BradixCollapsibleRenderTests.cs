@@ -12,10 +12,14 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     public BradixCollapsibleRenderTests()
     {
         BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("observeCollapsibleContent", _ => true);
-        module.SetupVoid("unobserveCollapsibleContent", _ => true);
-        module.SetupVoid("registerDelegatedInteraction", _ => true);
-        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
+        module.SetupVoid("observeCollapsibleContent", _ => true).SetVoidResult();
+        module.SetupVoid("unobserveCollapsibleContent", _ => true).SetVoidResult();
+        module.SetupVoid("registerPresence", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
+            .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
@@ -29,15 +33,15 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
 
         IElement trigger = cut.Find("button");
         string contentId = trigger.GetAttribute("aria-controls")!;
-        IElement content = cut.Find($"#{contentId}");
 
         Assert.Equal("false", trigger.GetAttribute("aria-expanded"));
         Assert.Equal("closed", trigger.GetAttribute("data-state"));
-        Assert.True(content.HasAttribute("hidden"));
+        Assert.Empty(cut.FindAll($"#{contentId}"));
         Assert.DoesNotContain("Content", cut.Markup);
 
         trigger.Click();
 
+        IElement content = cut.Find($"#{contentId}");
         Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
         Assert.Equal("open", trigger.GetAttribute("data-state"));
         Assert.False(content.HasAttribute("hidden"));

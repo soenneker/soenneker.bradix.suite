@@ -13,15 +13,16 @@
             <BradixFocusScope Trapped="true"
                               PreventMountAutoFocus="true"
                               PreventUnmountAutoFocus="true"
-                              OnMountAutoFocus="@HandleOpenAutoFocusAsync"
-                              OnUnmountAutoFocus="@HandleCloseAutoFocusAsync">
+                              OnMountAutoFocusDetailed="@HandleOpenAutoFocusAsync"
+                              OnUnmountAutoFocusDetailed="@HandleCloseAutoFocusAsync">
                 <BradixDismissableLayer DisableOutsidePointerEvents="true"
-                                        DismissOnEscapeKeyDown="false"
-                                        DismissOnPointerDownOutside="false"
-                                        DismissOnFocusOutside="false"
-                                        OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
-                                        OnPointerDownOutside="@HandlePointerDownOutsideAsync"
-                                        OnFocusOutside="@HandleFocusOutsideAsync">
+                                        DismissOnEscapeKeyDown="true"
+                                        DismissOnPointerDownOutside="true"
+                                        DismissOnFocusOutside="true"
+                                        OnDismiss="@HandleDismissAsync"
+                                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
+                                        OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
+                                        OnFocusOutsideDetailed="@HandleFocusOutsideAsync">
                     @if (UseItemAlignedPosition)
                     {
                         <div @ref="_wrapperElement"
@@ -311,42 +312,45 @@ else
         return Task.CompletedTask;
     }
 
-    private async Task HandleEscapeKeyDownAsync()
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
-
-        if (Select is not null)
-            await Select.SetOpenAsync(false);
     }
 
-    private async Task HandlePointerDownOutsideAsync()
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs _)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
-
-        if (Select is not null)
-            await Select.SetOpenAsync(false);
     }
 
-    private async Task HandleFocusOutsideAsync()
+    private Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
     {
-        if (Select is not null)
-            await Select.SetOpenAsync(false);
+        args.PreventDefault();
+        return Task.CompletedTask;
     }
 
-    private async Task HandleOpenAutoFocusAsync()
+    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
-        if (_didFocusOpenItem || Select is null)
+        if (_didFocusOpenItem || Select is null || args.DefaultPrevented)
             return;
 
         _didFocusOpenItem = true;
         await Select.FocusSelectedOrFirstItemAsync();
     }
 
-    private Task HandleCloseAutoFocusAsync()
+    private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
-        return Select?.FocusTriggerAsync() ?? Task.CompletedTask;
+        if (args.DefaultPrevented || Select is null)
+            return;
+
+        await Select.FocusTriggerAsync();
+        args.PreventDefault();
+    }
+
+    private Task HandleDismissAsync()
+    {
+        return Select?.SetOpenAsync(false) ?? Task.CompletedTask;
     }
 
     private async Task HandleContentKeyDownAsync(KeyboardEventArgs args)

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Bunit;
 using Bunit.Rendering;
@@ -24,6 +25,8 @@ public sealed class BradixToastRenderTests : BunitContext
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementById", _ => true).SetVoidResult();
         _module.Setup<bool>("isToastFocused", _ => true).SetResult(false);
+        _module.Setup<string[]>("getToastAnnounceText", _ => true)
+            .SetResult(["Upload complete", "Your asset is ready.", "Open uploads"]);
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "toast-out", Display = "block" });
 
@@ -74,6 +77,31 @@ public sealed class BradixToastRenderTests : BunitContext
 
         Assert.Equal(1, pauseCount);
         Assert.Equal(1, resumeCount);
+    }
+
+    [Fact]
+    public void Viewport_reregisters_after_toast_proxies_mount()
+    {
+        _ = RenderToast();
+
+        Assert.True(_module.Invocations.Count(invocation => invocation.Identifier == "registerToastViewport") >= 2);
+    }
+
+    [Fact]
+    public void Toast_renders_hidden_announcement_with_alt_text_excluding_close_label()
+    {
+        var cut = RenderToast();
+
+        cut.WaitForAssertion(() =>
+        {
+            var announce = cut.Find("span[role='status']");
+            Assert.Equal("assertive", announce.GetAttribute("aria-live"));
+            Assert.Contains("Notification", announce.TextContent);
+            Assert.Contains("Upload complete", announce.TextContent);
+            Assert.Contains("Your asset is ready.", announce.TextContent);
+            Assert.Contains("Open uploads", announce.TextContent);
+            Assert.DoesNotContain("Dismiss", announce.TextContent);
+        });
     }
 
     [Fact]

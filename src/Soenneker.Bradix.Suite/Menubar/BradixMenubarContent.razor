@@ -125,10 +125,13 @@
         return ValueTask.CompletedTask;
     }
 
-    private async Task HandleOpenAutoFocusAsync()
+    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
+
+        if (args.DefaultPrevented)
+            return;
 
         if (Menu is null)
             return;
@@ -139,7 +142,7 @@
             await _contentElement.FocusAsync();
     }
 
-    private async Task HandleCloseAutoFocusAsync()
+    private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
         if (OnCloseAutoFocus.HasDelegate)
             await OnCloseAutoFocus.InvokeAsync();
@@ -147,36 +150,28 @@
         if (MenubarMenu is not null)
             MenubarMenu.ResetKeyboardTriggerOpen();
 
-        if (Menu is not null && MenubarMenu is not null && Menubar?.HasOpenMenu != true && !_hasInteractedOutside)
+        if (!args.DefaultPrevented && Menu is not null && MenubarMenu is not null && Menubar?.HasOpenMenu != true && !_hasInteractedOutside)
+        {
             await Menu.FocusTriggerAsync();
+            args.PreventDefault();
+        }
 
         _hasInteractedOutside = false;
     }
 
-    private async Task HandleEscapeKeyDownAsync()
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
-
-        if (Menubar is not null)
-            await Menubar.CloseMenuAsync();
     }
 
-    private async Task HandlePointerDownOutsideAsync()
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs _)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
-
-        if (OnInteractOutside.HasDelegate)
-            await OnInteractOutside.InvokeAsync();
-
-        _hasInteractedOutside = true;
-
-        if (Menubar is not null)
-            await Menubar.CloseMenuAsync();
     }
 
-    private async Task HandleFocusOutsideAsync()
+    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
     {
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
@@ -184,15 +179,23 @@
         string activeElementId = await Interop.GetActiveElementId();
 
         if (Menubar?.IsRegisteredTriggerId(activeElementId) == true)
+        {
+            args.PreventDefault();
             return;
+        }
+    }
 
+    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs _)
+    {
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();
 
         _hasInteractedOutside = true;
+    }
 
-        if (Menubar is not null)
-            await Menubar.CloseMenuAsync();
+    private Task HandleDismissAsync()
+    {
+        return Menubar?.CloseMenuAsync() ?? Task.CompletedTask;
     }
 
     private async Task HandleContentKeyDownAsync(KeyboardEventArgs args)
@@ -232,19 +235,20 @@
     }
 
     private RenderFragment RenderContentTree() => @<BradixFocusGuards>
-        <BradixFocusScope Loop="@Loop"
-                          Trapped="false"
+        <BradixFocusScope Trapped="false"
                           PreventMountAutoFocus="true"
                           PreventUnmountAutoFocus="true"
-                          OnMountAutoFocus="HandleOpenAutoFocusAsync"
-                          OnUnmountAutoFocus="HandleCloseAutoFocusAsync">
+                          OnMountAutoFocusDetailed="HandleOpenAutoFocusAsync"
+                          OnUnmountAutoFocusDetailed="HandleCloseAutoFocusAsync">
             <BradixDismissableLayer DisableOutsidePointerEvents="false"
-                                    DismissOnEscapeKeyDown="false"
-                                    DismissOnPointerDownOutside="false"
-                                    DismissOnFocusOutside="false"
-                                    OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
-                                    OnPointerDownOutside="@HandlePointerDownOutsideAsync"
-                                    OnFocusOutside="@HandleFocusOutsideAsync">
+                                    DismissOnEscapeKeyDown="true"
+                                    DismissOnPointerDownOutside="true"
+                                    DismissOnFocusOutside="true"
+                                    OnDismiss="@HandleDismissAsync"
+                                    OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
+                                    OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
+                                    OnFocusOutsideDetailed="@HandleFocusOutsideAsync"
+                                    OnInteractOutsideDetailed="@HandleInteractOutsideAsync">
                 <BradixPopperContent Side="bottom"
                                      SideOffset="@SideOffset"
                                      Align="@Align"

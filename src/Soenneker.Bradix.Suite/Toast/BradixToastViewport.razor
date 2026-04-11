@@ -35,6 +35,8 @@
     private ElementReference _headFocusProxy;
     private ElementReference _tailFocusProxy;
     private DotNetObjectReference<object>? _dotNetReference;
+    private bool _lastRegisteredHasToasts;
+    private string? _lastRegisteredHotkeySignature;
     private bool _registered;
 
     [CascadingParameter]
@@ -65,12 +67,24 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
-        {
             Provider?.RegisterViewport();
-            _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterToastViewport(_wrapperElement, _viewportElement, _headFocusProxy, _tailFocusProxy, Hotkey, _dotNetReference);
-            _registered = true;
+
+        bool hasToasts = Provider?.ToastCount > 0;
+        string hotkeySignature = string.Join("\u001F", Hotkey);
+
+        if (!firstRender &&
+            _registered &&
+            _lastRegisteredHasToasts == hasToasts &&
+            string.Equals(_lastRegisteredHotkeySignature, hotkeySignature, StringComparison.Ordinal))
+        {
+            return;
         }
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterToastViewport(_wrapperElement, _viewportElement, _headFocusProxy, _tailFocusProxy, Hotkey, _dotNetReference);
+        _registered = true;
+        _lastRegisteredHasToasts = hasToasts;
+        _lastRegisteredHotkeySignature = hotkeySignature;
     }
 
     public async ValueTask DisposeAsync()

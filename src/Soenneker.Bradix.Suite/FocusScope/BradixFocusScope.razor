@@ -29,7 +29,13 @@
     public EventCallback OnMountAutoFocus { get; set; }
 
     [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnMountAutoFocusDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnUnmountAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnUnmountAutoFocusDetailed { get; set; }
 
     [Parameter]
     public bool PreventMountAutoFocus { get; set; }
@@ -73,18 +79,30 @@
     }
 
     [JSInvokable]
-    public Task HandleMountAutoFocusAsync()
+    public async Task<bool> HandleMountAutoFocusAsync(BradixAutoFocusEventArgs? presetArgs = null)
     {
-        return OnMountAutoFocus.HasDelegate
-            ? OnMountAutoFocus.InvokeAsync()
-            : Task.CompletedTask;
+        BradixAutoFocusEventArgs args = presetArgs ?? new BradixAutoFocusEventArgs();
+
+        if (OnMountAutoFocus.HasDelegate)
+            await OnMountAutoFocus.InvokeAsync();
+
+        if (OnMountAutoFocusDetailed.HasDelegate)
+            await OnMountAutoFocusDetailed.InvokeAsync(args);
+
+        return args.DefaultPrevented;
     }
 
     [JSInvokable]
-    public Task HandleUnmountAutoFocusAsync()
+    public async Task<bool> HandleUnmountAutoFocusAsync(BradixAutoFocusEventArgs? presetArgs = null)
     {
-        return OnUnmountAutoFocus.HasDelegate
-            ? OnUnmountAutoFocus.InvokeAsync()
-            : Task.CompletedTask;
+        BradixAutoFocusEventArgs args = presetArgs ?? new BradixAutoFocusEventArgs();
+
+        if (OnUnmountAutoFocus.HasDelegate)
+            await OnUnmountAutoFocus.InvokeAsync();
+
+        if (OnUnmountAutoFocusDetailed.HasDelegate)
+            await OnUnmountAutoFocusDetailed.InvokeAsync(args);
+
+        return args.DefaultPrevented;
     }
 }

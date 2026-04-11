@@ -17,6 +17,7 @@
     private readonly BradixTypeaheadBuffer _typeahead = new();
     private bool _initialized;
     private bool _focusFirstItemOnOpen;
+    private bool _focusContentOnOpen = true;
     private bool _uncontrolledOpen;
 
     [CascadingParameter(Name = "BradixDirection")]
@@ -146,11 +147,23 @@
         _focusFirstItemOnOpen = value;
     }
 
+    internal void SetFocusContentOnOpen(bool value)
+    {
+        _focusContentOnOpen = value;
+    }
+
     internal bool ConsumeFocusFirstItemOnOpen()
     {
         bool shouldFocusFirstItemOnOpen = _focusFirstItemOnOpen;
         _focusFirstItemOnOpen = false;
         return shouldFocusFirstItemOnOpen;
+    }
+
+    internal bool ConsumeFocusContentOnOpen()
+    {
+        bool shouldFocusContentOnOpen = _focusContentOnOpen;
+        _focusContentOnOpen = true;
+        return shouldFocusContentOnOpen;
     }
 
     internal async Task FocusFirstItemAsync()
@@ -207,6 +220,7 @@
         {
             ResetTypeahead();
             _focusFirstItemOnOpen = false;
+            _focusContentOnOpen = true;
         }
 
         if (OpenChanged.HasDelegate)

@@ -13,10 +13,10 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
     public BradixToggleGroupRenderTests()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("registerRovingFocusNavigationKeys", _ => true);
-        module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true);
-        module.SetupVoid("registerDelegatedInteraction", _ => true);
-        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
+        module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
@@ -29,9 +29,11 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         string? requestedValue = null;
 
         var cut = Render(CreateSingleGroup(EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
+        var group = cut.Find("[role='group']");
 
         var buttons = cut.FindAll("button");
 
+        Assert.False(group.HasAttribute("data-orientation"));
         Assert.Equal("radio", buttons[0].GetAttribute("role"));
         Assert.Equal("false", buttons[0].GetAttribute("aria-checked"));
 

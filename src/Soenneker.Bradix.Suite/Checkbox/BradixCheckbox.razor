@@ -23,7 +23,7 @@
 @code {
     private bool _initialized;
     private bool _delegatedInteractionReady;
-    private bool _isFormControl;
+    private bool _isFormControl = true;
     private bool _registered;
     private bool _hasSyncedBubbleInput;
     private BradixCheckboxCheckedState _initialUncheckedState;
@@ -68,7 +68,7 @@
 
     internal bool IsIndeterminate => CurrentChecked == BradixCheckboxCheckedState.Indeterminate;
 
-    private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Name) || !string.IsNullOrWhiteSpace(Form) || Required;
+    private bool ShouldRenderBubbleInput => _isFormControl;
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),

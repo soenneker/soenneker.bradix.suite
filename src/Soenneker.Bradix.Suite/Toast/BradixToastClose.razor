@@ -15,7 +15,8 @@
     private BradixToast? Toast { get; set; }
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
-        ("type", "button"));
+        ("type", "button"),
+        ("data-radix-toast-announce-exclude", string.Empty));
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {

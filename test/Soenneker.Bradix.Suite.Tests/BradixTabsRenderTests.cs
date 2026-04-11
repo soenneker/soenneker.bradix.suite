@@ -12,10 +12,14 @@ public sealed class BradixTabsRenderTests : BunitContext
     public BradixTabsRenderTests()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("registerRovingFocusNavigationKeys", _ => true);
-        module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true);
-        module.SetupVoid("registerDelegatedInteraction", _ => true);
-        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
+        module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        module.SetupVoid("registerPresence", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
+            .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();

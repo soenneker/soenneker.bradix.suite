@@ -14,10 +14,14 @@ public sealed class BradixAccordionRenderTests : BunitContext
     public BradixAccordionRenderTests()
     {
         BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("observeCollapsibleContent", _ => true);
-        module.SetupVoid("unobserveCollapsibleContent", _ => true);
-        module.SetupVoid("registerDelegatedInteraction", _ => true);
-        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
+        module.SetupVoid("observeCollapsibleContent", _ => true).SetVoidResult();
+        module.SetupVoid("unobserveCollapsibleContent", _ => true).SetVoidResult();
+        module.SetupVoid("registerPresence", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
+            .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
@@ -49,8 +53,11 @@ public sealed class BradixAccordionRenderTests : BunitContext
 
         triggers = cut.FindAll("button");
 
-        Assert.DoesNotContain("Content One", cut.Markup);
-        Assert.Contains("Content Two", cut.Markup);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.DoesNotContain("Content One", cut.Markup);
+            Assert.Contains("Content Two", cut.Markup);
+        });
         Assert.Equal("true", triggers[1].GetAttribute("aria-expanded"));
     }
 
@@ -73,8 +80,11 @@ public sealed class BradixAccordionRenderTests : BunitContext
 
         triggers = cut.FindAll("button");
 
-        Assert.DoesNotContain("Content One", cut.Markup);
-        Assert.Contains("Content Two", cut.Markup);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.DoesNotContain("Content One", cut.Markup);
+            Assert.Contains("Content Two", cut.Markup);
+        });
         Assert.Equal("false", triggers[0].GetAttribute("aria-expanded"));
         Assert.Equal("true", triggers[1].GetAttribute("aria-expanded"));
     }

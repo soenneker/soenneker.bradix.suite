@@ -196,6 +196,12 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterSliderPointerBridge", cancellationToken, element);
     }
 
+    public async ValueTask SyncSliderBubbleInputValue(ElementReference element, double value, bool dispatchEvent, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("syncSliderBubbleInputValue", cancellationToken, element, value, dispatchEvent);
+    }
+
     public async ValueTask RegisterScrollAreaRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
@@ -613,6 +619,13 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         string? textContent = await module.InvokeAsync<string>("getTextContent", cancellationToken, element);
         return textContent ?? string.Empty;
+    }
+
+    public async ValueTask<string[]> GetToastAnnounceText(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        string[]? textContent = await module.InvokeAsync<string[]>("getToastAnnounceText", cancellationToken, element);
+        return textContent ?? [];
     }
 
     public async ValueTask<string> GetActiveElementId(CancellationToken cancellationToken = default)

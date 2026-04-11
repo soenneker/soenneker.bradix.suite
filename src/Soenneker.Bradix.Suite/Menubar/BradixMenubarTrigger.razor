@@ -6,6 +6,7 @@
 <BradixMenuAnchor>
     <button @ref="_button"
             @onpointerdown="HandlePointerDownAsync"
+            @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
             @onpointerenter="HandlePointerEnterAsync"
             @onkeydown="HandleKeyDownAsync"
             @onfocus="HandleFocusAsync"
@@ -39,6 +40,8 @@
     bool IBradixMenubarTrigger.Disabled => Disabled;
 
     private bool IsOpen => MenubarMenu?.IsOpen == true;
+
+    private bool PreventTriggerFocusOnOpen => !Disabled && IsOpen == false;
 
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
         ("type", "button"),

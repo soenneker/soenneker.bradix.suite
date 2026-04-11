@@ -490,6 +490,59 @@ function createDelegatedEventSnapshot(type, event) {
   };
 }
 
+function createDismissablePointerSnapshot(event) {
+  const target = event.target instanceof HTMLElement ? event.target : null;
+  return {
+    button: typeof event.button === "number" ? event.button : 0,
+    ctrlKey: !!event.ctrlKey,
+    shiftKey: !!event.shiftKey,
+    altKey: !!event.altKey,
+    metaKey: !!event.metaKey,
+    detail: typeof event.detail === "number" ? event.detail : 0,
+    defaultPrevented: !!event.defaultPrevented,
+    targetId: target && target.id ? target.id : "",
+    ancestorIds: getAncestorIds(target),
+    activeElementInsideLayer: false
+  };
+}
+
+function createDismissableKeyboardSnapshot(event) {
+  return {
+    key: event.key || "",
+    code: event.code || "",
+    ctrlKey: !!event.ctrlKey,
+    shiftKey: !!event.shiftKey,
+    altKey: !!event.altKey,
+    metaKey: !!event.metaKey,
+    repeat: !!event.repeat,
+    defaultPrevented: !!event.defaultPrevented
+  };
+}
+
+function createDismissableFocusSnapshot(event) {
+  const target = event.target instanceof HTMLElement ? event.target : null;
+  return {
+    defaultPrevented: !!event.defaultPrevented,
+    targetId: target && target.id ? target.id : "",
+    ancestorIds: getAncestorIds(target)
+  };
+}
+
+function getAncestorIds(element) {
+  const ids = [];
+  let current = element;
+
+  while (current instanceof HTMLElement) {
+    if (current.id) {
+      ids.push(current.id);
+    }
+
+    current = current.parentElement;
+  }
+
+  return ids;
+}
+
 export function registerCheckboxRoot(element, dotNetRef) {
   if (!element) {
     return;
@@ -828,6 +881,27 @@ export function syncCheckboxBubbleInputState(element, isChecked, isIndeterminate
 
   if (dispatchEvent) {
     element.dispatchEvent(new Event("click", { bubbles: !!bubbles }));
+  }
+}
+
+export function syncSliderBubbleInputValue(element, value, dispatchEvent) {
+  if (!element) {
+    return;
+  }
+
+  const inputProto = window.HTMLInputElement.prototype;
+  const descriptor = Object.getOwnPropertyDescriptor(inputProto, "value");
+  const setValue = descriptor && typeof descriptor.set === "function" ? descriptor.set : null;
+  const nextValue = value == null ? "" : String(value);
+
+  if (setValue) {
+    setValue.call(element, nextValue);
+  } else {
+    element.value = nextValue;
+  }
+
+  if (dispatchEvent) {
+    element.dispatchEvent(new Event("input", { bubbles: true }));
   }
 }
 
@@ -1997,7 +2071,8 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
-    if (topLayer.element.contains(event.target)) {
+    if (topLayer.isPointerInside) {
+      topLayer.isPointerInside = false;
       return;
     }
 
@@ -2007,7 +2082,27 @@ function ensureDismissableLayerListeners() {
       }
     }
 
-    topLayer.dotNetRef.invokeMethodAsync("HandlePointerDownOutsideAsync");
+    const dispatchPointerDownOutside = () => {
+      const snapshot = createDismissablePointerSnapshot(event);
+      snapshot.activeElementInsideLayer = !!(document.activeElement && topLayer.element.contains(document.activeElement));
+      topLayer.dotNetRef.invokeMethodAsync("HandlePointerDownOutsideAsync", snapshot).catch(() => {});
+    };
+
+    if (event.pointerType === "touch") {
+      if (topLayer.handleDocumentClick) {
+        document.removeEventListener("click", topLayer.handleDocumentClick);
+      }
+
+      topLayer.handleDocumentClick = dispatchPointerDownOutside;
+      document.addEventListener("click", topLayer.handleDocumentClick, { once: true });
+    } else {
+      if (topLayer.handleDocumentClick) {
+        document.removeEventListener("click", topLayer.handleDocumentClick);
+        topLayer.handleDocumentClick = null;
+      }
+
+      dispatchPointerDownOutside();
+    }
   });
 
   document.addEventListener("focusin", (event) => {
@@ -2017,7 +2112,7 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
-    if (topLayer.element.contains(event.target)) {
+    if (topLayer.isFocusInside) {
       return;
     }
 
@@ -2027,7 +2122,7 @@ function ensureDismissableLayerListeners() {
       }
     }
 
-    topLayer.dotNetRef.invokeMethodAsync("HandleFocusOutsideAsync");
+    topLayer.dotNetRef.invokeMethodAsync("HandleFocusOutsideAsync", createDismissableFocusSnapshot(event)).catch(() => {});
   });
 
   document.addEventListener("keydown", (event) => {
@@ -2040,7 +2135,7 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
-    topLayer.dotNetRef.invokeMethodAsync("HandleEscapeKeyDownAsync");
+    topLayer.dotNetRef.invokeMethodAsync("HandleEscapeKeyDownAsync", createDismissableKeyboardSnapshot(event)).catch(() => {});
   });
 
   dismissableLayerListenersRegistered = true;
@@ -2053,7 +2148,41 @@ export function registerDismissableLayer(element, dotNetRef, disableOutsidePoint
 
   unregisterDismissableLayer(element);
   ensureDismissableLayerListeners();
-  dismissableLayers.push({ element, dotNetRef, disableOutsidePointerEvents: !!disableOutsidePointerEvents });
+
+  const handlePointerDownCapture = () => {
+    const layer = dismissableLayers.find((item) => item.element === element);
+    if (layer) {
+      layer.isPointerInside = true;
+    }
+  };
+  const handleFocusInCapture = () => {
+    const layer = dismissableLayers.find((item) => item.element === element);
+    if (layer) {
+      layer.isFocusInside = true;
+    }
+  };
+  const handleFocusOutCapture = () => {
+    const layer = dismissableLayers.find((item) => item.element === element);
+    if (layer) {
+      layer.isFocusInside = false;
+    }
+  };
+
+  element.addEventListener("pointerdown", handlePointerDownCapture, true);
+  element.addEventListener("focusin", handleFocusInCapture, true);
+  element.addEventListener("focusout", handleFocusOutCapture, true);
+
+  dismissableLayers.push({
+    element,
+    dotNetRef,
+    disableOutsidePointerEvents: !!disableOutsidePointerEvents,
+    isPointerInside: false,
+    isFocusInside: false,
+    handlePointerDownCapture,
+    handleFocusInCapture,
+    handleFocusOutCapture,
+    handleDocumentClick: null
+  });
   updateDismissableLayerPointerEvents();
 }
 
@@ -2075,9 +2204,16 @@ export function unregisterDismissableLayer(element) {
     return;
   }
 
-  dismissableLayers.splice(index, 1);
+  const [layer] = dismissableLayers.splice(index, 1);
+
+  if (layer?.handleDocumentClick) {
+    document.removeEventListener("click", layer.handleDocumentClick);
+  }
 
   if (element) {
+    element.removeEventListener("pointerdown", layer.handlePointerDownCapture, true);
+    element.removeEventListener("focusin", layer.handleFocusInCapture, true);
+    element.removeEventListener("focusout", layer.handleFocusOutCapture, true);
     element.style.pointerEvents = "";
   }
 
@@ -2324,8 +2460,8 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
   const previous = scope.previouslyFocusedElement;
   const hasFocusedCandidate = previous && scope.element.contains(previous);
   if (!hasFocusedCandidate) {
-    await dotNetRef.invokeMethodAsync("HandleMountAutoFocusAsync");
-    if (!scope.preventMountAutoFocus) {
+    const mountAutoFocusPrevented = await dotNetRef.invokeMethodAsync("HandleMountAutoFocusAsync");
+    if (!scope.preventMountAutoFocus && !mountAutoFocusPrevented) {
       focusFirst(removeLinks(getTabbableCandidates(scope.element)), true);
       if (document.activeElement === previous) {
         focusElement(scope.element, false);
@@ -2364,11 +2500,17 @@ export async function unregisterFocusScope(element) {
   focusScopeHandlers.delete(element);
 
   setTimeout(() => {
-    scope.dotNetRef.invokeMethodAsync("HandleUnmountAutoFocusAsync").catch(() => {});
-    if (!scope.preventUnmountAutoFocus) {
-      focusElement(scope.previouslyFocusedElement || document.body, true);
-    }
-    removeFocusScopeFromStack(scope);
+    scope.dotNetRef.invokeMethodAsync("HandleUnmountAutoFocusAsync").then((unmountAutoFocusPrevented) => {
+      if (!scope.preventUnmountAutoFocus && !unmountAutoFocusPrevented) {
+        focusElement(scope.previouslyFocusedElement || document.body, true);
+      }
+    }).catch(() => {
+      if (!scope.preventUnmountAutoFocus) {
+        focusElement(scope.previouslyFocusedElement || document.body, true);
+      }
+    }).finally(() => {
+      removeFocusScopeFromStack(scope);
+    });
   }, 0);
 }
 
@@ -3070,9 +3212,52 @@ export function getTextContent(element) {
   return (element.textContent || "").trim();
 }
 
+export function getToastAnnounceText(element) {
+  if (!element) {
+    return [];
+  }
+
+  return collectToastAnnounceText(element);
+}
+
 export function getActiveElementId() {
   const activeElement = document.activeElement;
   return activeElement && activeElement.id ? activeElement.id : "";
+}
+
+function collectToastAnnounceText(container) {
+  const textContent = [];
+  const childNodes = Array.from(container.childNodes || []);
+
+  childNodes.forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE && node.textContent) {
+      textContent.push(node.textContent);
+      return;
+    }
+
+    if (!(node instanceof HTMLElement)) {
+      return;
+    }
+
+    const isHidden = node.ariaHidden === "true" || node.hidden || node.style.display === "none";
+    const isExcluded = node.dataset && node.dataset.radixToastAnnounceExclude === "";
+
+    if (isHidden) {
+      return;
+    }
+
+    if (isExcluded) {
+      const altText = node.dataset.radixToastAnnounceAlt;
+      if (altText) {
+        textContent.push(altText);
+      }
+      return;
+    }
+
+    textContent.push(...collectToastAnnounceText(node));
+  });
+
+  return textContent;
 }
 
 export function getMenubarActiveElementState(currentContentId) {

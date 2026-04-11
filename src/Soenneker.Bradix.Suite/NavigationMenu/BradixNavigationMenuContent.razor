@@ -16,8 +16,9 @@
                                 DismissOnEscapeKeyDown="false"
                                 DismissOnPointerDownOutside="false"
                                 DismissOnFocusOutside="false"
-                                OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
-                                OnPointerDownOutside="@HandlePointerDownOutsideAsync">
+                                OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
+                                OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
+                                OnFocusOutsideDetailed="@HandleFocusOutsideAsync">
             <div @ref="_contentElement"
                  tabindex="-1"
                  @onpointerenter="HandlePointerEnterAsync"
@@ -135,16 +136,38 @@
             NavigationMenu?.UnregisterViewportContent(Item.ResolvedValue);
     }
 
-    private async Task HandleEscapeKeyDownAsync()
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
     {
         if (NavigationMenu is not null && Item is not null)
             await NavigationMenu.DismissAsync(Item.ResolvedValue);
     }
 
-    private async Task HandlePointerDownOutsideAsync()
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
     {
-        if (NavigationMenu?.IsRootMenu == true)
-            await NavigationMenu.DismissAsync();
+        if (NavigationMenu is null)
+            return;
+
+        if (!NavigationMenu.IsRootMenu || NavigationMenu.ContainsRegisteredTriggerId(args.OriginalEvent.AncestorIds))
+        {
+            args.PreventDefault();
+            return;
+        }
+
+        await NavigationMenu.DismissAsync(args.OriginalEvent.ActiveElementInsideLayer && Item is not null ? Item.ResolvedValue : null);
+    }
+
+    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
+    {
+        if (NavigationMenu is null)
+            return;
+
+        if (NavigationMenu.ContainsRegisteredTriggerId(args.OriginalEvent.AncestorIds))
+        {
+            args.PreventDefault();
+            return;
+        }
+
+        await NavigationMenu.DismissAsync(Item?.ResolvedValue);
     }
 
     private Task HandlePointerEnterAsync(PointerEventArgs args)

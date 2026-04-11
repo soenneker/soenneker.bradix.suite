@@ -9,6 +9,7 @@
 <CascadingValue Value="this">
     <button @ref="_element"
             @onclick="HandleClick"
+            @onclick:stopPropagation="ShouldRenderBubbleInput"
             @onfocus="HandleFocus"
             @onkeydown="HandleKeyDown"
             @attributes="ItemAttributes">
@@ -18,12 +19,17 @@
 
 @if (ShouldRenderBubbleInput)
 {
-    <input @attributes="BubbleInputAttributes" />
+    <input @ref="_bubbleInputElement"
+           @attributes="BubbleInputAttributes" />
 }
 
 @code {
     private ElementReference _element;
+    private ElementReference _bubbleInputElement;
     private DotNetObjectReference<object>? _dotNetReference;
+    private bool _hasSyncedBubbleInput;
+    private bool _isFormControl = true;
+    private bool _lastRenderedChecked;
     private bool _registered;
     private bool _rovingFocusBridgeReady;
 
@@ -45,7 +51,7 @@
 
     internal bool IsChecked => Group.IsChecked(Value);
 
-    private bool ShouldRenderBubbleInput => !string.IsNullOrWhiteSpace(Group.Name);
+    private bool ShouldRenderBubbleInput => _isFormControl;
 
     private Dictionary<string, object> ItemAttributes => BuildAttributes(
         ("type", "button"),
@@ -75,7 +81,7 @@
         ["disabled"] = IsDisabled,
         ["tabindex"] = -1,
         ["aria-hidden"] = "true",
-        ["style"] = "position:absolute;pointer-events:none;opacity:0;margin:0;"
+        ["style"] = "position:absolute;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);"
     };
 
     protected override void OnInitialized()
@@ -85,14 +91,33 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
-            return;
+        if (firstRender)
+        {
+            Group.RegisterItem(this);
+            _registered = true;
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+            await Interop.RegisterRadioGroupItemKeys(_element);
+            _lastRenderedChecked = IsChecked;
+        }
 
-        Group.RegisterItem(this);
-        _registered = true;
-        _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
-        await Interop.RegisterRadioGroupItemKeys(_element);
+        bool isFormControl = await Interop.IsFormControl(_element);
+
+        if (_isFormControl != isFormControl)
+        {
+            _isFormControl = isFormControl;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (ShouldRenderBubbleInput)
+        {
+            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedChecked != IsChecked;
+            await Interop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, false, dispatchEvent);
+            _hasSyncedBubbleInput = true;
+        }
+
+        _lastRenderedChecked = IsChecked;
     }
 
     public async ValueTask DisposeAsync()

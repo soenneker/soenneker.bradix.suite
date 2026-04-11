@@ -32,13 +32,25 @@
     public EventCallback OnEscapeKeyDown { get; set; }
 
     [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnFocusOutside { get; set; }
 
     [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnDismiss { get; set; }
@@ -79,38 +91,69 @@
     }
 
     [JSInvokable]
-    public async Task HandleEscapeKeyDownAsync()
+    public async Task HandleEscapeKeyDownAsync(BradixDelegatedKeyboardEvent? originalEvent = null)
     {
+        var args = new BradixEscapeKeyDownEventArgs(originalEvent ?? new BradixDelegatedKeyboardEvent());
+
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
 
-        if (DismissOnEscapeKeyDown && OnDismiss.HasDelegate)
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(args);
+
+        if (DismissOnEscapeKeyDown && !args.DefaultPrevented && OnDismiss.HasDelegate)
             await OnDismiss.InvokeAsync();
     }
 
     [JSInvokable]
-    public async Task HandlePointerDownOutsideAsync()
+    public async Task HandlePointerDownOutsideAsync(BradixDelegatedMouseEvent? originalEvent = null)
     {
+        var pointerArgs = new BradixPointerDownOutsideEventArgs(originalEvent ?? new BradixDelegatedMouseEvent());
+
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
 
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(pointerArgs);
+
+        var interactArgs = new BradixInteractOutsideEventArgs("pointerdown", pointerArgs.OriginalEvent);
+
+        if (pointerArgs.DefaultPrevented)
+            interactArgs.PreventDefault();
+
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();
 
-        if (DismissOnPointerDownOutside && OnDismiss.HasDelegate)
+        if (OnInteractOutsideDetailed.HasDelegate)
+            await OnInteractOutsideDetailed.InvokeAsync(interactArgs);
+
+        if (DismissOnPointerDownOutside && !pointerArgs.DefaultPrevented && !interactArgs.DefaultPrevented && OnDismiss.HasDelegate)
             await OnDismiss.InvokeAsync();
     }
 
     [JSInvokable]
-    public async Task HandleFocusOutsideAsync()
+    public async Task HandleFocusOutsideAsync(BradixDelegatedFocusEvent? originalEvent = null)
     {
+        var focusArgs = new BradixFocusOutsideEventArgs(originalEvent ?? new BradixDelegatedFocusEvent());
+
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
+
+        if (OnFocusOutsideDetailed.HasDelegate)
+            await OnFocusOutsideDetailed.InvokeAsync(focusArgs);
+
+        var interactArgs = new BradixInteractOutsideEventArgs("focusin", focusOutsideEvent: focusArgs.OriginalEvent);
+
+        if (focusArgs.DefaultPrevented)
+            interactArgs.PreventDefault();
 
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();
 
-        if (DismissOnFocusOutside && OnDismiss.HasDelegate)
+        if (OnInteractOutsideDetailed.HasDelegate)
+            await OnInteractOutsideDetailed.InvokeAsync(interactArgs);
+
+        if (DismissOnFocusOutside && !focusArgs.DefaultPrevented && !interactArgs.DefaultPrevented && OnDismiss.HasDelegate)
             await OnDismiss.InvokeAsync();
     }
 }

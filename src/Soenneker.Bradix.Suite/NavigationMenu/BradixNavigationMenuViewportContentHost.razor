@@ -8,8 +8,9 @@
                         DismissOnEscapeKeyDown="false"
                         DismissOnPointerDownOutside="false"
                         DismissOnFocusOutside="false"
-                        OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
-                        OnPointerDownOutside="@HandlePointerDownOutsideAsync">
+                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
+                        OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
+                        OnFocusOutsideDetailed="@HandleFocusOutsideAsync">
     <div @ref="_contentElement"
          tabindex="-1"
          @attributes="ContentAttributes">
@@ -115,16 +116,38 @@
         NavigationMenu?.UnregisterContent(Registration.Value);
     }
 
-    private async Task HandleEscapeKeyDownAsync()
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
     {
         if (NavigationMenu is not null)
             await NavigationMenu.DismissAsync(Registration.Value);
     }
 
-    private async Task HandlePointerDownOutsideAsync()
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
     {
-        if (NavigationMenu is not null)
-            await NavigationMenu.DismissAsync();
+        if (NavigationMenu is null)
+            return;
+
+        if (!NavigationMenu.IsRootMenu || NavigationMenu.ContainsRegisteredTriggerId(args.OriginalEvent.AncestorIds))
+        {
+            args.PreventDefault();
+            return;
+        }
+
+        await NavigationMenu.DismissAsync(args.OriginalEvent.ActiveElementInsideLayer ? Registration.Value : null);
+    }
+
+    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
+    {
+        if (NavigationMenu is null)
+            return;
+
+        if (NavigationMenu.ContainsRegisteredTriggerId(args.OriginalEvent.AncestorIds))
+        {
+            args.PreventDefault();
+            return;
+        }
+
+        await NavigationMenu.DismissAsync(Registration.Value);
     }
 
     private Task HandlePointerEnterAsync(PointerEventArgs args)

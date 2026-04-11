@@ -16,7 +16,9 @@
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
-        ("aria-label", AltText));
+        ("aria-label", AltText),
+        ("data-radix-toast-announce-exclude", string.Empty),
+        ("data-radix-toast-announce-alt", AltText));
 
     protected override void OnParametersSet()
     {

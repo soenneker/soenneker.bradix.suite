@@ -151,6 +151,24 @@
         return resolvedTrigger is not null;
     }
 
+    internal bool ContainsRegisteredTriggerId(IEnumerable<string>? ids)
+    {
+        if (ids is null)
+            return false;
+
+        HashSet<string> triggerIds = _triggers.Snapshot()
+            .Select(entry => entry.Item.TriggerId)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (string id in ids)
+        {
+            if (triggerIds.Contains(id))
+                return true;
+        }
+
+        return false;
+    }
+
     internal void RegisterTrigger(IBradixNavigationMenuTrigger trigger)
     {
         _triggers.Register(trigger.Value, trigger);

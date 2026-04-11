@@ -101,6 +101,7 @@
         if (Disabled)
             return;
 
+        SubMenu.SetFocusContentOnOpen(false);
         SubMenu.SetFocusFirstItemOnOpen(false);
         await _element.FocusAsync();
         await SubMenu.SetOpenAsync(true);
@@ -133,6 +134,7 @@
 
         if (isOpenKey)
         {
+            SubMenu.SetFocusContentOnOpen(true);
             SubMenu.SetFocusFirstItemOnOpen(true);
             await SubMenu.SetOpenAsync(true);
             return;
@@ -156,6 +158,7 @@
 
         if (!SubMenu.CurrentOpen)
         {
+            SubMenu.SetFocusContentOnOpen(false);
             SubMenu.SetFocusFirstItemOnOpen(false);
             await SubMenu.SetOpenAsync(true);
         }

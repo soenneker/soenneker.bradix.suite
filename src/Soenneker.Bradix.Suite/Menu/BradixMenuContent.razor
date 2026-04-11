@@ -22,6 +22,7 @@
     private bool _wasPresent;
     private bool _isExiting;
     private bool _hasInteractedOutside;
+    private bool _hasPointerDownOutside;
     private bool _hideOthersRegistered;
     private bool _contentElementCaptured;
     private bool _pendingOpenAutoFocus;
@@ -68,19 +69,37 @@
     public EventCallback OnOpenAutoFocus { get; set; }
 
     [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnCloseAutoFocusDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnEscapeKeyDown { get; set; }
 
     [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnFocusOutside { get; set; }
 
     [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnPlaced { get; set; }
@@ -169,10 +188,16 @@
         return item.FocusAsync().AsTask();
     }
 
-    private async Task HandleOpenAutoFocusAsync()
+    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
+
+        if (OnOpenAutoFocusDetailed.HasDelegate)
+            await OnOpenAutoFocusDetailed.InvokeAsync(args);
+
+        if (args.DefaultPrevented)
+            return;
 
         if (Menu is null)
             return;
@@ -186,24 +211,31 @@
         await ApplyOpenAutoFocusAsync();
     }
 
-    private async Task HandleCloseAutoFocusAsync()
+    private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
         if (OnCloseAutoFocus.HasDelegate)
             await OnCloseAutoFocus.InvokeAsync();
 
-        if (Menu is not null && (Menu.Modal || !_hasInteractedOutside))
+        if (OnCloseAutoFocusDetailed.HasDelegate)
+            await OnCloseAutoFocusDetailed.InvokeAsync(args);
+
+        if (!args.DefaultPrevented && Menu is not null && (Menu.Modal || !_hasInteractedOutside))
+        {
             await Menu.FocusTriggerAsync();
+            args.PreventDefault();
+        }
 
         _hasInteractedOutside = false;
+        _hasPointerDownOutside = false;
     }
 
-    private async Task HandleEscapeKeyDownAsync()
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
 
-        if (Menu is not null)
-            await Menu.SetOpenAsync(false);
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(_);
     }
 
     private Task HandleContentKeyDownAsync(KeyboardEventArgs args)
@@ -211,36 +243,53 @@
         return OnContentKeyDown.HasDelegate ? OnContentKeyDown.InvokeAsync(args) : Task.CompletedTask;
     }
 
-    private async Task HandlePointerDownOutsideAsync()
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs _)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
 
-        if (OnInteractOutside.HasDelegate)
-            await OnInteractOutside.InvokeAsync();
-
-        if (Menu is not null && !Menu.Modal)
-            _hasInteractedOutside = true;
-
-        if (Menu is not null)
-            await Menu.SetOpenAsync(false);
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(_);
     }
 
-    private async Task HandleFocusOutsideAsync()
+    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
     {
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
 
-        if (Menu?.Modal == true)
-            return;
+        if (OnFocusOutsideDetailed.HasDelegate)
+            await OnFocusOutsideDetailed.InvokeAsync(args);
 
+        if (Menu?.Modal == true)
+        {
+            args.PreventDefault();
+            return;
+        }
+    }
+
+    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
+    {
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();
 
-        _hasInteractedOutside = true;
+        if (OnInteractOutsideDetailed.HasDelegate)
+            await OnInteractOutsideDetailed.InvokeAsync(args);
 
-        if (Menu is not null)
-            await Menu.SetOpenAsync(false);
+        if (!args.DefaultPrevented && Menu is not null && !Menu.Modal)
+        {
+            _hasInteractedOutside = true;
+
+            if (args.OriginalEventType == "pointerdown")
+                _hasPointerDownOutside = true;
+        }
+
+        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside)
+            args.PreventDefault();
+    }
+
+    private Task HandleDismissAsync()
+    {
+        return Menu?.SetOpenAsync(false) ?? Task.CompletedTask;
     }
 
     private Task HandleExitCompleteAsync()
@@ -251,19 +300,20 @@
 
     private RenderFragment RenderContentTree() => @<CascadingValue Value="this">
         <BradixFocusGuards>
-            <BradixFocusScope Loop="@Loop"
-                              Trapped="ShouldTrapFocus"
+            <BradixFocusScope Trapped="ShouldTrapFocus"
                               PreventMountAutoFocus="true"
                               PreventUnmountAutoFocus="true"
-                              OnMountAutoFocus="HandleOpenAutoFocusAsync"
-                              OnUnmountAutoFocus="HandleCloseAutoFocusAsync">
+                              OnMountAutoFocusDetailed="HandleOpenAutoFocusAsync"
+                              OnUnmountAutoFocusDetailed="HandleCloseAutoFocusAsync">
                 <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
-                                        DismissOnEscapeKeyDown="false"
-                                        DismissOnPointerDownOutside="false"
-                                        DismissOnFocusOutside="false"
-                                        OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
-                                        OnPointerDownOutside="@HandlePointerDownOutsideAsync"
-                                        OnFocusOutside="@HandleFocusOutsideAsync"
+                                        DismissOnEscapeKeyDown="true"
+                                        DismissOnPointerDownOutside="true"
+                                        DismissOnFocusOutside="true"
+                                        OnDismiss="@HandleDismissAsync"
+                                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
+                                        OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
+                                        OnFocusOutsideDetailed="@HandleFocusOutsideAsync"
+                                        OnInteractOutsideDetailed="@HandleInteractOutsideAsync"
                                         OnElementReferenceCaptured="@HandleElementReferenceCapturedAsync">
                     <BradixPopperContent Side="@Side"
                                          SideOffset="SideOffset"
@@ -331,7 +381,8 @@
             return;
         }
 
-        await _contentElement.FocusAsync();
+        if (Menu.ConsumeFocusContentOnOpen())
+            await _contentElement.FocusAsync();
     }
 
     private async Task HandleContentElementCapturedInternalAsync(ElementReference element)

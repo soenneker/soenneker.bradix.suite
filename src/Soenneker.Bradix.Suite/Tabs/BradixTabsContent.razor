@@ -2,18 +2,19 @@
 
 @inherits BradixComponentBase
 
-@if (Present)
-{
-    <div @attributes="ContentAttributes">
-        @if (Present)
-        {
-            @ChildContent
-        }
-    </div>
-}
+<BradixPresence Present="Present"
+                Tag="div"
+                AdditionalAttributes="@ContentAttributes"
+                OnExitComplete="@HandleExitCompleteAsync">
+    @if (ShouldRenderChildren)
+    {
+        @ChildContent
+    }
+</BradixPresence>
 
 @code {
     private bool _preventMountAnimation = true;
+    private bool _isPresent;
 
     [CascadingParameter]
     internal BradixTabs Tabs { get; set; } = null!;
@@ -26,21 +27,29 @@
 
     private bool Present => ForceMount || IsSelected;
 
+    private bool ShouldRenderChildren => Present || _isPresent;
+
     private bool IsSelected => string.Equals(Tabs.CurrentValue, Value, StringComparison.Ordinal);
 
     private string TriggerId => Tabs.MakeTriggerId(Value);
 
     private string ContentId => Tabs.MakeContentId(Value);
 
-    private Dictionary<string, object> ContentAttributes => BuildAttributes(
+    private IReadOnlyDictionary<string, object> ContentAttributes => BuildAttributes(
         ("role", "tabpanel"),
         ("aria-labelledby", TriggerId),
-        ("hidden", !Present ? true : null),
+        ("hidden", !(Present || _isPresent)),
         ("id", ContentId),
         ("tabindex", 0),
         ("data-state", IsSelected ? "active" : "inactive"),
         ("data-orientation", Tabs.Orientation),
         ("style", BuildContentStyle()));
+
+    protected override void OnParametersSet()
+    {
+        if (Present)
+            _isPresent = true;
+    }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
@@ -62,5 +71,11 @@
             return Style;
 
         return $"{animationStyle} {Style}";
+    }
+
+    private async Task HandleExitCompleteAsync()
+    {
+        _isPresent = false;
+        await InvokeAsync(StateHasChanged);
     }
 }
