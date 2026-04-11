@@ -8,11 +8,13 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixPortalRenderTests : BunitContext
 {
+    private readonly BunitJSModuleInterop _module;
+
     public BradixPortalRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("mountPortal", _ => true);
-        module.SetupVoid("unmountPortal", _ => true);
+        _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.SetupVoid("mountPortal", _ => true).SetVoidResult();
+        _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
@@ -41,11 +43,17 @@ public sealed class BradixPortalRenderTests : BunitContext
     {
         var cut = Render<PortalHost>();
 
-        Assert.Single(JSInterop.Invocations, invocation => invocation.Identifier == "mountPortal");
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Single(_module.Invocations, invocation => invocation.Identifier == "mountPortal");
+        });
 
         cut.Find("button").Click();
 
-        Assert.Single(JSInterop.Invocations, invocation => invocation.Identifier == "mountPortal");
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Single(_module.Invocations, invocation => invocation.Identifier == "mountPortal");
+        });
     }
 
     private static RenderFragment CreatePortal(string? containerSelector = null)

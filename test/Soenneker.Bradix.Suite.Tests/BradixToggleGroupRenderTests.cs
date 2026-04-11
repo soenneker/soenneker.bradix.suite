@@ -46,7 +46,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
 
         buttons[0].Click();
 
-        Assert.Null(requestedValue);
+        Assert.Equal(string.Empty, requestedValue);
     }
 
     [Fact]

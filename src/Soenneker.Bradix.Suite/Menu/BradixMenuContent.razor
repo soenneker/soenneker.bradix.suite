@@ -179,13 +179,19 @@
         return Menu is null ? Task.CompletedTask : Menu.HandleTypeaheadAsync(item, key);
     }
 
-    internal Task HandlePointerMoveAsync(IBradixMenuItem item)
+    internal Task HandlePointerMoveAsync(IBradixMenuItem item, string? pointerType)
     {
-        if (Menu is null)
+        if (Menu is null || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
             return Task.CompletedTask;
 
         Menu.SetCurrentTabStop(item.TabStopId);
         return item.FocusAsync().AsTask();
+    }
+
+    internal Task HandleItemLeaveAsync()
+    {
+        Menu?.ClearCurrentTabStop();
+        return Interop.FocusElementPreventScroll(_contentElement).AsTask();
     }
 
     private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
@@ -382,7 +388,7 @@
         }
 
         if (Menu.ConsumeFocusContentOnOpen())
-            await _contentElement.FocusAsync();
+            await Interop.FocusElementPreventScroll(_contentElement);
     }
 
     private async Task HandleContentElementCapturedInternalAsync(ElementReference element)

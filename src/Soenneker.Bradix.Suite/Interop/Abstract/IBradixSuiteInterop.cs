@@ -71,6 +71,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask ClickElement(ElementReference element, CancellationToken cancellationToken = default);
 
+    ValueTask SelectInputText(ElementReference element, CancellationToken cancellationToken = default);
+
     ValueTask RegisterSliderPointerBridge(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     ValueTask UnregisterSliderPointerBridge(ElementReference element, CancellationToken cancellationToken = default);
@@ -103,6 +105,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
     ValueTask<bool> IsToastFocused(ElementReference toast, CancellationToken cancellationToken = default);
 
     ValueTask FocusElementById(string? elementId, CancellationToken cancellationToken = default);
+
+    ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default);
 
     ValueTask RegisterOneTimePasswordInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default);
@@ -223,7 +227,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnregisterRemoveScroll(CancellationToken cancellationToken = default);
 
-    ValueTask RegisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default);
+    ValueTask RegisterLabelTextSelectionGuard(ElementReference element, DotNetObjectReference<object>? dotNetReference = null,
+        CancellationToken cancellationToken = default);
 
     ValueTask UnregisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default);
 

@@ -12,6 +12,7 @@
      @onkeydown="HandleKeyDownAsync"
      @onkeydown:preventDefault="true"
      @onpointermove="HandlePointerMoveAsync"
+     @onpointerleave="HandlePointerLeaveAsync"
      @attributes="ItemAttributes">
     @ChildContent
 </div>
@@ -90,7 +91,7 @@
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask FocusAsync() => _element.FocusAsync();
+    public ValueTask FocusAsync() => Interop.FocusElementPreventScroll(_element);
 
     private async Task HandleClickAsync()
     {
@@ -154,8 +155,17 @@
         await Content.HandleItemKeyDownAsync(this, args);
     }
 
-    private Task HandlePointerMoveAsync(PointerEventArgs _)
+    private Task HandlePointerMoveAsync(PointerEventArgs args)
     {
-        return Disabled ? Task.CompletedTask : Content.HandlePointerMoveAsync(this);
+        return Disabled
+            ? Content.HandleItemLeaveAsync()
+            : Content.HandlePointerMoveAsync(this, args.PointerType);
+    }
+
+    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    {
+        return string.Equals(args.PointerType, "mouse", StringComparison.Ordinal)
+            ? Content.HandleItemLeaveAsync()
+            : Task.CompletedTask;
     }
 }

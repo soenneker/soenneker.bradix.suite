@@ -85,6 +85,26 @@ public sealed class BradixPresenceRenderTests : BunitContext
         cut.WaitForAssertion(() => Assert.Equal(1, exitCompleteCount));
     }
 
+    [Fact]
+    public async Task Exit_animation_ignores_non_current_animation_end_events()
+    {
+        var cut = Render(CreatePresenceHost(() => true));
+        var presence = cut.FindComponent<BradixPresence>();
+
+        await cut.InvokeAsync(() => presence.Instance.SetParametersAsync(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            [nameof(BradixPresence.Present)] = false
+        })));
+
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("fade-in", "fade-out"));
+
+        Assert.Contains("Content", cut.Markup);
+
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("fade-out", "fade-out"));
+
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Content", cut.Markup));
+    }
+
     private static RenderFragment CreatePresenceHost(System.Func<bool> presentAccessor)
     {
         return builder =>

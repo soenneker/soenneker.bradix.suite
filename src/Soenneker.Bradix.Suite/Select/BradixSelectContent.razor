@@ -10,7 +10,7 @@
 {
     <BradixRemoveScroll AllowPinchZoom>
         <BradixFocusGuards>
-            <BradixFocusScope Trapped="true"
+            <BradixFocusScope Trapped="@(Select?.CurrentOpen == true)"
                               PreventMountAutoFocus="true"
                               PreventUnmountAutoFocus="true"
                               OnMountAutoFocusDetailed="@HandleOpenAutoFocusAsync"

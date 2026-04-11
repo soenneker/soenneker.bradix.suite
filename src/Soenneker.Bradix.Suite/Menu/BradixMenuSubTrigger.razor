@@ -5,6 +5,7 @@
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
+@using System.Threading
 
 <div @ref="_element"
      @onclick="HandleClickAsync"
@@ -13,6 +14,7 @@
      @onkeydown="HandleKeyDownAsync"
      @onkeydown:preventDefault="true"
      @onpointermove="HandlePointerMoveAsync"
+     @onpointerleave="HandlePointerLeaveAsync"
      @attributes="ItemAttributes">
     @ChildContent
 </div>
@@ -22,6 +24,7 @@
     private bool _registered;
     private bool _isFocused;
     private string? _resolvedTextValue;
+    private CancellationTokenSource? _openPointerMoveCts;
 
     [CascadingParameter]
     internal BradixMenu SubMenu { get; set; } = null!;
@@ -88,22 +91,25 @@
 
     public ValueTask DisposeAsync()
     {
+        CancelOpenPointerMove();
+
         if (_registered)
             ParentMenu.UnregisterItem(this);
 
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask FocusAsync() => _element.FocusAsync();
+    public ValueTask FocusAsync() => Interop.FocusElementPreventScroll(_element);
 
     private async Task HandleClickAsync()
     {
         if (Disabled)
             return;
 
+        CancelOpenPointerMove();
         SubMenu.SetFocusContentOnOpen(false);
         SubMenu.SetFocusFirstItemOnOpen(false);
-        await _element.FocusAsync();
+        await Interop.FocusElementPreventScroll(_element);
         await SubMenu.SetOpenAsync(true);
     }
 
@@ -134,6 +140,7 @@
 
         if (isOpenKey)
         {
+            CancelOpenPointerMove();
             SubMenu.SetFocusContentOnOpen(true);
             SubMenu.SetFocusFirstItemOnOpen(true);
             await SubMenu.SetOpenAsync(true);
@@ -149,18 +156,52 @@
         await ParentContent.HandleItemKeyDownAsync(this, args);
     }
 
-    private async Task HandlePointerMoveAsync(PointerEventArgs _)
+    private async Task HandlePointerMoveAsync(PointerEventArgs args)
     {
         if (Disabled)
+        {
+            await ParentContent.HandleItemLeaveAsync();
             return;
+        }
 
-        await ParentContent.HandlePointerMoveAsync(this);
+        await ParentContent.HandlePointerMoveAsync(this, args.PointerType);
 
         if (!SubMenu.CurrentOpen)
         {
+            CancelOpenPointerMove();
+            _openPointerMoveCts = new CancellationTokenSource();
+            _ = OpenFromPointerMoveAsync(_openPointerMoveCts.Token);
+        }
+    }
+
+    private Task HandlePointerLeaveAsync(PointerEventArgs _)
+    {
+        CancelOpenPointerMove();
+        return ParentContent.HandleItemLeaveAsync();
+    }
+
+    private async Task OpenFromPointerMoveAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(100, cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested || SubMenu.CurrentOpen)
+                return;
+
             SubMenu.SetFocusContentOnOpen(false);
             SubMenu.SetFocusFirstItemOnOpen(false);
             await SubMenu.SetOpenAsync(true);
         }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private void CancelOpenPointerMove()
+    {
+        _openPointerMoveCts?.Cancel();
+        _openPointerMoveCts?.Dispose();
+        _openPointerMoveCts = null;
     }
 }

@@ -25,9 +25,7 @@ public abstract class BradixComponentBase : ComponentBase
 
     protected Dictionary<string, object> BuildAttributes(params (string Key, object? Value)[] values)
     {
-        Dictionary<string, object> attributes = AdditionalAttributes is not null
-            ? new Dictionary<string, object>(AdditionalAttributes)
-            : new Dictionary<string, object>();
+        Dictionary<string, object> attributes = new();
 
         SetAttribute(attributes, "id", Id);
         MergeStringAttribute(attributes, "class", Class);
@@ -35,6 +33,21 @@ public abstract class BradixComponentBase : ComponentBase
 
         foreach ((string key, object? value) in values)
         {
+            SetAttribute(attributes, key, value);
+        }
+
+        if (AdditionalAttributes is null)
+            return attributes;
+
+        foreach ((string key, object value) in AdditionalAttributes)
+        {
+            if (string.Equals(key, "class", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, "style", System.StringComparison.OrdinalIgnoreCase))
+            {
+                MergeStringAttribute(attributes, key, value?.ToString());
+                continue;
+            }
+
             SetAttribute(attributes, key, value);
         }
 

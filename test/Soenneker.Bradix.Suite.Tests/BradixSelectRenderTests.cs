@@ -43,6 +43,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.SetupVoid("unregisterFocusScope", _ => true).SetVoidResult();
         _module.SetupVoid("registerRemoveScroll", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
+        _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.Setup<string>("getTextContent", _ => true).SetResult("Fruit");
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
@@ -98,6 +99,23 @@ public sealed class BradixSelectRenderTests : BunitContext
             var trigger = cut.Find("button[role='combobox']");
             Assert.Contains("Lime", trigger.TextContent);
             Assert.DoesNotContain("[role='listbox']", cut.Markup);
+        });
+    }
+
+    [Fact]
+    public void Space_does_not_select_item_while_typeahead_is_active()
+    {
+        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+
+        var items = cut.FindAll("[role='option']");
+        items[0].KeyDown(new KeyboardEventArgs { Key = "l" });
+        items = cut.FindAll("[role='option']");
+        items[1].KeyDown(new KeyboardEventArgs { Key = " " });
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Orange", cut.Find("button[role='combobox']").TextContent);
+            Assert.NotEmpty(cut.FindAll("[role='listbox']"));
         });
     }
 

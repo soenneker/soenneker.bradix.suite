@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -31,6 +33,7 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
     private bool _pendingExitEvaluation;
     private bool _exitSuspended;
     private bool _elementReferenceCaptured;
+    private bool _forceExitAnimationFillModeForwards;
     private string _previousAnimationName = "none";
 
     protected override void OnParametersSet()
@@ -47,6 +50,7 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
             _rendered = true;
             _pendingExitEvaluation = false;
             _exitSuspended = false;
+            _forceExitAnimationFillModeForwards = false;
         }
         else if (_rendered)
         {
@@ -110,7 +114,7 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
             return;
 
         builder.OpenElement(0, string.IsNullOrWhiteSpace(Tag) ? "div" : Tag);
-        builder.AddMultipleAttributes(1, BuildAttributes());
+        builder.AddMultipleAttributes(1, BuildRenderAttributes());
         builder.AddElementReferenceCapture(2, element => _element = element);
         builder.AddContent(3, ChildContent);
         builder.CloseElement();
@@ -126,20 +130,35 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
     }
 
     [JSInvokable]
-    public Task HandleAnimationStartAsync(string animationName)
+    public Task HandleAnimationStartAsync(string animationName, string? currentAnimationName = null)
     {
-        _previousAnimationName = string.IsNullOrWhiteSpace(animationName) ? "none" : animationName;
+        _previousAnimationName = NormalizeAnimationName(currentAnimationName, animationName);
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public async Task HandleAnimationEndAsync(string animationName)
+    public async Task HandleAnimationEndAsync(string animationName, string? currentAnimationName = null)
     {
-        _previousAnimationName = string.IsNullOrWhiteSpace(animationName) ? _previousAnimationName : animationName;
+        string normalizedEventAnimation = NormalizeAnimationName(animationName);
+        string activeAnimationName = NormalizeAnimationName(currentAnimationName);
+
+        if (!string.IsNullOrWhiteSpace(activeAnimationName) &&
+            !string.Equals(activeAnimationName, "none", StringComparison.Ordinal) &&
+            !MatchesCurrentAnimation(activeAnimationName, normalizedEventAnimation))
+        {
+            return;
+        }
+
+        _previousAnimationName = string.Equals(normalizedEventAnimation, "none", StringComparison.Ordinal)
+            ? _previousAnimationName
+            : normalizedEventAnimation;
 
         if (!_exitSuspended || Present)
             return;
 
+        _forceExitAnimationFillModeForwards = true;
+        await InvokeAsync(StateHasChanged);
+        await Task.Yield();
         await CompleteUnmountAsync();
     }
 
@@ -153,11 +172,42 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
             _registered = false;
         }
 
+        _forceExitAnimationFillModeForwards = false;
         _rendered = false;
 
         if (OnExitComplete.HasDelegate)
             await OnExitComplete.InvokeAsync();
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private Dictionary<string, object> BuildRenderAttributes()
+    {
+        Dictionary<string, object> attributes = BuildAttributes();
+
+        if (_forceExitAnimationFillModeForwards)
+        {
+            if (attributes.TryGetValue("style", out object? style) && style is string styleValue && !string.IsNullOrWhiteSpace(styleValue))
+                attributes["style"] = $"{styleValue.TrimEnd(';')}; animation-fill-mode: forwards;";
+            else
+                attributes["style"] = "animation-fill-mode: forwards;";
+        }
+
+        return attributes;
+    }
+
+    private static string NormalizeAnimationName(string? animationName, string? fallback = null)
+    {
+        string? value = string.IsNullOrWhiteSpace(animationName) ? fallback : animationName;
+        return string.IsNullOrWhiteSpace(value) ? "none" : value;
+    }
+
+    private static bool MatchesCurrentAnimation(string currentAnimationName, string eventAnimationName)
+    {
+        if (string.Equals(eventAnimationName, "none", StringComparison.Ordinal))
+            return false;
+
+        string[] currentAnimations = currentAnimationName.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        return currentAnimations.Any(name => string.Equals(name, eventAnimationName, StringComparison.Ordinal));
     }
 }

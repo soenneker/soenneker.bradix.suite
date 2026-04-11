@@ -89,6 +89,24 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         Assert.Equal("rtl", cut.Find(".root").GetAttribute("dir"));
     }
 
+    [Fact]
+    public void Viewport_forwards_nonce_to_injected_style_tag()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixScrollArea>(0);
+            builder.AddAttribute(1, nameof(BradixScrollArea.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixScrollAreaViewport>(0);
+                contentBuilder.AddAttribute(1, nameof(BradixScrollAreaViewport.Nonce), "csp-nonce");
+                contentBuilder.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        Assert.Equal("csp-nonce", cut.Find("style").GetAttribute("nonce"));
+    }
+
     private static RenderFragment CreateScrollArea(string type, bool includeHorizontal = false, bool includeCorner = false)
     {
         return builder =>

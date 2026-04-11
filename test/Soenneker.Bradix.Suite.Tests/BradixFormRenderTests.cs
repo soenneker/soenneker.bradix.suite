@@ -207,6 +207,31 @@ public sealed class BradixFormRenderTests : BunitContext
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "focusServerInvalidFormControl");
     }
 
+    [Fact]
+    public async Task Input_event_clears_custom_validity_before_commit()
+    {
+        var cut = RenderForm();
+        var control = cut.Find("input");
+        var controlComponent = cut.FindComponent<BradixFormControl>();
+
+        await controlComponent.Instance.HandleValidityChangedAsync(new BradixFormValiditySnapshot
+        {
+            Valid = false,
+            ValueMissing = true
+        });
+
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("span[id]")));
+
+        control.Input("hello@example.com");
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Empty(cut.FindAll("span[id]"));
+        });
+
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "setFormControlCustomValidity");
+    }
+
     private IRenderedComponent<BradixForm> RenderForm()
     {
         return Render<BradixForm>(parameters => parameters

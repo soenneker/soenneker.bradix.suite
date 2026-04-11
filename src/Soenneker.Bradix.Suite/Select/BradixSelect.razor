@@ -1,8 +1,8 @@
 @namespace Soenneker.Bradix
 @using System.Linq
-
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
+@inject IBradixSuiteInterop Interop
 
 <BradixPopper>
     <CascadingValue Value="this">
@@ -89,6 +89,8 @@
     internal bool CurrentOpen => Open ?? _uncontrolledOpen;
 
     internal string? CurrentValue => Value ?? _uncontrolledValue;
+
+    internal bool HasActiveTypeahead => !string.IsNullOrEmpty(_typeahead.CurrentSearch);
 
     internal string ContentId => $"{BaseId}-content";
 
@@ -201,7 +203,7 @@
 
     internal Task FocusTriggerAsync()
     {
-        return HasTrigger ? TriggerElement.FocusAsync().AsTask() : Task.CompletedTask;
+        return HasTrigger ? Interop.FocusElementPreventScroll(TriggerElement).AsTask() : Task.CompletedTask;
     }
 
     internal async Task SetValueAsync(string? value)

@@ -3,6 +3,7 @@
 
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
+@inject IBradixSuiteInterop Interop
 
 <BradixPopper>
     <CascadingValue Name="BradixMenuRoot" Value="RootMenu">
@@ -104,6 +105,11 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
+    internal void ClearCurrentTabStop()
+    {
+        SetCurrentTabStop(null);
+    }
+
     internal async Task<bool> HandleItemNavigationAsync(IBradixMenuItem item, string key, bool loop)
     {
         List<IBradixMenuItem> enabledItems = GetEnabledItems();
@@ -201,7 +207,7 @@
 
         try
         {
-            await TriggerElement.FocusAsync();
+            await Interop.FocusElementPreventScroll(TriggerElement);
         }
         catch
         {

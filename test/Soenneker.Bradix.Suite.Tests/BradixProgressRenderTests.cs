@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Xunit;
@@ -42,6 +43,31 @@ public sealed class BradixProgressRenderTests : BunitContext
 
         Assert.Equal("complete", root.GetAttribute("data-state"));
         Assert.Equal("complete", indicator.GetAttribute("data-state"));
+    }
+
+    [Fact]
+    public void Progress_allows_consumer_attributes_to_override_semantics_like_radix()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixProgress>(0);
+            builder.AddAttribute(1, nameof(BradixProgress.Value), 30d);
+            builder.AddAttribute(2, nameof(BradixProgress.AdditionalAttributes), new Dictionary<string, object>
+            {
+                ["aria-valuetext"] = "Custom label",
+                ["data-state"] = "consumer-state"
+            });
+            builder.AddAttribute(3, nameof(BradixProgress.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixProgressIndicator>(0);
+                contentBuilder.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        var root = cut.Find("div");
+        Assert.Equal("Custom label", root.GetAttribute("aria-valuetext"));
+        Assert.Equal("consumer-state", root.GetAttribute("data-state"));
     }
 
     private static RenderFragment CreateProgress(double? value, double max)

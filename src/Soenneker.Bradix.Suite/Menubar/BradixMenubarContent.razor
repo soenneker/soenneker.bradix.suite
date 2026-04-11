@@ -139,7 +139,7 @@
         if (MenubarMenu?.WasKeyboardTriggerOpen == true)
             await Menu.FocusFirstItemAsync();
         else
-            await _contentElement.FocusAsync();
+            await Interop.FocusElementPreventScroll(_contentElement);
     }
 
     private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)

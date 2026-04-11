@@ -25,6 +25,8 @@ const oneTimePasswordInputHandlers = new WeakMap();
 const dismissableBranches = new Set();
 const dismissableLayers = [];
 let dismissableLayerListenersRegistered = false;
+let dismissableLayerPointerDownListenerRegistered = false;
+let dismissableLayerPointerDownRegistrationScheduled = false;
 let originalDismissableBodyPointerEvents = "";
 const focusScopeHandlers = new WeakMap();
 const focusScopeStack = [];
@@ -911,6 +913,14 @@ export function clickElement(element) {
   }
 
   element.click();
+}
+
+export function selectInputText(element) {
+  if (!element || typeof element.select !== "function") {
+    return;
+  }
+
+  element.select();
 }
 
 export function registerSliderPointerBridge(element, dotNetRef) {
@@ -1982,6 +1992,10 @@ export function focusElementById(elementId) {
   focusElement(document.getElementById(elementId), false);
 }
 
+export function focusElementPreventScroll(element) {
+  focusElement(element, false);
+}
+
 export function registerOneTimePasswordInput(element, dotNetRef) {
   if (!element) {
     return;
@@ -2064,46 +2078,53 @@ function ensureDismissableLayerListeners() {
     return;
   }
 
-  document.addEventListener("pointerdown", (event) => {
-    const topLayer = dismissableLayers[dismissableLayers.length - 1];
+  if (!dismissableLayerPointerDownListenerRegistered && !dismissableLayerPointerDownRegistrationScheduled) {
+    dismissableLayerPointerDownRegistrationScheduled = true;
+    window.setTimeout(() => {
+      document.addEventListener("pointerdown", (event) => {
+        const topLayer = dismissableLayers[dismissableLayers.length - 1];
 
-    if (!topLayer || !event.target) {
-      return;
-    }
+        if (!topLayer || !event.target) {
+          return;
+        }
 
-    if (topLayer.isPointerInside) {
-      topLayer.isPointerInside = false;
-      return;
-    }
+        if (topLayer.isPointerInside) {
+          topLayer.isPointerInside = false;
+          return;
+        }
 
-    for (const branch of dismissableBranches) {
-      if (branch.contains(event.target)) {
-        return;
-      }
-    }
+        for (const branch of dismissableBranches) {
+          if (branch.contains(event.target)) {
+            return;
+          }
+        }
 
-    const dispatchPointerDownOutside = () => {
-      const snapshot = createDismissablePointerSnapshot(event);
-      snapshot.activeElementInsideLayer = !!(document.activeElement && topLayer.element.contains(document.activeElement));
-      topLayer.dotNetRef.invokeMethodAsync("HandlePointerDownOutsideAsync", snapshot).catch(() => {});
-    };
+        const dispatchPointerDownOutside = () => {
+          const snapshot = createDismissablePointerSnapshot(event);
+          snapshot.activeElementInsideLayer = !!(document.activeElement && topLayer.element.contains(document.activeElement));
+          topLayer.dotNetRef.invokeMethodAsync("HandlePointerDownOutsideAsync", snapshot).catch(() => {});
+        };
 
-    if (event.pointerType === "touch") {
-      if (topLayer.handleDocumentClick) {
-        document.removeEventListener("click", topLayer.handleDocumentClick);
-      }
+        if (event.pointerType === "touch") {
+          if (topLayer.handleDocumentClick) {
+            document.removeEventListener("click", topLayer.handleDocumentClick);
+          }
 
-      topLayer.handleDocumentClick = dispatchPointerDownOutside;
-      document.addEventListener("click", topLayer.handleDocumentClick, { once: true });
-    } else {
-      if (topLayer.handleDocumentClick) {
-        document.removeEventListener("click", topLayer.handleDocumentClick);
-        topLayer.handleDocumentClick = null;
-      }
+          topLayer.handleDocumentClick = dispatchPointerDownOutside;
+          document.addEventListener("click", topLayer.handleDocumentClick, { once: true });
+        } else {
+          if (topLayer.handleDocumentClick) {
+            document.removeEventListener("click", topLayer.handleDocumentClick);
+            topLayer.handleDocumentClick = null;
+          }
 
-      dispatchPointerDownOutside();
-    }
-  });
+          dispatchPointerDownOutside();
+        }
+      });
+      dismissableLayerPointerDownListenerRegistered = true;
+      dismissableLayerPointerDownRegistrationScheduled = false;
+    }, 0);
+  }
 
   document.addEventListener("focusin", (event) => {
     const topLayer = dismissableLayers[dismissableLayers.length - 1];
@@ -3005,13 +3026,13 @@ export function registerPresence(element, dotNetRef) {
 
   const handleAnimationStart = (event) => {
     if (event.target === element) {
-      dotNetRef.invokeMethodAsync("HandleAnimationStartAsync", event.animationName || "none");
+      dotNetRef.invokeMethodAsync("HandleAnimationStartAsync", event.animationName || "none", getComputedStyle(element).animationName || "none");
     }
   };
 
   const handleAnimationEnd = (event) => {
     if (event.target === element) {
-      dotNetRef.invokeMethodAsync("HandleAnimationEndAsync", event.animationName || "none");
+      dotNetRef.invokeMethodAsync("HandleAnimationEndAsync", event.animationName || "none", getComputedStyle(element).animationName || "none");
     }
   };
 
@@ -3170,7 +3191,7 @@ function updateRemoveScrollTouchAction() {
   document.documentElement.style.touchAction = allowPinchZoom ? originalDocumentTouchAction : "none";
 }
 
-export function registerLabelTextSelectionGuard(element) {
+export function registerLabelTextSelectionGuard(element, dotNetRef) {
   if (!element) {
     return;
   }
@@ -3182,6 +3203,10 @@ export function registerLabelTextSelectionGuard(element) {
 
     if (target && typeof target.closest === "function" && target.closest("button, input, select, textarea")) {
       return;
+    }
+
+    if (dotNetRef) {
+      dotNetRef.invokeMethodAsync("HandleMouseDownFromJsAsync", createDelegatedEventSnapshot("mousedown", event)).catch(() => {});
     }
 
     if (!event.defaultPrevented && event.detail > 1) {

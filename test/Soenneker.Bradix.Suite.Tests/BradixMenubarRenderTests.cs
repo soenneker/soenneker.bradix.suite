@@ -31,6 +31,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         _module.SetupVoid("unregisterFocusScope", _ => true).SetVoidResult();
         _module.SetupVoid("registerFocusGuards", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterFocusGuards", _ => true).SetVoidResult();
+        _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.Setup<string>("getTextContent", _ => true).SetResult("Share");
         _module.Setup<string>("getActiveElementId", _ => true).SetResult(string.Empty);
         _module.Setup<BradixMenubarActiveElementState>("getMenubarActiveElementState", _ => true)

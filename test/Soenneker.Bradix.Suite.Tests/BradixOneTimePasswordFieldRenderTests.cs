@@ -19,6 +19,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
         _module.SetupVoid("registerOneTimePasswordInput", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterOneTimePasswordInput", _ => true).SetVoidResult();
         _module.SetupVoid("requestFormSubmit", _ => true).SetVoidResult();
+        _module.SetupVoid("selectInputText", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
@@ -85,6 +86,54 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
 
         Assert.Equal("1234", submitted);
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "requestFormSubmit");
+    }
+
+    [Fact]
+    public void Inputs_render_radix_accessibility_and_password_manager_attributes()
+    {
+        var cut = RenderOtpField();
+
+        var first = cut.Find("input[data-index='0']");
+        var second = cut.Find("input[data-index='1']");
+        var hidden = cut.Find("input[type='hidden']");
+
+        Assert.Equal("Character 1 of 4", first.GetAttribute("aria-label"));
+        Assert.Equal("one-time-code", first.GetAttribute("autocomplete"));
+        Assert.Equal("4", first.GetAttribute("maxlength"));
+        Assert.True(first.HasAttribute("data-radix-otp-input"));
+        Assert.Equal("0", first.GetAttribute("data-radix-index"));
+
+        Assert.Equal("off", second.GetAttribute("autocomplete"));
+        Assert.Equal("true", second.GetAttribute("data-1p-ignore"));
+        Assert.Equal("true", second.GetAttribute("data-lpignore"));
+        Assert.Equal("true", second.GetAttribute("data-protonpass-ignore"));
+        Assert.Equal("true", second.GetAttribute("data-bwignore"));
+        Assert.Equal("1", second.GetAttribute("maxlength"));
+
+        Assert.Equal("off", hidden.GetAttribute("autocomplete"));
+        Assert.Equal("off", hidden.GetAttribute("autocapitalize"));
+        Assert.Equal("off", hidden.GetAttribute("autocorrect"));
+        Assert.Equal("off", hidden.GetAttribute("autosave"));
+        Assert.Equal("false", hidden.GetAttribute("spellcheck"));
+    }
+
+    [Fact]
+    public async Task Inputs_use_single_roving_tab_stop()
+    {
+        var cut = RenderOtpField();
+        var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
+
+        Assert.Equal("0", cut.Find("input[data-index='0']").GetAttribute("tabindex"));
+        Assert.Equal("-1", cut.Find("input[data-index='1']").GetAttribute("tabindex"));
+
+        await cut.InvokeAsync(() => input.Instance.HandlePasteAsync("12"));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("-1", cut.Find("input[data-index='0']").GetAttribute("tabindex"));
+            Assert.Equal("0", cut.Find("input[data-index='1']").GetAttribute("tabindex"));
+            Assert.Equal("-1", cut.Find("input[data-index='2']").GetAttribute("tabindex"));
+        });
     }
 
     private IRenderedComponent<ContainerFragment> RenderOtpField(Action<string>? onInvalidChange = null, bool autoSubmit = false, Action<string>? onAutoSubmit = null)

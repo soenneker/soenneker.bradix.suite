@@ -6,6 +6,7 @@
 <input @ref="_element"
        @oninvalid:preventDefault="true"
        @oninvalid="HandleInvalidAsync"
+       @oninput="HandleInputAsync"
        @onchange="HandleChangeAsync"
        @attributes="ControlAttributes" />
 
@@ -76,5 +77,15 @@
     {
         BradixFormControlSnapshot snapshot = await Interop.GetFormControlState(_element);
         await HandleControlStateChangedAsync(snapshot);
+    }
+
+    private async Task HandleInputAsync(ChangeEventArgs _)
+    {
+        await Interop.SetFormControlCustomValidity(_element, null);
+
+        if (!string.IsNullOrWhiteSpace(ResolvedName))
+            Form?.ClearFieldValidation(ResolvedName);
+
+        await InvokeAsync(StateHasChanged);
     }
 }

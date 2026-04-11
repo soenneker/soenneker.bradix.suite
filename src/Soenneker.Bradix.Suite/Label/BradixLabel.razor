@@ -3,15 +3,16 @@
 @implements IAsyncDisposable
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 
 <label @ref="_element"
-       @onmousedown="HandleMouseDown"
        @attributes="LabelAttributes">
     @ChildContent
 </label>
 
 @code {
     private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [Parameter]
     public string? For { get; set; }
@@ -27,18 +28,29 @@
         if (!firstRender)
             return;
 
-        await Interop.RegisterLabelTextSelectionGuard(_element);
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterLabelTextSelectionGuard(_element, _dotNetReference);
     }
 
     public async ValueTask DisposeAsync()
     {
         await Interop.UnregisterLabelTextSelectionGuard(_element);
+        _dotNetReference?.Dispose();
     }
 
-    private Task HandleMouseDown(MouseEventArgs args)
+    [JSInvokable]
+    public Task HandleMouseDownFromJsAsync(BradixDelegatedMouseEvent args)
     {
         return OnMouseDown.HasDelegate
-            ? OnMouseDown.InvokeAsync(args)
+            ? OnMouseDown.InvokeAsync(new MouseEventArgs
+            {
+                Detail = args.Detail,
+                Button = args.Button,
+                CtrlKey = args.CtrlKey,
+                ShiftKey = args.ShiftKey,
+                AltKey = args.AltKey,
+                MetaKey = args.MetaKey
+            })
             : Task.CompletedTask;
     }
 }

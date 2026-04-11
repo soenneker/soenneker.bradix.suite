@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -33,6 +35,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         _module.SetupVoid("unregisterHideOthers", _ => true).SetVoidResult();
         _module.SetupVoid("registerRemoveScroll", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
+        _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.SetupVoid("registerDismissableLayerBranch", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayerBranch", _ => true).SetVoidResult();
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
@@ -86,6 +89,62 @@ public sealed class BradixMenuRenderTests : BunitContext
         {
             var updatedItems = cut.FindAll("[role='menuitem']");
             Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+        });
+    }
+
+    [Fact]
+    public void Touch_pointer_move_does_not_change_menu_tab_stop()
+    {
+        var cut = Render(CreateMenu());
+        var items = cut.FindAll("[role='menuitem']");
+
+        Assert.Equal("0", items[0].GetAttribute("tabindex"));
+        items[2].TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "touch" });
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedItems = cut.FindAll("[role='menuitem']");
+            Assert.Equal("0", updatedItems[0].GetAttribute("tabindex"));
+            Assert.Equal("-1", updatedItems[2].GetAttribute("tabindex"));
+        });
+    }
+
+    [Fact]
+    public void Disabled_item_pointer_move_does_not_take_tab_stop()
+    {
+        var cut = Render(CreateMenu(disableFirstItem: true));
+        var items = cut.FindAll("[role='menuitem']");
+
+        items[0].TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedItems = cut.FindAll("[role='menuitem']");
+            Assert.Equal("-1", updatedItems[0].GetAttribute("tabindex"));
+            Assert.Equal("-1", updatedItems[1].GetAttribute("tabindex"));
+        });
+    }
+
+    [Fact]
+    public void Pointer_leave_clears_current_menu_item_tab_stop()
+    {
+        var cut = Render(CreateMenu());
+        var items = cut.FindAll("[role='menuitem']");
+
+        items[2].TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedItems = cut.FindAll("[role='menuitem']");
+            Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+        });
+
+        cut.FindAll("[role='menuitem']")[2].TriggerEvent("onpointerleave", new PointerEventArgs { PointerType = "mouse" });
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedItems = cut.FindAll("[role='menuitem']");
+            Assert.All(updatedItems, item => Assert.Equal("-1", item.GetAttribute("tabindex")));
         });
     }
 
@@ -154,6 +213,23 @@ public sealed class BradixMenuRenderTests : BunitContext
         {
             Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
             Assert.Contains("Copy link", cut.Markup);
+        });
+    }
+
+    [Fact]
+    public async Task Sub_trigger_pointer_move_opens_after_delay()
+    {
+        var cut = Render(CreateSubmenuMenu());
+        var trigger = cut.Find("[aria-haspopup='menu']");
+
+        trigger.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        Assert.Equal("false", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
+
+        await Task.Delay(150, Xunit.TestContext.Current.CancellationToken);
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
         });
     }
 

@@ -30,7 +30,8 @@ public sealed class BradixToolbarRenderTests : BunitContext
         var separator = cut.Find("[data-orientation='vertical']");
 
         Assert.Equal("horizontal", toolbar.GetAttribute("aria-orientation"));
-        Assert.Equal("none", separator.GetAttribute("role"));
+        Assert.Equal("separator", separator.GetAttribute("role"));
+        Assert.Equal("vertical", separator.GetAttribute("aria-orientation"));
     }
 
     [Fact]

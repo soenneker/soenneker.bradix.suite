@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -36,6 +38,34 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
         var label = cut.Find("label");
         Assert.Equal("control", label.GetAttribute("for"));
         Assert.Equal("Label", label.TextContent);
+    }
+
+    [Fact]
+    public async Task Label_forwards_js_mouse_down_to_consumer_callback()
+    {
+        MouseEventArgs? captured = null;
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixLabel>(0);
+            builder.AddAttribute(1, nameof(BradixLabel.OnMouseDown), EventCallback.Factory.Create<MouseEventArgs>(this, args => captured = args));
+            builder.AddAttribute(2, nameof(BradixLabel.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.AddContent(0, "Label");
+            }));
+            builder.CloseComponent();
+        });
+
+        await cut.FindComponent<BradixLabel>().Instance.HandleMouseDownFromJsAsync(new BradixDelegatedMouseEvent
+        {
+            Button = 0,
+            Detail = 2,
+            CtrlKey = true
+        });
+
+        Assert.NotNull(captured);
+        Assert.Equal(0, captured!.Button);
+        Assert.Equal(2, captured.Detail);
+        Assert.True(captured.CtrlKey);
     }
 
     [Fact]

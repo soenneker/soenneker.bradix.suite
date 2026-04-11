@@ -107,7 +107,7 @@
         return ValueTask.CompletedTask;
     }
 
-    ValueTask IBradixSelectItem.FocusAsync() => _element.FocusAsync();
+    ValueTask IBradixSelectItem.FocusAsync() => Interop.FocusElementPreventScroll(_element);
 
     internal async Task NotifyResolvedTextAsync(string? text)
     {
@@ -155,6 +155,11 @@
         if (Disabled || Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
+        bool isTypingAhead = Select.HasActiveTypeahead;
+
+        if (isTypingAhead && args.Key is " " or "Spacebar")
+            return;
+
         if (args.Key is " " or "Spacebar" or "Enter")
         {
             await Select.SetValueAsync(Value);
@@ -194,6 +199,6 @@
             return;
 
         Select.SetFocusedItem(Value);
-        await _element.FocusAsync();
+        await Interop.FocusElementPreventScroll(_element);
     }
 }

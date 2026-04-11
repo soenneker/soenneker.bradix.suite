@@ -184,6 +184,12 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("clickElement", cancellationToken, element);
     }
 
+    public async ValueTask SelectInputText(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("selectInputText", cancellationToken, element);
+    }
+
     public async ValueTask RegisterSliderPointerBridge(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
@@ -277,6 +283,12 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
 
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("focusElementById", cancellationToken, elementId);
+    }
+
+    public async ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("focusElementPreventScroll", cancellationToken, element);
     }
 
     public async ValueTask RegisterOneTimePasswordInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
@@ -602,10 +614,11 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterRemoveScroll", cancellationToken);
     }
 
-    public async ValueTask RegisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default)
+    public async ValueTask RegisterLabelTextSelectionGuard(ElementReference element, DotNetObjectReference<object>? dotNetReference = null,
+        CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerLabelTextSelectionGuard", cancellationToken, element);
+        await module.InvokeVoidAsync("registerLabelTextSelectionGuard", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default)

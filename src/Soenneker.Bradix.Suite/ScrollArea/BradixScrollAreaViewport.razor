@@ -6,7 +6,7 @@
 @using Microsoft.JSInterop
 
 <>
-    <style>
+    <style nonce="@Nonce">
         [data-radix-scroll-area-viewport] { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
         [data-radix-scroll-area-viewport]::-webkit-scrollbar { display: none; }
     </style>
@@ -23,6 +23,9 @@
     private ElementReference _content;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
+
+    [Parameter]
+    public string? Nonce { get; set; }
 
     [CascadingParameter]
     internal BradixScrollArea ScrollArea { get; set; } = null!;

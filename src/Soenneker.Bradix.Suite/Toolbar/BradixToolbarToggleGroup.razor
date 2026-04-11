@@ -12,7 +12,7 @@
     private const string MultipleType = "multiple";
 
     private bool _initialized;
-    private string? _uncontrolledValue;
+    private string _uncontrolledValue = string.Empty;
     private List<string> _uncontrolledValues = [];
 
     [CascadingParameter]
@@ -62,7 +62,7 @@
         if (_initialized)
             return;
 
-        _uncontrolledValue = DefaultValue;
+        _uncontrolledValue = NormalizeSingleValue(DefaultValue);
         _uncontrolledValues = DefaultValues?.Distinct(StringComparer.Ordinal).ToList() ?? [];
         _initialized = true;
     }
@@ -70,7 +70,7 @@
     internal bool IsItemPressed(string value)
     {
         if (IsSingle)
-            return string.Equals(Value ?? _uncontrolledValue, value, StringComparison.Ordinal);
+            return string.Equals(NormalizeSingleValue(Value ?? _uncontrolledValue), value, StringComparison.Ordinal);
 
         IReadOnlyCollection<string> values = Values ?? _uncontrolledValues;
         return values.Contains(value);
@@ -97,7 +97,7 @@
     {
         if (IsSingle)
         {
-            await SetSingleValueAsync(null);
+            await SetSingleValueAsync(string.Empty);
             return;
         }
 
@@ -111,17 +111,19 @@
 
     private async Task SetSingleValueAsync(string? value)
     {
-        if (string.Equals(Value ?? _uncontrolledValue, value, StringComparison.Ordinal))
+        string normalizedValue = NormalizeSingleValue(value);
+
+        if (string.Equals(NormalizeSingleValue(Value ?? _uncontrolledValue), normalizedValue, StringComparison.Ordinal))
             return;
 
         if (Value is null)
-            _uncontrolledValue = value;
+            _uncontrolledValue = normalizedValue;
 
         if (ValueChanged.HasDelegate)
-            await ValueChanged.InvokeAsync(value);
+            await ValueChanged.InvokeAsync(normalizedValue);
 
         if (OnValueChange.HasDelegate)
-            await OnValueChange.InvokeAsync(value);
+            await OnValueChange.InvokeAsync(normalizedValue);
 
         await InvokeAsync(StateHasChanged);
     }
@@ -142,5 +144,10 @@
             await OnValuesChange.InvokeAsync(result);
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private static string NormalizeSingleValue(string? value)
+    {
+        return value ?? string.Empty;
     }
 }
