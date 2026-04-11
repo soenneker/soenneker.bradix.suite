@@ -2,36 +2,41 @@
 
 @inherits BradixComponentBase
 
-<>
-    <style>
-        [data-radix-select-viewport] { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
-        [data-radix-select-viewport]::-webkit-scrollbar { display: none; }
-    </style>
-    <div @ref="_element"
-         @attributes="ViewportAttributes">
-        <div @ref="_content"
-             style="min-width:100%;display:block;">
-            @ChildContent
-        </div>
+<style>
+    [data-radix-select-viewport] { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+    [data-radix-select-viewport]::-webkit-scrollbar { display: none; }
+</style>
+<div @ref="_element"
+     @attributes="ViewportAttributes">
+    <div @ref="_content"
+         style="min-width:100%;display:block;">
+        @ChildContent
     </div>
-</>
+</div>
 
 @code {
     private ElementReference _element;
     private ElementReference _content;
+    private bool _registered;
 
     [CascadingParameter]
     private BradixSelectContent? Content { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (Content is null)
         {
-            Content?.RegisterViewportContent(_content);
-
-            if (Content is not null)
-                await Content.RegisterViewportAsync(_element);
+            _registered = false;
+            return;
         }
+
+        Content.RegisterViewportContent(_content);
+
+        if (_registered)
+            return;
+
+        await Content.RegisterViewportAsync(_element);
+        _registered = true;
     }
 
     private Dictionary<string, object> ViewportAttributes => BuildAttributes(

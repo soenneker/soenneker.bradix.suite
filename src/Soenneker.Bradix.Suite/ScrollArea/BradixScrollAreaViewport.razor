@@ -5,18 +5,16 @@
 @inject IBradixSuiteInterop Interop
 @using Microsoft.JSInterop
 
-<>
-    <style nonce="@Nonce">
-        [data-radix-scroll-area-viewport] { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
-        [data-radix-scroll-area-viewport]::-webkit-scrollbar { display: none; }
-    </style>
-    <div @ref="_viewport"
-         @attributes="ViewportAttributes">
-        <div @ref="_content" style="min-width: 100%; display: table;">
-            @ChildContent
-        </div>
+<style nonce="@Nonce">
+    [data-radix-scroll-area-viewport] { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+    [data-radix-scroll-area-viewport]::-webkit-scrollbar { display: none; }
+</style>
+<div @ref="_viewport"
+     @attributes="ViewportAttributes">
+    <div @ref="_content" style="min-width: 100%; display: table;">
+        @ChildContent
     </div>
-</>
+</div>
 
 @code {
     private ElementReference _viewport;

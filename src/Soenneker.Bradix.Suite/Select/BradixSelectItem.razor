@@ -84,6 +84,11 @@
                 throw new InvalidOperationException("A BradixSelectItem value cannot be empty.");
 
             Select.RegisterItem(this);
+            _registered = true;
+        }
+
+        if (Select?.CurrentOpen == true && !_delegatedInteractionRegistered)
+        {
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
             {
@@ -94,10 +99,14 @@
                 }
             });
             _delegatedInteractionRegistered = true;
-            _registered = true;
+        }
+        else if (Select?.CurrentOpen != true && _delegatedInteractionRegistered)
+        {
+            await Interop.UnregisterDelegatedInteraction(_element);
+            _delegatedInteractionRegistered = false;
         }
 
-        if (string.IsNullOrWhiteSpace(TextValue))
+        if (string.IsNullOrWhiteSpace(TextValue) && !_hasItemTextElement && string.IsNullOrWhiteSpace(_resolvedTextValue))
         {
             string textContent = await Interop.GetTextContent(_element);
 

@@ -2,6 +2,10 @@ const scrollAreaRootHandlers = new WeakMap();
 const scrollAreaViewportHandlers = new WeakMap();
 const scrollAreaScrollbarHandlers = new WeakMap();
 
+function invokeDotNetSafe(dotNetRef, methodName, ...args) {
+  dotNetRef.invokeMethodAsync(methodName, ...args).catch(() => {});
+}
+
 export function registerScrollAreaRoot(element, dotNetRef) {
   if (!element) {
     return;
@@ -10,11 +14,11 @@ export function registerScrollAreaRoot(element, dotNetRef) {
   unregisterScrollAreaRoot(element);
 
   const pointerenter = () => {
-    dotNetRef.invokeMethodAsync("HandleHoverChangedAsync", true);
+    invokeDotNetSafe(dotNetRef, "HandleHoverChangedAsync", true);
   };
 
   const pointerleave = () => {
-    dotNetRef.invokeMethodAsync("HandleHoverChangedAsync", false);
+    invokeDotNetSafe(dotNetRef, "HandleHoverChangedAsync", false);
   };
 
   element.addEventListener("pointerenter", pointerenter);
@@ -43,7 +47,8 @@ export function registerScrollAreaViewport(viewport, content, dotNetRef) {
 
   const notify = () => {
     const contentElement = content || viewport.firstElementChild;
-    dotNetRef.invokeMethodAsync(
+    invokeDotNetSafe(
+      dotNetRef,
       "HandleViewportMetricsChangedAsync",
       viewport.scrollLeft,
       viewport.scrollTop,
@@ -97,6 +102,7 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
   }
 
   unregisterScrollAreaScrollbar(scrollbar);
+  const thumbElement = thumb instanceof HTMLElement ? thumb : null;
 
   const getPaddingValue = (style, property) => {
     const raw = style ? style[property] : "0";
@@ -113,7 +119,8 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
       ? getPaddingValue(style, "paddingRight")
       : getPaddingValue(style, "paddingBottom");
 
-    dotNetRef.invokeMethodAsync(
+    invokeDotNetSafe(
+      dotNetRef,
       "HandleScrollbarMetricsChangedAsync",
       orientation,
       scrollbar.clientWidth,
@@ -124,8 +131,8 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
   };
 
   const getThumbSize = () => {
-    if (thumb) {
-      return orientation === "horizontal" ? thumb.offsetWidth : thumb.offsetHeight;
+    if (thumbElement) {
+      return orientation === "horizontal" ? thumbElement.offsetWidth : thumbElement.offsetHeight;
     }
 
     return 0;
@@ -179,14 +186,14 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
 
     event.preventDefault();
 
-    const thumbElement = thumb instanceof HTMLElement &&
+    const targetThumb = thumbElement &&
       event.target instanceof Node &&
-      thumb.contains(event.target)
-      ? thumb
+      thumbElement.contains(event.target)
+      ? thumbElement
       : null;
 
-    if (thumbElement) {
-      const thumbRect = thumbElement.getBoundingClientRect();
+    if (targetThumb) {
+      const thumbRect = targetThumb.getBoundingClientRect();
       activePointerOffset = orientation === "horizontal"
         ? event.clientX - thumbRect.left
         : event.clientY - thumbRect.top;
@@ -292,8 +299,8 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     requestAnimationFrame(notify);
   });
   resizeObserver.observe(scrollbar);
-  if (thumb) {
-    resizeObserver.observe(thumb);
+  if (thumbElement) {
+    resizeObserver.observe(thumbElement);
   }
 
   requestAnimationFrame(notify);

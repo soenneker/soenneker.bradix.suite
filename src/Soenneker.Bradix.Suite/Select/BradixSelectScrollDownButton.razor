@@ -15,14 +15,24 @@
 }
 
 @code {
+    private bool _didNotifyContent;
+
     [CascadingParameter]
     private BradixSelectContent? Content { get; set; }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        return firstRender && Content is not null
-            ? Content.HandleScrollButtonMountedAsync()
-            : Task.CompletedTask;
+        if (Content is null)
+        {
+            _didNotifyContent = false;
+            return Task.CompletedTask;
+        }
+
+        if (_didNotifyContent)
+            return Task.CompletedTask;
+
+        _didNotifyContent = true;
+        return Content.HandleScrollButtonMountedAsync();
     }
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(

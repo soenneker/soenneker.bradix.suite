@@ -57,6 +57,18 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Fact]
+    public void Closed_select_defers_content_and_item_interop()
+    {
+        _ = Render(CreateSelect());
+
+        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "registerSelectViewport");
+        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "registerSelectItemAlignedPosition");
+        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "registerSelectWindowDismiss");
+        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "getTextContent");
+        Assert.Single(_module.Invocations, invocation => invocation.Identifier == "registerDelegatedInteraction");
+    }
+
+    [Fact]
     public void Arrow_down_opens_content_and_links_ids()
     {
         var cut = Render(CreateSelect());

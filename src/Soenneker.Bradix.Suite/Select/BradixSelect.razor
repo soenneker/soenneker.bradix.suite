@@ -34,6 +34,7 @@
     private readonly BradixCollectionRegistry<IBradixSelectItem> _items = new();
     private readonly BradixTypeaheadBuffer _typeahead = new();
     private bool _initialized;
+    private bool _refreshQueued;
     private bool _uncontrolledOpen;
     private string? _uncontrolledValue;
     private (double X, double Y)? _triggerPointerDownPosition;
@@ -167,7 +168,9 @@
     internal void RegisterItem(IBradixSelectItem item)
     {
         _items.Register(item.Value, item);
-        _ = InvokeAsync(StateHasChanged);
+
+        if (ShouldRenderBubbleSelect || string.Equals(item.Value, CurrentValue, StringComparison.Ordinal))
+            QueueRefresh();
     }
 
     internal void UnregisterItem(IBradixSelectItem item)
@@ -177,7 +180,8 @@
         if (string.Equals(CurrentFocusedItemValue, item.Value, StringComparison.Ordinal))
             CurrentFocusedItemValue = null;
 
-        _ = InvokeAsync(StateHasChanged);
+        if (ShouldRenderBubbleSelect || string.Equals(CurrentValue, item.Value, StringComparison.Ordinal))
+            QueueRefresh();
     }
 
     internal void RegisterTrigger(ElementReference element)
@@ -369,7 +373,10 @@
 
     internal Task NotifyItemTextChangedAsync()
     {
-        return InvokeAsync(StateHasChanged);
+        if (ShouldRenderBubbleSelect || !ValueNodeHasChildren)
+            QueueRefresh();
+
+        return Task.CompletedTask;
     }
 
     internal void SuppressNextMouseUpSelection()
@@ -411,6 +418,20 @@
     private Task HandleNativeChangeAsync(ChangeEventArgs args)
     {
         return SetValueAsync(args.Value?.ToString());
+    }
+
+    private void QueueRefresh()
+    {
+        if (_refreshQueued)
+            return;
+
+        _refreshQueued = true;
+
+        _ = InvokeAsync(() =>
+        {
+            _refreshQueued = false;
+            StateHasChanged();
+        });
     }
 
     private List<IBradixSelectItem> GetEnabledItems()

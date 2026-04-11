@@ -72,8 +72,13 @@
 
     public async ValueTask DisposeAsync()
     {
+        bool unmountAutoFocusPrevented = PreventUnmountAutoFocus;
+
+        if (OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate)
+            unmountAutoFocusPrevented = await HandleUnmountAutoFocusCoreAsync(new BradixAutoFocusEventArgs()) || unmountAutoFocusPrevented;
+
         if (_registered)
-            await Interop.UnregisterFocusScope(_element);
+            await Interop.UnregisterFocusScope(_element, unmountAutoFocusPrevented);
 
         _dotNetReference?.Dispose();
     }

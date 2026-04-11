@@ -20,6 +20,7 @@
 @code {
     private ElementReference _scrollbar;
     private ElementReference _thumb;
+    private bool _hasThumb;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
 
@@ -72,6 +73,11 @@
     internal void RegisterThumb(ElementReference thumb)
     {
         _thumb = thumb;
+        if (_hasThumb)
+            return;
+
+        _hasThumb = true;
+        _ = InvokeAsync(StateHasChanged);
     }
 
     private Task HandlePointerEnterAsync(PointerEventArgs _)

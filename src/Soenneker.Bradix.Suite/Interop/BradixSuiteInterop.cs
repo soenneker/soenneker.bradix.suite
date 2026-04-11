@@ -401,10 +401,10 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
             ;
     }
 
-    public async ValueTask UnregisterFocusScope(ElementReference element, CancellationToken cancellationToken = default)
+    public async ValueTask UnregisterFocusScope(ElementReference element, bool unmountAutoFocusPrevented = false, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterFocusScope", cancellationToken, element);
+        await module.InvokeVoidAsync("unregisterFocusScope", cancellationToken, element, unmountAutoFocusPrevented);
     }
 
     public async ValueTask RegisterPopperContent(ElementReference anchor, ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, object options, CancellationToken cancellationToken = default)

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -8,12 +9,14 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixFocusScopeRenderTests : BunitContext
 {
+    private readonly BunitJSModuleInterop _module;
+
     public BradixFocusScopeRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("registerFocusScope", _ => true);
-        module.SetupVoid("updateFocusScope", _ => true);
-        module.SetupVoid("unregisterFocusScope", _ => true);
+        _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.SetupVoid("registerFocusScope", _ => true).SetVoidResult();
+        _module.SetupVoid("updateFocusScope", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterFocusScope", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
@@ -48,6 +51,22 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
         await scope.Instance.HandleUnmountAutoFocusAsync();
 
         Assert.True(_unmounted);
+    }
+
+    [Fact]
+    public async Task Focus_scope_disposal_invokes_unmount_callback_before_unregistering()
+    {
+        var cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => _unmounted = true)));
+        var scope = cut.FindComponent<BradixFocusScope>();
+
+        await scope.Instance.DisposeAsync();
+
+        Assert.True(_unmounted);
+
+        var invocation = _module.Invocations.Last(call => call.Identifier == "unregisterFocusScope");
+
+        Assert.Equal(2, invocation.Arguments.Count);
+        Assert.Equal(false, invocation.Arguments[1]);
     }
 
     [Fact]

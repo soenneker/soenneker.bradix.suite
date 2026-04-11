@@ -29,11 +29,13 @@
                         <BradixSelectViewport Class="stack">
                             <BradixSelectGroup>
                                 <BradixSelectLabel>Citrus</BradixSelectLabel>
-                                <BradixSelectItem Value="orange">
+                                <BradixSelectItem Value="orange"
+                                                  TextValue="Orange">
                                     <BradixSelectItemText>Orange</BradixSelectItemText>
                                     <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
                                 </BradixSelectItem>
-                                <BradixSelectItem Value="lime">
+                                <BradixSelectItem Value="lime"
+                                                  TextValue="Lime">
                                     <BradixSelectItemText>Lime</BradixSelectItemText>
                                     <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
                                 </BradixSelectItem>
@@ -43,11 +45,13 @@
 
                             <BradixSelectGroup>
                                 <BradixSelectLabel>Berry</BradixSelectLabel>
-                                <BradixSelectItem Value="strawberry">
+                                <BradixSelectItem Value="strawberry"
+                                                  TextValue="Strawberry">
                                     <BradixSelectItemText>Strawberry</BradixSelectItemText>
                                     <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
                                 </BradixSelectItem>
                                 <BradixSelectItem Value="blueberry"
+                                                  TextValue="Blueberry (disabled)"
                                                   Disabled="true">
                                     <BradixSelectItemText>Blueberry (disabled)</BradixSelectItemText>
                                 </BradixSelectItem>
@@ -74,7 +78,8 @@
                         <BradixSelectViewport Class="stack">
                             @foreach (string option in _overflowOptions)
                             {
-                                <BradixSelectItem Value="@option">
+                                <BradixSelectItem Value="@option"
+                                                  TextValue="@OptionLabel(option)">
                                     <BradixSelectItemText>@OptionLabel(option)</BradixSelectItemText>
                                     <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
                                 </BradixSelectItem>
@@ -102,15 +107,18 @@
                                          SideOffset="6"
                                          Align="start">
                         <BradixSelectViewport Class="stack">
-                            <BradixSelectItem Value="low">
+                            <BradixSelectItem Value="low"
+                                              TextValue="Low">
                                 <BradixSelectItemText>Low</BradixSelectItemText>
                                 <BradixSelectItemIndicator>(o)</BradixSelectItemIndicator>
                             </BradixSelectItem>
-                            <BradixSelectItem Value="medium">
+                            <BradixSelectItem Value="medium"
+                                              TextValue="Medium">
                                 <BradixSelectItemText>Medium</BradixSelectItemText>
                                 <BradixSelectItemIndicator>(o)</BradixSelectItemIndicator>
                             </BradixSelectItem>
-                            <BradixSelectItem Value="high">
+                            <BradixSelectItem Value="high"
+                                              TextValue="High">
                                 <BradixSelectItemText>High</BradixSelectItemText>
                                 <BradixSelectItemIndicator>(o)</BradixSelectItemIndicator>
                             </BradixSelectItem>

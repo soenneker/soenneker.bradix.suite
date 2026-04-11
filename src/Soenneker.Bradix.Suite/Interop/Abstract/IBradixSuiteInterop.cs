@@ -149,7 +149,7 @@ public interface IBradixSuiteInterop : IAsyncDisposable
     ValueTask UpdateFocusScope(ElementReference element, bool loop, bool trapped, bool preventMountAutoFocus, bool preventUnmountAutoFocus,
         CancellationToken cancellationToken = default);
 
-    ValueTask UnregisterFocusScope(ElementReference element, CancellationToken cancellationToken = default);
+    ValueTask UnregisterFocusScope(ElementReference element, bool unmountAutoFocusPrevented = false, CancellationToken cancellationToken = default);
 
     ValueTask RegisterPopperContent(ElementReference anchor, ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference,
         object options, CancellationToken cancellationToken = default);

@@ -36,7 +36,7 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     return;
   }
 
-  await unregisterFocusScope(element);
+  await unregisterFocusScope(element, true);
 
   const scope = {
     element,
@@ -166,7 +166,7 @@ export function updateFocusScope(element, loop, trapped, preventMountAutoFocus, 
   handlers.scope.preventUnmountAutoFocus = !!preventUnmountAutoFocus;
 }
 
-export async function unregisterFocusScope(element) {
+export async function unregisterFocusScope(element, unmountAutoFocusPrevented = false) {
   const handlers = focusScopeHandlers.get(element);
 
   if (!handlers) {
@@ -181,16 +181,10 @@ export async function unregisterFocusScope(element) {
   focusScopeHandlers.delete(element);
 
   setTimeout(() => {
-    scope.dotNetRef.invokeMethodAsync("HandleUnmountAutoFocusAsync").then((unmountAutoFocusPrevented) => {
-      if (!scope.preventUnmountAutoFocus && !unmountAutoFocusPrevented) {
-        focusElement(scope.previouslyFocusedElement || document.body, true);
-      }
-    }).catch(() => {
-      if (!scope.preventUnmountAutoFocus) {
-        focusElement(scope.previouslyFocusedElement || document.body, true);
-      }
-    }).finally(() => {
-      removeFocusScopeFromStack(scope);
-    });
+    if (!scope.preventUnmountAutoFocus && !unmountAutoFocusPrevented) {
+      focusElement(scope.previouslyFocusedElement || document.body, true);
+    }
+
+    removeFocusScopeFromStack(scope);
   }, 0);
 }
