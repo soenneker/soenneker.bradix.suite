@@ -39,27 +39,19 @@ public sealed class BradixDemoPlaywrightTests : FixturedUnitTest
 
         await page.GotoAndWaitForReadyAsync(
             $"{_fixture.BaseUrl}dialog",
-            static p => p.Locator("section.card").First.GetByRole(AriaRole.Heading, new LocatorGetByRoleOptions { Name = "Modal dialog", Exact = true }),
+            static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }),
             expectedTitle: "Bradix Dialog");
 
-        ILocator modalCard = page.Locator("section.card").First;
-        ILocator stateLines = modalCard.Locator(".state-line");
+        await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
 
-        await Assertions.Expect(stateLines.Nth(0)).ToContainTextAsync("Quark Gateway");
-        await Assertions.Expect(stateLines.Nth(1)).ToContainTextAsync("Platform team");
-        await Assertions.Expect(stateLines.Nth(2)).ToContainTextAsync("Production");
+        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Edit profile", Exact = true })).ToBeVisibleAsync();
 
-        await modalCard.GetByText("Edit project details").ClickAsync();
+        await page.Locator("#dialog-name").FillAsync("Jake");
+        await page.Locator("#dialog-username").FillAsync("@jake");
+        await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Save changes", Exact = true }).ClickAsync();
 
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Edit deployment project" })).ToBeVisibleAsync();
-
-        await page.GetByPlaceholder("Project name").FillAsync("Quark Gateway UI");
-        await page.GetByPlaceholder("Owner").FillAsync("QA");
-        await page.GetByPlaceholder("Environment").FillAsync("Staging");
-        await page.GetByText("Save changes").ClickAsync();
-
-        await Assertions.Expect(stateLines.Nth(0)).ToContainTextAsync("Quark Gateway UI");
-        await Assertions.Expect(stateLines.Nth(1)).ToContainTextAsync("QA");
-        await Assertions.Expect(stateLines.Nth(2)).ToContainTextAsync("Staging");
+        await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
+        await Assertions.Expect(page.Locator("#dialog-name")).ToHaveValueAsync("Jake");
+        await Assertions.Expect(page.Locator("#dialog-username")).ToHaveValueAsync("@jake");
     }
 }

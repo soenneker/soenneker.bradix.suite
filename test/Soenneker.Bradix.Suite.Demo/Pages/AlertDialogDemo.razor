@@ -2,56 +2,39 @@
 
 <PageTitle>Bradix AlertDialog</PageTitle>
 
-<section class="stack">
-    <section class="card stack stack--compact">
-        <h3>Confirmation flow</h3>
-        <p class="state-line"><strong>Repository:</strong> quark/production</p>
-        <p class="state-line"><strong>Status:</strong> @(_repositoryDeleted ? "Deleted in demo" : "Active")</p>
-        <p class="state-line"><strong>Last action:</strong> @_lastAction</p>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixAlertDialog Open="@_open"
+                           OpenChanged="HandleOpenChanged">
+            <BradixAlertDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
+                Delete account
+            </BradixAlertDialogTrigger>
 
-        <div class="button-row">
-            <BradixAlertDialog Open="@_open"
-                               OpenChanged="HandleOpenChanged">
-                <BradixAlertDialogTrigger Class="primitive__trigger primitive__trigger--fit">
-                    Delete repository
-                </BradixAlertDialogTrigger>
+            <BradixAlertDialogPortal>
+                <BradixAlertDialogOverlay Class="dialog-demo__overlay" />
 
-                <BradixAlertDialogPortal>
-                    <BradixAlertDialogOverlay Class="dialog-overlay" />
+                <BradixAlertDialogContent Class="dialog-demo__content">
+                    <BradixAlertDialogTitle Class="dialog-demo__title">Are you absolutely sure?</BradixAlertDialogTitle>
+                    <BradixAlertDialogDescription Class="dialog-demo__description">
+                        This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                    </BradixAlertDialogDescription>
 
-                    <BradixAlertDialogContent Class="dialog-surface dialog-surface--modal dialog-surface--animated">
-                        <div class="stack stack--compact">
-                            <BradixAlertDialogTitle>Delete repository?</BradixAlertDialogTitle>
-                            <BradixAlertDialogDescription>
-                                This action is permanent and will remove source history, pull requests, and release metadata.
-                            </BradixAlertDialogDescription>
-
-                            <div class="button-row">
-                                <span @onclick="HandleCancelClicked">
-                                    <BradixAlertDialogCancel Class="primitive__trigger primitive__trigger--fit">Cancel</BradixAlertDialogCancel>
-                                </span>
-                                <span @onclick="HandleDeleteClicked">
-                                    <BradixAlertDialogAction Class="primitive__trigger primitive__trigger--fit">Delete</BradixAlertDialogAction>
-                                </span>
-                            </div>
-                        </div>
-                    </BradixAlertDialogContent>
-                </BradixAlertDialogPortal>
-            </BradixAlertDialog>
-
-            <button type="button"
-                    class="primitive__trigger primitive__trigger--fit"
-                    @onclick="ResetDemo">
-                Reset demo
-            </button>
-        </div>
+                    <div class="dialog-demo__actions">
+                        <span @onclick="HandleCancelClicked">
+                            <BradixAlertDialogCancel Class="dialog-demo__button dialog-demo__button--mauve">Cancel</BradixAlertDialogCancel>
+                        </span>
+                        <span @onclick="HandleDeleteClicked">
+                            <BradixAlertDialogAction Class="dialog-demo__button dialog-demo__button--red">Yes, delete account</BradixAlertDialogAction>
+                        </span>
+                    </div>
+                </BradixAlertDialogContent>
+            </BradixAlertDialogPortal>
+        </BradixAlertDialog>
     </section>
 </section>
 
 @code {
     private bool _open;
-    private bool _repositoryDeleted;
-    private string _lastAction = "No decision yet.";
 
     private Task HandleOpenChanged(bool open)
     {
@@ -61,23 +44,11 @@
 
     private Task HandleCancelClicked()
     {
-        _repositoryDeleted = false;
-        _lastAction = "Deletion canceled. The repository is still active.";
         return Task.CompletedTask;
     }
 
     private Task HandleDeleteClicked()
     {
-        _repositoryDeleted = true;
-        _lastAction = "Repository deleted in the demo flow.";
-        return Task.CompletedTask;
-    }
-
-    private Task ResetDemo()
-    {
-        _open = false;
-        _repositoryDeleted = false;
-        _lastAction = "Demo reset. The repository is active again.";
         return Task.CompletedTask;
     }
 }

@@ -18,34 +18,6 @@
             </BradixFocusScope>
         </section>
 
-        <section class="card stack stack--compact">
-            <h3>Trapped scope</h3>
-            <p class="state-line">Mounted autofocus: <strong>@_mounted</strong></p>
-            <p class="state-line">Unmount autofocus: <strong>@_unmounted</strong></p>
-            <BradixFocusScope Class="portal-surface"
-                              Trapped
-                              OnMountAutoFocus="HandleMountAutoFocus"
-                              OnUnmountAutoFocus="HandleUnmountAutoFocus">
-                <input class="primitive__trigger" value="Focusable input" />
-                <button class="primitive__trigger" type="button">Action</button>
-            </BradixFocusScope>
-        </section>
     </div>
 </section>
 
-@code {
-    private bool _mounted;
-    private bool _unmounted;
-
-    private Task HandleMountAutoFocus()
-    {
-        _mounted = true;
-        return Task.CompletedTask;
-    }
-
-    private Task HandleUnmountAutoFocus()
-    {
-        _unmounted = true;
-        return Task.CompletedTask;
-    }
-}

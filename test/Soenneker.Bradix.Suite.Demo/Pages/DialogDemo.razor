@@ -2,71 +2,47 @@
 
 <PageTitle>Bradix Dialog</PageTitle>
 
-<section class="stack">
-    <section class="card stack stack--compact">
-        <h3>Modal dialog</h3>
-        <p class="state-line"><strong>Project name:</strong> @_projectName</p>
-        <p class="state-line"><strong>Owner:</strong> @_projectOwner</p>
-        <p class="state-line"><strong>Environment:</strong> @_projectEnvironment</p>
-
-        <BradixDialog Open="@_projectDialogOpen"
-                      OpenChanged="HandleProjectDialogOpenChanged">
-            <BradixDialogTrigger Class="primitive__trigger primitive__trigger--fit">
-                Edit project details
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixDialog Open="@_open"
+                      OpenChanged="HandleOpenChanged">
+            <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
+                Edit profile
             </BradixDialogTrigger>
 
             <BradixDialogPortal>
-                <BradixDialogOverlay Class="dialog-overlay" />
+                <BradixDialogOverlay Class="dialog-demo__overlay" />
 
-                <BradixDialogContent Class="dialog-surface dialog-surface--modal dialog-surface--animated">
-                    <div class="stack stack--compact">
-                        <BradixDialogTitle>Edit deployment project</BradixDialogTitle>
-                        <BradixDialogDescription>Use the dialog to adjust committed project metadata without leaving the page.</BradixDialogDescription>
-                        <input class="text-input" @bind="_projectDraftName" placeholder="Project name" />
-                        <input class="text-input" @bind="_projectDraftOwner" placeholder="Owner" />
-                        <input class="text-input" @bind="_projectDraftEnvironment" placeholder="Environment" />
-                        <div class="button-row">
-                            <span @onclick="RestoreProjectDrafts">
-                                <BradixDialogClose Class="primitive__trigger primitive__trigger--fit">Cancel</BradixDialogClose>
-                            </span>
-                            <button class="primitive__trigger primitive__trigger--fit"
-                                    type="button"
-                                    @onclick="SaveProjectAsync">
-                                Save changes
-                            </button>
-                        </div>
+                <BradixDialogContent Class="dialog-demo__content">
+                    <BradixDialogTitle Class="dialog-demo__title">Edit profile</BradixDialogTitle>
+                    <BradixDialogDescription Class="dialog-demo__description">
+                        Make changes to your profile here. Click save when you're done.
+                    </BradixDialogDescription>
+
+                    <div class="dialog-demo__fieldset">
+                        <label class="dialog-demo__label" for="dialog-name">Name</label>
+                        <input class="dialog-demo__input" id="dialog-name" @bind="_draftName" />
                     </div>
-                </BradixDialogContent>
-            </BradixDialogPortal>
-        </BradixDialog>
-    </section>
 
-    <section class="card stack stack--compact">
-        <h3>Non-modal dialog</h3>
-        <p class="state-line"><strong>Inspector note:</strong> @_inspectorNote</p>
-
-        <BradixDialog Open="@_inspectorOpen"
-                      OpenChanged="HandleInspectorOpenChanged"
-                      Modal="false">
-            <BradixDialogTrigger Class="primitive__trigger primitive__trigger--fit">Open non-modal</BradixDialogTrigger>
-
-            <BradixDialogPortal>
-                <BradixDialogContent Class="dialog-surface dialog-surface--non-modal dialog-surface--animated">
-                    <div class="stack stack--compact">
-                        <BradixDialogTitle>Inspector</BradixDialogTitle>
-                        <BradixDialogDescription>This non-modal dialog stays visible in the bottom-right corner so it can coexist with the page.</BradixDialogDescription>
-                        <input class="text-input" @bind="_inspectorDraft" placeholder="Leave a note for the next reviewer" />
-                        <div class="button-row">
-                            <button class="primitive__trigger primitive__trigger--fit"
-                                    type="button"
-                                    @onclick="SaveInspectorAsync">
-                                Save note
-                            </button>
-                            <span @onclick="RestoreInspectorDraft">
-                                <BradixDialogClose Class="primitive__trigger primitive__trigger--fit">Close</BradixDialogClose>
-                            </span>
-                        </div>
+                    <div class="dialog-demo__fieldset">
+                        <label class="dialog-demo__label" for="dialog-username">Username</label>
+                        <input class="dialog-demo__input" id="dialog-username" @bind="_draftUsername" />
                     </div>
+
+                    <div class="dialog-demo__save-row">
+                        <button type="button"
+                                class="dialog-demo__button dialog-demo__button--green"
+                                @onclick="SaveChanges">
+                            Save changes
+                        </button>
+                    </div>
+
+                    <button type="button"
+                            class="dialog-demo__icon-button"
+                            aria-label="Close"
+                            @onclick="CloseDialog">
+                        ×
+                    </button>
                 </BradixDialogContent>
             </BradixDialogPortal>
         </BradixDialog>
@@ -74,62 +50,40 @@
 </section>
 
 @code {
-    private bool _projectDialogOpen;
-    private bool _inspectorOpen;
-    private string _projectName = "Quark Gateway";
-    private string _projectOwner = "Platform team";
-    private string _projectEnvironment = "Production";
-    private string _projectDraftName = "Quark Gateway";
-    private string _projectDraftOwner = "Platform team";
-    private string _projectDraftEnvironment = "Production";
-    private string _inspectorNote = "Traffic is healthy.";
-    private string _inspectorDraft = "Traffic is healthy.";
+    private bool _open;
+    private string _name = "Pedro Duarte";
+    private string _username = "@peduarte";
+    private string _draftName = "Pedro Duarte";
+    private string _draftUsername = "@peduarte";
 
-    private Task HandleProjectDialogOpenChanged(bool open)
+    private Task HandleOpenChanged(bool open)
     {
-        _projectDialogOpen = open;
+        _open = open;
 
         if (open)
-            RestoreProjectDrafts();
+            RestoreDraft();
 
         return Task.CompletedTask;
     }
 
-    private Task HandleInspectorOpenChanged(bool open)
+    private Task SaveChanges()
     {
-        _inspectorOpen = open;
-
-        if (open)
-            RestoreInspectorDraft();
-
+        _name = _draftName;
+        _username = _draftUsername;
+        _open = false;
         return Task.CompletedTask;
     }
 
-    private Task SaveProjectAsync()
+    private Task CloseDialog()
     {
-        _projectName = _projectDraftName;
-        _projectOwner = _projectDraftOwner;
-        _projectEnvironment = _projectDraftEnvironment;
-        _projectDialogOpen = false;
+        RestoreDraft();
+        _open = false;
         return Task.CompletedTask;
     }
 
-    private Task SaveInspectorAsync()
+    private void RestoreDraft()
     {
-        _inspectorNote = _inspectorDraft;
-        _inspectorOpen = false;
-        return Task.CompletedTask;
-    }
-
-    private void RestoreProjectDrafts()
-    {
-        _projectDraftName = _projectName;
-        _projectDraftOwner = _projectOwner;
-        _projectDraftEnvironment = _projectEnvironment;
-    }
-
-    private void RestoreInspectorDraft()
-    {
-        _inspectorDraft = _inspectorNote;
+        _draftName = _name;
+        _draftUsername = _username;
     }
 }

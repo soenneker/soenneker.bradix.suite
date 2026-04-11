@@ -2,40 +2,25 @@
 
 <PageTitle>Bradix Separator</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixSeparator</h2>
-        <p>Supports semantic and decorative separators with the same orientation metadata Radix exposes for styling hooks.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Horizontal</h3>
-            <p>Semantic separator:</p>
-            <BradixSeparator Class="separator" />
-            <p>Decorative separator:</p>
-            <BradixSeparator Class="separator" Decorative />
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Vertical</h3>
-            <div class="separator-row">
-                <span>Start</span>
-                <BradixSeparator Class="separator separator--vertical" Orientation="vertical" />
-                <span>Middle</span>
-                <BradixSeparator Class="separator separator--vertical" Orientation="vertical" Decorative />
-                <span>End</span>
+<section class="website-demo-page">
+    <section class="card website-demo-card separator-demo">
+        <div class="separator-demo__container">
+            <div class="separator-demo__text separator-demo__text--strong">Radix Primitives</div>
+            <div class="separator-demo__text">An open-source UI component library.</div>
+            <BradixSeparator Class="separator-demo__root" Style="margin: 15px 0;" />
+            <div class="separator-demo__row">
+                <div class="separator-demo__text">Blog</div>
+                <BradixSeparator Class="separator-demo__root"
+                                 Decorative
+                                 Orientation="vertical"
+                                 Style="margin: 0 15px;" />
+                <div class="separator-demo__text">Docs</div>
+                <BradixSeparator Class="separator-demo__root"
+                                 Decorative
+                                 Orientation="vertical"
+                                 Style="margin: 0 15px;" />
+                <div class="separator-demo__text">Source</div>
             </div>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>`asChild` composition</h3>
-            <p>Separator semantics can now be merged onto a caller-chosen native host element.</p>
-            <BradixSeparator AsChild
-                             ChildElementName="span"
-                             ChildAttributes="@(new Dictionary<string, object> { ["data-slot-separator"] = "true" })"
-                             Class="separator">
-            </BradixSeparator>
-        </section>
-    </div>
+        </div>
+    </section>
 </section>

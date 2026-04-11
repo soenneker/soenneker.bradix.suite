@@ -84,7 +84,7 @@
 
         await _button.FocusAsync();
 
-        if (!Select.CurrentOpen && !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
+        if (!Select.CurrentOpen)
             await Select.OpenFromTriggerAsync();
     }
 

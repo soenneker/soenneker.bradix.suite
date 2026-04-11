@@ -2,147 +2,68 @@
 
 <PageTitle>NavigationMenu Demo</PageTitle>
 
-<section class="stack">
-    <div class="card">
-        <h2>NavigationMenu</h2>
-        <p>
-            Delayed root navigation content with roving trigger focus, dismissable flyout panels,
-            active link semantics, indicator positioning, and proxy-driven tab handoff between
-            triggers and open content for application-style top navigation.
-        </p>
-    </div>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixNavigationMenu Value="@_openValue"
+                              ValueChanged="HandleOpenValueChanged"
+                              DelayDuration="0"
+                              Class="stack"
+                              Style="position:relative;">
+            <BradixNavigationMenuList Class="nav-menu-list">
+                <BradixNavigationMenuItem Value="learn">
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">Learn</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content">
+                        <BradixNavigationMenuLink Href="/"
+                                                  Active="@(_activeLink == "primitives")"
+                                                  OnSelect='@(() => SetActiveLink("primitives"))'>
+                            Radix Primitives
+                        </BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://stitches.dev/"
+                                                  Active="@(_activeLink == "stitches")"
+                                                  OnSelect='@(() => SetActiveLink("stitches"))'>
+                            Stitches
+                        </BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="/colors"
+                                                  Active="@(_activeLink == "colors")"
+                                                  OnSelect='@(() => SetActiveLink("colors"))'>
+                            Colors
+                        </BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://icons.radix-ui.com/"
+                                                  Active="@(_activeLink == "icons")"
+                                                  OnSelect='@(() => SetActiveLink("icons"))'>
+                            Icons
+                        </BradixNavigationMenuLink>
+                    </BradixNavigationMenuContent>
+                </BradixNavigationMenuItem>
 
-    <div class="grid">
-        <article class="card stack">
-            <h3>Application navigation</h3>
+                <BradixNavigationMenuItem Value="overview">
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">Overview</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content">
+                        <BradixNavigationMenuLink Href="/primitives/docs/overview/introduction">Introduction</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="/primitives/docs/overview/getting-started">Getting started</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="/primitives/docs/guides/styling">Styling</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="/primitives/docs/guides/animation">Animation</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="/primitives/docs/overview/accessibility">Accessibility</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="/primitives/docs/overview/releases">Releases</BradixNavigationMenuLink>
+                    </BradixNavigationMenuContent>
+                </BradixNavigationMenuItem>
 
-            <BradixNavigationMenu Value="@_openValue"
-                                  ValueChanged="HandleOpenValueChanged"
-                                  DelayDuration="0"
-                                  Class="stack"
-                                  Style="position:relative;">
-                <BradixNavigationMenuList Class="nav-menu-list">
-                    <BradixNavigationMenuItem Value="products">
-                        <BradixNavigationMenuTrigger Class="primitive__trigger">Products</BradixNavigationMenuTrigger>
-                        <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content">
-                            <BradixNavigationMenuLink Href="#buttons"
-                                                      Active="@(_activeLink == "buttons")"
-                                                      OnSelect='@(() => SetActiveLink("buttons"))'>
-                                Buttons
-                            </BradixNavigationMenuLink>
-                            <BradixNavigationMenuLink Href="#inputs"
-                                                      Active="@(_activeLink == "inputs")"
-                                                      OnSelect='@(() => SetActiveLink("inputs"))'>
-                                Inputs
-                            </BradixNavigationMenuLink>
-                        </BradixNavigationMenuContent>
-                    </BradixNavigationMenuItem>
+                <BradixNavigationMenuItem>
+                    <BradixNavigationMenuLink Class="primitive__trigger" Href="https://github.com/radix-ui">
+                        Github
+                    </BradixNavigationMenuLink>
+                </BradixNavigationMenuItem>
+            </BradixNavigationMenuList>
 
-                    <BradixNavigationMenuItem Value="docs">
-                        <BradixNavigationMenuTrigger Class="primitive__trigger">Docs</BradixNavigationMenuTrigger>
-                        <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content">
-                            <BradixNavigationMenuLink Href="#getting-started"
-                                                      Active="@(_activeLink == "getting-started")"
-                                                      OnSelect='@(() => SetActiveLink("getting-started"))'>
-                                Getting started
-                            </BradixNavigationMenuLink>
-                            <BradixNavigationMenuLink Href="#components"
-                                                      Active="@(_activeLink == "components")"
-                                                      OnSelect='@(() => SetActiveLink("components"))'>
-                                Components
-                            </BradixNavigationMenuLink>
-                        </BradixNavigationMenuContent>
-                    </BradixNavigationMenuItem>
-
-                    <BradixNavigationMenuItem Value="about">
-                        <BradixNavigationMenuTrigger Class="primitive__trigger">About</BradixNavigationMenuTrigger>
-                        <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content">
-                            <p>Bradix is a behavior-first Blazor primitive library modeled after Radix UI.</p>
-                        </BradixNavigationMenuContent>
-                    </BradixNavigationMenuItem>
-                </BradixNavigationMenuList>
-                <BradixNavigationMenuIndicator Class="nav-menu-indicator" />
-            </BradixNavigationMenu>
-
-            <p>With a panel open, `Tab` moves into the active content instead of skipping straight to the next trigger, and arrow/Home/End keys move between `NavigationMenu.Link` items.</p>
-            <p><strong>Open panel:</strong> @(_openValue ?? "(none)")</p>
-            <p><strong>Active link:</strong> @_activeLink</p>
-        </article>
-
-        <article class="card stack">
-            <h3>Viewport-backed navigation</h3>
-
-            <BradixNavigationMenu DelayDuration="0"
-                                  Class="stack"
-                                  Style="position:relative;">
-                <BradixNavigationMenuList Class="nav-menu-list">
-                    <BradixNavigationMenuItem Value="platform">
-                        <BradixNavigationMenuTrigger Class="primitive__trigger">Platform</BradixNavigationMenuTrigger>
-                        <BradixNavigationMenuContent Class="stack stack--compact">
-                            <BradixNavigationMenuLink Href="#api">API</BradixNavigationMenuLink>
-                            <BradixNavigationMenuLink Href="#cli">CLI</BradixNavigationMenuLink>
-                        </BradixNavigationMenuContent>
-                    </BradixNavigationMenuItem>
-
-                    <BradixNavigationMenuItem Value="resources">
-                        <BradixNavigationMenuTrigger Class="primitive__trigger">Resources</BradixNavigationMenuTrigger>
-                        <BradixNavigationMenuContent Class="stack stack--compact">
-                            <BradixNavigationMenuLink Href="#guides">Guides</BradixNavigationMenuLink>
-                            <BradixNavigationMenuLink Href="#reference">Reference</BradixNavigationMenuLink>
-                        </BradixNavigationMenuContent>
-                    </BradixNavigationMenuItem>
-                </BradixNavigationMenuList>
-
-                <BradixNavigationMenuIndicator Class="nav-menu-indicator" />
-                <BradixNavigationMenuViewport Class="nav-surface nav-menu-viewport" />
-            </BradixNavigationMenu>
-
-            <p>The viewport reuses a shared surface, resizes to the active content, preserves the same trigger-to-content tab flow, keeps arrow/Home/End navigation between links, and keeps the active trigger/content relationship exposed to assistive tech.</p>
-        </article>
-
-        <article class="card stack">
-            <h3>Nested submenu</h3>
-
-            <BradixNavigationMenu DelayDuration="0"
-                                  Class="stack"
-                                  Style="position:relative;">
-                <BradixNavigationMenuList Class="nav-menu-list">
-                    <BradixNavigationMenuItem Value="guides">
-                        <BradixNavigationMenuTrigger Class="primitive__trigger">Guides</BradixNavigationMenuTrigger>
-                        <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content">
-                            <p class="surface-note">A nested submenu should behave more like tabs than a dismissable root flyout.</p>
-
-                            <BradixNavigationMenuSub DefaultValue="overview"
-                                                     Class="stack">
-                                <BradixNavigationMenuList Class="nav-menu-list">
-                                    <BradixNavigationMenuItem Value="overview">
-                                        <BradixNavigationMenuTrigger Class="primitive__trigger">Overview</BradixNavigationMenuTrigger>
-                                        <BradixNavigationMenuContent Class="stack stack--compact nav-menu-content">
-                                            <BradixNavigationMenuLink Href="#overview">Overview content stays mounted after selection.</BradixNavigationMenuLink>
-                                        </BradixNavigationMenuContent>
-                                    </BradixNavigationMenuItem>
-
-                                    <BradixNavigationMenuItem Value="api">
-                                        <BradixNavigationMenuTrigger Class="primitive__trigger">API</BradixNavigationMenuTrigger>
-                                        <BradixNavigationMenuContent Class="stack stack--compact nav-menu-content">
-                                            <BradixNavigationMenuLink Href="#api-reference">API content swaps immediately on trigger focus or pointer move.</BradixNavigationMenuLink>
-                                        </BradixNavigationMenuContent>
-                                    </BradixNavigationMenuItem>
-                                </BradixNavigationMenuList>
-                            </BradixNavigationMenuSub>
-                        </BradixNavigationMenuContent>
-                    </BradixNavigationMenuItem>
-                </BradixNavigationMenuList>
-            </BradixNavigationMenu>
-
-            <p>The nested `Sub` keeps selection active instead of toggling closed on repeated trigger or link interaction, while still participating in the same tab handoff.</p>
-        </article>
-    </div>
+            <BradixNavigationMenuIndicator Class="nav-menu-indicator" />
+            <BradixNavigationMenuViewport Class="nav-surface nav-menu-viewport" />
+        </BradixNavigationMenu>
+    </section>
 </section>
 
 @code {
     private string? _openValue;
-    private string _activeLink = "buttons";
+    private string _activeLink = "primitives";
 
     private Task HandleOpenValueChanged(string? value)
     {

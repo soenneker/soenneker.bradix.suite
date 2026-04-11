@@ -2,83 +2,45 @@
 
 <PageTitle>HoverCard Demo</PageTitle>
 
-<section class="stack">
-    <div class="card">
-        <h2>HoverCard</h2>
-        <p>
-            Delayed hover and focus card behavior with non-modal layered content, preserved outside interaction,
-            pointer-entry retention, selection containment, and popper-positioned arrow support.
-        </p>
-    </div>
-
-    <div class="grid">
-        <article class="card stack">
-            <h3>Link preview</h3>
-            <p class="state-line"><strong>Preview state:</strong> @(_profilePreviewOpen ? "Open" : "Closed")</p>
-            <p class="state-line"><strong>Open count:</strong> @_profilePreviewOpenCount</p>
-
-            <BradixHoverCard Open="@_profilePreviewOpen"
-                             OpenChanged="HandleProfilePreviewOpenChanged">
-                <BradixHoverCardTrigger Class="demo-link">@@soenneker</BradixHoverCardTrigger>
-                <BradixHoverCardPortal>
-                    <BradixHoverCardContent Class="popover-surface popover-surface--animated"
-                                            Side="bottom"
-                                            SideOffset="8"
-                                            Align="start">
-                        <div class="stack">
-                            <strong>Soenneker</strong>
-                            <p>Behavior-first Blazor primitives and supporting suite libraries.</p>
-                            <p>Select this text to verify the card stays open while text selection is active.</p>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixHoverCard SideOffset="5">
+            <BradixHoverCardTrigger Class="hover-card-demo__image-trigger">
+                <img class="hover-card-demo__image hover-card-demo__image--normal"
+                     src="https://pbs.twimg.com/profile_images/1337055608613253126/r_eiMp2H_400x400.png"
+                     alt="Radix UI" />
+            </BradixHoverCardTrigger>
+            <BradixHoverCardPortal>
+                <BradixHoverCardContent Class="hover-card-demo__content">
+                    <div class="hover-card-demo__content-inner">
+                        <img class="hover-card-demo__image hover-card-demo__image--large"
+                             src="https://pbs.twimg.com/profile_images/1337055608613253126/r_eiMp2H_400x400.png"
+                             alt="Radix UI" />
+                        <div class="hover-card-demo__details">
+                            <div>
+                                <div class="hover-card-demo__text hover-card-demo__text--bold">Radix</div>
+                                <div class="hover-card-demo__text hover-card-demo__text--faded">@@radix_ui</div>
+                            </div>
+                            <div class="hover-card-demo__text">
+                                Components, icons, colors, and templates for building high-quality, accessible UI. Free and open-source.
+                            </div>
+                            <div class="hover-card-demo__stats">
+                                <div class="hover-card-demo__stat">
+                                    <div class="hover-card-demo__text hover-card-demo__text--bold">0</div>
+                                    <div class="hover-card-demo__text hover-card-demo__text--faded">Following</div>
+                                </div>
+                                <div class="hover-card-demo__stat">
+                                    <div class="hover-card-demo__text hover-card-demo__text--bold">2,900</div>
+                                    <div class="hover-card-demo__text hover-card-demo__text--faded">Followers</div>
+                                </div>
+                            </div>
                         </div>
-                        <BradixHoverCardArrow>
-                            <span class="tooltip-arrow-shape"></span>
-                        </BradixHoverCardArrow>
-                    </BradixHoverCardContent>
-                </BradixHoverCardPortal>
-            </BradixHoverCard>
-        </article>
-
-        <article class="card stack">
-            <h3>Instant open, slower close</h3>
-            <p class="state-line"><strong>Timing card:</strong> @(_timingPreviewOpen ? "Open" : "Closed")</p>
-
-            <BradixHoverCard Open="@_timingPreviewOpen"
-                             OpenChanged="HandleTimingPreviewOpenChanged"
-                             OpenDelay="0"
-                             CloseDelay="500">
-                <BradixHoverCardTrigger Class="primitive__trigger primitive__trigger--fit">Hover or focus me</BradixHoverCardTrigger>
-                <BradixHoverCardPortal>
-                    <BradixHoverCardContent Class="popover-surface"
-                                            Side="right"
-                                            SideOffset="10">
-                        <div class="stack">
-                            <strong>Timing</strong>
-                            <p>This card opens immediately but lingers briefly on pointer leave.</p>
-                        </div>
-                    </BradixHoverCardContent>
-                </BradixHoverCardPortal>
-            </BradixHoverCard>
-        </article>
-    </div>
+                    </div>
+                    <BradixHoverCardArrow>
+                        <span class="tooltip-arrow-shape"></span>
+                    </BradixHoverCardArrow>
+                </BradixHoverCardContent>
+            </BradixHoverCardPortal>
+        </BradixHoverCard>
+    </section>
 </section>
-
-@code {
-    private bool _profilePreviewOpen;
-    private bool _timingPreviewOpen;
-    private int _profilePreviewOpenCount;
-
-    private Task HandleProfilePreviewOpenChanged(bool open)
-    {
-        if (open && !_profilePreviewOpen)
-            _profilePreviewOpenCount++;
-
-        _profilePreviewOpen = open;
-        return Task.CompletedTask;
-    }
-
-    private Task HandleTimingPreviewOpenChanged(bool open)
-    {
-        _timingPreviewOpen = open;
-        return Task.CompletedTask;
-    }
-}

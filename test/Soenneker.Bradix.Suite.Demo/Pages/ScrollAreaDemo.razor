@@ -2,75 +2,31 @@
 
 <PageTitle>Bradix ScrollArea</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixScrollArea</h2>
-        <p>Implements Radix-style scroll area composition with root, viewport, scrollbar, thumb, and corner parts, while keeping native scrolling underneath and exposing custom scrollbar geometry through Bradix parts.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Always</h3>
-            <BradixScrollArea Class="scroll-area-root" Type="always" Style="width: 18rem; height: 12rem;">
-                <BradixScrollAreaViewport Class="scroll-area-viewport">
-                    <div class="scroll-area-content">@LongContent</div>
-                </BradixScrollAreaViewport>
-                <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="vertical">
-                    <BradixScrollAreaThumb Class="scroll-area-thumb" />
-                </BradixScrollAreaScrollbar>
-                <BradixScrollAreaScrollbar Class="scroll-area-scrollbar scroll-area-scrollbar--horizontal" Orientation="horizontal">
-                    <BradixScrollAreaThumb Class="scroll-area-thumb" />
-                </BradixScrollAreaScrollbar>
-                <BradixScrollAreaCorner Class="scroll-area-corner" />
-            </BradixScrollArea>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Auto</h3>
-            <BradixScrollArea Class="scroll-area-root" Type="auto" Style="width: 18rem; height: 12rem;">
-                <BradixScrollAreaViewport Class="scroll-area-viewport">
-                    <div class="scroll-area-content" style="width: 8rem;">Short content without overflow.</div>
-                </BradixScrollAreaViewport>
-                <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="vertical">
-                    <BradixScrollAreaThumb Class="scroll-area-thumb" />
-                </BradixScrollAreaScrollbar>
-            </BradixScrollArea>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Hover</h3>
-            <BradixScrollArea Class="scroll-area-root" Type="hover" Style="width: 18rem; height: 12rem;">
-                <BradixScrollAreaViewport Class="scroll-area-viewport">
-                    <div class="scroll-area-content">@LongContent</div>
-                </BradixScrollAreaViewport>
-                <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="vertical">
-                    <BradixScrollAreaThumb Class="scroll-area-thumb" />
-                </BradixScrollAreaScrollbar>
-            </BradixScrollArea>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Inherited direction</h3>
-            <BradixDirectionProvider Dir="rtl">
-                <BradixScrollArea Class="scroll-area-root" Type="always" Style="width: 18rem; height: 12rem;">
-                    <BradixScrollAreaViewport Class="scroll-area-viewport">
-                        <div class="scroll-area-content">@LongContent</div>
-                    </BradixScrollAreaViewport>
-                    <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="vertical">
-                        <BradixScrollAreaThumb Class="scroll-area-thumb" />
-                    </BradixScrollAreaScrollbar>
-                    <BradixScrollAreaScrollbar Class="scroll-area-scrollbar scroll-area-scrollbar--horizontal" Orientation="horizontal">
-                        <BradixScrollAreaThumb Class="scroll-area-thumb" />
-                    </BradixScrollAreaScrollbar>
-                    <BradixScrollAreaCorner Class="scroll-area-corner" />
-                </BradixScrollArea>
-            </BradixDirectionProvider>
-        </section>
-    </div>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixScrollArea Class="scroll-area-root" Type="always" Style="width: 18rem; height: 14rem;">
+            <BradixScrollAreaViewport Class="scroll-area-viewport">
+                <div class="scroll-area-demo__content">
+                    <div class="scroll-area-demo__heading">Tags</div>
+                    @foreach (string tag in Tags)
+                    {
+                        <div class="scroll-area-demo__tag">@tag</div>
+                    }
+                </div>
+            </BradixScrollAreaViewport>
+            <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="vertical">
+                <BradixScrollAreaThumb Class="scroll-area-thumb" />
+            </BradixScrollAreaScrollbar>
+            <BradixScrollAreaScrollbar Class="scroll-area-scrollbar scroll-area-scrollbar--horizontal" Orientation="horizontal">
+                <BradixScrollAreaThumb Class="scroll-area-thumb" />
+            </BradixScrollAreaScrollbar>
+            <BradixScrollAreaCorner Class="scroll-area-corner" />
+        </BradixScrollArea>
+    </section>
 </section>
 
 @code {
-    private const string LongContent = """
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed cursus consequat eros, id interdum nibh tincidunt eu. Donec commodo sem nec metus elementum, vitae ultrices mi venenatis. Suspendisse potenti. Integer feugiat justo ut libero convallis, et aliquam massa pretium. Morbi sed mi at nunc bibendum gravida. Vestibulum non ligula et mauris aliquam placerat. Cras feugiat quam id urna tincidunt, sed feugiat libero ullamcorper. Nullam dictum posuere ex, nec lacinia ligula suscipit vitae. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-""";
+    private static readonly string[] Tags = Enumerable.Range(1, 50)
+        .Select(index => $"v1.2.0-beta.{51 - index}")
+        .ToArray();
 }

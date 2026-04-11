@@ -2,20 +2,9 @@
 
 <PageTitle>Menubar Demo</PageTitle>
 
-<section class="stack">
-    <div class="card">
-        <h2>Menubar</h2>
-        <p>
-            Horizontal menu strip built on the shared menu substrate, with trigger-to-trigger roving
-            focus, cross-menu navigation, submenu support, and selection items.
-        </p>
-    </div>
-
-    <div class="grid">
-        <article class="card stack">
-            <h3>Application menubar</h3>
-
-            <BradixMenubar Value="@_currentMenu" ValueChanged="HandleCurrentMenuChanged">
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixMenubar Value="@_currentMenu" ValueChanged="HandleCurrentMenuChanged">
                 <BradixMenubarMenu Value="file">
                     <BradixMenubarTrigger>File</BradixMenubarTrigger>
                     <BradixMenubarPortal>
@@ -84,14 +73,7 @@
                     </BradixMenubarPortal>
                 </BradixMenubarMenu>
             </BradixMenubar>
-
-            <p><strong>Open menu:</strong> @(_currentMenu ?? "(none)")</p>
-            <p><strong>Last selection:</strong> @(_selection ?? "(none)")</p>
-            <p><strong>Line numbers:</strong> @(_lineNumbers == BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
-            <p><strong>Word wrap:</strong> @(_wordWrap == BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
-            <p><strong>Sort:</strong> @_sort</p>
-        </article>
-    </div>
+    </section>
 </section>
 
 @code {

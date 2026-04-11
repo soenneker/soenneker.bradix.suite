@@ -121,9 +121,11 @@ export function registerSelectContentPointerTracker(content, dotNetRef, pageX, p
   };
 
   const handlePointerUp = (event) => {
-    const suppressSelection = pointerMoveDelta.x <= 10 && pointerMoveDelta.y <= 10;
+    const withinPointerTolerance = pointerMoveDelta.x <= 10 && pointerMoveDelta.y <= 10;
     const target = event.target;
-    const shouldClose = !suppressSelection && !!target && !content.contains(target);
+    const targetInsideContent = !!target && content.contains(target);
+    const suppressSelection = withinPointerTolerance && targetInsideContent;
+    const shouldClose = !withinPointerTolerance && !!target && !targetInsideContent;
 
     dotNetRef.invokeMethodAsync("HandleTriggerPointerGuardResultAsync", suppressSelection, shouldClose).catch(() => {});
     document.removeEventListener("pointermove", handlePointerMove);

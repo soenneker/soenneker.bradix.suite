@@ -2,178 +2,53 @@
 
 <PageTitle>Bradix Accordion</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixAccordion</h2>
-        <p>Built on top of `BradixCollapsible` so the root coordinates value state while items keep the trigger/content relationship intact.</p>
-    </header>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixAccordion Class="accordion-demo__root"
+                         Type="single"
+                         DefaultValue="item-1"
+                         Collapsible>
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-1">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Is it accessible?</span>
+                        <span class="accordion-demo__chevron" aria-hidden="true">⌄</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Yes. It adheres to the WAI-ARIA design pattern.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
 
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Single</h3>
-            <BradixAccordion Class="primitive" Type="single" DefaultValue="shipping">
-                <BradixAccordionItem Class="accordion-item" Value="shipping">
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Shipping</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>Single mode keeps one panel open at a time and does not collapse the current item unless `Collapsible` is enabled.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-2">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Is it unstyled?</span>
+                        <span class="accordion-demo__chevron" aria-hidden="true">⌄</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Yes. It's unstyled by default, giving you freedom over the look and feel.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
 
-                <BradixAccordionItem Class="accordion-item" Value="returns">
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Returns</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>Switching to another item closes the previous content and updates each item's `data-state` metadata.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
-
-                <BradixAccordionItem Class="accordion-item" Value="support" Disabled>
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Support (disabled)</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>This panel is intentionally disabled.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
-            </BradixAccordion>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Single collapsible</h3>
-            <p class="state-line">Selected value: <strong>@(_singleValue ?? "(none)")</strong></p>
-            <BradixAccordion Class="primitive"
-                             Type="single"
-                             Collapsible
-                             Value="@_singleValue"
-                             OnValueChange="HandleSingleValueChanged">
-                <BradixAccordionItem Class="accordion-item" Value="account">
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Account</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>In collapsible single mode, clicking the open trigger again clears the current value.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
-
-                <BradixAccordionItem Class="accordion-item" Value="security">
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Security</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>The controlled parent stays synchronized through the `OnValueChange` callback.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
-            </BradixAccordion>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Multiple</h3>
-            <p class="state-line">Open values: <strong>@string.Join(", ", _multipleValues)</strong></p>
-            <BradixAccordion Class="primitive"
-                             Type="multiple"
-                             Values="@_multipleValues"
-                             OnValuesChange="HandleMultipleValuesChanged">
-                <BradixAccordionItem Class="accordion-item" Value="one">
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Item one</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>Multiple mode keeps each item's open state independently.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
-
-                <BradixAccordionItem Class="accordion-item" Value="two">
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Item two</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>Items can be opened and closed without affecting their siblings.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
-
-                <BradixAccordionItem Class="accordion-item" Value="three">
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Item three</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>Keyboard navigation moves among enabled triggers and respects orientation.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
-            </BradixAccordion>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Horizontal orientation</h3>
-            <BradixAccordion Class="primitive primitive--horizontal"
-                             Type="single"
-                             Orientation="horizontal"
-                             DefaultValue="alpha">
-                <BradixAccordionItem Class="accordion-item accordion-item--horizontal" Value="alpha">
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Alpha</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>Horizontal mode changes arrow-key semantics to left and right.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
-
-                <BradixAccordionItem Class="accordion-item accordion-item--horizontal" Value="beta">
-                    <BradixAccordionHeader Class="accordion-header">
-                        <BradixAccordionTrigger Class="primitive__trigger">Beta</BradixAccordionTrigger>
-                    </BradixAccordionHeader>
-                    <BradixAccordionContent Class="primitive__content">
-                        <p>The root emits `data-orientation=&quot;horizontal&quot;` for styling and behavior alignment.</p>
-                    </BradixAccordionContent>
-                </BradixAccordionItem>
-            </BradixAccordion>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Inherited direction</h3>
-            <BradixDirectionProvider Dir="rtl">
-                <BradixAccordion Class="primitive primitive--horizontal"
-                                 Type="single"
-                                 Orientation="horizontal"
-                                 DefaultValue="one">
-                    <BradixAccordionItem Class="accordion-item accordion-item--horizontal" Value="one">
-                        <BradixAccordionHeader Class="accordion-header">
-                            <BradixAccordionTrigger Class="primitive__trigger">One</BradixAccordionTrigger>
-                        </BradixAccordionHeader>
-                        <BradixAccordionContent Class="primitive__content">
-                            <p>Arrow navigation now resolves through the shared Bradix direction context.</p>
-                        </BradixAccordionContent>
-                    </BradixAccordionItem>
-
-                    <BradixAccordionItem Class="accordion-item accordion-item--horizontal" Value="two">
-                        <BradixAccordionHeader Class="accordion-header">
-                            <BradixAccordionTrigger Class="primitive__trigger">Two</BradixAccordionTrigger>
-                        </BradixAccordionHeader>
-                        <BradixAccordionContent Class="primitive__content">
-                            <p>This mirrors Radix's ability to inherit direction from a provider instead of a local prop.</p>
-                        </BradixAccordionContent>
-                    </BradixAccordionItem>
-                </BradixAccordion>
-            </BradixDirectionProvider>
-        </section>
-    </div>
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-3">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Can it be animated?</span>
+                        <span class="accordion-demo__chevron" aria-hidden="true">⌄</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Yes! You can animate the Accordion with CSS or JavaScript.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+        </BradixAccordion>
+    </section>
 </section>
-
-@code {
-    private string? _singleValue = "account";
-    private IReadOnlyCollection<string> _multipleValues = new[] { "one", "three" };
-
-    private Task HandleSingleValueChanged(string? value)
-    {
-        _singleValue = value;
-        return Task.CompletedTask;
-    }
-
-    private Task HandleMultipleValuesChanged(IReadOnlyCollection<string> values)
-    {
-        _multipleValues = values;
-        return Task.CompletedTask;
-    }
-}

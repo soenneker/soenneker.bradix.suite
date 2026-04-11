@@ -2,60 +2,23 @@
 
 <PageTitle>Bradix Toolbar</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixToolbar</h2>
-        <p>Implements Radix-style toolbar roving focus across buttons, links, and toggle items while preserving orientation, direction, and toggle-group semantics.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Horizontal</h3>
-            <BradixToolbar Class="toolbar-root" aria-label="Formatting toolbar">
-                <BradixToolbarButton Class="primitive__trigger">Button</BradixToolbarButton>
-                <BradixToolbarButton Class="primitive__trigger" Disabled>Disabled</BradixToolbarButton>
-                <BradixToolbarSeparator Class="toolbar-separator" />
-                <BradixToolbarLink Class="primitive__trigger" Href="https://www.w3.org/" Target="_blank" Rel="noreferrer">Link</BradixToolbarLink>
-                <BradixToolbarSeparator Class="toolbar-separator" />
-                <BradixToolbarToggleGroup Class="toolbar-toggle-group" Type="single" DefaultValue="center">
-                    <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="left">Left</BradixToolbarToggleItem>
-                    <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="center">Center</BradixToolbarToggleItem>
-                    <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="right">Right</BradixToolbarToggleItem>
-                </BradixToolbarToggleGroup>
-            </BradixToolbar>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Vertical manual controls</h3>
-            <BradixToolbar Class="toolbar-root toolbar-root--vertical"
-                           Orientation="vertical"
-                           aria-label="Vertical toolbar">
-                <BradixToolbarButton Class="primitive__trigger">Undo</BradixToolbarButton>
-                <BradixToolbarButton Class="primitive__trigger">Redo</BradixToolbarButton>
-                <BradixToolbarSeparator Class="toolbar-separator" />
-                <BradixToolbarToggleGroup Class="toolbar-toggle-group toolbar-toggle-group--vertical"
-                                          Type="multiple"
-                                          DefaultValues="@_defaultValues">
-                    <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="bold">Bold</BradixToolbarToggleItem>
-                    <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="italic">Italic</BradixToolbarToggleItem>
-                    <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="underline">Underline</BradixToolbarToggleItem>
-                </BradixToolbarToggleGroup>
-            </BradixToolbar>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Inherited direction</h3>
-            <BradixDirectionProvider Dir="rtl">
-                <BradixToolbar Class="toolbar-root" aria-label="RTL toolbar">
-                    <BradixToolbarButton Class="primitive__trigger">One</BradixToolbarButton>
-                    <BradixToolbarButton Class="primitive__trigger">Two</BradixToolbarButton>
-                    <BradixToolbarButton Class="primitive__trigger">Three</BradixToolbarButton>
-                </BradixToolbar>
-            </BradixDirectionProvider>
-        </section>
-    </div>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixToolbar Class="toolbar-root" aria-label="Formatting options">
+            <BradixToolbarToggleGroup Type="multiple" aria-label="Text formatting">
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="bold">B</BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="italic">I</BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="strikethrough">S</BradixToolbarToggleItem>
+            </BradixToolbarToggleGroup>
+            <BradixToolbarSeparator Class="toolbar-separator" />
+            <BradixToolbarToggleGroup Class="toolbar-toggle-group" Type="single" DefaultValue="center" aria-label="Text alignment">
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="left">L</BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="center">C</BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="right">R</BradixToolbarToggleItem>
+            </BradixToolbarToggleGroup>
+            <BradixToolbarSeparator Class="toolbar-separator" />
+            <BradixToolbarLink Class="toolbar-demo__link" Href="#" Target="_blank">Edited 2 hours ago</BradixToolbarLink>
+            <BradixToolbarButton Class="dialog-demo__button dialog-demo__button--violet toolbar-demo__share">Share</BradixToolbarButton>
+        </BradixToolbar>
+    </section>
 </section>
-
-@code {
-    private readonly string[] _defaultValues = ["bold"];
-}

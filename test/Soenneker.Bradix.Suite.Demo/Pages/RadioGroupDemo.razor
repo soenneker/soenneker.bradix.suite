@@ -2,48 +2,40 @@
 
 <PageTitle>Bradix RadioGroup</PageTitle>
 
-<section class="stack">
-    <DemoHero>
-        <BradixRadioGroup Class="radio-group radio-group--hero"
-                          Name="density"
-                          Value="@_value"
-                          OnValueChange="HandleValueChanged">
-            <BradixLabel Class="radio-row">
-                <BradixRadioGroupItem Class="radio-item" Value="default" InputValue="default">
-                    <BradixRadioGroupIndicator Class="radio-indicator" />
-                </BradixRadioGroupItem>
-                <span>Default</span>
-            </BradixLabel>
-            <BradixLabel Class="radio-row">
-                <BradixRadioGroupItem Class="radio-item" Value="comfortable" InputValue="comfortable">
-                    <BradixRadioGroupIndicator Class="radio-indicator" />
-                </BradixRadioGroupItem>
-                <span>Comfortable</span>
-            </BradixLabel>
-            <BradixLabel Class="radio-row">
-                <BradixRadioGroupItem Class="radio-item" Value="compact" InputValue="compact">
-                    <BradixRadioGroupIndicator Class="radio-indicator" />
-                </BradixRadioGroupItem>
-                <span>Compact</span>
-            </BradixLabel>
-        </BradixRadioGroup>
-    </DemoHero>
-
-    <DemoSection Title="Highlights">
-        <ul class="stack stack--compact demo-list">
-            <li>Arrow keys move focus and selection through the group using roving focus behavior.</li>
-            <li>The group can be controlled or uncontrolled and participates in forms with `name`, `required`, and hidden inputs.</li>
-            <li>Orientation and reading direction align with the same Radix-style contracts used throughout Bradix.</li>
-        </ul>
-    </DemoSection>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <form>
+            <BradixRadioGroup Class="radio-demo__root"
+                              Name="view-density"
+                              DefaultValue="default">
+                <div class="website-demo-row">
+                    <BradixRadioGroupItem Class="radio-demo__item"
+                                          Value="default"
+                                          InputValue="default"
+                                          Id="density-default">
+                        <BradixRadioGroupIndicator Class="radio-demo__indicator" />
+                    </BradixRadioGroupItem>
+                    <BradixLabel Class="radio-demo__label" For="density-default">Default</BradixLabel>
+                </div>
+                <div class="website-demo-row">
+                    <BradixRadioGroupItem Class="radio-demo__item"
+                                          Value="comfortable"
+                                          InputValue="comfortable"
+                                          Id="density-comfortable">
+                        <BradixRadioGroupIndicator Class="radio-demo__indicator" />
+                    </BradixRadioGroupItem>
+                    <BradixLabel Class="radio-demo__label" For="density-comfortable">Comfortable</BradixLabel>
+                </div>
+                <div class="website-demo-row">
+                    <BradixRadioGroupItem Class="radio-demo__item"
+                                          Value="compact"
+                                          InputValue="compact"
+                                          Id="density-compact">
+                        <BradixRadioGroupIndicator Class="radio-demo__indicator" />
+                    </BradixRadioGroupItem>
+                    <BradixLabel Class="radio-demo__label" For="density-compact">Compact</BradixLabel>
+                </div>
+            </BradixRadioGroup>
+        </form>
+    </section>
 </section>
-
-@code {
-    private string? _value = "default";
-
-    private Task HandleValueChanged(string? value)
-    {
-        _value = value;
-        return Task.CompletedTask;
-    }
-}

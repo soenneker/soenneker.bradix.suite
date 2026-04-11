@@ -2,162 +2,39 @@
 
 <PageTitle>Bradix Popover</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixPopover</h2>
-        <p>Anchored layered content built from the Bradix overlay substrates, including custom anchors, portal mounting, focus management, dismissal, and exit preservation.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Default trigger anchor</h3>
-            <p class="state-line"><strong>Quick action:</strong> @_quickAction</p>
-
-            <BradixPopover Open="@_defaultPopoverOpen"
-                           OpenChanged="HandleDefaultPopoverOpenChanged">
-                <BradixPopoverTrigger Class="primitive__trigger primitive__trigger--fit">Open popover</BradixPopoverTrigger>
-                <BradixPopoverPortal>
-                    <BradixPopoverContent Class="popover-surface"
-                                          Side="bottom"
-                                          SideOffset="8"
-                                          CollisionPadding="12">
-                        <div class="stack stack--compact">
-                            <p class="state-line">Default trigger anchoring with portal-mounted content.</p>
-                            <div class="button-row">
-                                <button type="button"
-                                        class="primitive__trigger primitive__trigger--fit"
-                                        @onclick='@(() => ApplyQuickAction("Pinned"))'>
-                                    Pin card
-                                </button>
-                                <button type="button"
-                                        class="primitive__trigger primitive__trigger--fit"
-                                        @onclick='@(() => ApplyQuickAction("Snoozed for later"))'>
-                                    Snooze
-                                </button>
-                                <span @onclick="HandleDefaultPopoverDismissed">
-                                    <BradixPopoverClose Class="primitive__trigger primitive__trigger--fit">Close</BradixPopoverClose>
-                                </span>
-                            </div>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixPopover>
+            <BradixPopoverTrigger Class="popover-demo__icon-button" aria-label="Update dimensions">
+                ≡
+            </BradixPopoverTrigger>
+            <BradixPopoverPortal>
+                <BradixPopoverContent Class="popover-demo__content" SideOffset="5">
+                    <div class="popover-demo__fields">
+                        <p class="popover-demo__text popover-demo__text--heading">Dimensions</p>
+                        <div class="popover-demo__fieldset">
+                            <label class="popover-demo__label" for="popover-width">Width</label>
+                            <input class="popover-demo__input" id="popover-width" value="100%" />
                         </div>
-                    </BradixPopoverContent>
-                </BradixPopoverPortal>
-            </BradixPopover>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Custom anchor</h3>
-            <p class="state-line"><strong>Popover state:</strong> @(_customPopoverOpen ? "Open" : "Closed")</p>
-
-            <BradixPopover Open="@_customPopoverOpen"
-                           OpenChanged="HandleCustomPopoverOpenChanged">
-                <BradixPopoverAnchor>
-                    <div class="button-row">
-                        <span class="state-line">Anchor label</span>
-                        <BradixPopoverTrigger Class="primitive__trigger primitive__trigger--fit">Details</BradixPopoverTrigger>
+                        <div class="popover-demo__fieldset">
+                            <label class="popover-demo__label" for="popover-max-width">Max. width</label>
+                            <input class="popover-demo__input" id="popover-max-width" value="300px" />
+                        </div>
+                        <div class="popover-demo__fieldset">
+                            <label class="popover-demo__label" for="popover-height">Height</label>
+                            <input class="popover-demo__input" id="popover-height" value="25px" />
+                        </div>
+                        <div class="popover-demo__fieldset">
+                            <label class="popover-demo__label" for="popover-max-height">Max. height</label>
+                            <input class="popover-demo__input" id="popover-max-height" value="none" />
+                        </div>
                     </div>
-                </BradixPopoverAnchor>
-
-                <BradixPopoverContent Class="popover-surface popover-surface--animated"
-                                      Side="right"
-                                      Align="start"
-                                      SideOffset="12"
-                                      ArrowPadding="8">
-                    <div class="stack stack--compact">
-                        <p class="state-line">This popover uses a custom anchor instead of auto-wrapping the trigger.</p>
-                        <BradixPopoverArrow Class="popper-arrow">
-                            <span class="popper-arrow-shape"></span>
-                        </BradixPopoverArrow>
-                    </div>
+                    <BradixPopoverClose Class="popover-demo__close" aria-label="Close">×</BradixPopoverClose>
+                    <BradixPopoverArrow>
+                        <span class="tooltip-arrow-shape"></span>
+                    </BradixPopoverArrow>
                 </BradixPopoverContent>
-            </BradixPopover>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Modal popover</h3>
-            <p class="state-line"><strong>Saved note:</strong> @_modalNote</p>
-
-            <BradixPopover Open="@_modalPopoverOpen"
-                           OpenChanged="HandleModalPopoverOpenChanged"
-                           Modal>
-                <BradixPopoverTrigger Class="primitive__trigger primitive__trigger--fit">Open modal popover</BradixPopoverTrigger>
-                <BradixPopoverPortal>
-                    <BradixPopoverContent Class="popover-surface popover-surface--animated"
-                                          Side="bottom"
-                                          Align="center"
-                                          SideOffset="10">
-                        <div class="stack stack--compact">
-                            <p class="state-line">Modal mode traps focus while open and restores focus to the trigger on close.</p>
-                            <input class="text-input" @bind="_modalDraft" placeholder="Describe the environment note" />
-                            <div class="button-row">
-                                <button class="primitive__trigger primitive__trigger--fit"
-                                        type="button"
-                                        @onclick="SaveModalNoteAsync">
-                                    Save note
-                                </button>
-                                <span @onclick="RestoreModalDraft">
-                                    <BradixPopoverClose Class="primitive__trigger primitive__trigger--fit">Dismiss</BradixPopoverClose>
-                                </span>
-                            </div>
-                        </div>
-                    </BradixPopoverContent>
-                </BradixPopoverPortal>
-            </BradixPopover>
-        </section>
-    </div>
+            </BradixPopoverPortal>
+        </BradixPopover>
+    </section>
 </section>
-
-@code {
-    private bool _defaultPopoverOpen;
-    private bool _customPopoverOpen;
-    private bool _modalPopoverOpen;
-    private string _quickAction = "No action taken.";
-    private string _modalNote = "Rollback ready.";
-    private string _modalDraft = "Rollback ready.";
-
-    private Task HandleDefaultPopoverOpenChanged(bool open)
-    {
-        _defaultPopoverOpen = open;
-        return Task.CompletedTask;
-    }
-
-    private Task HandleCustomPopoverOpenChanged(bool open)
-    {
-        _customPopoverOpen = open;
-        return Task.CompletedTask;
-    }
-
-    private Task HandleModalPopoverOpenChanged(bool open)
-    {
-        _modalPopoverOpen = open;
-
-        if (open)
-            RestoreModalDraft();
-
-        return Task.CompletedTask;
-    }
-
-    private Task ApplyQuickAction(string action)
-    {
-        _quickAction = action;
-        _defaultPopoverOpen = false;
-        return Task.CompletedTask;
-    }
-
-    private Task HandleDefaultPopoverDismissed()
-    {
-        _quickAction = "Closed without taking action.";
-        return Task.CompletedTask;
-    }
-
-    private Task SaveModalNoteAsync()
-    {
-        _modalNote = _modalDraft;
-        _modalPopoverOpen = false;
-        return Task.CompletedTask;
-    }
-
-    private void RestoreModalDraft()
-    {
-        _modalDraft = _modalNote;
-    }
-}

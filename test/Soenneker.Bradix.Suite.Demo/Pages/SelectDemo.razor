@@ -2,150 +2,104 @@
 
 <PageTitle>Select Demo</PageTitle>
 
-<section class="stack">
-    <div class="card">
-        <h2>Select</h2>
-        <p>
-            Trigger/listbox composition with default item-aligned positioning, grouped labels,
-            selected-item indicators, focus-scoped content, pointer-open guards, window-dismiss behavior,
-            and a hidden native select for form participation.
-        </p>
-    </div>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixSelect Value="@_selectedValue"
+                      ValueChanged="HandleSelectedValueChanged">
+            <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit select-demo__trigger">
+                <BradixSelectValue Placeholder="@_placeholder" />
+                <BradixSelectIcon />
+            </BradixSelectTrigger>
 
-    <div class="grid">
-        <article class="card stack">
-            <h3>Uncontrolled select</h3>
-
-            <BradixSelect Name="fruit"
-                          DefaultValue="orange">
-                <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit">
-                    <BradixSelectValue Placeholder="@_placeholder" />
-                    <BradixSelectIcon />
-                </BradixSelectTrigger>
-
-                <BradixSelectPortal>
-                    <BradixSelectContent Class="select-surface stack stack--compact"
-                                         SideOffset="6">
-                        <BradixSelectViewport Class="stack">
-                            <BradixSelectGroup>
-                                <BradixSelectLabel>Citrus</BradixSelectLabel>
-                                <BradixSelectItem Value="orange"
-                                                  TextValue="Orange">
-                                    <BradixSelectItemText>Orange</BradixSelectItemText>
-                                    <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
-                                </BradixSelectItem>
-                                <BradixSelectItem Value="lime"
-                                                  TextValue="Lime">
-                                    <BradixSelectItemText>Lime</BradixSelectItemText>
-                                    <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
-                                </BradixSelectItem>
-                            </BradixSelectGroup>
-
-                            <BradixSelectSeparator />
-
-                            <BradixSelectGroup>
-                                <BradixSelectLabel>Berry</BradixSelectLabel>
-                                <BradixSelectItem Value="strawberry"
-                                                  TextValue="Strawberry">
-                                    <BradixSelectItemText>Strawberry</BradixSelectItemText>
-                                    <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
-                                </BradixSelectItem>
-                                <BradixSelectItem Value="blueberry"
-                                                  TextValue="Blueberry (disabled)"
-                                                  Disabled="true">
-                                    <BradixSelectItemText>Blueberry (disabled)</BradixSelectItemText>
-                                </BradixSelectItem>
-                            </BradixSelectGroup>
-                        </BradixSelectViewport>
-                    </BradixSelectContent>
-                </BradixSelectPortal>
-            </BradixSelect>
-        </article>
-
-        <article class="card stack">
-            <h3>Overflow with scroll buttons</h3>
-
-            <BradixSelect DefaultValue="option-8">
-                <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit">
-                    <BradixSelectValue Placeholder="@_placeholder" />
-                    <BradixSelectIcon />
-                </BradixSelectTrigger>
-
-                <BradixSelectPortal>
-                    <BradixSelectContent Class="select-surface stack stack--compact"
-                                         Style="max-height:12rem;">
-                        <BradixSelectScrollUpButton>Scroll up</BradixSelectScrollUpButton>
-                        <BradixSelectViewport Class="stack">
-                            @foreach (string option in _overflowOptions)
-                            {
-                                <BradixSelectItem Value="@option"
-                                                  TextValue="@OptionLabel(option)">
-                                    <BradixSelectItemText>@OptionLabel(option)</BradixSelectItemText>
-                                    <BradixSelectItemIndicator>[x]</BradixSelectItemIndicator>
-                                </BradixSelectItem>
-                            }
-                        </BradixSelectViewport>
-                        <BradixSelectScrollDownButton>Scroll down</BradixSelectScrollDownButton>
-                    </BradixSelectContent>
-                </BradixSelectPortal>
-            </BradixSelect>
-        </article>
-
-        <article class="card stack">
-            <h3>Controlled value with popper positioning</h3>
-
-            <BradixSelect Value="@_priority"
-                          ValueChanged="HandlePriorityChanged">
-                <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit">
-                    <BradixSelectValue Placeholder="@_placeholder" />
-                    <BradixSelectIcon />
-                </BradixSelectTrigger>
-
-                <BradixSelectPortal>
-                    <BradixSelectContent Class="select-surface stack stack--compact"
-                                         Position="popper"
-                                         SideOffset="6"
-                                         Align="start">
-                        <BradixSelectViewport Class="stack">
-                            <BradixSelectItem Value="low"
-                                              TextValue="Low">
-                                <BradixSelectItemText>Low</BradixSelectItemText>
-                                <BradixSelectItemIndicator>(o)</BradixSelectItemIndicator>
+            <BradixSelectPortal>
+                <BradixSelectContent Class="select-surface stack stack--compact"
+                                     SideOffset="6">
+                    <BradixSelectViewport Class="stack">
+                        <BradixSelectGroup>
+                            <BradixSelectLabel>Fruits</BradixSelectLabel>
+                            <BradixSelectItem Value="apple" TextValue="Apple">
+                                <BradixSelectItemText>Apple</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
                             </BradixSelectItem>
-                            <BradixSelectItem Value="medium"
-                                              TextValue="Medium">
-                                <BradixSelectItemText>Medium</BradixSelectItemText>
-                                <BradixSelectItemIndicator>(o)</BradixSelectItemIndicator>
+                            <BradixSelectItem Value="banana" TextValue="Banana">
+                                <BradixSelectItemText>Banana</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
                             </BradixSelectItem>
-                            <BradixSelectItem Value="high"
-                                              TextValue="High">
-                                <BradixSelectItemText>High</BradixSelectItemText>
-                                <BradixSelectItemIndicator>(o)</BradixSelectItemIndicator>
+                            <BradixSelectItem Value="blueberry" TextValue="Blueberry">
+                                <BradixSelectItemText>Blueberry</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
                             </BradixSelectItem>
-                        </BradixSelectViewport>
-                    </BradixSelectContent>
-                </BradixSelectPortal>
-            </BradixSelect>
+                            <BradixSelectItem Value="grapes" TextValue="Grapes">
+                                <BradixSelectItemText>Grapes</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="pineapple" TextValue="Pineapple">
+                                <BradixSelectItemText>Pineapple</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                        </BradixSelectGroup>
 
-            <p><strong>Current priority:</strong> @_priority</p>
-        </article>
-    </div>
+                        <BradixSelectSeparator />
+
+                        <BradixSelectGroup>
+                            <BradixSelectLabel>Vegetables</BradixSelectLabel>
+                            <BradixSelectItem Value="aubergine" TextValue="Aubergine">
+                                <BradixSelectItemText>Aubergine</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="broccoli" TextValue="Broccoli">
+                                <BradixSelectItemText>Broccoli</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="carrot" TextValue="Carrot" Disabled="true">
+                                <BradixSelectItemText>Carrot</BradixSelectItemText>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="courgette" TextValue="Courgette">
+                                <BradixSelectItemText>Courgette</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="leek" TextValue="Leek">
+                                <BradixSelectItemText>Leek</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                        </BradixSelectGroup>
+
+                        <BradixSelectSeparator />
+
+                        <BradixSelectGroup>
+                            <BradixSelectLabel>Meat</BradixSelectLabel>
+                            <BradixSelectItem Value="beef" TextValue="Beef">
+                                <BradixSelectItemText>Beef</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="chicken" TextValue="Chicken">
+                                <BradixSelectItemText>Chicken</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="lamb" TextValue="Lamb">
+                                <BradixSelectItemText>Lamb</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                            <BradixSelectItem Value="pork" TextValue="Pork">
+                                <BradixSelectItemText>Pork</BradixSelectItemText>
+                                <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                            </BradixSelectItem>
+                        </BradixSelectGroup>
+                    </BradixSelectViewport>
+                </BradixSelectContent>
+            </BradixSelectPortal>
+        </BradixSelect>
+    </section>
 </section>
 
 @code {
-    private string _priority = "medium";
-    private readonly string[] _overflowOptions = Enumerable.Range(1, 16).Select(index => $"option-{index}").ToArray();
+    private string _selectedValue = string.Empty;
 
-    private RenderFragment _placeholder => builder => builder.AddContent(0, "Select an option");
+    private RenderFragment _placeholder => builder => builder.AddContent(0, "Select a fruit…");
 
-    private Task HandlePriorityChanged(string? value)
+    private Task HandleSelectedValueChanged(string? value)
     {
-        _priority = value ?? _priority;
+        _selectedValue = value ?? _selectedValue;
         return Task.CompletedTask;
-    }
-
-    private static string OptionLabel(string option)
-    {
-        return $"Option {option.Split('-').Last()}";
     }
 }

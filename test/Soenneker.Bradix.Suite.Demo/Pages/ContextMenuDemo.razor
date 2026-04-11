@@ -2,115 +2,69 @@
 
 <PageTitle>ContextMenu Demo</PageTitle>
 
-<section class="stack">
-    <div class="card">
-        <h2>ContextMenu</h2>
-        <p>
-            Pointer-anchored menu wrapper family built on the shared menu substrate, opening from
-            right-click and touch/pen long-press against a virtual popper anchor.
-        </p>
-    </div>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixContextMenu>
+            <BradixContextMenuTrigger>
+                <span class="context-target">Right-click here.</span>
+            </BradixContextMenuTrigger>
 
-    <div class="grid">
-        <article class="card stack">
-            <h3>Modal context menu</h3>
+            <BradixContextMenuPortal>
+                <BradixContextMenuContent Class="menu-surface stack stack--compact" SideOffset="5" Align="end">
+                    <BradixContextMenuItem TextValue="Back">Back</BradixContextMenuItem>
+                    <BradixContextMenuItem TextValue="Forward" Disabled>Forward</BradixContextMenuItem>
+                    <BradixContextMenuItem TextValue="Reload">Reload</BradixContextMenuItem>
+                    <BradixContextMenuSub>
+                        <BradixContextMenuSubTrigger TextValue="More Tools">More Tools</BradixContextMenuSubTrigger>
+                        <BradixContextMenuPortal>
+                            <BradixContextMenuSubContent Class="menu-surface stack stack--compact" SideOffset="2">
+                                <BradixContextMenuItem TextValue="Save Page As…">Save Page As…</BradixContextMenuItem>
+                                <BradixContextMenuItem TextValue="Create Shortcut…">Create Shortcut…</BradixContextMenuItem>
+                                <BradixContextMenuItem TextValue="Name Window…">Name Window…</BradixContextMenuItem>
+                                <BradixContextMenuSeparator />
+                                <BradixContextMenuItem TextValue="Developer Tools">Developer Tools</BradixContextMenuItem>
+                            </BradixContextMenuSubContent>
+                        </BradixContextMenuPortal>
+                    </BradixContextMenuSub>
 
-            <BradixContextMenu OnOpenChange="HandleOpenChanged">
-                <BradixContextMenuTrigger>
-                    <span class="context-target">
-                        Right-click or long-press this region
-                    </span>
-                </BradixContextMenuTrigger>
+                    <BradixContextMenuSeparator />
 
-                <BradixContextMenuPortal>
-                    <BradixContextMenuContent Class="menu-surface stack stack--compact">
-                        <BradixContextMenuLabel>File</BradixContextMenuLabel>
-                        <BradixContextMenuItem TextValue="Open" OnSelect='@(() => SetSelection("Open"))'>Open</BradixContextMenuItem>
-                        <BradixContextMenuItem TextValue="Rename" OnSelect='@(() => SetSelection("Rename"))'>Rename</BradixContextMenuItem>
-                        <BradixContextMenuSub>
-                            <BradixContextMenuSubTrigger TextValue="Share">Share</BradixContextMenuSubTrigger>
-                            <BradixContextMenuPortal>
-                                <BradixContextMenuSubContent Class="menu-surface stack stack--compact" SideOffset="6">
-                                    <BradixContextMenuItem TextValue="Copy link" OnSelect='@(() => SetSelection("Copy link"))'>Copy link</BradixContextMenuItem>
-                                    <BradixContextMenuItem TextValue="Email" OnSelect='@(() => SetSelection("Email"))'>Email</BradixContextMenuItem>
-                                </BradixContextMenuSubContent>
-                            </BradixContextMenuPortal>
-                        </BradixContextMenuSub>
-                        <BradixContextMenuSeparator />
-                        <BradixContextMenuCheckboxItem Checked="@_bookmarks"
-                                                       CheckedChanged="HandleBookmarksChanged"
-                                                       CloseOnSelect="false">
-                            <span>Show bookmarks</span>
-                            <BradixContextMenuItemIndicator>
-                                <span>[x]</span>
-                            </BradixContextMenuItemIndicator>
-                        </BradixContextMenuCheckboxItem>
-                        <BradixContextMenuRadioGroup Value="@_sort" ValueChanged="HandleSortChanged">
-                            <BradixContextMenuRadioItem Value="name" CloseOnSelect="false">
-                                <span>Name</span>
-                                <BradixContextMenuItemIndicator>
-                                    <span>(o)</span>
-                                </BradixContextMenuItemIndicator>
-                            </BradixContextMenuRadioItem>
-                            <BradixContextMenuRadioItem Value="date" CloseOnSelect="false">
-                                <span>Date modified</span>
-                                <BradixContextMenuItemIndicator>
-                                    <span>(o)</span>
-                                </BradixContextMenuItemIndicator>
-                            </BradixContextMenuRadioItem>
-                        </BradixContextMenuRadioGroup>
-                        <BradixContextMenuArrow>
-                            <span class="tooltip-arrow-shape"></span>
-                        </BradixContextMenuArrow>
-                    </BradixContextMenuContent>
-                </BradixContextMenuPortal>
-            </BradixContextMenu>
+                    <BradixContextMenuCheckboxItem Checked="@_bookmarks"
+                                                   CheckedChanged="HandleBookmarksChanged"
+                                                   CloseOnSelect="false">
+                        <span>Show Bookmarks</span>
+                        <BradixContextMenuItemIndicator>✓</BradixContextMenuItemIndicator>
+                    </BradixContextMenuCheckboxItem>
+                    <BradixContextMenuCheckboxItem Checked="@_urls"
+                                                   CheckedChanged="HandleUrlsChanged"
+                                                   CloseOnSelect="false">
+                        <span>Show Full URLs</span>
+                        <BradixContextMenuItemIndicator>✓</BradixContextMenuItemIndicator>
+                    </BradixContextMenuCheckboxItem>
 
-            <p><strong>Open:</strong> @_open</p>
-            <p><strong>Last selection:</strong> @(_selection ?? "(none)")</p>
-            <p><strong>Bookmarks:</strong> @(_bookmarks == BradixCheckboxCheckedState.Checked ? "on" : "off")</p>
-            <p><strong>Sort:</strong> @_sort</p>
-        </article>
+                    <BradixContextMenuSeparator />
 
-        <article class="card stack">
-            <h3>Non-modal context menu</h3>
-
-            <BradixContextMenu Modal="false">
-                <BradixContextMenuTrigger>
-                    <span class="context-target">
-                        Right-click for account actions
-                    </span>
-                </BradixContextMenuTrigger>
-
-                <BradixContextMenuPortal>
-                    <BradixContextMenuContent Class="menu-surface stack stack--compact">
-                        <BradixContextMenuItem TextValue="Profile" OnSelect='@(() => SetSelection("Profile"))'>Profile</BradixContextMenuItem>
-                        <BradixContextMenuItem TextValue="Billing" OnSelect='@(() => SetSelection("Billing"))'>Billing</BradixContextMenuItem>
-                        <BradixContextMenuItem TextValue="Sign out" OnSelect='@(() => SetSelection("Sign out"))'>Sign out</BradixContextMenuItem>
-                    </BradixContextMenuContent>
-                </BradixContextMenuPortal>
-            </BradixContextMenu>
-        </article>
-    </div>
+                    <BradixContextMenuLabel>People</BradixContextMenuLabel>
+                    <BradixContextMenuRadioGroup Value="@_person" ValueChanged="HandlePersonChanged">
+                        <BradixContextMenuRadioItem Value="pedro" CloseOnSelect="false">
+                            <span>Pedro Duarte</span>
+                            <BradixContextMenuItemIndicator>•</BradixContextMenuItemIndicator>
+                        </BradixContextMenuRadioItem>
+                        <BradixContextMenuRadioItem Value="colm" CloseOnSelect="false">
+                            <span>Colm Tuite</span>
+                            <BradixContextMenuItemIndicator>•</BradixContextMenuItemIndicator>
+                        </BradixContextMenuRadioItem>
+                    </BradixContextMenuRadioGroup>
+                </BradixContextMenuContent>
+            </BradixContextMenuPortal>
+        </BradixContextMenu>
+    </section>
 </section>
 
 @code {
-    private bool _open;
-    private string? _selection;
     private BradixCheckboxCheckedState _bookmarks = BradixCheckboxCheckedState.Checked;
-    private string _sort = "name";
-
-    private Task HandleOpenChanged(bool open)
-    {
-        _open = open;
-        return Task.CompletedTask;
-    }
-
-    private Task SetSelection(string value)
-    {
-        _selection = value;
-        return Task.CompletedTask;
-    }
+    private BradixCheckboxCheckedState _urls = BradixCheckboxCheckedState.Unchecked;
+    private string _person = "pedro";
 
     private Task HandleBookmarksChanged(BradixCheckboxCheckedState state)
     {
@@ -118,9 +72,15 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleSortChanged(string? value)
+    private Task HandleUrlsChanged(BradixCheckboxCheckedState state)
     {
-        _sort = value ?? _sort;
+        _urls = state;
+        return Task.CompletedTask;
+    }
+
+    private Task HandlePersonChanged(string? value)
+    {
+        _person = value ?? _person;
         return Task.CompletedTask;
     }
 }

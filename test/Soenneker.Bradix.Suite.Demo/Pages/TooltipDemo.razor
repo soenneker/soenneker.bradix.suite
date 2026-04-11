@@ -2,88 +2,20 @@
 
 <PageTitle>Bradix Tooltip</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixTooltip</h2>
-        <p>Delayed tooltip behavior for hover and focus interactions, with shared provider timing, popper positioning, portal rendering, and optional hoverable content.</p>
-    </header>
-
-    <BradixTooltipProvider DelayDuration="400" SkipDelayDuration="300">
-        <div class="demo-grid">
-            <section class="card stack stack--compact">
-                <h3>Provider-controlled delay</h3>
-                <p class="state-line"><strong>First trigger:</strong> @(_firstTooltipOpen ? "Open" : "Closed")</p>
-                <p class="state-line"><strong>Second trigger:</strong> @(_secondTooltipOpen ? "Open" : "Closed")</p>
-
-                <div class="button-row">
-                    <BradixTooltip Open="@_firstTooltipOpen"
-                                   OpenChanged="HandleFirstTooltipOpenChanged">
-                        <BradixTooltipTrigger Class="primitive__trigger primitive__trigger--fit">First trigger</BradixTooltipTrigger>
-                        <BradixTooltipPortal>
-                            <BradixTooltipContent Class="tooltip-surface tooltip-surface--animated" Side="top" SideOffset="8">
-                                <span>Opens with provider delay.</span>
-                                <BradixTooltipArrow Class="popper-arrow">
-                                    <span class="popper-arrow-shape"></span>
-                                </BradixTooltipArrow>
-                            </BradixTooltipContent>
-                        </BradixTooltipPortal>
-                    </BradixTooltip>
-
-                    <BradixTooltip Open="@_secondTooltipOpen"
-                                   OpenChanged="HandleSecondTooltipOpenChanged">
-                        <BradixTooltipTrigger Class="primitive__trigger primitive__trigger--fit">Second trigger</BradixTooltipTrigger>
-                        <BradixTooltipPortal>
-                            <BradixTooltipContent Class="tooltip-surface tooltip-surface--animated" Side="top" SideOffset="8">
-                                <span>Reuses provider skip-delay behavior.</span>
-                            </BradixTooltipContent>
-                        </BradixTooltipPortal>
-                    </BradixTooltip>
-                </div>
-            </section>
-
-            <section class="card stack stack--compact">
-                <h3>Disable hoverable content</h3>
-                <p class="state-line"><strong>Tooltip:</strong> @(_nonHoverableTooltipOpen ? "Open" : "Closed")</p>
-
-                <BradixTooltip Open="@_nonHoverableTooltipOpen"
-                               OpenChanged="HandleNonHoverableTooltipOpenChanged"
-                               DisableHoverableContent="true">
-                    <BradixTooltipTrigger Class="primitive__trigger primitive__trigger--fit">Non-hoverable</BradixTooltipTrigger>
-                    <BradixTooltipPortal>
-                        <BradixTooltipContent Class="tooltip-surface tooltip-surface--animated"
-                                              Side="right"
-                                              Align="start"
-                                              SideOffset="10"
-                                              AriaLabel="Tooltip description">
-                            <span>Closes as soon as the pointer leaves the trigger.</span>
-                        </BradixTooltipContent>
-                    </BradixTooltipPortal>
-                </BradixTooltip>
-            </section>
-        </div>
-    </BradixTooltipProvider>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixTooltipProvider>
+            <BradixTooltip>
+                <BradixTooltipTrigger Class="tooltip-demo__button">+</BradixTooltipTrigger>
+                <BradixTooltipPortal>
+                    <BradixTooltipContent Class="tooltip-demo__content" SideOffset="5">
+                        Add to library
+                        <BradixTooltipArrow>
+                            <span class="tooltip-arrow-shape"></span>
+                        </BradixTooltipArrow>
+                    </BradixTooltipContent>
+                </BradixTooltipPortal>
+            </BradixTooltip>
+        </BradixTooltipProvider>
+    </section>
 </section>
-
-@code {
-    private bool _firstTooltipOpen;
-    private bool _secondTooltipOpen;
-    private bool _nonHoverableTooltipOpen;
-
-    private Task HandleFirstTooltipOpenChanged(bool open)
-    {
-        _firstTooltipOpen = open;
-        return Task.CompletedTask;
-    }
-
-    private Task HandleSecondTooltipOpenChanged(bool open)
-    {
-        _secondTooltipOpen = open;
-        return Task.CompletedTask;
-    }
-
-    private Task HandleNonHoverableTooltipOpenChanged(bool open)
-    {
-        _nonHoverableTooltipOpen = open;
-        return Task.CompletedTask;
-    }
-}

@@ -2,53 +2,26 @@
 
 <PageTitle>Avatar Demo</PageTitle>
 
-<section class="stack">
-    <div class="card">
-        <h2>Avatar</h2>
-        <p>
-            Image/fallback avatar composition with preload-driven loading status, delayed fallback support,
-            and correct fallback persistence when the image is missing or errors.
-        </p>
-    </div>
-
-    <div class="grid">
-        <article class="card stack">
-            <h3>Loaded image</h3>
-
-            <BradixAvatar Class="avatar-root">
-                <BradixAvatarImage Src="https://avatars.githubusercontent.com/u/1?v=4"
-                                   Alt="GitHub avatar"
-                                   Class="avatar-image" />
-                <BradixAvatarFallback Class="avatar-fallback">GH</BradixAvatarFallback>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <div class="website-demo-row">
+            <BradixAvatar Class="avatar-demo__root">
+                <BradixAvatarImage Class="avatar-demo__image"
+                                   Src="https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?&w=128&h=128&dpr=2&q=80"
+                                   Alt="Colm Tuite" />
+                <BradixAvatarFallback Class="avatar-demo__fallback" DelayMs="600">CT</BradixAvatarFallback>
             </BradixAvatar>
-        </article>
 
-        <article class="card stack">
-            <h3>Missing image fallback</h3>
-
-            <BradixAvatar Class="avatar-root">
-                <BradixAvatarImage Src=""
-                                   Alt="Missing avatar"
-                                   Class="avatar-image" />
-                <BradixAvatarFallback Class="avatar-fallback">NA</BradixAvatarFallback>
+            <BradixAvatar Class="avatar-demo__root">
+                <BradixAvatarImage Class="avatar-demo__image"
+                                   Src="https://images.unsplash.com/photo-1511485977113-f34c92461ad9?ixlib=rb-1.2.1&w=128&h=128&dpr=2&q=80"
+                                   Alt="Pedro Duarte" />
+                <BradixAvatarFallback Class="avatar-demo__fallback" DelayMs="600">JD</BradixAvatarFallback>
             </BradixAvatar>
-        </article>
 
-        <article class="card stack">
-            <h3>Delayed fallback</h3>
-
-            <BradixAvatar Class="avatar-root">
-                <BradixAvatarImage Src="@_brokenImage"
-                                   Alt="Broken avatar"
-                                   Class="avatar-image" />
-                <BradixAvatarFallback DelayMs="500"
-                                      Class="avatar-fallback">DL</BradixAvatarFallback>
+            <BradixAvatar Class="avatar-demo__root">
+                <BradixAvatarFallback Class="avatar-demo__fallback">PD</BradixAvatarFallback>
             </BradixAvatar>
-            <p>The fallback waits briefly before rendering, matching Radix’s delayed fallback behavior.</p>
-        </article>
-    </div>
+        </div>
+    </section>
 </section>
-
-@code {
-    private readonly string _brokenImage = "https://example.invalid/avatar.png";
-}

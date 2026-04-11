@@ -2,71 +2,15 @@
 
 <PageTitle>Bradix Switch</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixSwitch</h2>
-        <p>Implements the Radix switch root/thumb split with boolean state, form-friendly hidden input syncing, and reset-aware uncontrolled behavior.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Uncontrolled</h3>
-            <BradixLabel Class="switch-row">
-                <BradixSwitch Class="switch-root" DefaultChecked>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <form>
+            <div class="website-demo-row">
+                <BradixLabel Class="switch-demo__label" For="airplane-mode">Airplane mode</BradixLabel>
+                <BradixSwitch Class="switch-root" Id="airplane-mode">
                     <BradixSwitchThumb Class="switch-thumb" />
                 </BradixSwitch>
-                <span>Airplane mode</span>
-            </BradixLabel>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Controlled</h3>
-            <p class="state-line">Checked: <strong>@_checked</strong></p>
-            <BradixLabel Class="switch-row">
-                <BradixSwitch Class="switch-root"
-                              Checked="@_checked"
-                              OnCheckedChange="HandleCheckedChanged">
-                    <BradixSwitchThumb Class="switch-thumb" />
-                </BradixSwitch>
-                <span>Notifications</span>
-            </BradixLabel>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Within form</h3>
-            <EditForm FormName="switch-demo" Model="@_formModel">
-                <div class="stack stack--compact">
-                    <BradixLabel Class="switch-row">
-                        <BradixSwitch Class="switch-root" Name="marketing" Required DefaultChecked>
-                            <BradixSwitchThumb Class="switch-thumb" />
-                        </BradixSwitch>
-                        <span>Marketing emails</span>
-                    </BradixLabel>
-
-                    <button class="primitive__trigger" type="reset">Reset form</button>
-                </div>
-            </EditForm>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Disabled</h3>
-            <BradixLabel Class="switch-row">
-                <BradixSwitch Class="switch-root" Disabled>
-                    <BradixSwitchThumb Class="switch-thumb" />
-                </BradixSwitch>
-                <span>Unavailable toggle</span>
-            </BradixLabel>
-        </section>
-    </div>
+            </div>
+        </form>
+    </section>
 </section>
-
-@code {
-    private bool _checked = true;
-    private readonly object _formModel = new();
-
-    private Task HandleCheckedChanged(bool value)
-    {
-        _checked = value;
-        return Task.CompletedTask;
-    }
-}

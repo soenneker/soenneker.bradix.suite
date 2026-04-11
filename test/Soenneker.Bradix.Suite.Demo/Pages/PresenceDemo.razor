@@ -24,24 +24,11 @@
             </BradixPresence>
         </section>
 
-        <section class="card stack stack--compact">
-            <h3>Alternate tag</h3>
-            <BradixPresence Present="_articlePresent"
-                            Tag="article"
-                            Class="@(_articlePresent ? "presence-surface presence-surface--open" : "presence-surface presence-surface--closed")">
-                <p class="state-line">Presence can render a semantic element instead of forcing a wrapper tag.</p>
-            </BradixPresence>
-
-            <button class="primitive__trigger" type="button" @onclick="@(() => _articlePresent = !_articlePresent)">
-                Toggle article
-            </button>
-        </section>
     </div>
 </section>
 
 @code {
     private bool _present = true;
-    private bool _articlePresent = true;
     private int _exitCompleteCount;
 
     private void TogglePresent()

@@ -2,72 +2,25 @@
 
 <PageTitle>Bradix Slider</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixSlider</h2>
-        <p>Implements Radix-style slider composition with root, track, range, and thumb parts, including multi-thumb value management, pointer dragging, keyboard stepping, and direction-aware geometry.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Single value</h3>
-            <p class="state-line">Value: <strong>@_singleValue[0]</strong></p>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <form>
             <BradixSlider Class="slider-root"
                           Values="@_singleValue"
+                          Max="100"
+                          Step="1"
                           OnValuesChange="HandleSingleChange">
                 <BradixSliderTrack Class="slider-track">
                     <BradixSliderRange Class="slider-range" />
                 </BradixSliderTrack>
-                <BradixSliderThumb Class="slider-thumb" />
+                <BradixSliderThumb Class="slider-thumb" AriaLabel="Volume" />
             </BradixSlider>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Two thumbs</h3>
-            <p class="state-line">Values: <strong>@string.Join(", ", _rangeValues)</strong></p>
-            <BradixSlider Class="slider-root"
-                          DefaultValues="@_rangeValues"
-                          MinStepsBetweenThumbs="5">
-                <BradixSliderTrack Class="slider-track">
-                    <BradixSliderRange Class="slider-range" />
-                </BradixSliderTrack>
-                <BradixSliderThumb Class="slider-thumb" />
-                <BradixSliderThumb Class="slider-thumb" />
-            </BradixSlider>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Vertical</h3>
-            <div class="slider-vertical-wrap">
-                <BradixSlider Class="slider-root slider-root--vertical"
-                              Orientation="vertical"
-                              DefaultValues="@([20d, 60d])">
-                    <BradixSliderTrack Class="slider-track slider-track--vertical">
-                        <BradixSliderRange Class="slider-range" />
-                    </BradixSliderTrack>
-                    <BradixSliderThumb Class="slider-thumb" />
-                    <BradixSliderThumb Class="slider-thumb" />
-                </BradixSlider>
-            </div>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Inherited direction</h3>
-            <BradixDirectionProvider Dir="rtl">
-                <BradixSlider Class="slider-root" DefaultValues="@([30d])">
-                    <BradixSliderTrack Class="slider-track">
-                        <BradixSliderRange Class="slider-range" />
-                    </BradixSliderTrack>
-                    <BradixSliderThumb Class="slider-thumb" />
-                </BradixSlider>
-            </BradixDirectionProvider>
-        </section>
-    </div>
+        </form>
+    </section>
 </section>
 
 @code {
-    private IReadOnlyList<double> _singleValue = [20];
-    private readonly double[] _rangeValues = [20, 70];
+    private IReadOnlyList<double> _singleValue = [50];
 
     private Task HandleSingleChange(IReadOnlyList<double> values)
     {

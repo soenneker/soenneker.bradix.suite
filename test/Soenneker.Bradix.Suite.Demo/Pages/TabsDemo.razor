@@ -2,34 +2,45 @@
 
 <PageTitle>Bradix Tabs</PageTitle>
 
-<section class="stack">
-    <DemoHero>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
         <BradixTabs Class="tabs-root tabs-root--hero" DefaultValue="account">
-            <BradixTabsList Class="tabs-list" aria-label="Account tabs">
+            <BradixTabsList Class="tabs-list" aria-label="Manage your account">
                 <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="account">Account</BradixTabsTrigger>
                 <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="password">Password</BradixTabsTrigger>
-                <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="team">Team</BradixTabsTrigger>
             </BradixTabsList>
             <BradixTabsContent Class="tabs-content" Value="account">
-                <p>Manage your account settings and connected profile information.</p>
+                <p class="popover-demo__text">Make changes to your account here. Click save when you're done.</p>
+                <div class="dialog-demo__fieldset">
+                    <label class="dialog-demo__label" for="tabs-name">Name</label>
+                    <input class="dialog-demo__input" id="tabs-name" value="Pedro Duarte" />
+                </div>
+                <div class="dialog-demo__fieldset">
+                    <label class="dialog-demo__label" for="tabs-username">Username</label>
+                    <input class="dialog-demo__input" id="tabs-username" value="@@peduarte" />
+                </div>
+                <div class="dialog-demo__save-row">
+                    <button class="dialog-demo__button dialog-demo__button--green" type="button">Save changes</button>
+                </div>
             </BradixTabsContent>
             <BradixTabsContent Class="tabs-content" Value="password">
-                <p>Update credentials, review sessions, and confirm your recovery settings.</p>
-            </BradixTabsContent>
-            <BradixTabsContent Class="tabs-content" Value="team">
-                <p>Invite collaborators and configure access for your shared workspace.</p>
+                <p class="popover-demo__text">Change your password here. After saving, you'll be logged out.</p>
+                <div class="dialog-demo__fieldset">
+                    <label class="dialog-demo__label" for="tabs-current-password">Current password</label>
+                    <input class="dialog-demo__input" id="tabs-current-password" type="password" />
+                </div>
+                <div class="dialog-demo__fieldset">
+                    <label class="dialog-demo__label" for="tabs-new-password">New password</label>
+                    <input class="dialog-demo__input" id="tabs-new-password" type="password" />
+                </div>
+                <div class="dialog-demo__fieldset">
+                    <label class="dialog-demo__label" for="tabs-confirm-password">Confirm password</label>
+                    <input class="dialog-demo__input" id="tabs-confirm-password" type="password" />
+                </div>
+                <div class="dialog-demo__save-row">
+                    <button class="dialog-demo__button dialog-demo__button--green" type="button">Change password</button>
+                </div>
             </BradixTabsContent>
         </BradixTabs>
-    </DemoHero>
-
-    <DemoSection Title="Highlights">
-        <ul class="stack stack--compact demo-list">
-            <li>Focus roves between triggers and the selected panel stays connected through managed ARIA ids.</li>
-            <li>Supports automatic or manual activation as well as horizontal and vertical orientation.</li>
-            <li>Direction inheritance works the same way as other Bradix composites that depend on roving focus.</li>
-        </ul>
-    </DemoSection>
+    </section>
 </section>
-
-@code {
-}

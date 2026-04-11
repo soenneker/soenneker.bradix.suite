@@ -2,48 +2,10 @@
 
 <PageTitle>Bradix Toggle</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixToggle</h2>
-        <p>Matches Radix toggle button semantics with pressed state, `aria-pressed`, and `data-state` metadata.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Uncontrolled</h3>
-            <BradixToggle Class="primitive__trigger">Pin</BradixToggle>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Controlled</h3>
-            <p class="state-line">Pressed: <strong>@_pressed</strong></p>
-            <BradixToggle Class="primitive__trigger" Pressed="@_pressed" OnPressedChange="HandlePressedChanged">
-                @(_pressed ? "On" : "Off")
-            </BradixToggle>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Default pressed</h3>
-            <BradixToggle Class="primitive__trigger" DefaultPressed>
-                Default on
-            </BradixToggle>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Disabled</h3>
-            <BradixToggle Class="primitive__trigger" Disabled>
-                Disabled toggle
-            </BradixToggle>
-        </section>
-    </div>
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixToggle Class="toggle-demo__button" aria-label="Toggle italic">
+            <span class="toggle-demo__icon" aria-hidden="true">I</span>
+        </BradixToggle>
+    </section>
 </section>
-
-@code {
-    private bool _pressed = true;
-
-    private Task HandlePressedChanged(bool pressed)
-    {
-        _pressed = pressed;
-        return Task.CompletedTask;
-    }
-}

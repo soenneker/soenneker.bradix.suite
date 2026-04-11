@@ -2,45 +2,21 @@
 
 <PageTitle>Bradix Checkbox</PageTitle>
 
-<section class="stack">
-    <DemoHero>
-        <div class="stack stack--compact">
-            <BradixLabel Class="checkbox-row checkbox-row--hero">
-                <BradixCheckbox Class="checkbox-root"
-                                Checked="@_controlledState"
-                                OnCheckedChange="HandleCheckedChange">
-                    <BradixCheckboxIndicator Class="checkbox-indicator">
-                        @if (_controlledState == BradixCheckboxCheckedState.Indeterminate)
-                        {
-                            <span>-</span>
-                        }
-                        else
-                        {
-                            <span>✓</span>
-                        }
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <form>
+            <div class="website-demo-row">
+                <BradixCheckbox Class="checkbox-demo__root"
+                                DefaultChecked="@BradixCheckboxCheckedState.Checked"
+                                Id="terms-checkbox">
+                    <BradixCheckboxIndicator Class="checkbox-demo__indicator">
+                        <span aria-hidden="true">✓</span>
                     </BradixCheckboxIndicator>
                 </BradixCheckbox>
-                <span>Receive product updates</span>
-            </BradixLabel>
-            <p class="demo-hero__caption">Current state: <strong>@_controlledState</strong></p>
-        </div>
-    </DemoHero>
-
-    <DemoSection Title="Highlights">
-        <ul class="stack stack--compact demo-list">
-            <li>Supports checked, unchecked, and indeterminate states.</li>
-            <li>Can be controlled from outside the primitive or left uncontrolled for simpler usage.</li>
-            <li>Renders a hidden input inside forms so browser submission and reset behavior stay correct.</li>
-        </ul>
-    </DemoSection>
+                <BradixLabel Class="checkbox-demo__label" For="terms-checkbox">
+                    Accept terms and conditions.
+                </BradixLabel>
+            </div>
+        </form>
+    </section>
 </section>
-
-@code {
-    private BradixCheckboxCheckedState _controlledState = BradixCheckboxCheckedState.Indeterminate;
-
-    private Task HandleCheckedChange(BradixCheckboxCheckedState state)
-    {
-        _controlledState = state;
-        return Task.CompletedTask;
-    }
-}

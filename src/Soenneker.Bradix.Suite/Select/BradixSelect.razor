@@ -47,6 +47,7 @@
     private string? _lastResolvedForm;
     private (double X, double Y)? _triggerPointerDownPosition;
     private bool _suppressNextMouseUpSelection;
+    private string? _currentText;
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -105,10 +106,7 @@
 
     internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
 
-    internal string CurrentText => _items.Snapshot()
-        .Select(entry => entry.Item)
-        .FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal))
-        ?.TextValue ?? string.Empty;
+    internal string CurrentText => _currentText ?? string.Empty;
 
     internal bool ShouldShowPlaceholder => string.IsNullOrWhiteSpace(CurrentValue);
 
@@ -165,12 +163,14 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
-            return;
+        if (!_initialized)
+        {
+            _uncontrolledOpen = DefaultOpen;
+            _uncontrolledValue = DefaultValue;
+            _initialized = true;
+        }
 
-        _uncontrolledOpen = DefaultOpen;
-        _uncontrolledValue = DefaultValue;
-        _initialized = true;
+        UpdateCurrentText();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -205,6 +205,9 @@
     internal void RegisterItem(IBradixSelectItem item)
     {
         _items.Register(item.Value, item);
+
+        if (string.Equals(item.Value, CurrentValue, StringComparison.Ordinal))
+            UpdateCurrentText(item.TextValue);
 
         if (ShouldRenderBubbleSelect || string.Equals(item.Value, CurrentValue, StringComparison.Ordinal))
             QueueRefresh();
@@ -257,6 +260,8 @@
     {
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;
+
+        UpdateCurrentText(GetItemText(value));
 
         if (Value is null)
             _uncontrolledValue = value;
@@ -421,10 +426,43 @@
 
     internal Task NotifyItemTextChangedAsync()
     {
+        UpdateCurrentText();
+
         if (ShouldRenderBubbleSelect || !ValueNodeHasChildren)
             QueueRefresh();
 
         return Task.CompletedTask;
+    }
+
+    private string? GetItemText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        return _items.Snapshot()
+            .Select(entry => entry.Item)
+            .FirstOrDefault(item => string.Equals(item.Value, value, StringComparison.Ordinal))
+            ?.TextValue;
+    }
+
+    private void UpdateCurrentText(string? preferredText = null)
+    {
+        if (string.IsNullOrWhiteSpace(CurrentValue))
+        {
+            _currentText = string.Empty;
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(preferredText))
+        {
+            _currentText = preferredText;
+            return;
+        }
+
+        string? resolvedText = GetItemText(CurrentValue);
+
+        if (!string.IsNullOrWhiteSpace(resolvedText))
+            _currentText = resolvedText;
     }
 
     internal void SuppressNextMouseUpSelection()
