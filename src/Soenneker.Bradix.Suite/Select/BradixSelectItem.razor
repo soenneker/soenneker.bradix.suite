@@ -15,6 +15,7 @@
          @onpointerdown="HandlePointerDownAsync"
          @onpointerup="HandlePointerUpAsync"
          @onpointermove="HandlePointerMoveAsync"
+         @onpointerleave="HandlePointerLeaveAsync"
          @attributes="ItemAttributes">
         @ChildContent
     </div>
@@ -33,6 +34,9 @@
 
     [CascadingParameter]
     private BradixSelect? Select { get; set; }
+
+    [CascadingParameter]
+    private BradixSelectContent? Content { get; set; }
 
     [Parameter, EditorRequired]
     public string Value { get; set; } = null!;
@@ -226,9 +230,22 @@
         _pointerType = args.PointerType ?? _pointerType;
 
         if (Disabled || Select is null || !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
+        {
+            if (Disabled)
+                await (Content?.FocusContentAsync() ?? Task.CompletedTask);
+
             return;
+        }
 
         Select.SetFocusedItem(Value);
         await Interop.FocusElementPreventScroll(_element);
+    }
+
+    private async Task HandlePointerLeaveAsync(PointerEventArgs _)
+    {
+        if (Content is null || !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
+            return;
+
+        await Content.FocusContentAsync();
     }
 }

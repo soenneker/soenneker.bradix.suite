@@ -15,34 +15,34 @@
         <article class="card stack">
             <h3>Loaded image</h3>
 
-            <BradixAvatar Style="@_avatarRootStyle">
+            <BradixAvatar Class="avatar-root">
                 <BradixAvatarImage Src="https://avatars.githubusercontent.com/u/1?v=4"
                                    Alt="GitHub avatar"
-                                   Style="@_avatarImageStyle" />
-                <BradixAvatarFallback Style="@_avatarFallbackStyle">GH</BradixAvatarFallback>
+                                   Class="avatar-image" />
+                <BradixAvatarFallback Class="avatar-fallback">GH</BradixAvatarFallback>
             </BradixAvatar>
         </article>
 
         <article class="card stack">
             <h3>Missing image fallback</h3>
 
-            <BradixAvatar Style="@_avatarRootStyle">
+            <BradixAvatar Class="avatar-root">
                 <BradixAvatarImage Src=""
                                    Alt="Missing avatar"
-                                   Style="@_avatarImageStyle" />
-                <BradixAvatarFallback Style="@_avatarFallbackStyle">NA</BradixAvatarFallback>
+                                   Class="avatar-image" />
+                <BradixAvatarFallback Class="avatar-fallback">NA</BradixAvatarFallback>
             </BradixAvatar>
         </article>
 
         <article class="card stack">
             <h3>Delayed fallback</h3>
 
-            <BradixAvatar Style="@_avatarRootStyle">
+            <BradixAvatar Class="avatar-root">
                 <BradixAvatarImage Src="@_brokenImage"
                                    Alt="Broken avatar"
-                                   Style="@_avatarImageStyle" />
+                                   Class="avatar-image" />
                 <BradixAvatarFallback DelayMs="500"
-                                      Style="@_avatarFallbackStyle">DL</BradixAvatarFallback>
+                                      Class="avatar-fallback">DL</BradixAvatarFallback>
             </BradixAvatar>
             <p>The fallback waits briefly before rendering, matching Radix’s delayed fallback behavior.</p>
         </article>
@@ -50,8 +50,5 @@
 </section>
 
 @code {
-    private const string _avatarRootStyle = "display:inline-flex;align-items:center;justify-content:center;width:4rem;height:4rem;border-radius:9999px;overflow:hidden;border:1px solid currentColor;";
-    private const string _avatarImageStyle = "width:100%;height:100%;object-fit:cover;";
-    private const string _avatarFallbackStyle = "display:flex;align-items:center;justify-content:center;width:100%;height:100%;";
     private readonly string _brokenImage = "https://example.invalid/avatar.png";
 }

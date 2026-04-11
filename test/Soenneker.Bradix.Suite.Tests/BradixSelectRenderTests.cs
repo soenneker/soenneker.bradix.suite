@@ -32,6 +32,8 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.SetupVoid("unregisterSelectContentPointerTracker", _ => true).SetVoidResult();
         _module.SetupVoid("registerSelectWindowDismiss", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterSelectWindowDismiss", _ => true).SetVoidResult();
+        _module.SetupVoid("registerHideOthers", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterHideOthers", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         _module.SetupVoid("mountPortal", _ => true).SetVoidResult();
@@ -47,6 +49,8 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.SetupVoid("scrollElementIntoViewNearest", _ => true).SetVoidResult();
+        _module.SetupVoid("syncSelectBubbleInputValue", _ => true).SetVoidResult();
+        _module.Setup<bool>("isFormControl", _ => true).SetResult(true);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Fruit");
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
@@ -105,6 +109,47 @@ public sealed class BradixSelectRenderTests : BunitContext
         {
             Assert.Equal("true", cut.Find("button[role='combobox']").GetAttribute("aria-expanded"));
             Assert.Equal("open", cut.Find("[role='listbox']").GetAttribute("data-state"));
+        });
+    }
+
+    [Fact]
+    public async Task Open_select_disables_outside_pointer_events()
+    {
+        var cut = Render(CreateSelect());
+        var trigger = cut.FindComponent<BradixSelectTrigger>();
+
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        {
+            Button = 0,
+            PageX = 12,
+            PageY = 24,
+            PointerType = "mouse"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            var invocation = _module.Invocations.Last(call => call.Identifier == "registerDismissableLayer");
+            Assert.Equal(true, invocation.Arguments[2]);
+        });
+    }
+
+    [Fact]
+    public async Task Open_select_hides_outside_content()
+    {
+        var cut = Render(CreateSelect());
+        var trigger = cut.FindComponent<BradixSelectTrigger>();
+
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        {
+            Button = 0,
+            PageX = 12,
+            PageY = 24,
+            PointerType = "mouse"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
         });
     }
 
@@ -314,6 +359,48 @@ public sealed class BradixSelectRenderTests : BunitContext
         cut.WaitForAssertion(() =>
         {
             Assert.Empty(cut.FindAll("[role='listbox']"));
+        });
+    }
+
+    [Fact]
+    public async Task Select_can_reopen_after_closing()
+    {
+        var cut = Render(CreateSelect(defaultValue: "orange"));
+        var trigger = cut.FindComponent<BradixSelectTrigger>();
+
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        {
+            Button = 0,
+            PageX = 12,
+            PageY = 24,
+            PointerType = "mouse"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Single(cut.FindAll("[role='listbox']"));
+        });
+
+        var content = cut.FindComponent<BradixSelectContent>().Instance;
+        await cut.InvokeAsync(() => content.HandleWindowDismissAsync());
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Empty(cut.FindAll("[role='listbox']"));
+        });
+
+        trigger = cut.FindComponent<BradixSelectTrigger>();
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        {
+            Button = 0,
+            PageX = 48,
+            PageY = 72,
+            PointerType = "mouse"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Single(cut.FindAll("[role='listbox']"));
         });
     }
 

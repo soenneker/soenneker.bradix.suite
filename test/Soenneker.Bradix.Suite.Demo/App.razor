@@ -5,7 +5,14 @@
     <NotFound>
         <PageTitle>Not found</PageTitle>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
+            <section class="stack">
+                <div class="card stack stack--compact" role="alert">
+                    <p class="eyebrow">Not found</p>
+                    <h1>That page does not exist in the demo.</h1>
+                    <p class="lede">Use the sidebar catalog to jump back into the component library and continue exploring the Bradix suite.</p>
+                    <NavLink class="demo-link" href="/" Match="NavLinkMatch.All">Return to overview</NavLink>
+                </div>
+            </section>
         </LayoutView>
     </NotFound>
 </Router>

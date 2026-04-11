@@ -60,6 +60,27 @@ export function syncSliderBubbleInputValue(element, value, dispatchEvent) {
   }
 }
 
+export function syncSelectBubbleInputValue(element, value, dispatchEvent) {
+  if (!element) {
+    return;
+  }
+
+  const selectProto = window.HTMLSelectElement.prototype;
+  const descriptor = Object.getOwnPropertyDescriptor(selectProto, "value");
+  const setValue = descriptor && typeof descriptor.set === "function" ? descriptor.set : null;
+  const nextValue = value == null ? "" : String(value);
+
+  if (setValue) {
+    setValue.call(element, nextValue);
+  } else {
+    element.value = nextValue;
+  }
+
+  if (dispatchEvent) {
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+}
+
 export function clickElement(element) {
   if (!element) {
     return;

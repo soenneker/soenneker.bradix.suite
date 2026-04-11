@@ -17,20 +17,20 @@
 
             <BradixContextMenu OnOpenChange="HandleOpenChanged">
                 <BradixContextMenuTrigger>
-                    <span style="display:inline-block; min-width: 18rem; padding: 2rem; border: 1px dashed currentColor;">
+                    <span class="context-target">
                         Right-click or long-press this region
                     </span>
                 </BradixContextMenuTrigger>
 
                 <BradixContextMenuPortal>
-                    <BradixContextMenuContent Class="card stack">
+                    <BradixContextMenuContent Class="menu-surface stack stack--compact">
                         <BradixContextMenuLabel>File</BradixContextMenuLabel>
                         <BradixContextMenuItem TextValue="Open" OnSelect='@(() => SetSelection("Open"))'>Open</BradixContextMenuItem>
                         <BradixContextMenuItem TextValue="Rename" OnSelect='@(() => SetSelection("Rename"))'>Rename</BradixContextMenuItem>
                         <BradixContextMenuSub>
                             <BradixContextMenuSubTrigger TextValue="Share">Share</BradixContextMenuSubTrigger>
                             <BradixContextMenuPortal>
-                                <BradixContextMenuSubContent Class="card stack" SideOffset="6">
+                                <BradixContextMenuSubContent Class="menu-surface stack stack--compact" SideOffset="6">
                                     <BradixContextMenuItem TextValue="Copy link" OnSelect='@(() => SetSelection("Copy link"))'>Copy link</BradixContextMenuItem>
                                     <BradixContextMenuItem TextValue="Email" OnSelect='@(() => SetSelection("Email"))'>Email</BradixContextMenuItem>
                                 </BradixContextMenuSubContent>
@@ -60,7 +60,7 @@
                             </BradixContextMenuRadioItem>
                         </BradixContextMenuRadioGroup>
                         <BradixContextMenuArrow>
-                            <span style="display:block;width:10px;height:10px;background:currentColor;transform:rotate(45deg);"></span>
+                            <span class="tooltip-arrow-shape"></span>
                         </BradixContextMenuArrow>
                     </BradixContextMenuContent>
                 </BradixContextMenuPortal>
@@ -77,13 +77,13 @@
 
             <BradixContextMenu Modal="false">
                 <BradixContextMenuTrigger>
-                    <span style="display:inline-block; min-width: 18rem; padding: 2rem; border: 1px dashed currentColor;">
+                    <span class="context-target">
                         Right-click for account actions
                     </span>
                 </BradixContextMenuTrigger>
 
                 <BradixContextMenuPortal>
-                    <BradixContextMenuContent Class="card stack">
+                    <BradixContextMenuContent Class="menu-surface stack stack--compact">
                         <BradixContextMenuItem TextValue="Profile" OnSelect='@(() => SetSelection("Profile"))'>Profile</BradixContextMenuItem>
                         <BradixContextMenuItem TextValue="Billing" OnSelect='@(() => SetSelection("Billing"))'>Billing</BradixContextMenuItem>
                         <BradixContextMenuItem TextValue="Sign out" OnSelect='@(() => SetSelection("Sign out"))'>Sign out</BradixContextMenuItem>

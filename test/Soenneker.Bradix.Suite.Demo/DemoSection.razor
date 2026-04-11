@@ -1,0 +1,52 @@
+<section class="@BuildClassName()">
+    @if (!string.IsNullOrWhiteSpace(Title) || !string.IsNullOrWhiteSpace(Description) || !string.IsNullOrWhiteSpace(Eyebrow))
+    {
+        <header class="demo-section__header">
+            @if (!string.IsNullOrWhiteSpace(Eyebrow))
+            {
+                <p class="eyebrow">@Eyebrow</p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Title))
+            {
+                <h2>@Title</h2>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Description))
+            {
+                <p>@Description</p>
+            }
+        </header>
+    }
+
+    @if (ChildContent is not null)
+    {
+        <div class="demo-section__body">
+            @ChildContent
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string? Eyebrow { get; set; }
+
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string BuildClassName()
+    {
+        return string.IsNullOrWhiteSpace(Class)
+            ? "demo-section"
+            : $"demo-section {Class}";
+    }
+}

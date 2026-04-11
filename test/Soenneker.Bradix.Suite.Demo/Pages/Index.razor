@@ -1,265 +1,29 @@
 @page "/"
 
-<PageTitle>Bradix Demo</PageTitle>
+<PageTitle>Bradix Component Library Demo</PageTitle>
 
 <section class="stack">
-    <div class="card">
-        <h2>Current slice</h2>
-        <p>
-            This workspace now includes foundational Bradix infrastructure plus primitive families and
-            low-level overlay/menu substrate work aligned to Radix behavior.
-        </p>
-    </div>
+    <header class="stack stack--compact">
+        <h1>Bradix primitives</h1>
+        <p class="lede">Simple demos for each primitive, modeled after the straightforward presentation style of the Radix docs.</p>
+    </header>
 
-    <div class="grid">
-        <article class="card">
-            <h3>Collection</h3>
-            <p>Ordered item registry plus Radix-style transient typeahead matching for upcoming menu, select, and navigation primitives.</p>
-            <NavLink class="demo-link" href="/collection">Open demo</NavLink>
-        </article>
+    @foreach (DemoPageGroup group in DemoCatalog.Groups)
+    {
+        <section class="catalog-group">
+            <header class="catalog-group__header">
+                <h2>@group.Title</h2>
+            </header>
 
-        <article class="card">
-            <h3>ContextMenu</h3>
-            <p>Pointer-anchored menu family with right-click and long-press opening, checkbox items, radio items, and submenus over a virtual popper anchor.</p>
-            <NavLink class="demo-link" href="/context-menu">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>DropdownMenu</h3>
-            <p>Menu-based trigger/content family with checkbox items, radio items, and submenu wrappers built on the shared menu substrate.</p>
-            <NavLink class="demo-link" href="/dropdown-menu">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Menubar</h3>
-            <p>Horizontal trigger strip over the shared menu substrate with roving top-level focus, cross-menu arrow navigation, checkbox/radio items, and submenus.</p>
-            <NavLink class="demo-link" href="/menubar">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>NavigationMenu</h3>
-            <p>Top-navigation flyout family with delayed trigger opening, roving focus between triggers, and dismissable content panels.</p>
-            <NavLink class="demo-link" href="/navigation-menu">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Menu</h3>
-            <p>Shared menu core with layered content, ordered item registration, typeahead, grouping, separators, and direction-aware roving navigation.</p>
-            <NavLink class="demo-link" href="/menu">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Collapsible</h3>
-            <p>Open/closed state, trigger semantics, content ids, `forceMount`, and measured CSS variables.</p>
-            <NavLink class="demo-link" href="/collapsible">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Accordion</h3>
-            <p>Single and multiple modes, collapsible policy, item/header/trigger/content decomposition, and keyboard navigation.</p>
-            <NavLink class="demo-link" href="/accordion">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>AlertDialog</h3>
-            <p>Critical-confirmation dialog family built on modal dialog behavior, with cancel autofocus and blocked outside-interaction dismissal.</p>
-            <NavLink class="demo-link" href="/alert-dialog">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Avatar</h3>
-            <p>Image/fallback avatar family with preload-based loading status and delayed fallback rendering.</p>
-            <NavLink class="demo-link" href="/avatar">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Toggle</h3>
-            <p>Pressed state, controlled/uncontrolled usage, and proper `aria-pressed` / `data-state` metadata.</p>
-            <NavLink class="demo-link" href="/toggle">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>ToggleGroup</h3>
-            <p>Single and multiple selection, roving focus, orientation, and inherited direction support.</p>
-            <NavLink class="demo-link" href="/toggle-group">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Tabs</h3>
-            <p>Tablist/trigger/content decomposition with automatic and manual activation, roving focus, and stable ARIA ids.</p>
-            <NavLink class="demo-link" href="/tabs">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>RadioGroup</h3>
-            <p>Single-selection roving focus with radio semantics, indicator composition, direction-aware navigation, and form-friendly hidden inputs.</p>
-            <NavLink class="demo-link" href="/radio-group">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Checkbox</h3>
-            <p>Tri-state checkbox behavior with indicator composition, hidden-input syncing, form reset support, and correct ARIA mixed semantics.</p>
-            <NavLink class="demo-link" href="/checkbox">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Dialog</h3>
-            <p>Modal and non-modal dialog family with trigger, portal, overlay, content, close controls, titles, descriptions, focus management, and accessibility isolation.</p>
-            <NavLink class="demo-link" href="/dialog">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>HoverCard</h3>
-            <p>Delayed hover/focus card family with non-modal outside interaction, selection-aware pointer handling, anchored portal content, and arrow support for preview-style surfaces.</p>
-            <NavLink class="demo-link" href="/hover-card">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Switch</h3>
-            <p>Boolean switch semantics with thumb composition, hidden-input syncing, and form/reset behavior while preserving the `role=&quot;switch&quot;` contract.</p>
-            <NavLink class="demo-link" href="/switch">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Form</h3>
-            <p>Constraint-validation form primitives with field wiring, label/control relationships, invalid-state data attributes, and validation-message descriptions.</p>
-            <NavLink class="demo-link" href="/form">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>OTP</h3>
-            <p>One-time-password field primitives with separate inputs, hidden form value, paste distribution, auto-submit, and single-input-style keyboard behavior.</p>
-            <NavLink class="demo-link" href="/one-time-password-field">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Toast</h3>
-            <p>Provider-managed ephemeral notifications with viewport hotkey focus, close-timer pause/resume, swipe dismissal metadata, and action/close parts.</p>
-            <NavLink class="demo-link" href="/toast">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Toolbar</h3>
-            <p>Toolbar-level roving focus across buttons, links, and embedded toggle groups with direction-aware keyboard navigation.</p>
-            <NavLink class="demo-link" href="/toolbar">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Tooltip</h3>
-            <p>Delayed hover/focus tooltip family with provider-level delay policy, portal mounting, popper positioning, and arrow support.</p>
-            <NavLink class="demo-link" href="/tooltip">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Slider</h3>
-            <p>Orientation-aware slider with single and multiple thumbs, keyboard and pointer interaction, direction handling, and range geometry.</p>
-            <NavLink class="demo-link" href="/slider">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Select</h3>
-            <p>Combobox trigger plus portalled listbox content with controlled/uncontrolled value, trigger typeahead, selected-item focus, grouping, indicators, and hidden native form submission.</p>
-            <NavLink class="demo-link" href="/select">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>ScrollArea</h3>
-            <p>Custom scrollbars over a hidden native viewport with overflow-driven visibility, corner sizing, and hover/scroll modes.</p>
-            <NavLink class="demo-link" href="/scroll-area">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Portal</h3>
-            <p>DOM reparenting primitive for overlay families that need to render into `body` or a custom container.</p>
-            <NavLink class="demo-link" href="/portal">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>RemoveScroll</h3>
-            <p>Body scroll-lock substrate for modal overlays, preserving internal interaction while the page itself is locked.</p>
-            <NavLink class="demo-link" href="/remove-scroll">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>DismissableLayer</h3>
-            <p>Outside-interaction substrate for overlay families, with escape handling, outside pointer/focus detection, and branch exceptions.</p>
-            <NavLink class="demo-link" href="/dismissable-layer">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>FocusGuards</h3>
-            <p>Document-edge focus sentinels used by portalled focus scopes so focus events can be observed consistently at the DOM boundaries.</p>
-            <NavLink class="demo-link" href="/focus-guards">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>FocusScope</h3>
-            <p>Managed focus boundary with looping and trapped-focus behavior for layered and modal families.</p>
-            <NavLink class="demo-link" href="/focus-scope">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Popper</h3>
-            <p>Positioning substrate with anchor, collision-aware content placement, placement data attributes, and arrow support.</p>
-            <NavLink class="demo-link" href="/popper">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Presence</h3>
-            <p>Mount-preservation substrate that keeps content in the DOM long enough for exit animations to complete before unmounting.</p>
-            <NavLink class="demo-link" href="/presence">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Popover</h3>
-            <p>Layered anchored content family built on portal, dismissable layer, focus scope, presence, and popper positioning.</p>
-            <NavLink class="demo-link" href="/popover">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Label</h3>
-            <p>Native label semantics plus Radix-style double-click selection protection around nested controls.</p>
-            <NavLink class="demo-link" href="/label">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Separator</h3>
-            <p>Semantic and decorative separators with correct orientation metadata and accessibility behavior.</p>
-            <NavLink class="demo-link" href="/separator">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>AspectRatio</h3>
-            <p>Unstyled ratio-preserving content wrapper matching Radix’s wrapper and inner slot structure.</p>
-            <NavLink class="demo-link" href="/aspect-ratio">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>AccessibleIcon</h3>
-            <p>Icon accessibility utility that hides the rendered glyph subtree from assistive technology and supplies a screen-reader-only label.</p>
-            <NavLink class="demo-link" href="/accessible-icon">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Slot</h3>
-            <p>Mergeable native-element slot utility for future `asChild`-style composition, combining slot props with child-target attributes using Radix-style precedence rules.</p>
-            <NavLink class="demo-link" href="/slot">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>Progress</h3>
-            <p>Progress root and indicator with indeterminate, loading, and complete states plus ARIA metadata.</p>
-            <NavLink class="demo-link" href="/progress">Open demo</NavLink>
-        </article>
-
-        <article class="card">
-            <h3>VisuallyHidden</h3>
-            <p>Screen-reader-only content utility for accessible naming without visible text.</p>
-            <NavLink class="demo-link" href="/visually-hidden">Open demo</NavLink>
-        </article>
-    </div>
+            <div class="simple-link-list">
+                @foreach (DemoPageLink demoPage in group.Pages)
+                {
+                    <NavLink href="@demoPage.Route" class="simple-link-list__item">
+                        <span>@demoPage.Title</span>
+                        <span>@demoPage.Description</span>
+                    </NavLink>
+                }
+            </div>
+        </section>
+    }
 </section>
-
-@code {
-
-}

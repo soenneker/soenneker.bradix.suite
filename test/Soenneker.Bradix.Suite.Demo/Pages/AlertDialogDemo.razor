@@ -3,56 +3,49 @@
 <PageTitle>Bradix AlertDialog</PageTitle>
 
 <section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixAlertDialog</h2>
-        <p>Critical-confirmation dialog behavior with modal isolation, cancel-button autofocus, and prevented outside dismissal.</p>
-    </header>
+    <section class="card stack stack--compact">
+        <h3>Confirmation flow</h3>
+        <p class="state-line"><strong>Repository:</strong> quark/production</p>
+        <p class="state-line"><strong>Status:</strong> @(_repositoryDeleted ? "Deleted in demo" : "Active")</p>
+        <p class="state-line"><strong>Last action:</strong> @_lastAction</p>
 
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Confirmation flow</h3>
-            <p class="state-line"><strong>Repository:</strong> quark/production</p>
-            <p class="state-line"><strong>Status:</strong> @(_repositoryDeleted ? "Deleted in demo" : "Active")</p>
-            <p class="state-line"><strong>Last action:</strong> @_lastAction</p>
+        <div class="button-row">
+            <BradixAlertDialog Open="@_open"
+                               OpenChanged="HandleOpenChanged">
+                <BradixAlertDialogTrigger Class="primitive__trigger primitive__trigger--fit">
+                    Delete repository
+                </BradixAlertDialogTrigger>
 
-            <div class="button-row">
-                <BradixAlertDialog Open="@_open"
-                                   OpenChanged="HandleOpenChanged">
-                    <BradixAlertDialogTrigger Class="primitive__trigger primitive__trigger--fit">
-                        Delete repository
-                    </BradixAlertDialogTrigger>
+                <BradixAlertDialogPortal>
+                    <BradixAlertDialogOverlay Class="dialog-overlay" />
 
-                    <BradixAlertDialogPortal>
-                        <BradixAlertDialogOverlay Class="dialog-overlay" />
+                    <BradixAlertDialogContent Class="dialog-surface dialog-surface--modal dialog-surface--animated">
+                        <div class="stack stack--compact">
+                            <BradixAlertDialogTitle>Delete repository?</BradixAlertDialogTitle>
+                            <BradixAlertDialogDescription>
+                                This action is permanent and will remove source history, pull requests, and release metadata.
+                            </BradixAlertDialogDescription>
 
-                        <BradixAlertDialogContent Class="dialog-surface dialog-surface--animated">
-                            <div class="stack stack--compact">
-                                <BradixAlertDialogTitle>Delete repository?</BradixAlertDialogTitle>
-                                <BradixAlertDialogDescription>
-                                    This action is permanent and will remove source history, pull requests, and release metadata.
-                                </BradixAlertDialogDescription>
-
-                                <div class="button-row">
-                                    <span @onclick="HandleCancelClicked">
-                                        <BradixAlertDialogCancel Class="primitive__trigger primitive__trigger--fit">Cancel</BradixAlertDialogCancel>
-                                    </span>
-                                    <span @onclick="HandleDeleteClicked">
-                                        <BradixAlertDialogAction Class="primitive__trigger primitive__trigger--fit">Delete</BradixAlertDialogAction>
-                                    </span>
-                                </div>
+                            <div class="button-row">
+                                <span @onclick="HandleCancelClicked">
+                                    <BradixAlertDialogCancel Class="primitive__trigger primitive__trigger--fit">Cancel</BradixAlertDialogCancel>
+                                </span>
+                                <span @onclick="HandleDeleteClicked">
+                                    <BradixAlertDialogAction Class="primitive__trigger primitive__trigger--fit">Delete</BradixAlertDialogAction>
+                                </span>
                             </div>
-                        </BradixAlertDialogContent>
-                    </BradixAlertDialogPortal>
-                </BradixAlertDialog>
+                        </div>
+                    </BradixAlertDialogContent>
+                </BradixAlertDialogPortal>
+            </BradixAlertDialog>
 
-                <button type="button"
-                        class="primitive__trigger primitive__trigger--fit"
-                        @onclick="ResetDemo">
-                    Reset demo
-                </button>
-            </div>
-        </section>
-    </div>
+            <button type="button"
+                    class="primitive__trigger primitive__trigger--fit"
+                    @onclick="ResetDemo">
+                Reset demo
+            </button>
+        </div>
+    </section>
 </section>
 
 @code {

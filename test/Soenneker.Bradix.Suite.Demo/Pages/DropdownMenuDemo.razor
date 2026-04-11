@@ -16,17 +16,17 @@
             <h3>Modal dropdown menu</h3>
 
             <BradixDropdownMenu Open="@_open" OpenChanged="HandleOpenChanged">
-                <BradixDropdownMenuTrigger>Open dropdown</BradixDropdownMenuTrigger>
+                <BradixDropdownMenuTrigger Class="primitive__trigger primitive__trigger--fit">Open dropdown</BradixDropdownMenuTrigger>
 
                 <BradixDropdownMenuPortal>
-                    <BradixDropdownMenuContent Class="card stack" SideOffset="6">
+                    <BradixDropdownMenuContent Class="menu-surface stack stack--compact" SideOffset="6">
                         <BradixDropdownMenuLabel>Actions</BradixDropdownMenuLabel>
                         <BradixDropdownMenuItem TextValue="Edit" OnSelect='@(() => SetSelection("Edit"))'>Edit</BradixDropdownMenuItem>
                         <BradixDropdownMenuItem TextValue="Duplicate" OnSelect='@(() => SetSelection("Duplicate"))'>Duplicate</BradixDropdownMenuItem>
                         <BradixDropdownMenuSub>
                             <BradixDropdownMenuSubTrigger TextValue="Share">Share</BradixDropdownMenuSubTrigger>
                             <BradixDropdownMenuPortal>
-                                <BradixDropdownMenuSubContent Class="card stack" SideOffset="6">
+                                <BradixDropdownMenuSubContent Class="menu-surface stack stack--compact" SideOffset="6">
                                     <BradixDropdownMenuItem TextValue="Copy link" OnSelect='@(() => SetSelection("Copy link"))'>Copy link</BradixDropdownMenuItem>
                                     <BradixDropdownMenuItem TextValue="Email" OnSelect='@(() => SetSelection("Email"))'>Email</BradixDropdownMenuItem>
                                 </BradixDropdownMenuSubContent>
@@ -56,7 +56,7 @@
                             </BradixDropdownMenuRadioItem>
                         </BradixDropdownMenuRadioGroup>
                         <BradixDropdownMenuArrow>
-                            <span style="display:block;width:10px;height:10px;background:currentColor;transform:rotate(45deg);"></span>
+                            <span class="tooltip-arrow-shape"></span>
                         </BradixDropdownMenuArrow>
                     </BradixDropdownMenuContent>
                 </BradixDropdownMenuPortal>
@@ -73,9 +73,9 @@
             <h3>Non-modal dropdown</h3>
 
             <BradixDropdownMenu Modal="false">
-                <BradixDropdownMenuTrigger>Open non-modal dropdown</BradixDropdownMenuTrigger>
+                <BradixDropdownMenuTrigger Class="primitive__trigger primitive__trigger--fit">Open non-modal dropdown</BradixDropdownMenuTrigger>
                 <BradixDropdownMenuPortal>
-                    <BradixDropdownMenuContent Class="card stack" Align="end" SideOffset="6">
+                    <BradixDropdownMenuContent Class="menu-surface stack stack--compact" Align="end" SideOffset="6">
                         <BradixDropdownMenuItem TextValue="Profile" OnSelect='@(() => SetSelection("Profile"))'>Profile</BradixDropdownMenuItem>
                         <BradixDropdownMenuItem TextValue="Billing" OnSelect='@(() => SetSelection("Billing"))'>Billing</BradixDropdownMenuItem>
                         <BradixDropdownMenuItem TextValue="Sign out" OnSelect='@(() => SetSelection("Sign out"))'>Sign out</BradixDropdownMenuItem>

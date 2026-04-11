@@ -20,7 +20,8 @@ public sealed class Program
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-            ConfigureLogging(builder.Services);
+            if (builder.HostEnvironment.IsDevelopment())
+                ConfigureLogging(builder.Services);
 
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
@@ -34,9 +35,11 @@ public sealed class Program
 
             WebAssemblyHost host = builder.Build();
 
-            var jsRuntime = (IJSRuntime) host.Services.GetService(typeof(IJSRuntime))!;
-
-            SetGlobalLogger(jsRuntime);
+            if (builder.HostEnvironment.IsDevelopment())
+            {
+                var jsRuntime = (IJSRuntime) host.Services.GetService(typeof(IJSRuntime))!;
+                SetGlobalLogger(jsRuntime);
+            }
 
             await host.RunAsync();
         }

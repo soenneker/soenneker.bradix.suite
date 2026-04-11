@@ -1,0 +1,15 @@
+<header class="demo-page-intro">
+    <h1>@Title</h1>
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <p class="lede">@Description</p>
+    }
+</header>
+
+@code {
+    [Parameter]
+    public required string Title { get; set; }
+
+    [Parameter]
+    public string? Description { get; set; }
+}

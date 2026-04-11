@@ -3,26 +3,9 @@
 <PageTitle>Bradix Checkbox</PageTitle>
 
 <section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixCheckbox</h2>
-        <p>Implements Radix-style checkbox semantics with tri-state behavior, indicator composition, hidden form input syncing, and reset-friendly uncontrolled state.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Uncontrolled</h3>
-            <BradixLabel Class="checkbox-row">
-                <BradixCheckbox Class="checkbox-root" DefaultChecked="BradixCheckboxCheckedState.Checked">
-                    <BradixCheckboxIndicator Class="checkbox-indicator">✓</BradixCheckboxIndicator>
-                </BradixCheckbox>
-                <span>Receive release updates</span>
-            </BradixLabel>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Controlled indeterminate</h3>
-            <p class="state-line">State: <strong>@_controlledState</strong></p>
-            <div class="button-row">
+    <DemoHero>
+        <div class="stack stack--compact">
+            <BradixLabel Class="checkbox-row checkbox-row--hero">
                 <BradixCheckbox Class="checkbox-root"
                                 Checked="@_controlledState"
                                 OnCheckedChange="HandleCheckedChange">
@@ -37,55 +20,27 @@
                         }
                     </BradixCheckboxIndicator>
                 </BradixCheckbox>
-                <button class="primitive__trigger" type="button" @onclick="CycleIndeterminate">Set next state externally</button>
-            </div>
-        </section>
+                <span>Receive product updates</span>
+            </BradixLabel>
+            <p class="demo-hero__caption">Current state: <strong>@_controlledState</strong></p>
+        </div>
+    </DemoHero>
 
-        <section class="card stack stack--compact">
-            <h3>Within form</h3>
-            <EditForm FormName="checkbox-demo" Model="@_formModel">
-                <div class="stack stack--compact">
-                    <BradixLabel Class="checkbox-row">
-                        <BradixCheckbox Class="checkbox-root"
-                                        Name="terms"
-                                        Required
-                                        DefaultChecked="BradixCheckboxCheckedState.Indeterminate">
-                            <BradixCheckboxIndicator Class="checkbox-indicator">✓</BradixCheckboxIndicator>
-                        </BradixCheckbox>
-                        <span>Accept terms</span>
-                    </BradixLabel>
-
-                    <button class="primitive__trigger" type="reset">Reset form</button>
-                </div>
-            </EditForm>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Force mounted indicator</h3>
-            <BradixCheckbox Class="checkbox-root" DefaultChecked="BradixCheckboxCheckedState.Unchecked">
-                <BradixCheckboxIndicator Class="checkbox-indicator" ForceMount>✓</BradixCheckboxIndicator>
-            </BradixCheckbox>
-        </section>
-    </div>
+    <DemoSection Title="Highlights">
+        <ul class="stack stack--compact demo-list">
+            <li>Supports checked, unchecked, and indeterminate states.</li>
+            <li>Can be controlled from outside the primitive or left uncontrolled for simpler usage.</li>
+            <li>Renders a hidden input inside forms so browser submission and reset behavior stay correct.</li>
+        </ul>
+    </DemoSection>
 </section>
 
 @code {
     private BradixCheckboxCheckedState _controlledState = BradixCheckboxCheckedState.Indeterminate;
-    private readonly object _formModel = new();
 
     private Task HandleCheckedChange(BradixCheckboxCheckedState state)
     {
         _controlledState = state;
         return Task.CompletedTask;
-    }
-
-    private void CycleIndeterminate()
-    {
-        _controlledState = _controlledState switch
-        {
-            BradixCheckboxCheckedState.Unchecked => BradixCheckboxCheckedState.Indeterminate,
-            BradixCheckboxCheckedState.Indeterminate => BradixCheckboxCheckedState.Checked,
-            _ => BradixCheckboxCheckedState.Unchecked
-        };
     }
 }

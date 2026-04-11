@@ -215,6 +215,12 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("syncSliderBubbleInputValue", cancellationToken, element, value, dispatchEvent);
     }
 
+    public async ValueTask SyncSelectBubbleInputValue(ElementReference element, string? value, bool dispatchEvent, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("syncSelectBubbleInputValue", cancellationToken, element, value, dispatchEvent);
+    }
+
     public async ValueTask RegisterScrollAreaRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);

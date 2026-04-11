@@ -3,91 +3,43 @@
 <PageTitle>Bradix RadioGroup</PageTitle>
 
 <section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixRadioGroup</h2>
-        <p>Implements Radix-style radio group semantics with roving focus, indicator composition, controlled and uncontrolled selection, and group-level disabled/required/name support.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Uncontrolled</h3>
-            <BradixRadioGroup Class="radio-group" Name="pet" DefaultValue="cat" Required>
-                <BradixLabel Class="radio-row">
-                    <BradixRadioGroupItem Class="radio-item" Value="cat" InputValue="cat">
-                        <BradixRadioGroupIndicator Class="radio-indicator" />
-                    </BradixRadioGroupItem>
-                    <span>Cat</span>
-                </BradixLabel>
-                <BradixLabel Class="radio-row">
-                    <BradixRadioGroupItem Class="radio-item" Value="dog" InputValue="dog" Disabled>
-                        <BradixRadioGroupIndicator Class="radio-indicator" />
-                    </BradixRadioGroupItem>
-                    <span>Dog (disabled)</span>
-                </BradixLabel>
-                <BradixLabel Class="radio-row">
-                    <BradixRadioGroupItem Class="radio-item" Value="rabbit" InputValue="rabbit">
-                        <BradixRadioGroupIndicator Class="radio-indicator" />
-                    </BradixRadioGroupItem>
-                    <span>Rabbit</span>
-                </BradixLabel>
-            </BradixRadioGroup>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Controlled vertical</h3>
-            <p class="state-line">Value: <strong>@_value</strong></p>
-            <BradixRadioGroup Class="radio-group"
-                              Orientation="vertical"
-                              Value="@_value"
-                              OnValueChange="HandleValueChanged">
-                <BradixRadioGroupItem Class="radio-item" Value="starter" InputValue="starter">
+    <DemoHero>
+        <BradixRadioGroup Class="radio-group radio-group--hero"
+                          Name="density"
+                          Value="@_value"
+                          OnValueChange="HandleValueChanged">
+            <BradixLabel Class="radio-row">
+                <BradixRadioGroupItem Class="radio-item" Value="default" InputValue="default">
                     <BradixRadioGroupIndicator Class="radio-indicator" />
                 </BradixRadioGroupItem>
-                <BradixRadioGroupItem Class="radio-item" Value="pro" InputValue="pro">
+                <span>Default</span>
+            </BradixLabel>
+            <BradixLabel Class="radio-row">
+                <BradixRadioGroupItem Class="radio-item" Value="comfortable" InputValue="comfortable">
                     <BradixRadioGroupIndicator Class="radio-indicator" />
                 </BradixRadioGroupItem>
-                <BradixRadioGroupItem Class="radio-item" Value="team" InputValue="team">
+                <span>Comfortable</span>
+            </BradixLabel>
+            <BradixLabel Class="radio-row">
+                <BradixRadioGroupItem Class="radio-item" Value="compact" InputValue="compact">
                     <BradixRadioGroupIndicator Class="radio-indicator" />
                 </BradixRadioGroupItem>
-            </BradixRadioGroup>
-        </section>
+                <span>Compact</span>
+            </BradixLabel>
+        </BradixRadioGroup>
+    </DemoHero>
 
-        <section class="card stack stack--compact">
-            <h3>Inherited direction</h3>
-            <BradixDirectionProvider Dir="rtl">
-                <BradixRadioGroup Class="radio-group" DefaultValue="left" Orientation="horizontal">
-                    <BradixRadioGroupItem Class="radio-item" Value="left" InputValue="left">
-                        <BradixRadioGroupIndicator Class="radio-indicator" />
-                    </BradixRadioGroupItem>
-                    <BradixRadioGroupItem Class="radio-item" Value="middle" InputValue="middle">
-                        <BradixRadioGroupIndicator Class="radio-indicator" />
-                    </BradixRadioGroupItem>
-                    <BradixRadioGroupItem Class="radio-item" Value="right" InputValue="right">
-                        <BradixRadioGroupIndicator Class="radio-indicator" />
-                    </BradixRadioGroupItem>
-                </BradixRadioGroup>
-            </BradixDirectionProvider>
-        </section>
-
-        <section class="card stack stack--compact">
-            <h3>Force mounted indicators</h3>
-            <BradixRadioGroup Class="radio-group">
-                <BradixRadioGroupItem Class="radio-item" Value="one" InputValue="one">
-                    <BradixRadioGroupIndicator Class="radio-indicator" ForceMount />
-                </BradixRadioGroupItem>
-                <BradixRadioGroupItem Class="radio-item" Value="two" InputValue="two">
-                    <BradixRadioGroupIndicator Class="radio-indicator" ForceMount />
-                </BradixRadioGroupItem>
-                <BradixRadioGroupItem Class="radio-item" Value="three" InputValue="three">
-                    <BradixRadioGroupIndicator Class="radio-indicator" ForceMount />
-                </BradixRadioGroupItem>
-            </BradixRadioGroup>
-        </section>
-    </div>
+    <DemoSection Title="Highlights">
+        <ul class="stack stack--compact demo-list">
+            <li>Arrow keys move focus and selection through the group using roving focus behavior.</li>
+            <li>The group can be controlled or uncontrolled and participates in forms with `name`, `required`, and hidden inputs.</li>
+            <li>Orientation and reading direction align with the same Radix-style contracts used throughout Bradix.</li>
+        </ul>
+    </DemoSection>
 </section>
 
 @code {
-    private string? _value = "pro";
+    private string? _value = "default";
 
     private Task HandleValueChanged(string? value)
     {

@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <Platforms>AnyCPU</Platforms>
         <NoWarn>$(NoWarn);1591</NoWarn>
-        <Features>use-roslyn-tokenizer;$(Features)</Features>
         <RootNamespace>Soenneker.Bradix</RootNamespace>
         <GenerateDefaultNamespace>false</GenerateDefaultNamespace>
     </PropertyGroup>

@@ -73,7 +73,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         Assert.Equal("-1", items[0].GetAttribute("tabindex"));
         Assert.Equal("0", items[1].GetAttribute("tabindex"));
 
-        items[1].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowDown" });
+        items[1].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
 
         cut.WaitForAssertion(() =>
         {
@@ -89,7 +89,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var cut = Render(CreateMenu());
         var items = cut.FindAll("[role='menuitem']");
 
-        items[0].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "b" });
+        items[0].KeyDown(new KeyboardEventArgs { Key = "b" });
 
         cut.WaitForAssertion(() =>
         {
@@ -411,7 +411,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var cut = Render(CreateSubmenuMenu());
         var trigger = cut.Find("[aria-haspopup='menu']");
 
-        trigger.KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
+        trigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
 
         cut.WaitForAssertion(() =>
         {
@@ -545,7 +545,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var cut = Render(CreateSubmenuMenu());
         var trigger = cut.Find("[aria-haspopup='menu']");
 
-        trigger.KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
+        trigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
         cut.WaitForAssertion(() => Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")));
 
         var submenuContent = cut.FindComponents<BradixMenuContent>().Last();

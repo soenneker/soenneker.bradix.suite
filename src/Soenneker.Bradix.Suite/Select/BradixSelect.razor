@@ -12,7 +12,8 @@
 
 @if (ShouldRenderBubbleSelect)
 {
-    <select @onchange="HandleNativeChangeAsync"
+    <select @ref="_bubbleSelectElement"
+            @onchange="HandleNativeChangeAsync"
             @attributes="BubbleSelectAttributes">
         @if (string.IsNullOrWhiteSpace(CurrentValue))
         {
@@ -37,6 +38,13 @@
     private bool _refreshQueued;
     private bool _uncontrolledOpen;
     private string? _uncontrolledValue;
+    private ElementReference _bubbleSelectElement;
+    private bool _hasBubbleSelectElement;
+    private bool _bubbleSelectValueInitialized;
+    private string? _lastBubbleSelectValue;
+    private bool _isFormControl = true;
+    private bool _formControlStateResolved;
+    private string? _lastResolvedForm;
     private (double X, double Y)? _triggerPointerDownPosition;
     private bool _suppressNextMouseUpSelection;
 
@@ -122,7 +130,7 @@
 
     internal double TriggerPointerDownY => _triggerPointerDownPosition?.Y ?? 0;
 
-    private bool ShouldRenderBubbleSelect => !string.IsNullOrWhiteSpace(Name) || !string.IsNullOrWhiteSpace(Form) || Required;
+    private bool ShouldRenderBubbleSelect => _isFormControl;
 
     private Dictionary<string, object> BubbleSelectAttributes
     {
@@ -165,6 +173,35 @@
         _initialized = true;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (HasTrigger && (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal)))
+        {
+            bool isFormControl = await Interop.IsFormControl(TriggerElement, Form);
+            _formControlStateResolved = true;
+            _lastResolvedForm = Form;
+
+            if (_isFormControl != isFormControl)
+            {
+                _isFormControl = isFormControl;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+        }
+
+        if (ShouldRenderBubbleSelect)
+        {
+            RegisterBubbleSelect(_bubbleSelectElement);
+            await SyncBubbleSelectValueAsync();
+        }
+        else
+        {
+            _hasBubbleSelectElement = false;
+            _bubbleSelectValueInitialized = false;
+            _lastBubbleSelectValue = null;
+        }
+    }
+
     internal void RegisterItem(IBradixSelectItem item)
     {
         _items.Register(item.Value, item);
@@ -194,6 +231,12 @@
     {
         ValueNodeElement = element;
         HasValueNode = true;
+    }
+
+    internal void RegisterBubbleSelect(ElementReference element)
+    {
+        _bubbleSelectElement = element;
+        _hasBubbleSelectElement = true;
     }
 
     internal void SetValueNodeHasChildren(bool hasChildren)
@@ -266,6 +309,11 @@
             _triggerPointerDownPosition = null;
 
         return SetOpenAsync(true);
+    }
+
+    internal void ClearTriggerPointerDownPosition()
+    {
+        _triggerPointerDownPosition = null;
     }
 
     internal void SetFocusedItem(string? value)
@@ -417,7 +465,8 @@
 
     private Task HandleNativeChangeAsync(ChangeEventArgs args)
     {
-        return SetValueAsync(args.Value?.ToString());
+        string? value = args.Value?.ToString();
+        return SetValueAsync(string.IsNullOrEmpty(value) ? null : value);
     }
 
     private void QueueRefresh()
@@ -440,5 +489,19 @@
             .Select(entry => entry.Item)
             .Where(item => !item.Disabled)
             .ToList();
+    }
+
+    private async Task SyncBubbleSelectValueAsync()
+    {
+        if (!_hasBubbleSelectElement)
+            return;
+
+        string? nextValue = CurrentValue;
+        bool dispatchEvent = _bubbleSelectValueInitialized && !string.Equals(_lastBubbleSelectValue, nextValue, StringComparison.Ordinal);
+
+        await Interop.SyncSelectBubbleInputValue(_bubbleSelectElement, nextValue, dispatchEvent);
+
+        _lastBubbleSelectValue = nextValue;
+        _bubbleSelectValueInitialized = true;
     }
 }

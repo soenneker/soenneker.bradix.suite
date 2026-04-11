@@ -82,6 +82,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask SyncSliderBubbleInputValue(ElementReference element, double value, bool dispatchEvent, CancellationToken cancellationToken = default);
 
+    ValueTask SyncSelectBubbleInputValue(ElementReference element, string? value, bool dispatchEvent, CancellationToken cancellationToken = default);
+
     ValueTask RegisterScrollAreaRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     ValueTask UnregisterScrollAreaRoot(ElementReference element, CancellationToken cancellationToken = default);

@@ -1,60 +1,77 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@inject NavigationManager Navigation
 
-<div class="shell">
-    <header class="shell__header">
-        <div>
-            <p class="eyebrow">Bradix demo</p>
-            <h1>Soenneker.Bradix.Suite</h1>
-            <p class="lede">Behavior-first Blazor primitives modeled after Radix UI.</p>
-        </div>
-
-        <nav class="shell__nav" aria-label="Primitive demos">
-            <NavLink href="/" Match="NavLinkMatch.All">Overview</NavLink>
-            <NavLink href="/collection">Collection</NavLink>
-            <NavLink href="/context-menu">ContextMenu</NavLink>
-            <NavLink href="/dropdown-menu">DropdownMenu</NavLink>
-            <NavLink href="/menubar">Menubar</NavLink>
-            <NavLink href="/menu">Menu</NavLink>
-            <NavLink href="/navigation-menu">NavigationMenu</NavLink>
-            <NavLink href="/collapsible">Collapsible</NavLink>
-            <NavLink href="/accordion">Accordion</NavLink>
-            <NavLink href="/alert-dialog">AlertDialog</NavLink>
-            <NavLink href="/avatar">Avatar</NavLink>
-            <NavLink href="/toggle">Toggle</NavLink>
-            <NavLink href="/toggle-group">ToggleGroup</NavLink>
-            <NavLink href="/tabs">Tabs</NavLink>
-            <NavLink href="/radio-group">RadioGroup</NavLink>
-            <NavLink href="/checkbox">Checkbox</NavLink>
-            <NavLink href="/dialog">Dialog</NavLink>
-            <NavLink href="/hover-card">HoverCard</NavLink>
-            <NavLink href="/switch">Switch</NavLink>
-            <NavLink href="/form">Form</NavLink>
-            <NavLink href="/one-time-password-field">OTP</NavLink>
-            <NavLink href="/toast">Toast</NavLink>
-            <NavLink href="/toolbar">Toolbar</NavLink>
-            <NavLink href="/tooltip">Tooltip</NavLink>
-            <NavLink href="/slider">Slider</NavLink>
-            <NavLink href="/select">Select</NavLink>
-            <NavLink href="/scroll-area">ScrollArea</NavLink>
-            <NavLink href="/remove-scroll">RemoveScroll</NavLink>
-            <NavLink href="/portal">Portal</NavLink>
-            <NavLink href="/dismissable-layer">DismissableLayer</NavLink>
-            <NavLink href="/focus-guards">FocusGuards</NavLink>
-            <NavLink href="/focus-scope">FocusScope</NavLink>
-            <NavLink href="/popper">Popper</NavLink>
-            <NavLink href="/popover">Popover</NavLink>
-            <NavLink href="/presence">Presence</NavLink>
-            <NavLink href="/label">Label</NavLink>
-            <NavLink href="/separator">Separator</NavLink>
-            <NavLink href="/aspect-ratio">AspectRatio</NavLink>
-            <NavLink href="/accessible-icon">AccessibleIcon</NavLink>
-            <NavLink href="/slot">Slot</NavLink>
-            <NavLink href="/progress">Progress</NavLink>
-            <NavLink href="/visually-hidden">VisuallyHidden</NavLink>
-        </nav>
+<div class="docs-shell">
+    <header class="docs-shell__header">
+        <NavLink href="/" Match="NavLinkMatch.All" class="docs-shell__brand-link">
+            <span class="eyebrow">Bradix</span>
+            <span class="docs-shell__brand-title">Blazor primitives demo</span>
+        </NavLink>
     </header>
 
-    <main class="shell__content">
-        @Body
-    </main>
+    <div class="docs-shell__frame">
+        <aside class="docs-shell__sidebar" aria-label="Component navigation">
+            <nav class="docs-nav" aria-label="Bradix primitives">
+                <NavLink href="/" Match="NavLinkMatch.All" class="docs-nav__overview">Overview</NavLink>
+
+                @foreach (DemoPageGroup group in FilteredGroups)
+                {
+                    <section class="docs-nav__group">
+                        <header class="docs-nav__group-header">
+                            <h3>@group.Title</h3>
+                        </header>
+
+                        <div class="docs-nav__group-links">
+                            @foreach (DemoPageLink demoPage in group.Pages)
+                            {
+                                <NavLink href="@demoPage.Route" class="docs-nav__link">@demoPage.Title</NavLink>
+                            }
+                        </div>
+                    </section>
+                }
+            </nav>
+        </aside>
+
+        <main class="docs-shell__main">
+            @if (CurrentPage is not null && CurrentPage.Route != "/")
+            {
+                <DemoPageIntro Title="@CurrentPage.Title"
+                               Description="@CurrentPage.Description" />
+            }
+
+            <div class="@(CurrentPage is not null && CurrentPage.Route != "/" ? "docs-shell__content docs-shell__content--component" : "docs-shell__content")">
+                @Body
+            </div>
+        </main>
+    </div>
 </div>
+
+@code {
+    private DemoPageLink? CurrentPage;
+
+    private IReadOnlyList<DemoPageGroup> FilteredGroups => DemoCatalog.Groups;
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += HandleLocationChanged;
+        UpdateCurrentPage();
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        UpdateCurrentPage();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateCurrentPage()
+    {
+        string route = DemoCatalog.NormalizeRoute(new Uri(Navigation.Uri).AbsolutePath);
+        CurrentPage = DemoCatalog.Find(route);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
+}

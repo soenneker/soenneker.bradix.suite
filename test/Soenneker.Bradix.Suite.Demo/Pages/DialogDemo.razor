@@ -3,82 +3,74 @@
 <PageTitle>Bradix Dialog</PageTitle>
 
 <section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixDialog</h2>
-        <p>Modal and non-modal layered content with portal mounting, overlays, dismissal handling, focus restoration, and title/description semantics.</p>
-    </header>
+    <section class="card stack stack--compact">
+        <h3>Modal dialog</h3>
+        <p class="state-line"><strong>Project name:</strong> @_projectName</p>
+        <p class="state-line"><strong>Owner:</strong> @_projectOwner</p>
+        <p class="state-line"><strong>Environment:</strong> @_projectEnvironment</p>
 
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Modal dialog</h3>
+        <BradixDialog Open="@_projectDialogOpen"
+                      OpenChanged="HandleProjectDialogOpenChanged">
+            <BradixDialogTrigger Class="primitive__trigger primitive__trigger--fit">
+                Edit project details
+            </BradixDialogTrigger>
 
-            <p class="state-line"><strong>Project name:</strong> @_projectName</p>
-            <p class="state-line"><strong>Owner:</strong> @_projectOwner</p>
-            <p class="state-line"><strong>Environment:</strong> @_projectEnvironment</p>
+            <BradixDialogPortal>
+                <BradixDialogOverlay Class="dialog-overlay" />
 
-            <BradixDialog Open="@_projectDialogOpen"
-                          OpenChanged="HandleProjectDialogOpenChanged">
-                <BradixDialogTrigger Class="primitive__trigger primitive__trigger--fit">
-                    Edit project details
-                </BradixDialogTrigger>
-
-                <BradixDialogPortal>
-                    <BradixDialogOverlay Class="dialog-overlay" />
-
-                    <BradixDialogContent Class="dialog-surface dialog-surface--animated">
-                        <div class="stack stack--compact">
-                            <BradixDialogTitle>Edit deployment project</BradixDialogTitle>
-                            <BradixDialogDescription>Use the dialog to adjust committed project metadata without leaving the page.</BradixDialogDescription>
-                            <input class="text-input" @bind="_projectDraftName" placeholder="Project name" />
-                            <input class="text-input" @bind="_projectDraftOwner" placeholder="Owner" />
-                            <input class="text-input" @bind="_projectDraftEnvironment" placeholder="Environment" />
-                            <div class="button-row">
-                                <span @onclick="RestoreProjectDrafts">
-                                    <BradixDialogClose Class="primitive__trigger primitive__trigger--fit">Cancel</BradixDialogClose>
-                                </span>
-                                <button class="primitive__trigger primitive__trigger--fit"
-                                        type="button"
-                                        @onclick="SaveProjectAsync">
-                                    Save changes
-                                </button>
-                            </div>
+                <BradixDialogContent Class="dialog-surface dialog-surface--modal dialog-surface--animated">
+                    <div class="stack stack--compact">
+                        <BradixDialogTitle>Edit deployment project</BradixDialogTitle>
+                        <BradixDialogDescription>Use the dialog to adjust committed project metadata without leaving the page.</BradixDialogDescription>
+                        <input class="text-input" @bind="_projectDraftName" placeholder="Project name" />
+                        <input class="text-input" @bind="_projectDraftOwner" placeholder="Owner" />
+                        <input class="text-input" @bind="_projectDraftEnvironment" placeholder="Environment" />
+                        <div class="button-row">
+                            <span @onclick="RestoreProjectDrafts">
+                                <BradixDialogClose Class="primitive__trigger primitive__trigger--fit">Cancel</BradixDialogClose>
+                            </span>
+                            <button class="primitive__trigger primitive__trigger--fit"
+                                    type="button"
+                                    @onclick="SaveProjectAsync">
+                                Save changes
+                            </button>
                         </div>
-                    </BradixDialogContent>
-                </BradixDialogPortal>
-            </BradixDialog>
-        </section>
+                    </div>
+                </BradixDialogContent>
+            </BradixDialogPortal>
+        </BradixDialog>
+    </section>
 
-        <section class="card stack stack--compact">
-            <h3>Non-modal dialog</h3>
-            <p class="state-line"><strong>Inspector note:</strong> @_inspectorNote</p>
+    <section class="card stack stack--compact">
+        <h3>Non-modal dialog</h3>
+        <p class="state-line"><strong>Inspector note:</strong> @_inspectorNote</p>
 
-            <BradixDialog Open="@_inspectorOpen"
-                          OpenChanged="HandleInspectorOpenChanged"
-                          Modal="false">
-                <BradixDialogTrigger Class="primitive__trigger primitive__trigger--fit">Open non-modal</BradixDialogTrigger>
+        <BradixDialog Open="@_inspectorOpen"
+                      OpenChanged="HandleInspectorOpenChanged"
+                      Modal="false">
+            <BradixDialogTrigger Class="primitive__trigger primitive__trigger--fit">Open non-modal</BradixDialogTrigger>
 
-                <BradixDialogPortal>
-                    <BradixDialogContent Class="dialog-surface dialog-surface--animated">
-                        <div class="stack stack--compact">
-                            <BradixDialogTitle>Inspector</BradixDialogTitle>
-                            <BradixDialogDescription>This non-modal dialog can coexist with surrounding content and restore focus appropriately.</BradixDialogDescription>
-                            <input class="text-input" @bind="_inspectorDraft" placeholder="Leave a note for the next reviewer" />
-                            <div class="button-row">
-                                <button class="primitive__trigger primitive__trigger--fit"
-                                        type="button"
-                                        @onclick="SaveInspectorAsync">
-                                    Save note
-                                </button>
-                                <span @onclick="RestoreInspectorDraft">
-                                    <BradixDialogClose Class="primitive__trigger primitive__trigger--fit">Close</BradixDialogClose>
-                                </span>
-                            </div>
+            <BradixDialogPortal>
+                <BradixDialogContent Class="dialog-surface dialog-surface--non-modal dialog-surface--animated">
+                    <div class="stack stack--compact">
+                        <BradixDialogTitle>Inspector</BradixDialogTitle>
+                        <BradixDialogDescription>This non-modal dialog stays visible in the bottom-right corner so it can coexist with the page.</BradixDialogDescription>
+                        <input class="text-input" @bind="_inspectorDraft" placeholder="Leave a note for the next reviewer" />
+                        <div class="button-row">
+                            <button class="primitive__trigger primitive__trigger--fit"
+                                    type="button"
+                                    @onclick="SaveInspectorAsync">
+                                Save note
+                            </button>
+                            <span @onclick="RestoreInspectorDraft">
+                                <BradixDialogClose Class="primitive__trigger primitive__trigger--fit">Close</BradixDialogClose>
+                            </span>
                         </div>
-                    </BradixDialogContent>
-                </BradixDialogPortal>
-            </BradixDialog>
-        </section>
-    </div>
+                    </div>
+                </BradixDialogContent>
+            </BradixDialogPortal>
+        </BradixDialog>
+    </section>
 </section>
 
 @code {

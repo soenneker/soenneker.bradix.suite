@@ -38,8 +38,7 @@
                      OnSwipeMove="HandleSwipeMove"
                      OnSwipeCancel="HandleSwipeCancel"
                      OnSwipeEnd="HandleSwipeEnd"
-                     Class="card stack stack--compact"
-                     Style="min-width: 18rem; border: 1px solid var(--border-color, #d0d7de); background: white; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);">
+                     Class="toast-surface stack stack--compact">
             <BradixToastTitle>Upload complete</BradixToastTitle>
             <BradixToastDescription>Your screenshot bundle is ready to review.</BradixToastDescription>
             <div class="button-row">
@@ -52,15 +51,13 @@
                      OpenChanged="HandleBackgroundOpenChanged"
                      Type="background"
                      Duration="8000"
-                     Class="card stack stack--compact"
-                     Style="min-width: 18rem; border: 1px solid var(--border-color, #d0d7de); background: white; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);">
+                     Class="toast-surface stack stack--compact">
             <BradixToastTitle>Sync in progress</BradixToastTitle>
             <BradixToastDescription>Background revalidation is still running and will finish automatically.</BradixToastDescription>
             <BradixToastClose Class="primitive__trigger">Hide</BradixToastClose>
         </BradixToast>
 
-        <BradixToastViewport Class="stack stack--compact"
-                             Style="position: fixed; right: 1rem; bottom: 1rem; display: flex; flex-direction: column; gap: 0.75rem; width: min(24rem, calc(100vw - 2rem)); margin: 0; padding: 0; list-style: none; z-index: 1000;" />
+        <BradixToastViewport Class="toast-viewport" />
     </BradixToastProvider>
 </section>
 

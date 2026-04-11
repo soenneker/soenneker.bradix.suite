@@ -18,13 +18,13 @@
 
             <BradixSelect Name="fruit"
                           DefaultValue="orange">
-                <BradixSelectTrigger Class="demo-link">
+                <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit">
                     <BradixSelectValue Placeholder="@_placeholder" />
                     <BradixSelectIcon />
                 </BradixSelectTrigger>
 
                 <BradixSelectPortal>
-                    <BradixSelectContent Class="card stack"
+                    <BradixSelectContent Class="select-surface stack stack--compact"
                                          SideOffset="6">
                         <BradixSelectViewport Class="stack">
                             <BradixSelectGroup>
@@ -66,13 +66,13 @@
             <h3>Overflow with scroll buttons</h3>
 
             <BradixSelect DefaultValue="option-8">
-                <BradixSelectTrigger Class="demo-link">
+                <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit">
                     <BradixSelectValue Placeholder="@_placeholder" />
                     <BradixSelectIcon />
                 </BradixSelectTrigger>
 
                 <BradixSelectPortal>
-                    <BradixSelectContent Class="card stack"
+                    <BradixSelectContent Class="select-surface stack stack--compact"
                                          Style="max-height:12rem;">
                         <BradixSelectScrollUpButton>Scroll up</BradixSelectScrollUpButton>
                         <BradixSelectViewport Class="stack">
@@ -96,13 +96,13 @@
 
             <BradixSelect Value="@_priority"
                           ValueChanged="HandlePriorityChanged">
-                <BradixSelectTrigger Class="demo-link">
+                <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit">
                     <BradixSelectValue Placeholder="@_placeholder" />
                     <BradixSelectIcon />
                 </BradixSelectTrigger>
 
                 <BradixSelectPortal>
-                    <BradixSelectContent Class="card stack"
+                    <BradixSelectContent Class="select-surface stack stack--compact"
                                          Position="popper"
                                          SideOffset="6"
                                          Align="start">

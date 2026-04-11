@@ -13,5 +13,6 @@
   <Folder Name="/test/">
     <Project Path="test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj" />
     <Project Path="test/Soenneker.Bradix.Suite.Demo/Soenneker.Bradix.Suite.Demo.csproj" />
+    <Project Path="test/Soenneker.Bradix.Suite.Playwright.Tests/Soenneker.Bradix.Suite.Playwright.Tests.csproj" />
   </Folder>
 </Solution>

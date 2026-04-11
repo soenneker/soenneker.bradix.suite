@@ -10,19 +10,22 @@ let dismissableLayerListenersRegistered = false;
 let dismissableLayerPointerDownListenerRegistered = false;
 let dismissableLayerPointerDownRegistrationScheduled = false;
 let originalDismissableBodyPointerEvents = "";
+let hasStoredDismissableBodyPointerEvents = false;
 
 function updateDismissableLayerPointerEvents() {
   const highestDisabledIndex = [...dismissableLayers].map((layer) => layer.disableOutsidePointerEvents).lastIndexOf(true);
 
   if (highestDisabledIndex >= 0) {
-    if (!originalDismissableBodyPointerEvents) {
+    if (!hasStoredDismissableBodyPointerEvents) {
       originalDismissableBodyPointerEvents = document.body.style.pointerEvents || "";
+      hasStoredDismissableBodyPointerEvents = true;
     }
 
     document.body.style.pointerEvents = "none";
-  } else if (originalDismissableBodyPointerEvents !== "") {
+  } else if (hasStoredDismissableBodyPointerEvents) {
     document.body.style.pointerEvents = originalDismissableBodyPointerEvents;
     originalDismissableBodyPointerEvents = "";
+    hasStoredDismissableBodyPointerEvents = false;
   } else {
     document.body.style.pointerEvents = "";
   }
