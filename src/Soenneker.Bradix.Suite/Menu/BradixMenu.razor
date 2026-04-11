@@ -63,6 +63,10 @@
 
     internal bool HasTrigger { get; private set; }
 
+    internal ElementReference ContentElement { get; private set; }
+
+    internal bool HasContentElement { get; private set; }
+
     protected override void OnInitialized()
     {
         BaseId ??= IdGenerator.New("bradix-menu");
@@ -198,6 +202,21 @@
     {
         TriggerElement = element;
         HasTrigger = true;
+    }
+
+    internal void RegisterContent(ElementReference element)
+    {
+        ContentElement = element;
+        HasContentElement = true;
+    }
+
+    internal void ClearContent(ElementReference element)
+    {
+        if (!HasContentElement || !string.Equals(ContentElement.Id, element.Id, StringComparison.Ordinal))
+            return;
+
+        ContentElement = default;
+        HasContentElement = false;
     }
 
     internal async Task FocusTriggerAsync()

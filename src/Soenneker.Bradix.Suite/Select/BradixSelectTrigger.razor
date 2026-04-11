@@ -1,13 +1,15 @@
 @namespace Soenneker.Bradix
 
+@implements IAsyncDisposable
 @inherits BradixComponentBase
+@inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 
 <BradixPopperAnchor>
     <button @ref="_button"
             @onclick="HandleClickAsync"
             @onpointerdown="HandlePointerDownAsync"
             @onkeydown="HandleKeyDownAsync"
-            @onkeydown:preventDefault="true"
             @attributes="TriggerAttributes">
         @ChildContent
     </button>
@@ -15,7 +17,9 @@
 
 @code {
     private ElementReference _button;
+    private bool _delegatedInteractionRegistered;
     private string _pointerType = "touch";
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     private BradixSelect? Select { get; set; }
@@ -38,12 +42,31 @@
         ("data-placeholder", Select?.ShouldShowPlaceholder == true ? string.Empty : null),
         ("disabled", IsDisabled ? true : null));
 
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             Select?.RegisterTrigger(_button);
+            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    currentTargetOnly = true,
+                    preventDefaultKeys = new[] { " ", "Spacebar", "Enter", "ArrowUp", "ArrowDown" }
+                }
+            });
+            _delegatedInteractionRegistered = true;
+        }
 
-        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_button);
+
+        _dotNetReference?.Dispose();
     }
 
     private async Task HandleClickAsync(MouseEventArgs _)
@@ -81,5 +104,11 @@
 
         if (args.Key is " " or "Spacebar" or "Enter" or "ArrowUp" or "ArrowDown")
             await Select.OpenFromTriggerAsync();
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        return Task.CompletedTask;
     }
 }

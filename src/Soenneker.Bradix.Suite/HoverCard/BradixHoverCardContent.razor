@@ -45,6 +45,7 @@
     private ElementReference _contentElement;
     private bool _hasContentElement;
     private bool _selectionContainmentRegistered;
+    private bool _tabNavigationDisabled;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -114,10 +115,27 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!IsPresent)
+        {
+            if (_selectionContainmentRegistered)
+            {
+                await Interop.UnregisterHoverCardSelectionContainment(_contentElement);
+                _selectionContainmentRegistered = false;
+            }
+
+            _hasContentElement = false;
+            _tabNavigationDisabled = false;
+            return;
+        }
+
         if (!_hasContentElement)
             return;
 
-        await Interop.DisableHoverCardContentTabNavigation(_contentElement);
+        if (!_tabNavigationDisabled)
+        {
+            await Interop.DisableHoverCardContentTabNavigation(_contentElement);
+            _tabNavigationDisabled = true;
+        }
 
         if (_selectionContainmentRegistered)
             return;
@@ -139,6 +157,7 @@
     {
         _contentElement = element;
         _hasContentElement = true;
+        _tabNavigationDisabled = false;
         return Task.CompletedTask;
     }
 

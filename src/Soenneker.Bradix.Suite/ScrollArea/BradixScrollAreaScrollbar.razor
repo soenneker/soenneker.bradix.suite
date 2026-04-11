@@ -9,6 +9,8 @@
 {
     <CascadingValue Value="this">
         <div @ref="_scrollbar"
+             @onpointerenter="HandlePointerEnterAsync"
+             @onpointerleave="HandlePointerLeaveAsync"
              @attributes="ScrollbarAttributes">
             @ChildContent
         </div>
@@ -33,10 +35,22 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         Orientation = Orientation == "horizontal" ? "horizontal" : "vertical";
-        ScrollArea.RegisterScrollbar(Orientation, ForceMount);
+        bool shouldRender = ScrollArea.ShouldRenderScrollbar(Orientation, ForceMount);
 
-        if (!ScrollArea.ShouldRenderScrollbar(Orientation, ForceMount) || !ScrollArea.HasViewport)
+        if (!shouldRender || !ScrollArea.HasViewport)
+        {
+            ScrollArea.UnregisterScrollbar(Orientation);
+
+            if (_registered)
+            {
+                await Interop.UnregisterScrollAreaScrollbar(_scrollbar);
+                _registered = false;
+            }
+
             return;
+        }
+
+        ScrollArea.RegisterScrollbar(Orientation, ForceMount);
 
         if (_dotNetReference is null)
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
@@ -58,6 +72,16 @@
     internal void RegisterThumb(ElementReference thumb)
     {
         _thumb = thumb;
+    }
+
+    private Task HandlePointerEnterAsync(PointerEventArgs _)
+    {
+        return ScrollArea.HandleScrollbarPointerChangedAsync(Orientation, true);
+    }
+
+    private Task HandlePointerLeaveAsync(PointerEventArgs _)
+    {
+        return ScrollArea.HandleScrollbarPointerChangedAsync(Orientation, false);
     }
 
     private Dictionary<string, object> ScrollbarAttributes => BuildAttributes(

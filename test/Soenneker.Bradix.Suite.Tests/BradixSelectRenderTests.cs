@@ -43,6 +43,8 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.SetupVoid("unregisterFocusScope", _ => true).SetVoidResult();
         _module.SetupVoid("registerRemoveScroll", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.Setup<string>("getTextContent", _ => true).SetResult("Fruit");
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
@@ -103,12 +105,16 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Fact]
-    public void Space_does_not_select_item_while_typeahead_is_active()
+    public async Task Space_does_not_select_item_while_typeahead_is_active()
     {
         var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        var content = cut.FindComponent<BradixSelectContent>();
 
         var items = cut.FindAll("[role='option']");
-        items[0].KeyDown(new KeyboardEventArgs { Key = "l" });
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "l"
+        }));
         items = cut.FindAll("[role='option']");
         items[1].KeyDown(new KeyboardEventArgs { Key = " " });
 
@@ -116,6 +122,36 @@ public sealed class BradixSelectRenderTests : BunitContext
         {
             Assert.Contains("Orange", cut.Find("button[role='combobox']").TextContent);
             Assert.NotEmpty(cut.FindAll("[role='listbox']"));
+        });
+    }
+
+    [Fact]
+    public async Task Page_up_and_page_down_do_not_move_focus_in_content()
+    {
+        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        var content = cut.FindComponent<BradixSelectContent>();
+        var initialTabIndexes = cut.FindAll("[role='option']").Select(item => item.GetAttribute("tabindex")).ToArray();
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "PageDown"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            var items = cut.FindAll("[role='option']");
+            Assert.Equal(initialTabIndexes, items.Select(item => item.GetAttribute("tabindex")).ToArray());
+        });
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "PageUp"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            var items = cut.FindAll("[role='option']");
+            Assert.Equal(initialTabIndexes, items.Select(item => item.GetAttribute("tabindex")).ToArray());
         });
     }
 

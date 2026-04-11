@@ -4,6 +4,7 @@
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 
 <CascadingValue Value="this">
     <div @ref="_element"
@@ -11,7 +12,6 @@
          @onfocus="HandleFocusAsync"
          @onblur="HandleBlurAsync"
          @onkeydown="HandleKeyDownAsync"
-         @onkeydown:preventDefault="true"
          @onpointerdown="HandlePointerDownAsync"
          @onpointerup="HandlePointerUpAsync"
          @onpointermove="HandlePointerMoveAsync"
@@ -28,6 +28,8 @@
     private string? _resolvedTextValue;
     private ElementReference _itemTextElement;
     private bool _hasItemTextElement;
+    private bool _delegatedInteractionRegistered;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     private BradixSelect? Select { get; set; }
@@ -82,6 +84,16 @@
                 throw new InvalidOperationException("A BradixSelectItem value cannot be empty.");
 
             Select.RegisterItem(this);
+            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    currentTargetOnly = true,
+                    preventDefaultKeys = new[] { " ", "Spacebar" }
+                }
+            });
+            _delegatedInteractionRegistered = true;
             _registered = true;
         }
 
@@ -99,12 +111,15 @@
         }
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_element);
+
         if (_registered)
             Select?.UnregisterItem(this);
 
-        return ValueTask.CompletedTask;
+        _dotNetReference?.Dispose();
     }
 
     ValueTask IBradixSelectItem.FocusAsync() => Interop.FocusElementPreventScroll(_element);
@@ -168,8 +183,12 @@
             return;
         }
 
-        if (args.Key.Length == 1)
-            await Select.HandleContentTypeaheadAsync(args.Key);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        return Task.CompletedTask;
     }
 
     private Task HandlePointerDownAsync(PointerEventArgs args)

@@ -44,6 +44,7 @@
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", "menubar"),
+        ("aria-orientation", "horizontal"),
         ("dir", ResolvedDirection));
 
     protected override void OnParametersSet()
@@ -164,6 +165,23 @@
             return false;
 
         return _triggers.Snapshot().Any(entry => string.Equals(entry.Item.TriggerId, triggerId, StringComparison.Ordinal));
+    }
+
+    internal bool ContainsRegisteredTriggerTarget(string? targetId, IEnumerable<string>? ancestorIds)
+    {
+        if (IsRegisteredTriggerId(targetId))
+            return true;
+
+        if (ancestorIds is null)
+            return false;
+
+        foreach (string ancestorId in ancestorIds)
+        {
+            if (IsRegisteredTriggerId(ancestorId))
+                return true;
+        }
+
+        return false;
     }
 
     private async Task SetValueAsync(string? value)

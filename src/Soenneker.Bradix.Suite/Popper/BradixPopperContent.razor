@@ -29,6 +29,7 @@
     private double? _arrowY;
     private bool _hideArrow;
     private bool _hidden;
+    private bool _isPositioned;
     private string _transformOriginX = "50%";
     private string _transformOriginY = "50%";
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir)? _lastOptions;
@@ -179,6 +180,7 @@
         _arrowY = arrowY;
         _hideArrow = shouldHideArrow;
         _hidden = hidden;
+        _isPositioned = true;
         _transformOriginX = transformOriginX;
         _transformOriginY = transformOriginY;
 
@@ -190,8 +192,9 @@
 
     private string BuildContentStyle()
     {
-        string baseStyle =
-            $"position: fixed; left: {_left.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; top: {_top.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; min-width: max-content; --radix-popper-available-width: {_availableWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-available-height: {_availableHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-anchor-width: {_anchorWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-anchor-height: {_anchorHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-transform-origin: {_transformOriginX} {_transformOriginY};";
+        string baseStyle = _isPositioned
+            ? $"position: fixed; left: {_left.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; top: {_top.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; min-width: max-content; --radix-popper-available-width: {_availableWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-available-height: {_availableHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-anchor-width: {_anchorWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-anchor-height: {_anchorHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-transform-origin: {_transformOriginX} {_transformOriginY};"
+            : "position: fixed; left: 0px; top: 0px; min-width: max-content; transform: translate(0, -200%); animation: none; --radix-popper-available-width: 0px; --radix-popper-available-height: 0px; --radix-popper-anchor-width: 0px; --radix-popper-anchor-height: 0px; --radix-popper-transform-origin: 50% 0px;";
 
         if (_hidden)
             baseStyle += " visibility: hidden; pointer-events: none;";

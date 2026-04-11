@@ -57,7 +57,6 @@
     private CancellationTokenSource? _closeTimerCts;
     private CancellationTokenSource? _announceCts;
     private ElementReference _toastElement;
-    private ElementReference _closeButtonElement;
     private string[] _announceTextSegments = [];
     private double? _pointerStartX;
     private double? _pointerStartY;
@@ -67,6 +66,7 @@
     private double _swipeEndX;
     private double _swipeEndY;
     private bool _lastKnownOpen;
+    private long? _activePointerId;
 
     [CascadingParameter]
     private BradixToastProvider? Provider { get; set; }
@@ -147,10 +147,8 @@
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : [];
 
-            attributes["role"] = "status";
-            attributes["aria-live"] = IsForeground ? "assertive" : "polite";
-            attributes["aria-atomic"] = "true";
             attributes["tabindex"] = 0;
+            attributes["data-radix-toast-root"] = string.Empty;
             attributes["data-state"] = CurrentOpen ? "open" : "closed";
             attributes["data-swipe-direction"] = Provider?.SwipeDirection ?? "right";
 
@@ -161,6 +159,7 @@
             attributes["onpointerdown"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDownAsync);
             attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMoveAsync);
             attributes["onpointerup"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUpAsync);
+            attributes["onpointercancel"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerCancelAsync);
 
             return attributes;
         }
@@ -270,11 +269,6 @@
 
         if (wasFocused && Provider?.HasViewport == true)
             await Interop.FocusElementById(Provider.ViewportId);
-    }
-
-    internal void RegisterCloseButton(ElementReference element)
-    {
-        _closeButtonElement = element;
     }
 
     internal Task TriggerCloseAsync() => CloseAsync();
@@ -399,6 +393,7 @@
         if (args.Button != 0)
             return Task.CompletedTask;
 
+        _activePointerId = args.PointerId;
         _pointerStartX = args.ClientX;
         _pointerStartY = args.ClientY;
         _swipeState = null;
@@ -406,7 +401,7 @@
         _swipeMoveY = 0;
         _swipeEndX = 0;
         _swipeEndY = 0;
-        return Task.CompletedTask;
+        return TryCapturePointerAsync(args.PointerId);
     }
 
     private async Task HandlePointerMoveAsync(PointerEventArgs args)
@@ -452,6 +447,8 @@
 
     private async Task HandlePointerUpAsync(PointerEventArgs _)
     {
+        await TryReleasePointerAsync();
+
         if (Provider is null || string.IsNullOrWhiteSpace(_swipeState))
         {
             ResetSwipeTracking();
@@ -475,6 +472,7 @@
             if (OnSwipeEnd.HasDelegate)
                 await OnSwipeEnd.InvokeAsync(args);
 
+            await Interop.SuppressNextClick(_toastElement);
             await CloseAsync();
         }
         else
@@ -488,14 +486,45 @@
             if (OnSwipeCancel.HasDelegate)
                 await OnSwipeCancel.InvokeAsync(args);
 
+            await Interop.SuppressNextClick(_toastElement);
             await InvokeAsync(StateHasChanged);
         }
 
         ResetSwipeTracking(clearState: false);
     }
 
+    private async Task HandlePointerCancelAsync(PointerEventArgs _)
+    {
+        await TryReleasePointerAsync();
+
+        if (string.IsNullOrWhiteSpace(_swipeState))
+        {
+            ResetSwipeTracking();
+            return;
+        }
+
+        BradixToastSwipeEventArgs args = new()
+        {
+            DeltaX = _swipeMoveX,
+            DeltaY = _swipeMoveY
+        };
+
+        _swipeState = "cancel";
+        _swipeMoveX = 0;
+        _swipeMoveY = 0;
+        _swipeEndX = 0;
+        _swipeEndY = 0;
+
+        if (OnSwipeCancel.HasDelegate)
+            await OnSwipeCancel.InvokeAsync(args);
+
+        ResetSwipeTracking(clearState: false);
+        await InvokeAsync(StateHasChanged);
+    }
+
     private void ResetSwipeTracking(bool clearState = true)
     {
+        _activePointerId = null;
         _pointerStartX = null;
         _pointerStartY = null;
 
@@ -503,14 +532,35 @@
             _swipeState = null;
     }
 
+    private Task TryCapturePointerAsync(long pointerId)
+    {
+        return pointerId > 0
+            ? Interop.CapturePointer(_toastElement, pointerId).AsTask()
+            : Task.CompletedTask;
+    }
+
+    private async Task TryReleasePointerAsync()
+    {
+        if (_activePointerId is null || _activePointerId.Value <= 0)
+            return;
+
+        long pointerId = _activePointerId.Value;
+        _activePointerId = null;
+        await Interop.ReleasePointer(_toastElement, pointerId);
+    }
+
     private static bool IsDeltaInDirection(double x, double y, string direction, double threshold)
     {
+        double deltaX = Math.Abs(x);
+        double deltaY = Math.Abs(y);
+        bool isDeltaX = deltaX > deltaY;
+
         return direction switch
         {
-            "right" => x >= threshold,
-            "left" => x <= -threshold,
-            "down" => y >= threshold,
-            "up" => y <= -threshold,
+            "right" => isDeltaX && x > threshold,
+            "left" => isDeltaX && x < -threshold,
+            "down" => !isDeltaX && y > threshold,
+            "up" => !isDeltaX && y < -threshold,
             _ => false
         };
     }

@@ -58,7 +58,9 @@
     [Parameter]
     public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
 
-    private Dictionary<string, object> LayerAttributes => BuildAttributes();
+    private Dictionary<string, object> LayerAttributes => BuildAttributes(
+        ("data-bradix-dismissable-layer", string.Empty),
+        ("data-bradix-dismiss-on-escape-key-down", DismissOnEscapeKeyDown ? string.Empty : null));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

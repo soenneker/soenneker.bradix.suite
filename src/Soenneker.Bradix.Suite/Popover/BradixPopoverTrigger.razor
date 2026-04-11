@@ -37,8 +37,11 @@
     [Parameter]
     public bool Disabled { get; set; }
 
+    private string ResolvedTriggerId => string.IsNullOrWhiteSpace(Id) ? Popover?.DefaultTriggerId ?? string.Empty : Id;
+
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
+        ("id", ResolvedTriggerId),
         ("aria-haspopup", "dialog"),
         ("aria-expanded", Popover?.CurrentOpen == true ? "true" : "false"),
         ("aria-controls", Popover?.ContentId),
@@ -50,7 +53,7 @@
     {
         if (firstRender)
         {
-            Popover?.RegisterTrigger(_button);
+            Popover?.RegisterTrigger(_button, ResolvedTriggerId);
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {

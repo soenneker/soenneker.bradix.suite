@@ -1,8 +1,11 @@
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
@@ -31,11 +34,10 @@ public sealed class BradixMenubarRenderTests : BunitContext
         _module.SetupVoid("unregisterFocusScope", _ => true).SetVoidResult();
         _module.SetupVoid("registerFocusGuards", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterFocusGuards", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.Setup<string>("getTextContent", _ => true).SetResult("Share");
-        _module.Setup<string>("getActiveElementId", _ => true).SetResult(string.Empty);
-        _module.Setup<BradixMenubarActiveElementState>("getMenubarActiveElementState", _ => true)
-            .SetResult(new BradixMenubarActiveElementState());
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 
@@ -79,13 +81,28 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Fact]
-    public void Content_arrow_right_opens_adjacent_menu()
+    public void Menubar_root_exposes_horizontal_orientation()
+    {
+        var cut = Render(CreateMenubar());
+
+        Assert.Equal("horizontal", cut.Find("[role='menubar']").GetAttribute("aria-orientation"));
+    }
+
+    [Fact]
+    public async Task Content_arrow_right_opens_adjacent_menu()
     {
         var cut = Render(CreateMenubar());
         var triggers = cut.FindAll("button[role='menuitem']");
 
         triggers[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
-        cut.Find("[role='menu']").KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        var content = FindOpenContent(cut);
+        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "ArrowRight",
+            ClosestMenubarContentId = currentContentId
+        }));
 
         cut.WaitForAssertion(() =>
         {
@@ -96,7 +113,42 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Fact]
-    public void Checkbox_and_radio_wrappers_render_checked_state()
+    public async Task Menubar_interactions_do_not_query_active_element_js()
+    {
+        var cut = Render(CreateMenubar());
+        cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+        var content = FindOpenContent(cut);
+        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "ArrowRight",
+            ClosestMenubarContentId = currentContentId
+        }));
+
+        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "getActiveElementId");
+    }
+
+    [Fact]
+    public async Task Menubar_content_arrow_right_ignores_nested_subtrigger_navigation()
+    {
+        var cut = Render(CreateMenubar());
+        cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+        var content = FindOpenContent(cut);
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "ArrowRight",
+            IsMenubarSubTrigger = true
+        }));
+
+        var updatedTriggers = cut.FindAll("button[role='menuitem']");
+        Assert.Equal("true", updatedTriggers[0].GetAttribute("aria-expanded"));
+        Assert.Equal("false", updatedTriggers[1].GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
+    public async Task Checkbox_and_radio_wrappers_render_checked_state()
     {
         var cut = Render(CreateMenubar());
         cut.FindAll("button[role='menuitem']")[1].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
@@ -106,7 +158,14 @@ public sealed class BradixMenubarRenderTests : BunitContext
             Assert.Equal("mixed", cut.Find("[role='menuitemcheckbox']").GetAttribute("aria-checked"));
         });
 
-        cut.Find("[role='menu']").KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        var content = FindOpenContent(cut);
+        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "ArrowRight",
+            ClosestMenubarContentId = currentContentId
+        }));
 
         cut.WaitForAssertion(() =>
         {
@@ -121,13 +180,13 @@ public sealed class BradixMenubarRenderTests : BunitContext
     {
         var cut = Render(CreateMenubar());
         cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
-        var subTrigger = cut.Find("[data-bradix-menubar-subtrigger]");
+        var subTrigger = cut.Find("[data-radix-menubar-subtrigger]");
 
         subTrigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Equal("true", cut.Find("[data-bradix-menubar-subtrigger]").GetAttribute("aria-expanded"));
+            Assert.Equal("true", cut.Find("[data-radix-menubar-subtrigger]").GetAttribute("aria-expanded"));
             Assert.Contains("Copy link", cut.Markup);
         });
     }
@@ -231,5 +290,11 @@ public sealed class BradixMenubarRenderTests : BunitContext
             menu.CloseComponent();
         }));
         builder.CloseComponent();
+    }
+
+    private static IRenderedComponent<BradixMenubarContent> FindOpenContent(IRenderedComponent<ContainerFragment> cut)
+    {
+        return cut.FindComponents<BradixMenubarContent>()
+            .First(component => component.FindAll("[role='menu']").Count > 0);
     }
 }

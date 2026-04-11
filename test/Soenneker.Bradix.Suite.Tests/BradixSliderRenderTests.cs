@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bunit;
@@ -73,6 +74,21 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Fact]
+    public async Task Slider_pointer_cancel_does_not_commit_value()
+    {
+        int commitCount = 0;
+        var cut = Render(CreateSlider(defaultValues: [20], onValueCommit: () => commitCount++));
+        var slider = cut.FindComponent<BradixSlider>();
+
+        await slider.Instance.HandlePointerStartAsync(0.75, 0.5, -1);
+        await slider.Instance.HandlePointerMoveAsync(0.8, 0.5);
+        await slider.Instance.HandlePointerCancelAsync();
+
+        Assert.Equal(0, commitCount);
+        Assert.Equal("80", cut.Find("[role='slider']").GetAttribute("aria-valuenow"));
+    }
+
+    [Fact]
     public void Slider_with_name_outside_form_does_not_render_bubble_inputs()
     {
         var cut = Render(CreateSlider(defaultValues: [10, 30], name: "price"));
@@ -100,7 +116,7 @@ public sealed class BradixSliderRenderTests : BunitContext
         Assert.Equal("21", thumb.GetAttribute("aria-valuenow"));
     }
 
-    private static RenderFragment CreateSlider(IReadOnlyList<double> defaultValues, double minStepsBetweenThumbs = 0, string? name = null)
+    private static RenderFragment CreateSlider(IReadOnlyList<double> defaultValues, double minStepsBetweenThumbs = 0, string? name = null, Action? onValueCommit = null)
     {
         return builder =>
         {
@@ -110,6 +126,9 @@ public sealed class BradixSliderRenderTests : BunitContext
 
             if (name is not null)
                 builder.AddAttribute(3, nameof(BradixSlider.Name), name);
+
+            if (onValueCommit is not null)
+                builder.AddAttribute(5, nameof(BradixSlider.OnValueCommit), EventCallback.Factory.Create<IReadOnlyList<double>>(new object(), _ => onValueCommit()));
 
             builder.AddAttribute(4, nameof(BradixSlider.ChildContent), (RenderFragment) (contentBuilder =>
             {

@@ -95,6 +95,23 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Fact]
+    public void Hoverable_content_pointer_leave_does_not_close_before_grace_area_exit()
+    {
+        var cut = Render(CreateTooltip(defaultOpen: true));
+
+        cut.Find(".tooltip-content > div").TriggerEvent("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs
+        {
+            PointerType = "mouse"
+        });
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Single(cut.FindAll("[role='tooltip']"));
+            Assert.Contains("Tooltip body", cut.Markup);
+        });
+    }
+
+    [Fact]
     public void Default_open_tooltip_renders_arrow()
     {
         var cut = Render(CreateTooltip(defaultOpen: true, includeArrow: true));

@@ -30,7 +30,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnregisterRadioGroupItemKeys(ElementReference element, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterCheckboxRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
+    ValueTask RegisterCheckboxRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, string? formId = null,
+        CancellationToken cancellationToken = default);
 
     ValueTask RegisterDelegatedInteraction(ElementReference element, DotNetObjectReference<object> dotNetReference, object options,
         CancellationToken cancellationToken = default);
@@ -64,7 +65,7 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnregisterCheckboxRoot(ElementReference element, CancellationToken cancellationToken = default);
 
-    ValueTask<bool> IsFormControl(ElementReference element, CancellationToken cancellationToken = default);
+    ValueTask<bool> IsFormControl(ElementReference element, string? formId = null, CancellationToken cancellationToken = default);
 
     ValueTask SyncCheckboxBubbleInputState(ElementReference element, bool isChecked, bool isIndeterminate, bool dispatchEvent, bool bubbles = true,
         CancellationToken cancellationToken = default);
@@ -104,6 +105,12 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask<bool> IsToastFocused(ElementReference toast, CancellationToken cancellationToken = default);
 
+    ValueTask CapturePointer(ElementReference element, long pointerId, CancellationToken cancellationToken = default);
+
+    ValueTask ReleasePointer(ElementReference element, long pointerId, CancellationToken cancellationToken = default);
+
+    ValueTask SuppressNextClick(ElementReference element, CancellationToken cancellationToken = default);
+
     ValueTask FocusElementById(string? elementId, CancellationToken cancellationToken = default);
 
     ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default);
@@ -136,6 +143,11 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask RegisterPopperContent(ElementReference anchor, ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference,
         object options, CancellationToken cancellationToken = default);
+
+    ValueTask<bool> BeginMenuSubmenuPointerGrace(ElementReference trigger, ElementReference content, double clientX, double clientY,
+        DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
+
+    ValueTask CancelMenuSubmenuPointerGrace(ElementReference trigger, CancellationToken cancellationToken = default);
 
     ValueTask RegisterVirtualPopperContent(ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, double x, double y,
         object options, CancellationToken cancellationToken = default);
@@ -236,7 +248,4 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask<string[]> GetToastAnnounceText(ElementReference element, CancellationToken cancellationToken = default);
 
-    ValueTask<string> GetActiveElementId(CancellationToken cancellationToken = default);
-
-    ValueTask<BradixMenubarActiveElementState> GetMenubarActiveElementState(string currentContentId, CancellationToken cancellationToken = default);
 }

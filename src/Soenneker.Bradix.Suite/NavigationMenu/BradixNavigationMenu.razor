@@ -88,7 +88,6 @@
     internal string ActiveViewportValue => HasOpenItem ? CurrentValue : PreviousValue;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("aria-label", IsRootMenu ? "Main" : null),
         ("data-orientation", Orientation),
         ("dir", ResolvedDirection));
 

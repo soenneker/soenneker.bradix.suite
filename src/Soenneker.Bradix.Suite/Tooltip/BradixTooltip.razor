@@ -17,7 +17,6 @@
     private bool _uncontrolledOpen;
     private bool _openedWithDelay;
     private CancellationTokenSource? _openDelayTokenSource;
-    private CancellationTokenSource? _closeDelayTokenSource;
 
     [CascadingParameter]
     private BradixTooltipProvider? Provider { get; set; }
@@ -85,14 +84,11 @@
     public ValueTask DisposeAsync()
     {
         CancelOpenDelay();
-        CancelCloseDelay();
         return ValueTask.CompletedTask;
     }
 
     internal async Task HandleTriggerEnterAsync()
     {
-        CancelCloseDelay();
-
         if ((Provider?.IsOpenDelayed).GetValueOrDefault(true))
         {
             StartOpenDelay();
@@ -114,13 +110,12 @@
 
     internal Task HandleContentEnterAsync()
     {
-        CancelCloseDelay();
         return Task.CompletedTask;
     }
 
     internal Task HandleContentLeaveAsync()
     {
-        return CloseAsync();
+        return Task.CompletedTask;
     }
 
     internal Task HandleTriggerFocusAsync(bool pointerDown)
@@ -146,7 +141,6 @@
     internal async Task CloseAsync()
     {
         CancelOpenDelay();
-        CancelCloseDelay();
         await SetOpenAsync(false, false, true);
     }
 
@@ -169,29 +163,9 @@
         }
     }
 
-    private void StartCloseDelay()
-    {
-        CancelCloseDelay();
-        _closeDelayTokenSource = new CancellationTokenSource();
-        _ = CloseAfterDelayAsync(_closeDelayTokenSource.Token);
-    }
-
-    private async Task CloseAfterDelayAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            await Task.Delay(100, cancellationToken);
-            await CloseAsync();
-        }
-        catch (TaskCanceledException)
-        {
-        }
-    }
-
     private async Task OpenNowAsync(bool delayed)
     {
         CancelOpenDelay();
-        CancelCloseDelay();
         await SetOpenAsync(true, delayed, true);
     }
 
@@ -233,12 +207,5 @@
         _openDelayTokenSource?.Cancel();
         _openDelayTokenSource?.Dispose();
         _openDelayTokenSource = null;
-    }
-
-    private void CancelCloseDelay()
-    {
-        _closeDelayTokenSource?.Cancel();
-        _closeDelayTokenSource?.Dispose();
-        _closeDelayTokenSource = null;
     }
 }

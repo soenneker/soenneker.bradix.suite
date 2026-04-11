@@ -92,9 +92,6 @@
             if (!string.IsNullOrWhiteSpace(Dialog?.DescriptionId))
                 attributes["aria-describedby"] = Dialog.DescriptionId;
 
-            if (Dialog?.Modal == true)
-                attributes["aria-modal"] = "true";
-
             return attributes;
         }
     }
@@ -197,6 +194,9 @@
         if (Dialog?.Modal == true)
             return;
 
+        if (IsTriggerInteraction(args))
+            args.PreventDefault();
+
         if (!args.DefaultPrevented)
         {
             _hasInteractedOutside = true;
@@ -207,6 +207,19 @@
 
         if (args.OriginalEventType == "focusin" && _hasPointerDownOutside)
             args.PreventDefault();
+    }
+
+    private bool IsTriggerInteraction(BradixInteractOutsideEventArgs args)
+    {
+        if (Dialog is null || !Dialog.HasTrigger)
+            return false;
+
+        return args.OriginalEventType switch
+        {
+            "pointerdown" => Dialog.ContainsTriggerTarget(args.PointerDownOutsideEvent?.TargetId, args.PointerDownOutsideEvent?.AncestorIds),
+            "focusin" => Dialog.ContainsTriggerTarget(args.FocusOutsideEvent?.TargetId, args.FocusOutsideEvent?.AncestorIds),
+            _ => false
+        };
     }
 
     private Task HandleDismissAsync()

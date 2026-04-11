@@ -58,12 +58,12 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Fact]
-    public void Modal_popover_marks_content_as_modal()
+    public void Modal_popover_registers_modal_infra_without_redundant_aria_modal()
     {
         var cut = Render(CreatePopover(defaultOpen: true, modal: true));
 
         var dialog = cut.Find("[role='dialog']");
-        Assert.Equal("true", dialog.GetAttribute("aria-modal"));
+        Assert.Null(dialog.GetAttribute("aria-modal"));
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
     }
@@ -78,6 +78,33 @@ public sealed class BradixPopoverRenderTests : BunitContext
 
         var trigger = cut.Find("button[aria-haspopup='dialog']");
         Assert.Equal("false", trigger.GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
+    public async Task Pointer_down_on_trigger_does_not_dismiss_non_modal_popover()
+    {
+        var cut = Render(CreatePopover(defaultOpen: true));
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+        var trigger = cut.Find("button[aria-haspopup='dialog']");
+        string triggerId = Assert.IsType<string>(trigger.Id);
+
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        {
+            AncestorIds = [triggerId]
+        }));
+
+        Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
+    public async Task Close_on_escape_can_be_disabled_from_popover_content()
+    {
+        var cut = Render(CreatePopover(defaultOpen: true, closeOnEscapeKeyDown: false));
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+
+        await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDownAsync());
+
+        Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
     }
 
     [Fact]
@@ -107,7 +134,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         Assert.Single(cut.FindAll("[role='dialog']"));
     }
 
-    private static RenderFragment CreatePopover(bool defaultOpen = false, bool modal = false, bool customAnchor = false)
+    private static RenderFragment CreatePopover(bool defaultOpen = false, bool modal = false, bool customAnchor = false, bool closeOnEscapeKeyDown = true)
     {
         return builder =>
         {
@@ -145,7 +172,8 @@ public sealed class BradixPopoverRenderTests : BunitContext
 
                 content.OpenComponent<BradixPopoverContent>(6);
                 content.AddAttribute(7, nameof(BradixPopoverContent.Class), "popover-content");
-                content.AddAttribute(8, nameof(BradixPopoverContent.ChildContent), (RenderFragment)(popoverContent =>
+                content.AddAttribute(8, nameof(BradixPopoverContent.CloseOnEscapeKeyDown), closeOnEscapeKeyDown);
+                content.AddAttribute(9, nameof(BradixPopoverContent.ChildContent), (RenderFragment)(popoverContent =>
                 {
                     popoverContent.OpenElement(0, "div");
                     popoverContent.AddContent(1, "Body");

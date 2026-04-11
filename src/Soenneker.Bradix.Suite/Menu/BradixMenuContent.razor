@@ -3,6 +3,7 @@
 @implements IAsyncDisposable
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 
 @if (ShouldRenderContainer)
 {
@@ -19,15 +20,18 @@
 }
 
 @code {
+    private readonly HashSet<string> _submenuPointerGraceItems = [];
     private bool _wasPresent;
     private bool _isExiting;
     private bool _hasInteractedOutside;
     private bool _hasPointerDownOutside;
     private bool _hideOthersRegistered;
     private bool _contentElementCaptured;
+    private bool _delegatedInteractionRegistered;
     private bool _pendingOpenAutoFocus;
     private ElementReference _contentElement;
     private ElementReference _layerElement;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     private BradixMenu? Menu { get; set; }
@@ -135,12 +139,7 @@
             attributes["dir"] = Menu?.ResolvedDirection ?? "ltr";
             attributes["aria-orientation"] = "vertical";
             attributes["data-state"] = Menu?.CurrentOpen == true ? "open" : "closed";
-
-            if (OnContentKeyDown.HasDelegate)
-                attributes["onkeydown"] = EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleContentKeyDownAsync);
-
-            if (Menu?.Modal == true)
-                attributes["aria-modal"] = "true";
+            attributes["data-radix-menu-content"] = string.Empty;
 
             return attributes;
         }
@@ -160,11 +159,19 @@
 
     public async ValueTask DisposeAsync()
     {
+        if (_delegatedInteractionRegistered)
+        {
+            await Interop.UnregisterDelegatedInteraction(_contentElement);
+            _delegatedInteractionRegistered = false;
+        }
+
         if (_hideOthersRegistered)
         {
             await Interop.UnregisterHideOthers(_layerElement);
             _hideOthersRegistered = false;
         }
+
+        _dotNetReference?.Dispose();
     }
 
     internal Task HandleItemKeyDownAsync(IBradixMenuItem item, KeyboardEventArgs args)
@@ -184,14 +191,31 @@
         if (Menu is null || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
             return Task.CompletedTask;
 
+        if (_submenuPointerGraceItems.Count > 0)
+            return Task.CompletedTask;
+
         Menu.SetCurrentTabStop(item.TabStopId);
         return item.FocusAsync().AsTask();
     }
 
     internal Task HandleItemLeaveAsync()
     {
+        if (_submenuPointerGraceItems.Count > 0)
+            return Task.CompletedTask;
+
         Menu?.ClearCurrentTabStop();
         return Interop.FocusElementPreventScroll(_contentElement).AsTask();
+    }
+
+    internal void SetSubmenuPointerGrace(string? tabStopId, bool active)
+    {
+        if (string.IsNullOrWhiteSpace(tabStopId))
+            return;
+
+        if (active)
+            _submenuPointerGraceItems.Add(tabStopId);
+        else
+            _submenuPointerGraceItems.Remove(tabStopId);
     }
 
     private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
@@ -244,9 +268,40 @@
             await OnEscapeKeyDownDetailed.InvokeAsync(_);
     }
 
-    private Task HandleContentKeyDownAsync(KeyboardEventArgs args)
+    [JSInvokable]
+    public async Task HandleDelegatedContentKeyDownAsync(BradixDelegatedKeyboardEvent args)
     {
-        return OnContentKeyDown.HasDelegate ? OnContentKeyDown.InvokeAsync(args) : Task.CompletedTask;
+        if (OnContentKeyDown.HasDelegate)
+            await OnContentKeyDown.InvokeAsync(CreateKeyboardEventArgs(args));
+
+        if (Menu is null || args.CtrlKey || args.AltKey || args.MetaKey)
+            return;
+
+        if (args.Key == "Tab")
+            return;
+
+        bool isContentTarget = string.Equals(args.TargetId, ResolvedContentId, StringComparison.Ordinal);
+
+        if (isContentTarget && args.Key.Length == 1)
+        {
+            await Menu.HandleTypeaheadAsync(null, args.Key);
+            return;
+        }
+
+        if (!isContentTarget)
+            return;
+
+        switch (args.Key)
+        {
+            case "PageUp":
+            case "Home":
+                await Menu.FocusFirstItemAsync();
+                return;
+            case "PageDown":
+            case "End":
+                await Menu.FocusLastItemAsync();
+                return;
+        }
     }
 
     private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs _)
@@ -365,7 +420,14 @@
     {
         _isExiting = false;
         _contentElementCaptured = false;
+        _delegatedInteractionRegistered = false;
         _pendingOpenAutoFocus = false;
+        _submenuPointerGraceItems.Clear();
+
+        if (_contentElement.Id is not null)
+            await Interop.UnregisterDelegatedInteraction(_contentElement);
+
+        Menu?.ClearContent(_contentElement);
 
         if (_hideOthersRegistered)
         {
@@ -395,8 +457,38 @@
     {
         _contentElement = element;
         _contentElementCaptured = true;
+        Menu?.RegisterContent(element);
+
+        if (!_delegatedInteractionRegistered)
+        {
+            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    method = nameof(HandleDelegatedContentKeyDownAsync),
+                    currentTargetOnly = false,
+                    preventDefaultKeys = new[] { "Tab", "Home", "End", "PageUp", "PageDown" }
+                }
+            });
+            _delegatedInteractionRegistered = true;
+        }
 
         if (_pendingOpenAutoFocus && Menu?.CurrentOpen == true)
             await ApplyOpenAutoFocusAsync();
+    }
+
+    private static KeyboardEventArgs CreateKeyboardEventArgs(BradixDelegatedKeyboardEvent args)
+    {
+        return new KeyboardEventArgs
+        {
+            Key = args.Key,
+            Code = args.Code,
+            CtrlKey = args.CtrlKey,
+            ShiftKey = args.ShiftKey,
+            AltKey = args.AltKey,
+            MetaKey = args.MetaKey,
+            Repeat = args.Repeat
+        };
     }
 }

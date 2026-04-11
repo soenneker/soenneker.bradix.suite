@@ -1,5 +1,7 @@
 @namespace Soenneker.Bradix
 
+@using System.Collections.Generic
+
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
 
@@ -33,9 +35,11 @@
     internal string ContentId => $"{BaseId}-content";
     internal string TitleId => $"{BaseId}-title";
     internal string DescriptionId => $"{BaseId}-description";
+    internal string DefaultTriggerId => $"{BaseId}-trigger";
 
     internal ElementReference TriggerElement { get; private set; }
     internal bool HasTrigger { get; private set; }
+    internal string ResolvedTriggerId { get; private set; } = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -73,10 +77,31 @@
         return SetOpenAsync(!CurrentOpen);
     }
 
-    internal void RegisterTrigger(ElementReference element)
+    internal void RegisterTrigger(ElementReference element, string? triggerId = null)
     {
         TriggerElement = element;
+        ResolvedTriggerId = string.IsNullOrWhiteSpace(triggerId) ? DefaultTriggerId : triggerId;
         HasTrigger = true;
+    }
+
+    internal bool ContainsTriggerTarget(string? targetId, IEnumerable<string>? ancestorIds)
+    {
+        if (string.IsNullOrWhiteSpace(ResolvedTriggerId))
+            return false;
+
+        if (string.Equals(targetId, ResolvedTriggerId, StringComparison.Ordinal))
+            return true;
+
+        if (ancestorIds is null)
+            return false;
+
+        foreach (string ancestorId in ancestorIds)
+        {
+            if (string.Equals(ancestorId, ResolvedTriggerId, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 
     internal async Task FocusTriggerAsync()

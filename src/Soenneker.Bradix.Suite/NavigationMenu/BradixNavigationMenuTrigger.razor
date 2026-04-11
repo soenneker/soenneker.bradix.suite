@@ -135,8 +135,9 @@
         if (Disabled || NavigationMenu is null || Item is null)
             return;
 
+        bool wasOpen = IsOpen;
         await NavigationMenu.ToggleItemAsync(Item.ResolvedValue);
-        _wasClickClose = IsOpen;
+        _wasClickClose = wasOpen;
     }
 
     private Task HandleFocusAsync(FocusEventArgs _)

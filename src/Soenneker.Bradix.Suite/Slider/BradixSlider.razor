@@ -250,6 +250,12 @@
             await OnValueCommit.InvokeAsync(CurrentValues.ToArray());
     }
 
+    [JSInvokable]
+    public Task HandlePointerCancelAsync()
+    {
+        return Task.CompletedTask;
+    }
+
     private async Task UpdateValueAsync(double value, int atIndex, bool commit)
     {
         if (atIndex < 0 || atIndex >= CurrentValues.Count)

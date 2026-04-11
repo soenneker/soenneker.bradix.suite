@@ -95,6 +95,25 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Fact]
+    public void Pointer_move_does_not_reopen_immediately_after_click_close()
+    {
+        var cut = Render(CreateNavigationMenu());
+        var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+
+        trigger.Click();
+        cut.WaitForAssertion(() => Assert.Contains("Getting started", cut.Markup));
+
+        trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        trigger.Click();
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Getting started", cut.Markup));
+
+        trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        trigger.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Getting started", cut.Markup));
+    }
+
+    [Fact]
     public void Link_click_closes_open_content_and_sets_active_state()
     {
         var cut = Render(CreateNavigationMenu());

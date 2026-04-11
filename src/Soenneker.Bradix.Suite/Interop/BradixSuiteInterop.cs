@@ -62,10 +62,11 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterRadioGroupItemKeys", cancellationToken, element);
     }
 
-    public async ValueTask RegisterCheckboxRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
+    public async ValueTask RegisterCheckboxRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, string? formId = null,
+        CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerCheckboxRoot", cancellationToken, element, dotNetReference);
+        await module.InvokeVoidAsync("registerCheckboxRoot", cancellationToken, element, dotNetReference, formId);
     }
 
     public async ValueTask RegisterDelegatedInteraction(ElementReference element, DotNetObjectReference<object> dotNetReference, object options,
@@ -164,10 +165,10 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterCheckboxRoot", cancellationToken, element);
     }
 
-    public async ValueTask<bool> IsFormControl(ElementReference element, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> IsFormControl(ElementReference element, string? formId = null, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeAsync<bool>("isFormControl", cancellationToken, element);
+        return await module.InvokeAsync<bool>("isFormControl", cancellationToken, element, formId);
     }
 
     public async ValueTask SyncCheckboxBubbleInputState(ElementReference element, bool isChecked, bool isIndeterminate, bool dispatchEvent, bool bubbles = true,
@@ -276,6 +277,24 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         return await module.InvokeAsync<bool>("isToastFocused", cancellationToken, toast);
     }
 
+    public async ValueTask CapturePointer(ElementReference element, long pointerId, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("capturePointer", cancellationToken, element, pointerId);
+    }
+
+    public async ValueTask ReleasePointer(ElementReference element, long pointerId, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("releasePointer", cancellationToken, element, pointerId);
+    }
+
+    public async ValueTask SuppressNextClick(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("suppressNextClick", cancellationToken, element);
+    }
+
     public async ValueTask FocusElementById(string? elementId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(elementId))
@@ -366,6 +385,19 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("registerPopperContent", cancellationToken, anchor, content, arrow, dotNetReference, options);
+    }
+
+    public async ValueTask<bool> BeginMenuSubmenuPointerGrace(ElementReference trigger, ElementReference content, double clientX, double clientY,
+        DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        return await module.InvokeAsync<bool>("beginMenuSubmenuPointerGrace", cancellationToken, trigger, content, clientX, clientY, dotNetReference);
+    }
+
+    public async ValueTask CancelMenuSubmenuPointerGrace(ElementReference trigger, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("cancelMenuSubmenuPointerGrace", cancellationToken, trigger);
     }
 
     public async ValueTask RegisterVirtualPopperContent(ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, double x, double y, object options, CancellationToken cancellationToken = default)
@@ -639,20 +671,6 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         string[]? textContent = await module.InvokeAsync<string[]>("getToastAnnounceText", cancellationToken, element);
         return textContent ?? [];
-    }
-
-    public async ValueTask<string> GetActiveElementId(CancellationToken cancellationToken = default)
-    {
-        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        string? id = await module.InvokeAsync<string>("getActiveElementId", cancellationToken);
-        return id ?? string.Empty;
-    }
-
-    public async ValueTask<BradixMenubarActiveElementState> GetMenubarActiveElementState(string currentContentId, CancellationToken cancellationToken = default)
-    {
-        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        BradixMenubarActiveElementState? state = await module.InvokeAsync<BradixMenubarActiveElementState>("getMenubarActiveElementState", cancellationToken, currentContentId);
-        return state ?? new BradixMenubarActiveElementState();
     }
 
     public async ValueTask DisposeAsync()

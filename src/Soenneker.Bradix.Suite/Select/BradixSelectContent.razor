@@ -90,6 +90,7 @@ else
     private bool _shouldRepositionOnScrollButton = true;
     private bool _pointerTrackerRegistered;
     private bool _windowDismissRegistered;
+    private bool _delegatedInteractionRegistered;
     private double _viewportScrollTop;
     private double _viewportScrollHeight;
     private double _viewportHeight;
@@ -166,7 +167,6 @@ else
             attributes["data-state"] = Select?.CurrentOpen == true ? "open" : "closed";
             attributes["data-position"] = UseItemAlignedPosition ? "item-aligned" : "popper";
             attributes["tabindex"] = -1;
-            attributes["onkeydown"] = EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleContentKeyDownAsync);
             return attributes;
         }
     }
@@ -206,6 +206,12 @@ else
                 _pointerTrackerRegistered = false;
             }
 
+            if (_delegatedInteractionRegistered)
+            {
+                await Interop.UnregisterDelegatedInteraction(_contentElement);
+                _delegatedInteractionRegistered = false;
+            }
+
             if (_windowDismissRegistered)
             {
                 await Interop.UnregisterSelectWindowDismiss(_contentElement);
@@ -226,6 +232,9 @@ else
 
         if (_pointerTrackerRegistered)
             await Interop.UnregisterSelectContentPointerTracker(_contentElement);
+
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_contentElement);
 
         if (_windowDismissRegistered)
             await Interop.UnregisterSelectWindowDismiss(_contentElement);
@@ -309,7 +318,7 @@ else
     {
         _contentElement = element;
         _hasContentElement = true;
-        return Task.CompletedTask;
+        return EnsureDelegatedInteractionAsync();
     }
 
     private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
@@ -353,7 +362,8 @@ else
         return Select?.SetOpenAsync(false) ?? Task.CompletedTask;
     }
 
-    private async Task HandleContentKeyDownAsync(KeyboardEventArgs args)
+    [JSInvokable]
+    public async Task HandleDelegatedContentKeyDownAsync(BradixDelegatedKeyboardEvent args)
     {
         if (Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
@@ -367,7 +377,7 @@ else
             return;
         }
 
-        if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
+        if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End")
             await Select.HandleContentNavigationAsync(args.Key);
     }
 
@@ -430,6 +440,24 @@ else
         _pointerTrackerRegistered = true;
     }
 
+    private async Task EnsureDelegatedInteractionAsync()
+    {
+        if (!_hasContentElement || _delegatedInteractionRegistered)
+            return;
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
+        {
+            keydown = new
+            {
+                method = nameof(HandleDelegatedContentKeyDownAsync),
+                currentTargetOnly = false,
+                preventDefaultKeys = new[] { "Tab", "ArrowUp", "ArrowDown", "Home", "End" }
+            }
+        });
+        _delegatedInteractionRegistered = true;
+    }
+
     private async Task EnsureWindowDismissAsync()
     {
         if (!_hasContentElement || _windowDismissRegistered)
@@ -438,5 +466,11 @@ else
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await Interop.RegisterSelectWindowDismiss(_contentElement, _dotNetReference);
         _windowDismissRegistered = true;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        return Task.CompletedTask;
     }
 }

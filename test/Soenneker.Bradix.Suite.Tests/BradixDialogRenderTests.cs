@@ -57,12 +57,12 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Fact]
-    public void Modal_dialog_renders_overlay_and_sets_aria_modal()
+    public void Modal_dialog_renders_overlay_without_redundant_aria_modal()
     {
         var cut = Render(CreateDialog(defaultOpen: true, modal: true));
 
         Assert.Single(cut.FindAll(".dialog-overlay"));
-        Assert.Equal("true", cut.Find("[role='dialog']").GetAttribute("aria-modal"));
+        Assert.Null(cut.Find("[role='dialog']").GetAttribute("aria-modal"));
     }
 
     [Fact]
@@ -82,6 +82,22 @@ public sealed class BradixDialogRenderTests : BunitContext
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
 
         Assert.Equal("false", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
+    public async Task Pointer_down_on_trigger_does_not_dismiss_non_modal_dialog()
+    {
+        var cut = Render(CreateDialog(defaultOpen: true, modal: false));
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+        var trigger = cut.Find("button[aria-haspopup='dialog']");
+        string triggerId = Assert.IsType<string>(trigger.Id);
+
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        {
+            AncestorIds = [triggerId]
+        }));
+
+        Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
     }
 
     [Fact]

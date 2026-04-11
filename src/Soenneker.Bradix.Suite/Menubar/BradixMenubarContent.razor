@@ -2,6 +2,7 @@
 @implements IAsyncDisposable
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 
 @if (ShouldRenderContainer)
 {
@@ -13,6 +14,8 @@
     private bool _isExiting;
     private bool _hasInteractedOutside;
     private ElementReference _contentElement;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _delegatedInteractionRegistered;
 
     [CascadingParameter]
     private BradixMenubar? Menubar { get; set; }
@@ -100,9 +103,7 @@
             if (!string.IsNullOrWhiteSpace(MenubarMenu?.TriggerId))
                 attributes["aria-labelledby"] = MenubarMenu.TriggerId;
             attributes["data-state"] = MenubarMenu?.IsOpen == true ? "open" : "closed";
-            attributes["data-bradix-menubar-content"] = string.Empty;
-
-            attributes["onkeydown"] = EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleContentKeyDownAsync);
+            attributes["data-radix-menubar-content"] = string.Empty;
 
             return attributes;
         }
@@ -120,9 +121,12 @@
         _wasPresent = present;
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
-        return ValueTask.CompletedTask;
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_contentElement);
+
+        _dotNetReference?.Dispose();
     }
 
     private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
@@ -151,10 +155,9 @@
             MenubarMenu.ResetKeyboardTriggerOpen();
 
         if (!args.DefaultPrevented && Menu is not null && MenubarMenu is not null && Menubar?.HasOpenMenu != true && !_hasInteractedOutside)
-        {
             await Menu.FocusTriggerAsync();
-            args.PreventDefault();
-        }
+
+        args.PreventDefault();
 
         _hasInteractedOutside = false;
     }
@@ -176,9 +179,7 @@
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
 
-        string activeElementId = await Interop.GetActiveElementId();
-
-        if (Menubar?.IsRegisteredTriggerId(activeElementId) == true)
+        if (Menubar?.ContainsRegisteredTriggerTarget(args.OriginalEvent.TargetId, args.OriginalEvent.AncestorIds) == true)
         {
             args.PreventDefault();
             return;
@@ -198,7 +199,8 @@
         return Menubar?.CloseMenuAsync() ?? Task.CompletedTask;
     }
 
-    private async Task HandleContentKeyDownAsync(KeyboardEventArgs args)
+    [JSInvokable]
+    public async Task HandleDelegatedContentKeyDownAsync(BradixDelegatedKeyboardEvent args)
     {
         if (args.Key is not "ArrowRight" and not "ArrowLeft")
             return;
@@ -206,32 +208,51 @@
         if (Menubar is null || MenubarMenu is null || string.IsNullOrWhiteSpace(ResolvedContentId))
             return;
 
-        BradixMenubarActiveElementState state = await Interop.GetMenubarActiveElementState(ResolvedContentId);
-
         string previousMenuKey = Menubar.ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
         bool isPreviousKey = previousMenuKey == args.Key;
         bool isNextKey = !isPreviousKey;
+        bool isInsideNestedContent = !string.IsNullOrWhiteSpace(args.ClosestMenubarContentId)
+            && !string.Equals(args.ClosestMenubarContentId, ResolvedContentId, StringComparison.Ordinal);
 
-        if (isNextKey && state.IsSubTrigger)
+        if (isNextKey && args.IsMenubarSubTrigger)
             return;
 
-        if (state.IsInsideNestedContent && isPreviousKey)
+        if (isInsideNestedContent && isPreviousKey)
             return;
 
         await Menubar.OpenMenuAsync(MenubarMenu.CurrentValue);
         await Menubar.MoveToAdjacentMenuAsync(MenubarMenu.CurrentValue, args.Key);
     }
 
-    private Task HandleExitCompleteAsync()
+    private async Task HandleExitCompleteAsync()
     {
+        if (_delegatedInteractionRegistered)
+        {
+            await Interop.UnregisterDelegatedInteraction(_contentElement);
+            _delegatedInteractionRegistered = false;
+        }
+
         _isExiting = false;
-        return InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleContentElementCapturedAsync(ElementReference element)
+    private async Task HandleContentElementCapturedAsync(ElementReference element)
     {
         _contentElement = element;
-        return Task.CompletedTask;
+
+        if (!_delegatedInteractionRegistered)
+        {
+            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    method = nameof(HandleDelegatedContentKeyDownAsync),
+                    currentTargetOnly = false
+                }
+            });
+            _delegatedInteractionRegistered = true;
+        }
     }
 
     private RenderFragment RenderContentTree() => @<BradixFocusGuards>

@@ -18,9 +18,13 @@
     private const string ScrollType = "scroll";
     private const string AutoType = "auto";
     private const string AlwaysType = "always";
+    private const int ScrollEndDebounceMs = 100;
 
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
+    private CancellationTokenSource? _hoverHideTokenSource;
+    private CancellationTokenSource? _scrollEndXTokenSource;
+    private CancellationTokenSource? _scrollEndYTokenSource;
     private CancellationTokenSource? _hideXTokenSource;
     private CancellationTokenSource? _hideYTokenSource;
     private bool _registered;
@@ -49,6 +53,8 @@
     internal bool IsScrollingY { get; private set; }
     internal bool ScrollbarXMounted { get; private set; }
     internal bool ScrollbarYMounted { get; private set; }
+    internal bool IsScrollbarInteractingX { get; private set; }
+    internal bool IsScrollbarInteractingY { get; private set; }
     internal bool ForceMountThumbX { get; private set; }
     internal bool ForceMountThumbY { get; private set; }
 
@@ -86,8 +92,14 @@
 
     public async ValueTask DisposeAsync()
     {
+        _hoverHideTokenSource?.Cancel();
+        _scrollEndXTokenSource?.Cancel();
+        _scrollEndYTokenSource?.Cancel();
         _hideXTokenSource?.Cancel();
         _hideYTokenSource?.Cancel();
+        _hoverHideTokenSource?.Dispose();
+        _scrollEndXTokenSource?.Dispose();
+        _scrollEndYTokenSource?.Dispose();
         _hideXTokenSource?.Dispose();
         _hideYTokenSource?.Dispose();
 
@@ -109,13 +121,19 @@
     {
         if (orientation == "horizontal")
         {
+            bool changed = !ScrollbarXMounted || ForceMountThumbX != forceMountThumb;
             ScrollbarXMounted = true;
             ForceMountThumbX = forceMountThumb;
+            if (changed)
+                _ = InvokeAsync(StateHasChanged);
         }
         else
         {
+            bool changed = !ScrollbarYMounted || ForceMountThumbY != forceMountThumb;
             ScrollbarYMounted = true;
             ForceMountThumbY = forceMountThumb;
+            if (changed)
+                _ = InvokeAsync(StateHasChanged);
         }
     }
 
@@ -123,13 +141,19 @@
     {
         if (orientation == "horizontal")
         {
+            bool changed = ScrollbarXMounted || ForceMountThumbX;
             ScrollbarXMounted = false;
             ForceMountThumbX = false;
+            if (changed)
+                _ = InvokeAsync(StateHasChanged);
         }
         else
         {
+            bool changed = ScrollbarYMounted || ForceMountThumbY;
             ScrollbarYMounted = false;
             ForceMountThumbY = false;
+            if (changed)
+                _ = InvokeAsync(StateHasChanged);
         }
     }
 
@@ -219,7 +243,25 @@
     [JSInvokable]
     public Task HandleHoverChangedAsync(bool hovering)
     {
-        IsHovering = hovering;
+        if (hovering)
+        {
+            _hoverHideTokenSource?.Cancel();
+            _hoverHideTokenSource?.Dispose();
+            _hoverHideTokenSource = null;
+            IsHovering = true;
+            return InvokeAsync(StateHasChanged);
+        }
+
+        if (Type == HoverType)
+        {
+            _hoverHideTokenSource?.Cancel();
+            _hoverHideTokenSource?.Dispose();
+            _hoverHideTokenSource = new CancellationTokenSource();
+            _ = HideHoverAfterDelayAsync(_hoverHideTokenSource.Token);
+            return Task.CompletedTask;
+        }
+
+        IsHovering = false;
         return InvokeAsync(StateHasChanged);
     }
 
@@ -239,10 +281,46 @@
         if (Type == ScrollType)
         {
             if (xChanged)
-                ShowScrollingTemporarily(true);
+                NotifyScrollActivity(true);
 
             if (yChanged)
-                ShowScrollingTemporarily(false);
+                NotifyScrollActivity(false);
+        }
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    internal Task HandleScrollbarPointerChangedAsync(string orientation, bool entering)
+    {
+        bool horizontal = orientation == "horizontal";
+
+        if (horizontal)
+        {
+            IsScrollbarInteractingX = entering;
+
+            if (entering)
+            {
+                CancelToken(ref _hideXTokenSource);
+                IsScrollingX = true;
+            }
+            else if (IsScrollingX)
+            {
+                _ = HideAfterDelayAsync(true, ReplaceHideToken(ref _hideXTokenSource).Token);
+            }
+        }
+        else
+        {
+            IsScrollbarInteractingY = entering;
+
+            if (entering)
+            {
+                CancelToken(ref _hideYTokenSource);
+                IsScrollingY = true;
+            }
+            else if (IsScrollingY)
+            {
+                _ = HideAfterDelayAsync(false, ReplaceHideToken(ref _hideYTokenSource).Token);
+            }
         }
 
         return InvokeAsync(StateHasChanged);
@@ -335,18 +413,46 @@
         return maxScrollPos == 0 ? 0 : (scrollPos / maxScrollPos) * maxThumbPos;
     }
 
-    private void ShowScrollingTemporarily(bool horizontal)
+    private void NotifyScrollActivity(bool horizontal)
     {
-        CancellationTokenSource source = horizontal
-            ? ReplaceHideToken(ref _hideXTokenSource)
-            : ReplaceHideToken(ref _hideYTokenSource);
-
         if (horizontal)
+        {
+            CancelToken(ref _hideXTokenSource);
             IsScrollingX = true;
+            _ = CompleteScrollAsync(true, ReplaceHideToken(ref _scrollEndXTokenSource).Token);
+        }
         else
+        {
+            CancelToken(ref _hideYTokenSource);
             IsScrollingY = true;
+            _ = CompleteScrollAsync(false, ReplaceHideToken(ref _scrollEndYTokenSource).Token);
+        }
+    }
 
-        _ = HideAfterDelayAsync(horizontal, source.Token);
+    private async Task CompleteScrollAsync(bool horizontal, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(ScrollEndDebounceMs, cancellationToken);
+
+            if (horizontal)
+            {
+                if (IsScrollbarInteractingX)
+                    return;
+
+                _ = HideAfterDelayAsync(true, ReplaceHideToken(ref _hideXTokenSource).Token);
+            }
+            else
+            {
+                if (IsScrollbarInteractingY)
+                    return;
+
+                _ = HideAfterDelayAsync(false, ReplaceHideToken(ref _hideYTokenSource).Token);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
     }
 
     private async Task HideAfterDelayAsync(bool horizontal, CancellationToken cancellationToken)
@@ -356,10 +462,31 @@
             await Task.Delay(ScrollHideDelay, cancellationToken);
 
             if (horizontal)
+            {
+                if (IsScrollbarInteractingX)
+                    return;
                 IsScrollingX = false;
+            }
             else
+            {
+                if (IsScrollbarInteractingY)
+                    return;
                 IsScrollingY = false;
+            }
 
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private async Task HideHoverAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(ScrollHideDelay, cancellationToken);
+            IsHovering = false;
             await InvokeAsync(StateHasChanged);
         }
         catch (TaskCanceledException)
@@ -373,5 +500,12 @@
         existing?.Dispose();
         existing = new CancellationTokenSource();
         return existing;
+    }
+
+    private static void CancelToken(ref CancellationTokenSource? existing)
+    {
+        existing?.Cancel();
+        existing?.Dispose();
+        existing = null;
     }
 }

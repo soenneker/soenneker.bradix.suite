@@ -4,6 +4,7 @@ const radioGroupItemHandlers = new WeakMap();
 const delegatedInteractionHandlers = new WeakMap();
 const tooltipTriggerHandlers = new WeakMap();
 const tooltipContentHandlers = new WeakMap();
+const menuSubmenuGraceHandlers = new WeakMap();
 const checkboxRootHandlers = new WeakMap();
 const formRootHandlers = new WeakMap();
 const sliderPointerHandlers = new WeakMap();
@@ -384,6 +385,99 @@ export function unregisterTooltipContent(content) {
   tooltipContentHandlers.delete(content);
 }
 
+export function beginMenuSubmenuPointerGrace(trigger, content, clientX, clientY, dotNetRef) {
+  if (!trigger || !content || !dotNetRef) {
+    return false;
+  }
+
+  cancelMenuSubmenuPointerGrace(trigger);
+
+  const contentSideElement = content.closest("[data-side]");
+  const side = contentSideElement instanceof HTMLElement
+    ? contentSideElement.dataset.side
+    : null;
+
+  if (!side) {
+    return false;
+  }
+
+  const contentRect = content.getBoundingClientRect();
+  if (!contentRect || (contentRect.width <= 0 && contentRect.height <= 0)) {
+    return false;
+  }
+
+  const rightSide = side === "right";
+  const bleed = rightSide ? -5 : 5;
+  const contentNearEdge = contentRect[rightSide ? "left" : "right"];
+  const contentFarEdge = contentRect[rightSide ? "right" : "left"];
+  const pointerGraceArea = [
+    { x: clientX + bleed, y: clientY },
+    { x: contentNearEdge, y: contentRect.top },
+    { x: contentFarEdge, y: contentRect.top },
+    { x: contentFarEdge, y: contentRect.bottom },
+    { x: contentNearEdge, y: contentRect.bottom }
+  ];
+
+  const cleanup = () => {
+    const handlers = menuSubmenuGraceHandlers.get(trigger);
+
+    if (!handlers) {
+      return;
+    }
+
+    if (handlers.pointerMove) {
+      document.removeEventListener("pointermove", handlers.pointerMove);
+    }
+
+    if (handlers.timeoutId) {
+      window.clearTimeout(handlers.timeoutId);
+    }
+
+    menuSubmenuGraceHandlers.delete(trigger);
+    dotNetRef.invokeMethodAsync("HandlePointerGraceChangedAsync", false).catch(() => {});
+  };
+
+  const pointerMove = (event) => {
+    const target = event.target;
+    const pointerPosition = { x: event.clientX, y: event.clientY };
+    const hasEnteredTarget =
+      (trigger instanceof HTMLElement && trigger.contains(target)) ||
+      (content instanceof HTMLElement && content.contains(target));
+    const isPointerOutsideGraceArea = !isPointInPolygon(pointerPosition, pointerGraceArea);
+
+    if (hasEnteredTarget || isPointerOutsideGraceArea) {
+      cleanup();
+    }
+  };
+
+  const timeoutId = window.setTimeout(() => {
+    cleanup();
+  }, 300);
+
+  menuSubmenuGraceHandlers.set(trigger, { pointerMove, timeoutId });
+  document.addEventListener("pointermove", pointerMove);
+  dotNetRef.invokeMethodAsync("HandlePointerGraceChangedAsync", true).catch(() => {});
+  return true;
+}
+
+export function cancelMenuSubmenuPointerGrace(trigger) {
+  const handlers = menuSubmenuGraceHandlers.get(trigger);
+
+  if (!handlers) {
+    return;
+  }
+
+  if (handlers.pointerMove) {
+    document.removeEventListener("pointermove", handlers.pointerMove);
+  }
+
+  if (handlers.timeoutId) {
+    window.clearTimeout(handlers.timeoutId);
+  }
+
+  menuSubmenuGraceHandlers.delete(trigger);
+}
+
 function ensureDelegatedInteractionListeners() {
   if (delegatedInteractionListenersRegistered) {
     return;
@@ -428,7 +522,9 @@ function dispatchDelegatedInteraction(type, event) {
     }
   }
 
-  if (config.preventDefault) {
+  if (Array.isArray(config.preventDefaultKeys) && config.preventDefaultKeys.includes(event.key)) {
+    event.preventDefault();
+  } else if (config.preventDefault) {
     event.preventDefault();
   }
 
@@ -475,6 +571,11 @@ function createDelegatedEventSnapshot(type, event) {
   }
 
   if (type === "keydown") {
+    const target = event.target instanceof HTMLElement ? event.target : null;
+    const closestMenubarContent = target && typeof target.closest === "function"
+      ? target.closest("[data-radix-menubar-content]")
+      : null;
+
     return {
       key: event.key || "",
       code: event.code || "",
@@ -483,7 +584,11 @@ function createDelegatedEventSnapshot(type, event) {
       altKey: !!event.altKey,
       metaKey: !!event.metaKey,
       repeat: !!event.repeat,
-      defaultPrevented: !!event.defaultPrevented
+      defaultPrevented: !!event.defaultPrevented,
+      targetId: target && target.id ? target.id : "",
+      ancestorIds: getAncestorIds(target),
+      closestMenubarContentId: closestMenubarContent instanceof HTMLElement && closestMenubarContent.id ? closestMenubarContent.id : "",
+      isMenubarSubTrigger: !!(target && target.hasAttribute("data-radix-menubar-subtrigger"))
     };
   }
 
@@ -947,6 +1052,12 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     }
 
     event.preventDefault();
+    if (typeof element.setPointerCapture === "function") {
+      try {
+        element.setPointerCapture(event.pointerId);
+      } catch {
+      }
+    }
 
     const thumb = event.target && typeof event.target.closest === "function"
       ? event.target.closest("[data-bradix-slider-thumb-index]")
@@ -964,20 +1075,48 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     const pointerup = () => {
       document.removeEventListener("pointermove", pointermove);
       document.removeEventListener("pointerup", pointerup);
+      document.removeEventListener("pointercancel", pointercancel);
+      if (typeof element.hasPointerCapture === "function" &&
+        typeof element.releasePointerCapture === "function") {
+        try {
+          if (element.hasPointerCapture(event.pointerId)) {
+            element.releasePointerCapture(event.pointerId);
+          }
+        } catch {
+        }
+      }
       dotNetRef.invokeMethodAsync("HandlePointerEndAsync");
+    };
+
+    const pointercancel = () => {
+      document.removeEventListener("pointermove", pointermove);
+      document.removeEventListener("pointerup", pointerup);
+      document.removeEventListener("pointercancel", pointercancel);
+      if (typeof element.hasPointerCapture === "function" &&
+        typeof element.releasePointerCapture === "function") {
+        try {
+          if (element.hasPointerCapture(event.pointerId)) {
+            element.releasePointerCapture(event.pointerId);
+          }
+        } catch {
+        }
+      }
+      dotNetRef.invokeMethodAsync("HandlePointerCancelAsync");
     };
 
     document.addEventListener("pointermove", pointermove);
     document.addEventListener("pointerup", pointerup);
+    document.addEventListener("pointercancel", pointercancel);
 
     const handlers = sliderPointerHandlers.get(element);
     if (handlers) {
       handlers.pointermove = pointermove;
       handlers.pointerup = pointerup;
+      handlers.pointercancel = pointercancel;
     }
   };
 
-  sliderPointerHandlers.set(element, { pointerdown, pointermove: null, pointerup: null });
+  sliderPointerHandlers.set(element, { pointerdown, pointermove: null, pointerup: null, pointercancel: null });
   element.addEventListener("pointerdown", pointerdown);
 }
 
@@ -996,6 +1135,10 @@ export function unregisterSliderPointerBridge(element) {
 
   if (handlers.pointerup) {
     document.removeEventListener("pointerup", handlers.pointerup);
+  }
+
+  if (handlers.pointercancel) {
+    document.removeEventListener("pointercancel", handlers.pointercancel);
   }
 
   sliderPointerHandlers.delete(element);
@@ -1687,7 +1830,14 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     return clamped * maxScrollPos;
   };
 
+  const isScrollingWithinScrollbarBounds = (scrollPos, maxScrollPos) => {
+    return scrollPos > 0 && scrollPos < maxScrollPos;
+  };
+
   let activePointerOffset = 0;
+  let activePointerId = null;
+  let previousBodyWebkitUserSelect = "";
+  let previousViewportScrollBehavior = "";
   const pointerdown = (event) => {
     if (event.button !== 0) {
       return;
@@ -1706,6 +1856,19 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
         : event.clientY - thumbRect.top;
     } else {
       activePointerOffset = 0;
+    }
+
+    activePointerId = typeof event.pointerId === "number" ? event.pointerId : null;
+    previousBodyWebkitUserSelect = document.body.style.webkitUserSelect || "";
+    previousViewportScrollBehavior = viewport.style.scrollBehavior || "";
+    document.body.style.webkitUserSelect = "none";
+    viewport.style.scrollBehavior = "auto";
+
+    if (activePointerId !== null && typeof scrollbar.setPointerCapture === "function") {
+      try {
+        scrollbar.setPointerCapture(activePointerId);
+      } catch {
+      }
     }
 
     const scrollbarRect = scrollbar.getBoundingClientRect();
@@ -1737,6 +1900,21 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     const pointerup = () => {
       document.removeEventListener("pointermove", pointermove);
       document.removeEventListener("pointerup", pointerup);
+      document.body.style.webkitUserSelect = previousBodyWebkitUserSelect;
+      viewport.style.scrollBehavior = previousViewportScrollBehavior;
+
+      if (activePointerId !== null &&
+        typeof scrollbar.hasPointerCapture === "function" &&
+        typeof scrollbar.releasePointerCapture === "function") {
+        try {
+          if (scrollbar.hasPointerCapture(activePointerId)) {
+            scrollbar.releasePointerCapture(activePointerId);
+          }
+        } catch {
+        }
+      }
+
+      activePointerId = null;
     };
 
     document.addEventListener("pointermove", pointermove);
@@ -1746,6 +1924,31 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     if (handlers) {
       handlers.pointermove = pointermove;
       handlers.pointerup = pointerup;
+    }
+  };
+
+  const wheel = (event) => {
+    const target = event.target;
+    const isScrollbarWheel = target instanceof HTMLElement && scrollbar.contains(target);
+    if (!isScrollbarWheel) {
+      return;
+    }
+
+    const maxScrollPos = orientation === "horizontal"
+      ? viewport.scrollWidth - viewport.offsetWidth
+      : viewport.scrollHeight - viewport.offsetHeight;
+    const nextScrollPos = orientation === "horizontal"
+      ? viewport.scrollLeft + event.deltaX
+      : viewport.scrollTop + event.deltaY;
+
+    if (orientation === "horizontal") {
+      viewport.scrollLeft = nextScrollPos;
+    } else {
+      viewport.scrollTop = nextScrollPos;
+    }
+
+    if (isScrollingWithinScrollbarBounds(nextScrollPos, maxScrollPos)) {
+      event.preventDefault();
     }
   };
 
@@ -1759,7 +1962,8 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
 
   requestAnimationFrame(notify);
   scrollbar.addEventListener("pointerdown", pointerdown);
-  scrollAreaScrollbarHandlers.set(scrollbar, { pointerdown, pointermove: null, pointerup: null, resizeObserver });
+  document.addEventListener("wheel", wheel, { passive: false });
+  scrollAreaScrollbarHandlers.set(scrollbar, { pointerdown, pointermove: null, pointerup: null, wheel, resizeObserver });
 }
 
 export function unregisterScrollAreaScrollbar(scrollbar) {
@@ -1771,6 +1975,7 @@ export function unregisterScrollAreaScrollbar(scrollbar) {
 
   scrollbar.removeEventListener("pointerdown", handlers.pointerdown);
   handlers.resizeObserver.disconnect();
+  document.removeEventListener("wheel", handlers.wheel, { passive: false });
 
   if (handlers.pointermove) {
     document.removeEventListener("pointermove", handlers.pointermove);
@@ -1842,7 +2047,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     }
   };
   const getSortedCandidates = (backwards) => {
-    const toastItems = Array.from(viewport.querySelectorAll('[role="status"]'));
+    const toastItems = Array.from(viewport.querySelectorAll('[data-radix-toast-root]'));
     const orderedItems = backwards ? toastItems : [...toastItems].reverse();
     return orderedItems.flatMap((toast) => {
       const candidates = [toast, ...getTabbableCandidates(toast)];
@@ -1982,6 +2187,40 @@ export function unregisterToastViewport(viewport) {
 
 export function isToastFocused(toast) {
   return !!(toast && toast.contains(document.activeElement));
+}
+
+export function capturePointer(element, pointerId) {
+  if (!element || typeof element.setPointerCapture !== "function") {
+    return;
+  }
+
+  try {
+    element.setPointerCapture(pointerId);
+  } catch {
+  }
+}
+
+export function releasePointer(element, pointerId) {
+  if (!element || typeof element.hasPointerCapture !== "function" || typeof element.releasePointerCapture !== "function") {
+    return;
+  }
+
+  try {
+    if (element.hasPointerCapture(pointerId)) {
+      element.releasePointerCapture(pointerId);
+    }
+  } catch {
+  }
+}
+
+export function suppressNextClick(element) {
+  if (!element) {
+    return;
+  }
+
+  element.addEventListener("click", (event) => {
+    event.preventDefault();
+  }, { once: true });
 }
 
 export function focusElementById(elementId) {
@@ -2154,6 +2393,10 @@ function ensureDismissableLayerListeners() {
     const topLayer = dismissableLayers[dismissableLayers.length - 1];
     if (!topLayer) {
       return;
+    }
+
+    if (topLayer.element?.hasAttribute("data-bradix-dismiss-on-escape-key-down")) {
+      event.preventDefault();
     }
 
     topLayer.dotNetRef.invokeMethodAsync("HandleEscapeKeyDownAsync", createDismissableKeyboardSnapshot(event)).catch(() => {});
@@ -3245,11 +3488,6 @@ export function getToastAnnounceText(element) {
   return collectToastAnnounceText(element);
 }
 
-export function getActiveElementId() {
-  const activeElement = document.activeElement;
-  return activeElement && activeElement.id ? activeElement.id : "";
-}
-
 function collectToastAnnounceText(container) {
   const textContent = [];
   const childNodes = Array.from(container.childNodes || []);
@@ -3285,21 +3523,3 @@ function collectToastAnnounceText(container) {
   return textContent;
 }
 
-export function getMenubarActiveElementState(currentContentId) {
-  const activeElement = document.activeElement;
-  if (!(activeElement instanceof HTMLElement)) {
-    return {
-      isSubTrigger: false,
-      isInsideNestedContent: false
-    };
-  }
-
-  const closestContent = typeof activeElement.closest === "function"
-    ? activeElement.closest("[data-bradix-menubar-content]")
-    : null;
-
-  return {
-    isSubTrigger: activeElement.hasAttribute("data-bradix-menubar-subtrigger"),
-    isInsideNestedContent: !!closestContent && closestContent.id !== currentContentId
-  };
-}

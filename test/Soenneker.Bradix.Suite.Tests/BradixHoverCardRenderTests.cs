@@ -59,7 +59,11 @@ public sealed class BradixHoverCardRenderTests : BunitContext
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
 
-        Assert.DoesNotContain("Hover card body", cut.Markup);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.DoesNotContain("Hover card body", cut.Markup);
+            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "unregisterHoverCardSelectionContainment");
+        });
     }
 
     [Fact]

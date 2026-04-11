@@ -21,6 +21,9 @@ public sealed class BradixToastRenderTests : BunitContext
         _module.SetupVoid("unregisterToastViewport", _ => true).SetVoidResult();
         _module.SetupVoid("mountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
+        _module.SetupVoid("capturePointer", _ => true).SetVoidResult();
+        _module.SetupVoid("releasePointer", _ => true).SetVoidResult();
+        _module.SetupVoid("suppressNextClick", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementById", _ => true).SetVoidResult();
@@ -41,12 +44,13 @@ public sealed class BradixToastRenderTests : BunitContext
         var cut = RenderToast();
 
         var region = cut.Find("[role='region']");
-        var toast = cut.Find("li[role='status']");
+        var toast = cut.Find("li[data-radix-toast-root]");
 
         Assert.Equal("Notifications (F8)", region.GetAttribute("aria-label"));
         Assert.Equal("open", toast.GetAttribute("data-state"));
         Assert.Equal("right", toast.GetAttribute("data-swipe-direction"));
-        Assert.Equal("assertive", toast.GetAttribute("aria-live"));
+        Assert.Null(toast.GetAttribute("role"));
+        Assert.Null(toast.GetAttribute("aria-live"));
     }
 
     [Fact]
@@ -55,12 +59,12 @@ public sealed class BradixToastRenderTests : BunitContext
         var cut = RenderToast();
 
         cut.Find("button[data-toast-close='true']").Click();
-        Assert.Single(cut.FindAll("li[role='status']"));
+        Assert.Single(cut.FindAll("li[data-radix-toast-root]"));
 
         var presence = cut.FindComponent<BradixPresence>();
         await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("toast-out"));
 
-        Assert.Empty(cut.FindAll("li[role='status']"));
+        Assert.Empty(cut.FindAll("li[data-radix-toast-root]"));
     }
 
     [Fact]
@@ -138,13 +142,56 @@ public sealed class BradixToastRenderTests : BunitContext
     public void Swipe_sets_end_state_before_close()
     {
         var cut = RenderToast(swipeThreshold: 10);
-        var toast = cut.Find("li[role='status']");
+        var toast = cut.Find("li[data-radix-toast-root]");
 
-        toast.TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0 });
-        toast.TriggerEvent("onpointermove", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0 });
-        toast.TriggerEvent("onpointerup", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0 });
+        toast.TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0, PointerId = 7 });
+        toast.TriggerEvent("onpointermove", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 7 });
+        toast.TriggerEvent("onpointerup", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 7 });
 
-        Assert.Equal("end", cut.Find("li[role='status']").GetAttribute("data-swipe"));
+        Assert.Equal("end", cut.Find("li[data-radix-toast-root]").GetAttribute("data-swipe"));
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "capturePointer");
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "releasePointer");
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "suppressNextClick");
+    }
+
+    [Fact]
+    public void Swipe_must_exceed_threshold_before_closing()
+    {
+        var cut = RenderToast(swipeThreshold: 10);
+        var toast = cut.Find("li[data-radix-toast-root]");
+
+        toast.TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0, PointerId = 9 });
+        toast.TriggerEvent("onpointermove", new PointerEventArgs { Button = 0, ClientX = 10, ClientY = 0, PointerId = 9 });
+        toast.TriggerEvent("onpointerup", new PointerEventArgs { Button = 0, ClientX = 10, ClientY = 0, PointerId = 9 });
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedToast = cut.Find("li[data-radix-toast-root]");
+            Assert.Equal("open", updatedToast.GetAttribute("data-state"));
+            Assert.Equal("cancel", updatedToast.GetAttribute("data-swipe"));
+        });
+
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "suppressNextClick");
+    }
+
+    [Fact]
+    public void Pointer_cancel_after_swipe_move_sets_cancel_state_without_closing()
+    {
+        var cut = RenderToast(swipeThreshold: 10);
+        var toast = cut.Find("li[data-radix-toast-root]");
+
+        toast.TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0, PointerId = 11 });
+        toast.TriggerEvent("onpointermove", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 11 });
+        toast.TriggerEvent("onpointercancel", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 11 });
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedToast = cut.Find("li[data-radix-toast-root]");
+            Assert.Equal("open", updatedToast.GetAttribute("data-state"));
+            Assert.Equal("cancel", updatedToast.GetAttribute("data-swipe"));
+        });
+
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "releasePointer");
     }
 
     private IRenderedComponent<ContainerFragment> RenderToast(Action? onPause = null, Action? onResume = null, double swipeThreshold = 50)

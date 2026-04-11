@@ -5,6 +5,7 @@
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 @using System.Threading
 
 <div @ref="_element"
@@ -23,8 +24,10 @@
     private ElementReference _element;
     private bool _registered;
     private bool _isFocused;
+    private bool _pointerGraceActive;
     private string? _resolvedTextValue;
     private CancellationTokenSource? _openPointerMoveCts;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     internal BradixMenu SubMenu { get; set; } = null!;
@@ -77,6 +80,7 @@
         {
             ParentMenu.RegisterItem(this);
             SubMenu.RegisterTrigger(_element);
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
             _registered = true;
         }
 
@@ -89,14 +93,16 @@
         }
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         CancelOpenPointerMove();
+        ClearPointerGraceState();
 
         if (_registered)
             ParentMenu.UnregisterItem(this);
 
-        return ValueTask.CompletedTask;
+        await Interop.CancelMenuSubmenuPointerGrace(_element);
+        _dotNetReference?.Dispose();
     }
 
     public ValueTask FocusAsync() => Interop.FocusElementPreventScroll(_element);
@@ -107,6 +113,7 @@
             return;
 
         CancelOpenPointerMove();
+        await CancelPointerGraceAsync();
         SubMenu.SetFocusContentOnOpen(false);
         SubMenu.SetFocusFirstItemOnOpen(false);
         await Interop.FocusElementPreventScroll(_element);
@@ -141,6 +148,7 @@
         if (isOpenKey)
         {
             CancelOpenPointerMove();
+            await CancelPointerGraceAsync();
             SubMenu.SetFocusContentOnOpen(true);
             SubMenu.SetFocusFirstItemOnOpen(true);
             await SubMenu.SetOpenAsync(true);
@@ -160,10 +168,12 @@
     {
         if (Disabled)
         {
-            await ParentContent.HandleItemLeaveAsync();
+            if (!_pointerGraceActive)
+                await ParentContent.HandleItemLeaveAsync();
             return;
         }
 
+        await CancelPointerGraceAsync();
         await ParentContent.HandlePointerMoveAsync(this, args.PointerType);
 
         if (!SubMenu.CurrentOpen)
@@ -174,10 +184,14 @@
         }
     }
 
-    private Task HandlePointerLeaveAsync(PointerEventArgs _)
+    private async Task HandlePointerLeaveAsync(PointerEventArgs args)
     {
         CancelOpenPointerMove();
-        return ParentContent.HandleItemLeaveAsync();
+
+        if (string.Equals(args.PointerType, "mouse", StringComparison.Ordinal) && await TryBeginPointerGraceAsync(args))
+            return;
+
+        await ParentContent.HandleItemLeaveAsync();
     }
 
     private async Task OpenFromPointerMoveAsync(CancellationToken cancellationToken)
@@ -203,5 +217,54 @@
         _openPointerMoveCts?.Cancel();
         _openPointerMoveCts?.Dispose();
         _openPointerMoveCts = null;
+    }
+
+    [JSInvokable]
+    public Task HandlePointerGraceChangedAsync(bool active)
+    {
+        _pointerGraceActive = active;
+        ParentContent.SetSubmenuPointerGrace(TabStopId, active);
+        return Task.CompletedTask;
+    }
+
+    private async Task<bool> TryBeginPointerGraceAsync(PointerEventArgs args)
+    {
+        if (!SubMenu.CurrentOpen || !SubMenu.HasContentElement || _dotNetReference is null)
+            return false;
+
+        _pointerGraceActive = true;
+        ParentContent.SetSubmenuPointerGrace(TabStopId, true);
+
+        bool started;
+
+        try
+        {
+            started = await Interop.BeginMenuSubmenuPointerGrace(_element, SubMenu.ContentElement, args.ClientX, args.ClientY, _dotNetReference);
+        }
+        catch
+        {
+            ClearPointerGraceState();
+            throw;
+        }
+
+        if (!started)
+            ClearPointerGraceState();
+
+        return started;
+    }
+
+    private async Task CancelPointerGraceAsync()
+    {
+        if (!_pointerGraceActive)
+            return;
+
+        await Interop.CancelMenuSubmenuPointerGrace(_element);
+        ClearPointerGraceState();
+    }
+
+    private void ClearPointerGraceState()
+    {
+        _pointerGraceActive = false;
+        ParentContent.SetSubmenuPointerGrace(TabStopId, false);
     }
 }

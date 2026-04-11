@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
 
@@ -24,6 +25,12 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
 
     [Parameter]
     public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
+    [Parameter]
+    public bool PreventKeyDownDefault { get; set; }
 
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -115,8 +122,14 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
 
         builder.OpenElement(0, string.IsNullOrWhiteSpace(Tag) ? "div" : Tag);
         builder.AddMultipleAttributes(1, BuildRenderAttributes());
-        builder.AddElementReferenceCapture(2, element => _element = element);
-        builder.AddContent(3, ChildContent);
+        if (OnKeyDown.HasDelegate)
+        {
+            builder.AddAttribute(2, "onkeydown", EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDownAsync));
+            if (PreventKeyDownDefault)
+                builder.AddEventPreventDefaultAttribute(3, "onkeydown", true);
+        }
+        builder.AddElementReferenceCapture(4, element => _element = element);
+        builder.AddContent(5, ChildContent);
         builder.CloseElement();
     }
 
@@ -194,6 +207,11 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
         }
 
         return attributes;
+    }
+
+    private Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        return OnKeyDown.HasDelegate ? OnKeyDown.InvokeAsync(args) : Task.CompletedTask;
     }
 
     private static string NormalizeAnimationName(string? animationName, string? fallback = null)
