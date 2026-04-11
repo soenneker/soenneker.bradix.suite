@@ -1275,11 +1275,16 @@ export function registerAvatarImageLoadingStatus(src, crossOrigin, referrerPolic
   unregisterAvatarImageLoadingStatus(dotNetRef);
 
   const image = new window.Image();
+  const notifyStatus = (status) => {
+    setTimeout(() => {
+      dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", status).catch(() => {});
+    }, 0);
+  };
   const handleLoad = () => {
-    dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "loaded");
+    notifyStatus("loaded");
   };
   const handleError = () => {
-    dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "error");
+    notifyStatus("error");
   };
 
   image.addEventListener("load", handleLoad);
@@ -1296,18 +1301,18 @@ export function registerAvatarImageLoadingStatus(src, crossOrigin, referrerPolic
   avatarImageLoaders.set(dotNetRef, { image, handleLoad, handleError });
 
   if (!src) {
-    dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "error");
+    notifyStatus("error");
     return;
   }
 
   image.src = src;
 
   if (image.complete && image.naturalWidth > 0) {
-    dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "loaded");
+    notifyStatus("loaded");
     return;
   }
 
-  dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", "loading");
+  notifyStatus("loading");
 }
 
 export function unregisterAvatarImageLoadingStatus(dotNetRef) {
@@ -1974,6 +1979,10 @@ function updateDismissableLayerPointerEvents() {
       layer.element.style.pointerEvents = "";
     }
   });
+
+  dismissableBranches.forEach((branch) => {
+    branch.style.pointerEvents = highestDisabledIndex >= 0 ? "auto" : "";
+  });
 }
 
 function ensureDismissableLayerListeners() {
@@ -2351,14 +2360,16 @@ export async function unregisterFocusScope(element) {
   document.removeEventListener("focusout", handlers.focusout);
   element.removeEventListener("keydown", handlers.keydown);
   handlers.mutationObserver.disconnect();
-
-  await handlers.scope.dotNetRef.invokeMethodAsync("HandleUnmountAutoFocusAsync");
-  if (!handlers.scope.preventUnmountAutoFocus) {
-    focusElement(handlers.scope.previouslyFocusedElement || document.body, true);
-  }
-  removeFocusScopeFromStack(handlers.scope);
-
+  const { scope } = handlers;
   focusScopeHandlers.delete(element);
+
+  setTimeout(() => {
+    scope.dotNetRef.invokeMethodAsync("HandleUnmountAutoFocusAsync").catch(() => {});
+    if (!scope.preventUnmountAutoFocus) {
+      focusElement(scope.previouslyFocusedElement || document.body, true);
+    }
+    removeFocusScopeFromStack(scope);
+  }, 0);
 }
 
 function getOppositeSide(side) {

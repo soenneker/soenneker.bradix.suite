@@ -23,6 +23,8 @@
     private bool _isExiting;
     private bool _hasInteractedOutside;
     private bool _hideOthersRegistered;
+    private bool _contentElementCaptured;
+    private bool _pendingOpenAutoFocus;
     private ElementReference _contentElement;
     private ElementReference _layerElement;
 
@@ -175,10 +177,13 @@
         if (Menu is null)
             return;
 
-        if (Menu.ConsumeFocusFirstItemOnOpen())
-            await Menu.FocusFirstItemAsync();
-        else
-            await _contentElement.FocusAsync();
+        if (!_contentElementCaptured)
+        {
+            _pendingOpenAutoFocus = true;
+            return;
+        }
+
+        await ApplyOpenAutoFocusAsync();
     }
 
     private async Task HandleCloseAutoFocusAsync()
@@ -298,19 +303,43 @@
     }
 
     private Task HandleContentElementCapturedAsync(ElementReference element)
-    {
-        _contentElement = element;
-        return Task.CompletedTask;
-    }
+        => HandleContentElementCapturedInternalAsync(element);
 
     private async Task CleanupAfterExitAsync()
     {
         _isExiting = false;
+        _contentElementCaptured = false;
+        _pendingOpenAutoFocus = false;
 
         if (_hideOthersRegistered)
         {
             await Interop.UnregisterHideOthers(_layerElement);
             _hideOthersRegistered = false;
         }
+    }
+
+    private async Task ApplyOpenAutoFocusAsync()
+    {
+        if (Menu is null)
+            return;
+
+        _pendingOpenAutoFocus = false;
+
+        if (Menu.ConsumeFocusFirstItemOnOpen())
+        {
+            await Menu.FocusFirstItemAsync();
+            return;
+        }
+
+        await _contentElement.FocusAsync();
+    }
+
+    private async Task HandleContentElementCapturedInternalAsync(ElementReference element)
+    {
+        _contentElement = element;
+        _contentElementCaptured = true;
+
+        if (_pendingOpenAutoFocus && Menu?.CurrentOpen == true)
+            await ApplyOpenAutoFocusAsync();
     }
 }

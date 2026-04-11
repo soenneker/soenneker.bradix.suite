@@ -75,12 +75,13 @@
         if (Avatar is not null)
             await Avatar.SetImageLoadingStatusAsync(BradixAvatarImageLoadingStatus.Idle);
 
-        await Interop.RegisterAvatarImageLoadingStatus(Src, CrossOrigin, ReferrerPolicy, _dotNetReference);
-        _registered = true;
         _pendingRegistration = false;
         _lastSrc = Src;
         _lastCrossOrigin = CrossOrigin;
         _lastReferrerPolicy = ReferrerPolicy;
+
+        await Interop.RegisterAvatarImageLoadingStatus(Src, CrossOrigin, ReferrerPolicy, _dotNetReference);
+        _registered = true;
     }
 
     public async ValueTask DisposeAsync()
