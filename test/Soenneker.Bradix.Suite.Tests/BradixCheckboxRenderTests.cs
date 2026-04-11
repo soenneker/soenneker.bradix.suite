@@ -8,15 +8,20 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixCheckboxRenderTests : BunitContext
 {
+    private readonly BunitJSModuleInterop _module;
+
     public BradixCheckboxRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.Setup<bool>("isFormControl", _ => true).SetResult(false);
-        module.SetupVoid("registerCheckboxRoot", _ => true).SetVoidResult();
-        module.SetupVoid("unregisterCheckboxRoot", _ => true).SetVoidResult();
-        module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
-        module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
-        module.SetupVoid("syncCheckboxBubbleInputState", _ => true).SetVoidResult();
+        _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.Setup<bool>("isFormControl", invocation =>
+                invocation.Arguments.Count > 1 && invocation.Arguments[1] is string formId && !string.IsNullOrWhiteSpace(formId))
+            .SetResult(true);
+        _module.Setup<bool>("isFormControl", _ => true).SetResult(false);
+        _module.SetupVoid("registerCheckboxRoot", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterCheckboxRoot", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("syncCheckboxBubbleInputState", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
@@ -74,6 +79,19 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Fact]
+    public void Checkbox_with_explicit_form_renders_hidden_input_outside_form()
+    {
+        var cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Checked, name: "terms", form: "settings-form"));
+
+        var input = cut.Find("input[type='checkbox']");
+        Assert.Equal("settings-form", input.GetAttribute("form"));
+        Assert.Contains(_module.Invocations, invocation =>
+            invocation.Identifier == "registerCheckboxRoot" &&
+            invocation.Arguments.Count > 2 &&
+            Equals(invocation.Arguments[2], "settings-form"));
+    }
+
+    [Fact]
     public async Task Uncontrolled_checkbox_resets_to_initial_state()
     {
         var cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Indeterminate));
@@ -86,7 +104,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
         Assert.Equal("mixed", button.GetAttribute("aria-checked"));
     }
 
-    private static RenderFragment CreateCheckbox(BradixCheckboxCheckedState? checkedState = null, BradixCheckboxCheckedState defaultChecked = BradixCheckboxCheckedState.Unchecked, bool forceMountIndicator = false, string? name = null)
+    private static RenderFragment CreateCheckbox(BradixCheckboxCheckedState? checkedState = null, BradixCheckboxCheckedState defaultChecked = BradixCheckboxCheckedState.Unchecked, bool forceMountIndicator = false, string? name = null, string? form = null)
     {
         return builder =>
         {
@@ -99,7 +117,10 @@ public sealed class BradixCheckboxRenderTests : BunitContext
             if (name is not null)
                 builder.AddAttribute(3, nameof(BradixCheckbox.Name), name);
 
-            builder.AddAttribute(4, nameof(BradixCheckbox.ChildContent), (RenderFragment) (contentBuilder =>
+            if (form is not null)
+                builder.AddAttribute(4, nameof(BradixCheckbox.Form), form);
+
+            builder.AddAttribute(5, nameof(BradixCheckbox.ChildContent), (RenderFragment) (contentBuilder =>
             {
                 contentBuilder.OpenComponent<BradixCheckboxIndicator>(0);
                 contentBuilder.AddAttribute(1, nameof(BradixCheckboxIndicator.ForceMount), forceMountIndicator);

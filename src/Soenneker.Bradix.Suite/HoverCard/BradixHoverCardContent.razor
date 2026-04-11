@@ -11,10 +11,10 @@
                             DismissOnEscapeKeyDown="false"
                             DismissOnPointerDownOutside="false"
                             DismissOnFocusOutside="false"
-                            OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
-                            OnPointerDownOutside="@HandlePointerDownOutsideAsync"
-                            OnFocusOutside="@HandleFocusOutsideAsync"
-                            OnInteractOutside="@OnInteractOutside">
+                            OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
+                            OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
+                            OnFocusOutsideDetailed="@HandleFocusOutsideAsync"
+                            OnInteractOutsideDetailed="@HandleInteractOutsideAsync">
         <BradixPopperContent Side="@Side"
                              SideOffset="@SideOffset"
                              Align="@Align"
@@ -47,6 +47,7 @@
     private bool _selectionContainmentRegistered;
     private bool _tabNavigationDisabled;
     private DotNetObjectReference<object>? _dotNetReference;
+    private bool _pointerDownOutsidePrevented;
 
     [CascadingParameter]
     private BradixHoverCard? HoverCard { get; set; }
@@ -92,6 +93,18 @@
 
     [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
 
     private bool IsPresent => ForceMount || PortalForceMount || HoverCard?.CurrentOpen == true;
 
@@ -161,29 +174,54 @@
         return Task.CompletedTask;
     }
 
-    private async Task HandleEscapeKeyDownAsync()
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
 
-        if (HoverCard is not null)
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(args);
+
+        if (!args.DefaultPrevented && HoverCard is not null)
             await HoverCard.DismissAsync();
     }
 
-    private async Task HandlePointerDownOutsideAsync()
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
 
-        if (HoverCard is not null)
-            await HoverCard.DismissAsync();
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(args);
+
+        _pointerDownOutsidePrevented = args.DefaultPrevented;
     }
 
-    private Task HandleFocusOutsideAsync()
+    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
     {
-        return OnFocusOutside.HasDelegate
-            ? OnFocusOutside.InvokeAsync()
-            : Task.CompletedTask;
+        if (OnFocusOutside.HasDelegate)
+            await OnFocusOutside.InvokeAsync();
+
+        if (OnFocusOutsideDetailed.HasDelegate)
+            await OnFocusOutsideDetailed.InvokeAsync(args);
+    }
+
+    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
+    {
+        if (OnInteractOutside.HasDelegate)
+            await OnInteractOutside.InvokeAsync();
+
+        if (OnInteractOutsideDetailed.HasDelegate)
+            await OnInteractOutsideDetailed.InvokeAsync(args);
+
+        bool shouldDismiss = string.Equals(args.OriginalEventType, "pointerdown", StringComparison.Ordinal) &&
+            !_pointerDownOutsidePrevented &&
+            !args.DefaultPrevented;
+
+        _pointerDownOutsidePrevented = false;
+
+        if (shouldDismiss && HoverCard is not null)
+            await HoverCard.DismissAsync();
     }
 
     private Task HandlePointerEnterAsync(PointerEventArgs args)

@@ -6,6 +6,8 @@
                      TextValue="@TextValue"
                      Disabled="@Disabled"
                      CloseOnSelect="@CloseOnSelect"
+                     OnSelect="@OnSelect"
+                     OnSelectDetailed="@OnSelectDetailed"
                      AdditionalAttributes="@AdditionalAttributes">
     @ChildContent
 </BradixMenuRadioItem>
@@ -31,6 +33,12 @@
 
     [Parameter]
     public bool CloseOnSelect { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixMenuItemSelectEventArgs> OnSelectDetailed { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }

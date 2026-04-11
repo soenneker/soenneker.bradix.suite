@@ -39,19 +39,37 @@
     public EventCallback OnOpenAutoFocus { get; set; }
 
     [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnCloseAutoFocusDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnEscapeKeyDown { get; set; }
 
     [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnFocusOutside { get; set; }
 
     [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
 
     [Parameter]
     public string Role { get; set; } = "dialog";
@@ -84,13 +102,14 @@
                 : new Dictionary<string, object>();
 
             attributes["role"] = string.IsNullOrWhiteSpace(Role) ? "dialog" : Role;
+            attributes["aria-modal"] = Dialog?.Modal == true ? "true" : "false";
             attributes["data-state"] = Dialog?.CurrentOpen == true ? "open" : "closed";
 
-            if (!string.IsNullOrWhiteSpace(Dialog?.TitleId))
-                attributes["aria-labelledby"] = Dialog.TitleId;
+            if (!string.IsNullOrWhiteSpace(Dialog?.RegisteredTitleId))
+                attributes["aria-labelledby"] = Dialog.RegisteredTitleId;
 
-            if (!string.IsNullOrWhiteSpace(Dialog?.DescriptionId))
-                attributes["aria-describedby"] = Dialog.DescriptionId;
+            if (!string.IsNullOrWhiteSpace(Dialog?.RegisteredDescriptionId))
+                attributes["aria-describedby"] = Dialog.RegisteredDescriptionId;
 
             return attributes;
         }
@@ -128,10 +147,13 @@
         }
     }
 
-    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs _)
+    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
+
+        if (OnOpenAutoFocusDetailed.HasDelegate)
+            await OnOpenAutoFocusDetailed.InvokeAsync(args);
     }
 
     private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
@@ -139,8 +161,14 @@
         if (OnCloseAutoFocus.HasDelegate)
             await OnCloseAutoFocus.InvokeAsync();
 
+        if (OnCloseAutoFocusDetailed.HasDelegate)
+            await OnCloseAutoFocusDetailed.InvokeAsync(args);
+
         if (Dialog?.Modal == true)
         {
+            if (args.DefaultPrevented)
+                goto ResetState;
+
             args.PreventDefault();
             await Dialog.FocusTriggerAsync();
         }
@@ -152,20 +180,27 @@
             args.PreventDefault();
         }
 
+ResetState:
         _hasInteractedOutside = false;
         _hasPointerDownOutside = false;
     }
 
-    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
+
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(args);
     }
 
     private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
+
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(args);
 
         bool ctrlLeftClick = args.OriginalEvent.Button == 0 && args.OriginalEvent.CtrlKey;
         bool isRightClick = args.OriginalEvent.Button == 2 || ctrlLeftClick;
@@ -179,6 +214,9 @@
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
 
+        if (OnFocusOutsideDetailed.HasDelegate)
+            await OnFocusOutsideDetailed.InvokeAsync(args);
+
         if (Dialog?.Modal == true)
         {
             args.PreventDefault();
@@ -190,6 +228,9 @@
     {
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();
+
+        if (OnInteractOutsideDetailed.HasDelegate)
+            await OnInteractOutsideDetailed.InvokeAsync(args);
 
         if (Dialog?.Modal == true)
             return;

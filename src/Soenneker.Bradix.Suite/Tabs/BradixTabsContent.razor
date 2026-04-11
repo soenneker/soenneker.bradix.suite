@@ -40,7 +40,7 @@
         ("aria-labelledby", TriggerId),
         ("hidden", !(Present || _isPresent)),
         ("id", ContentId),
-        ("tabindex", 0),
+        ("tabindex", IsSelected ? 0 : -1),
         ("data-state", IsSelected ? "active" : "inactive"),
         ("data-orientation", Tabs.Orientation),
         ("style", BuildContentStyle()));

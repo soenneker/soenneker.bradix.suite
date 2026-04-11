@@ -14,14 +14,20 @@
                     Style="@ComputedStyle"
                     AdditionalAttributes="@ViewportAttributes"
                     OnElementReferenceCaptured="@HandleViewportCapturedAsync">
-        @if (ActiveRegistration is not null)
+        @if (Registrations.Count > 0)
         {
-            <BradixNavigationMenuViewportContentHost Registration="@ActiveRegistration"
-                                                    IsOpen="@(NavigationMenu?.HasOpenItem == true)"
-                                                    Motion="@ResolveMotion()"
-                                                    OnContentElementCaptured="@HandleContentCapturedAsync"
-                                                    OnPointerEnterContent="@HandleContentEnterAsync"
-                                                    OnPointerLeaveContent="@HandleContentLeaveAsync" />
+            @foreach (BradixNavigationMenuViewportRegistration registration in Registrations)
+            {
+                bool isActive = string.Equals(ActiveViewportValue, registration.Value, StringComparison.Ordinal);
+
+                <BradixNavigationMenuViewportContentHost Registration="@registration"
+                                                        Present="@(registration.ForceMount || isActive)"
+                                                        IsOpen="@(NavigationMenu?.HasOpenItem == true && string.Equals(NavigationMenu.CurrentValue, registration.Value, StringComparison.Ordinal))"
+                                                        Motion="@ResolveMotion(registration.Value)"
+                                                        OnContentElementCaptured="@CreateContentCapturedCallback(registration.Value)"
+                                                        OnPointerEnterContent="@HandleContentEnterAsync"
+                                                        OnPointerLeaveContent="@HandleContentLeaveAsync" />
+            }
         }
     </BradixPresence>
 }
@@ -43,20 +49,17 @@
     [Parameter]
     public bool ForceMount { get; set; }
 
-    private BradixNavigationMenuViewportRegistration? ActiveRegistration
-    {
-        get
-        {
-            if (NavigationMenu is null || string.IsNullOrWhiteSpace(NavigationMenu.ActiveViewportValue))
-                return null;
+    private string ActiveViewportValue => NavigationMenu?.ActiveViewportValue ?? string.Empty;
 
-            return NavigationMenu.TryGetViewportContent(NavigationMenu.ActiveViewportValue, out BradixNavigationMenuViewportRegistration registration)
-                ? registration
-                : null;
-        }
-    }
+    private IReadOnlyList<BradixNavigationMenuViewportRegistration> Registrations =>
+        NavigationMenu?.GetViewportContents() ?? [];
 
-    private bool ShouldRenderViewport => ForceMount || NavigationMenu?.HasOpenItem == true || ActiveRegistration is not null;
+    private bool ShouldRenderViewport => ForceMount || NavigationMenu?.HasOpenItem == true || Registrations.Count > 0;
+
+    private string ResolvedViewportId =>
+        string.IsNullOrWhiteSpace(Id)
+            ? $"{NavigationMenu?.BaseId}-viewport"
+            : Id;
 
     private IReadOnlyDictionary<string, object> ViewportAttributes
     {
@@ -66,6 +69,7 @@
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
+            attributes["id"] = ResolvedViewportId;
             attributes["data-state"] = NavigationMenu?.HasOpenItem == true ? "open" : "closed";
             attributes["data-orientation"] = NavigationMenu?.Orientation ?? "horizontal";
             return attributes;
@@ -98,7 +102,7 @@
     {
         if (!_viewportRegisteredWithRoot && NavigationMenu is not null)
         {
-            NavigationMenu.RegisterViewport();
+            NavigationMenu.RegisterViewport(ResolvedViewportId);
             _viewportRegisteredWithRoot = true;
         }
     }
@@ -132,7 +136,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_viewportRegisteredWithRoot)
-            NavigationMenu?.UnregisterViewport();
+            NavigationMenu?.UnregisterViewport(ResolvedViewportId);
 
         if (_registered)
             await Interop.UnregisterNavigationMenuViewport(_viewportElement);
@@ -147,11 +151,20 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleContentCapturedAsync(ElementReference element)
+    private Task HandleContentCapturedAsync(string value, ElementReference element)
     {
-        _contentElement = element;
-        _hasContentElement = true;
+        if (string.Equals(value, ActiveViewportValue, StringComparison.Ordinal))
+        {
+            _contentElement = element;
+            _hasContentElement = true;
+        }
+
         return Task.CompletedTask;
+    }
+
+    private EventCallback<ElementReference> CreateContentCapturedCallback(string value)
+    {
+        return EventCallback.Factory.Create<ElementReference>(this, element => HandleContentCapturedAsync(value, element));
     }
 
     private Task HandleContentEnterAsync()
@@ -172,17 +185,17 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private string ResolveMotion()
+    private string ResolveMotion(string value)
     {
-        if (NavigationMenu is null || ActiveRegistration is null || string.IsNullOrWhiteSpace(NavigationMenu.PreviousValue))
+        if (NavigationMenu is null || string.IsNullOrWhiteSpace(NavigationMenu.PreviousValue))
             return string.Empty;
 
         List<string> values = NavigationMenu.GetOrderedTriggerValues();
         int index = values.IndexOf(NavigationMenu.CurrentValue);
         int previousIndex = values.IndexOf(NavigationMenu.PreviousValue);
-        int activeIndex = values.IndexOf(ActiveRegistration.Value);
+        int activeIndex = values.IndexOf(value);
 
-        bool isSelected = ActiveRegistration.Value == NavigationMenu.CurrentValue;
+        bool isSelected = value == NavigationMenu.CurrentValue;
         bool wasSelected = activeIndex == previousIndex;
 
         if (!isSelected && !wasSelected)

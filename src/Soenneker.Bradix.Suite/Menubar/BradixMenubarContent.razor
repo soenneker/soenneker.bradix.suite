@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 @implements IAsyncDisposable
+@implements IBradixMenuContentController
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
 @using Microsoft.JSInterop
@@ -10,6 +11,7 @@
 }
 
 @code {
+    private readonly HashSet<string> _submenuPointerGraceItems = [];
     private bool _wasPresent;
     private bool _isExiting;
     private bool _hasInteractedOutside;
@@ -60,19 +62,37 @@
     public EventCallback OnOpenAutoFocus { get; set; }
 
     [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnCloseAutoFocusDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnEscapeKeyDown { get; set; }
 
     [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnFocusOutside { get; set; }
 
     [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnPlaced { get; set; }
@@ -126,6 +146,7 @@
         if (_delegatedInteractionRegistered)
             await Interop.UnregisterDelegatedInteraction(_contentElement);
 
+        _submenuPointerGraceItems.Clear();
         _dotNetReference?.Dispose();
     }
 
@@ -133,6 +154,9 @@
     {
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
+
+        if (OnOpenAutoFocusDetailed.HasDelegate)
+            await OnOpenAutoFocusDetailed.InvokeAsync(args);
 
         if (args.DefaultPrevented)
             return;
@@ -151,6 +175,9 @@
         if (OnCloseAutoFocus.HasDelegate)
             await OnCloseAutoFocus.InvokeAsync();
 
+        if (OnCloseAutoFocusDetailed.HasDelegate)
+            await OnCloseAutoFocusDetailed.InvokeAsync(args);
+
         if (MenubarMenu is not null)
             MenubarMenu.ResetKeyboardTriggerOpen();
 
@@ -162,22 +189,31 @@
         _hasInteractedOutside = false;
     }
 
-    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
+
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(args);
     }
 
-    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs _)
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
+
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(args);
     }
 
     private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
     {
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
+
+        if (OnFocusOutsideDetailed.HasDelegate)
+            await OnFocusOutsideDetailed.InvokeAsync(args);
 
         if (Menubar?.ContainsRegisteredTriggerTarget(args.OriginalEvent.TargetId, args.OriginalEvent.AncestorIds) == true)
         {
@@ -186,12 +222,16 @@
         }
     }
 
-    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs _)
+    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
     {
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();
 
-        _hasInteractedOutside = true;
+        if (OnInteractOutsideDetailed.HasDelegate)
+            await OnInteractOutsideDetailed.InvokeAsync(args);
+
+        if (!args.DefaultPrevented)
+            _hasInteractedOutside = true;
     }
 
     private Task HandleDismissAsync()
@@ -202,17 +242,47 @@
     [JSInvokable]
     public async Task HandleDelegatedContentKeyDownAsync(BradixDelegatedKeyboardEvent args)
     {
+        if (Menu is null || args.CtrlKey || args.AltKey || args.MetaKey)
+            return;
+
+        if (args.Key == "Tab")
+            return;
+
+        string? contentId = ResolvedContentId;
+        bool isContentTarget = !string.IsNullOrWhiteSpace(contentId) && string.Equals(args.TargetId, contentId, StringComparison.Ordinal);
+
+        if (isContentTarget && args.Key.Length == 1)
+        {
+            await Menu.HandleTypeaheadAsync(null, args.Key);
+            return;
+        }
+
+        if (isContentTarget)
+        {
+            switch (args.Key)
+            {
+                case "PageUp":
+                case "Home":
+                    await Menu.FocusFirstItemAsync();
+                    return;
+                case "PageDown":
+                case "End":
+                    await Menu.FocusLastItemAsync();
+                    return;
+            }
+        }
+
         if (args.Key is not "ArrowRight" and not "ArrowLeft")
             return;
 
-        if (Menubar is null || MenubarMenu is null || string.IsNullOrWhiteSpace(ResolvedContentId))
+        if (Menubar is null || MenubarMenu is null || string.IsNullOrWhiteSpace(contentId))
             return;
 
         string previousMenuKey = Menubar.ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
         bool isPreviousKey = previousMenuKey == args.Key;
         bool isNextKey = !isPreviousKey;
         bool isInsideNestedContent = !string.IsNullOrWhiteSpace(args.ClosestMenubarContentId)
-            && !string.Equals(args.ClosestMenubarContentId, ResolvedContentId, StringComparison.Ordinal);
+            && !string.Equals(args.ClosestMenubarContentId, contentId, StringComparison.Ordinal);
 
         if (isNextKey && args.IsMenubarSubTrigger)
             return;
@@ -224,6 +294,18 @@
         await Menubar.MoveToAdjacentMenuAsync(MenubarMenu.CurrentValue, args.Key);
     }
 
+    [JSInvokable]
+    public Task HandleDelegatedContentFocusOutAsync(BradixDelegatedFocusEvent args)
+    {
+        if (Menu is null || !IsWithinContent(args.TargetId, args.AncestorIds))
+            return Task.CompletedTask;
+
+        if (!IsWithinContent(args.RelatedTargetId, args.RelatedTargetAncestorIds))
+            Menu.ResetTypeahead();
+
+        return Task.CompletedTask;
+    }
+
     private async Task HandleExitCompleteAsync()
     {
         if (_delegatedInteractionRegistered)
@@ -232,6 +314,7 @@
             _delegatedInteractionRegistered = false;
         }
 
+        _submenuPointerGraceItems.Clear();
         _isExiting = false;
         await InvokeAsync(StateHasChanged);
     }
@@ -245,53 +328,118 @@
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
             {
+                focusout = new
+                {
+                    method = nameof(HandleDelegatedContentFocusOutAsync),
+                    currentTargetOnly = false
+                },
                 keydown = new
                 {
                     method = nameof(HandleDelegatedContentKeyDownAsync),
-                    currentTargetOnly = false
+                    currentTargetOnly = false,
+                    preventDefaultKeys = new[] { "Tab", "Home", "End", "PageUp", "PageDown" }
                 }
             });
             _delegatedInteractionRegistered = true;
         }
     }
 
-    private RenderFragment RenderContentTree() => @<BradixFocusGuards>
-        <BradixFocusScope Trapped="false"
-                          PreventMountAutoFocus="true"
-                          PreventUnmountAutoFocus="true"
-                          OnMountAutoFocusDetailed="HandleOpenAutoFocusAsync"
-                          OnUnmountAutoFocusDetailed="HandleCloseAutoFocusAsync">
-            <BradixDismissableLayer DisableOutsidePointerEvents="false"
-                                    DismissOnEscapeKeyDown="true"
-                                    DismissOnPointerDownOutside="true"
-                                    DismissOnFocusOutside="true"
-                                    OnDismiss="@HandleDismissAsync"
-                                    OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
-                                    OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
-                                    OnFocusOutsideDetailed="@HandleFocusOutsideAsync"
-                                    OnInteractOutsideDetailed="@HandleInteractOutsideAsync">
-                <BradixPopperContent Side="bottom"
-                                     SideOffset="@SideOffset"
-                                     Align="@Align"
-                                     AlignOffset="@AlignOffset"
-                                     ArrowPadding="@ArrowPadding"
-                                     AvoidCollisions="@AvoidCollisions"
-                                     CollisionPadding="@CollisionPadding"
-                                     HideWhenDetached="@HideWhenDetached"
-                                     Style="@PositionerStyle"
-                                     OnPlaced="@OnPlaced">
-                    <BradixPresence Present="IsPresent"
-                                    Tag="div"
-                                    Id="@ResolvedContentId"
-                                    Class="@Class"
-                                    Style="@MergedContentStyle"
-                                    AdditionalAttributes="@PresenceAttributes"
-                                    OnElementReferenceCaptured="@HandleContentElementCapturedAsync"
-                                    OnExitComplete="@HandleExitCompleteAsync">
-                        @ChildContent
-                    </BradixPresence>
-                </BradixPopperContent>
-            </BradixDismissableLayer>
-        </BradixFocusScope>
-    </BradixFocusGuards>;
+    private bool IsWithinContent(string? targetId, IReadOnlyList<string>? ancestorIds)
+    {
+        string? contentId = ResolvedContentId;
+
+        if (string.IsNullOrWhiteSpace(contentId))
+            return false;
+
+        if (string.Equals(targetId, contentId, StringComparison.Ordinal))
+            return true;
+
+        return ancestorIds?.Contains(contentId) == true;
+    }
+
+    Task IBradixMenuContentController.HandleItemKeyDownAsync(IBradixMenuItem item, KeyboardEventArgs args)
+    {
+        return Menu is null
+            ? Task.CompletedTask
+            : Menu.HandleItemNavigationAsync(item, args.Key, Loop);
+    }
+
+    Task IBradixMenuContentController.HandleTypeaheadKeyAsync(IBradixMenuItem item, string key)
+    {
+        return Menu is null ? Task.CompletedTask : Menu.HandleTypeaheadAsync(item, key);
+    }
+
+    Task IBradixMenuContentController.HandlePointerMoveAsync(IBradixMenuItem item, string? pointerType)
+    {
+        if (Menu is null || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
+            return Task.CompletedTask;
+
+        if (_submenuPointerGraceItems.Count > 0)
+            return Task.CompletedTask;
+
+        Menu.SetCurrentTabStop(item.TabStopId);
+        return item.FocusAsync().AsTask();
+    }
+
+    Task IBradixMenuContentController.HandleItemLeaveAsync()
+    {
+        if (_submenuPointerGraceItems.Count > 0)
+            return Task.CompletedTask;
+
+        Menu?.ClearCurrentTabStop();
+        return Interop.FocusElementPreventScroll(_contentElement).AsTask();
+    }
+
+    void IBradixMenuContentController.SetSubmenuPointerGrace(string? tabStopId, bool active)
+    {
+        if (string.IsNullOrWhiteSpace(tabStopId))
+            return;
+
+        if (active)
+            _submenuPointerGraceItems.Add(tabStopId);
+        else
+            _submenuPointerGraceItems.Remove(tabStopId);
+    }
+
+    private RenderFragment RenderContentTree() => @<CascadingValue Value="this">
+        <BradixFocusGuards>
+            <BradixFocusScope Trapped="false"
+                              PreventMountAutoFocus="true"
+                              PreventUnmountAutoFocus="true"
+                              OnMountAutoFocusDetailed="HandleOpenAutoFocusAsync"
+                              OnUnmountAutoFocusDetailed="HandleCloseAutoFocusAsync">
+                <BradixDismissableLayer DisableOutsidePointerEvents="false"
+                                        DismissOnEscapeKeyDown="true"
+                                        DismissOnPointerDownOutside="true"
+                                        DismissOnFocusOutside="true"
+                                        OnDismiss="@HandleDismissAsync"
+                                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
+                                        OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
+                                        OnFocusOutsideDetailed="@HandleFocusOutsideAsync"
+                                        OnInteractOutsideDetailed="@HandleInteractOutsideAsync">
+                    <BradixPopperContent Side="bottom"
+                                         SideOffset="@SideOffset"
+                                         Align="@Align"
+                                         AlignOffset="@AlignOffset"
+                                         ArrowPadding="@ArrowPadding"
+                                         AvoidCollisions="@AvoidCollisions"
+                                         CollisionPadding="@CollisionPadding"
+                                         HideWhenDetached="@HideWhenDetached"
+                                         Style="@PositionerStyle"
+                                         OnPlaced="@OnPlaced">
+                        <BradixPresence Present="IsPresent"
+                                        Tag="div"
+                                        Id="@ResolvedContentId"
+                                        Class="@Class"
+                                        Style="@MergedContentStyle"
+                                        AdditionalAttributes="@PresenceAttributes"
+                                        OnElementReferenceCaptured="@HandleContentElementCapturedAsync"
+                                        OnExitComplete="@HandleExitCompleteAsync">
+                            @ChildContent
+                        </BradixPresence>
+                    </BradixPopperContent>
+                </BradixDismissableLayer>
+            </BradixFocusScope>
+        </BradixFocusGuards>
+    </CascadingValue>;
 }

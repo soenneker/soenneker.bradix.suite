@@ -72,6 +72,7 @@ public sealed class BradixPopperRenderTests : BunitContext
 
         Assert.Contains("data-side=\"top\"", cut.Markup);
         Assert.Contains("data-align=\"start\"", cut.Markup);
+        Assert.Equal("true", cut.Find("[aria-hidden='true']").GetAttribute("aria-hidden"));
         Assert.Equal(1, placedCount);
     }
 

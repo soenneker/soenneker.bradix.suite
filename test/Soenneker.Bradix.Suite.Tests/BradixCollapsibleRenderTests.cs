@@ -44,6 +44,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         IElement content = cut.Find($"#{contentId}");
         Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
         Assert.Equal("open", trigger.GetAttribute("data-state"));
+        Assert.Equal("region", content.GetAttribute("role"));
         Assert.False(content.HasAttribute("hidden"));
         Assert.Contains("Content", cut.Markup);
     }

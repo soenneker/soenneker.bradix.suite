@@ -19,6 +19,7 @@
     private bool _initialized;
     private bool _focusFirstItemOnOpen;
     private bool _focusContentOnOpen = true;
+    private bool? _lastControlledOpen;
     private bool _uncontrolledOpen;
 
     [CascadingParameter(Name = "BradixDirection")]
@@ -72,13 +73,36 @@
         BaseId ??= IdGenerator.New("bradix-menu");
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        if (_initialized)
+        if (!_initialized)
+        {
+            _uncontrolledOpen = DefaultOpen;
+            _initialized = true;
+        }
+
+        if (!Open.HasValue)
+        {
+            _lastControlledOpen = null;
+            return;
+        }
+
+        bool controlledOpen = Open.Value;
+
+        if (_lastControlledOpen == controlledOpen)
             return;
 
-        _uncontrolledOpen = DefaultOpen;
-        _initialized = true;
+        if (controlledOpen && !_focusFirstItemOnOpen && _focusContentOnOpen)
+            _focusFirstItemOnOpen = await Interop.IsKeyboardInteractionMode();
+
+        if (!controlledOpen)
+        {
+            ResetTypeahead();
+            _focusFirstItemOnOpen = false;
+            _focusContentOnOpen = true;
+        }
+
+        _lastControlledOpen = controlledOpen;
     }
 
     internal bool IsCurrentTabStop(IBradixMenuItem item)
@@ -237,6 +261,9 @@
     {
         if (CurrentOpen == open)
             return;
+
+        if (open && !_focusFirstItemOnOpen && _focusContentOnOpen)
+            _focusFirstItemOnOpen = await Interop.IsKeyboardInteractionMode();
 
         if (Open is null)
             _uncontrolledOpen = open;

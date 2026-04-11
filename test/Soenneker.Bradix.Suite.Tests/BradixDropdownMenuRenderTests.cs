@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(false);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Share");
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
@@ -50,6 +52,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     {
         var cut = Render(CreateDropdownMenu());
         var trigger = cut.Find("button");
+        string closedControls = Assert.IsType<string>(trigger.GetAttribute("aria-controls"));
 
         trigger.KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowDown" });
 
@@ -57,6 +60,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
         {
             var menu = cut.Find("[role='menu']");
             Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
+            Assert.Equal(closedControls, trigger.GetAttribute("aria-controls"));
             Assert.Equal(menu.Id, trigger.GetAttribute("aria-controls"));
             Assert.Equal(trigger.Id, menu.GetAttribute("aria-labelledby"));
         });
@@ -90,6 +94,22 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
 
         Assert.Equal(true, invocation.Arguments[4]);
         Assert.Equal(true, invocation.Arguments[5]);
+    }
+
+    [Fact]
+    public async Task Detailed_close_auto_focus_can_prevent_dropdown_trigger_refocus()
+    {
+        var cut = Render(CreateDropdownMenu(
+            defaultOpen: true,
+            onCloseAutoFocusDetailed: EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, args => args.PreventDefault())));
+
+        int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
+        var focusScope = cut.FindComponent<BradixFocusScope>();
+
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+
+        Assert.True(prevented);
+        Assert.Equal(focusCountBefore, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
     }
 
     [Fact]
@@ -135,13 +155,55 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
         });
     }
 
-    private static RenderFragment CreateDropdownMenu(bool defaultOpen = false)
+    [Fact]
+    public async Task Detailed_escape_keydown_can_prevent_dropdown_submenu_close()
+    {
+        var cut = Render(CreateDropdownMenu(
+            defaultOpen: true,
+            onSubEscapeKeyDownDetailed: EventCallback.Factory.Create<BradixEscapeKeyDownEventArgs>(this, args => args.PreventDefault())));
+
+        cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[role='menu']").Count));
+
+        var layer = cut.FindComponents<BradixDismissableLayer>().Last();
+        bool prevented = await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDownAsync());
+
+        Assert.False(prevented);
+        Assert.Equal(2, cut.FindAll("[role='menu']").Count);
+    }
+
+    [Fact]
+    public async Task Modal_right_click_outside_does_not_refocus_dropdown_trigger_on_close()
+    {
+        var cut = Render(CreateDropdownMenu(defaultOpen: true, modal: true));
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+        var focusScope = cut.FindComponent<BradixFocusScope>();
+
+        int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
+
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        {
+            Button = 2
+        }));
+
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+
+        Assert.True(prevented);
+        Assert.Equal(focusCountBefore, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
+    }
+
+    private static RenderFragment CreateDropdownMenu(
+        bool defaultOpen = false,
+        bool modal = true,
+        EventCallback<BradixAutoFocusEventArgs> onCloseAutoFocusDetailed = default,
+        EventCallback<BradixEscapeKeyDownEventArgs> onSubEscapeKeyDownDetailed = default)
     {
         return builder =>
         {
             builder.OpenComponent<BradixDropdownMenu>(0);
             builder.AddAttribute(1, nameof(BradixDropdownMenu.DefaultOpen), defaultOpen);
-            builder.AddAttribute(2, nameof(BradixDropdownMenu.ChildContent), (RenderFragment)(content =>
+            builder.AddAttribute(2, nameof(BradixDropdownMenu.Modal), modal);
+            builder.AddAttribute(3, nameof(BradixDropdownMenu.ChildContent), (RenderFragment)(content =>
             {
                 content.OpenComponent<BradixDropdownMenuTrigger>(0);
                 content.AddAttribute(1, nameof(BradixDropdownMenuTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Open")));
@@ -151,7 +213,9 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
                 content.AddAttribute(3, nameof(BradixDropdownMenuPortal.ChildContent), (RenderFragment)(portal =>
                 {
                     portal.OpenComponent<BradixDropdownMenuContent>(0);
-                    portal.AddAttribute(1, nameof(BradixDropdownMenuContent.ChildContent), (RenderFragment)(menuContent =>
+                    if (onCloseAutoFocusDetailed.HasDelegate)
+                        portal.AddAttribute(1, nameof(BradixDropdownMenuContent.OnCloseAutoFocusDetailed), onCloseAutoFocusDetailed);
+                    portal.AddAttribute(2, nameof(BradixDropdownMenuContent.ChildContent), (RenderFragment)(menuContent =>
                     {
                         menuContent.OpenComponent<BradixDropdownMenuItem>(0);
                         menuContent.AddAttribute(1, nameof(BradixDropdownMenuItem.TextValue), "Edit");
@@ -194,7 +258,9 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
                             sub.AddAttribute(4, nameof(BradixDropdownMenuPortal.ChildContent), (RenderFragment)(subPortal =>
                             {
                                 subPortal.OpenComponent<BradixDropdownMenuSubContent>(0);
-                                subPortal.AddAttribute(1, nameof(BradixDropdownMenuSubContent.ChildContent), (RenderFragment)(submenu =>
+                                if (onSubEscapeKeyDownDetailed.HasDelegate)
+                                    subPortal.AddAttribute(1, nameof(BradixDropdownMenuSubContent.OnEscapeKeyDownDetailed), onSubEscapeKeyDownDetailed);
+                                subPortal.AddAttribute(2, nameof(BradixDropdownMenuSubContent.ChildContent), (RenderFragment)(submenu =>
                                 {
                                     submenu.OpenComponent<BradixDropdownMenuItem>(0);
                                     submenu.AddAttribute(1, nameof(BradixDropdownMenuItem.TextValue), "Copy link");

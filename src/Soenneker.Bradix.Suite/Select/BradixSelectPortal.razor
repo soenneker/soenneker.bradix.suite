@@ -1,11 +1,15 @@
 @namespace Soenneker.Bradix
-<BradixPortal ContainerSelector="@ContainerSelector">
+<BradixPortal ContainerSelector="@ContainerSelector"
+              Container="@Container">
     @ChildContent
 </BradixPortal>
 
 @code {
     [Parameter]
     public string? ContainerSelector { get; set; }
+
+    [Parameter]
+    public ElementReference Container { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }

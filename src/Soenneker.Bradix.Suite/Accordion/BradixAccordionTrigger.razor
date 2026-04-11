@@ -63,7 +63,8 @@
                 keydown = new
                 {
                     method = nameof(HandleDelegatedKeyDownAsync),
-                    keys = new[] { "Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight" }
+                    keys = new[] { "Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight" },
+                    preventDefault = true
                 }
             });
         }

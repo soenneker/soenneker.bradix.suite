@@ -10,8 +10,17 @@
                       Class="@Class"
                       Style="@MergedStyle"
                       AdditionalAttributes="@AdditionalAttributes"
+                      OnOpenAutoFocus="@OnOpenAutoFocus"
+                      OnOpenAutoFocusDetailed="@OnOpenAutoFocusDetailed"
+                      OnEscapeKeyDown="@OnEscapeKeyDown"
+                      OnEscapeKeyDownDetailed="@OnEscapeKeyDownDetailed"
                       OnPointerDownOutside="@OnPointerDownOutside"
+                      OnPointerDownOutsideDetailed="@OnPointerDownOutsideDetailed"
+                      OnFocusOutside="@OnFocusOutside"
+                      OnFocusOutsideDetailed="@OnFocusOutsideDetailed"
                       OnInteractOutside="@OnInteractOutside"
+                      OnInteractOutsideDetailed="@OnInteractOutsideDetailed"
+                      OnContentKeyDown="@OnContentKeyDown"
                       OnPlaced="@OnPlaced">
     @ChildContent
 </BradixMenuSubContent>
@@ -54,10 +63,37 @@
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
+    public EventCallback OnOpenAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
 
     [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback OnFocusOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnContentKeyDown { get; set; }
 
     [Parameter]
     public EventCallback OnPlaced { get; set; }

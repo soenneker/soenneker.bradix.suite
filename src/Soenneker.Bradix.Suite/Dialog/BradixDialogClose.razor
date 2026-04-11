@@ -22,8 +22,12 @@
     [Parameter]
     public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
 
+    [Parameter]
+    public string? AriaLabel { get; set; } = "Close";
+
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
-        ("type", "button"));
+        ("type", "button"),
+        ("aria-label", AriaLabel));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

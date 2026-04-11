@@ -32,8 +32,10 @@ public sealed class BradixTabsRenderTests : BunitContext
         var cut = Render(CreateTabs(defaultValue: "tab1"));
 
         var buttons = cut.FindAll("button");
+        var tabList = cut.Find("[role='tablist']");
         var panel = cut.Find("[role='tabpanel']");
 
+        Assert.Equal("horizontal", tabList.GetAttribute("aria-orientation"));
         Assert.Equal("true", buttons[0].GetAttribute("aria-selected"));
         Assert.Equal("active", buttons[0].GetAttribute("data-state"));
         Assert.Equal(buttons[0].GetAttribute("aria-controls"), panel.Id);
@@ -84,6 +86,7 @@ public sealed class BradixTabsRenderTests : BunitContext
         var tab2Panel = cut.Find("#" + cut.FindAll("button")[1].GetAttribute("aria-controls"));
 
         Assert.False(tab2Panel.HasAttribute("hidden"));
+        Assert.Equal("-1", tab2Panel.GetAttribute("tabindex"));
         Assert.Contains("Content 2", tab2Panel.TextContent);
     }
 
@@ -109,7 +112,16 @@ public sealed class BradixTabsRenderTests : BunitContext
         Assert.Equal("0", buttons[2].GetAttribute("tabindex"));
     }
 
-    private static RenderFragment CreateTabs(string? defaultValue = null, string activationMode = "automatic", EventCallback<string?> onValueChange = default, bool forceMount = false)
+    [Fact]
+    public void Vertical_tabs_list_exposes_vertical_aria_orientation()
+    {
+        var cut = Render(CreateTabs(defaultValue: "tab1", orientation: "vertical"));
+
+        Assert.Equal("vertical", cut.Find("[role='tablist']").GetAttribute("aria-orientation"));
+    }
+
+    private static RenderFragment CreateTabs(string? defaultValue = null, string activationMode = "automatic", EventCallback<string?> onValueChange = default,
+        bool forceMount = false, string orientation = "horizontal")
     {
         return builder =>
         {
@@ -119,6 +131,7 @@ public sealed class BradixTabsRenderTests : BunitContext
                 builder.AddAttribute(1, nameof(BradixTabs.DefaultValue), defaultValue);
 
             builder.AddAttribute(2, nameof(BradixTabs.ActivationMode), activationMode);
+            builder.AddAttribute(6, nameof(BradixTabs.Orientation), orientation);
 
             if (onValueChange.HasDelegate)
                 builder.AddAttribute(3, nameof(BradixTabs.OnValueChange), onValueChange);

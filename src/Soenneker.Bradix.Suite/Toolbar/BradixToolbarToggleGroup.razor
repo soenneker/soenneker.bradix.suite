@@ -51,8 +51,9 @@
     internal bool IsSingle => Type != MultipleType;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("role", "group"),
+        ("role", IsSingle ? "radiogroup" : "group"),
         ("dir", Toolbar.ResolvedDirection),
+        ("aria-orientation", Toolbar.Orientation),
         ("data-orientation", Toolbar.Orientation));
 
     protected override void OnParametersSet()

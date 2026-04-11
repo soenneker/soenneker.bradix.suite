@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -232,6 +233,28 @@ public sealed class BradixFormRenderTests : BunitContext
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "setFormControlCustomValidity");
     }
 
+    [Fact]
+    public void Force_matched_message_retargets_aria_describedby_when_name_changes()
+    {
+        var cut = Render<TargetedMessageHost>();
+        var inputs = cut.FindAll("input");
+        var message = cut.Find("span[id]");
+
+        Assert.Equal(message.Id, inputs[0].GetAttribute("aria-describedby"));
+        Assert.Null(inputs[1].GetAttribute("aria-describedby"));
+
+        cut.Find("button").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedInputs = cut.FindAll("input");
+            var updatedMessage = cut.Find("span[id]");
+
+            Assert.Null(updatedInputs[0].GetAttribute("aria-describedby"));
+            Assert.Equal(updatedMessage.Id, updatedInputs[1].GetAttribute("aria-describedby"));
+        });
+    }
+
     private IRenderedComponent<BradixForm> RenderForm()
     {
         return Render<BradixForm>(parameters => parameters
@@ -300,5 +323,56 @@ public sealed class BradixFormRenderTests : BunitContext
                 Values = formValues
             }
         };
+    }
+
+    private sealed class TargetedMessageHost : ComponentBase
+    {
+        private string _targetName = "email";
+
+        private void ToggleTarget()
+        {
+            _targetName = _targetName == "email" ? "username" : "email";
+        }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, "button");
+            builder.AddAttribute(1, "type", "button");
+            builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, ToggleTarget));
+            builder.AddContent(3, "Retarget");
+            builder.CloseElement();
+
+            builder.OpenComponent<BradixForm>(4);
+            builder.AddAttribute(5, nameof(BradixForm.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixFormField>(0);
+                contentBuilder.AddAttribute(1, nameof(BradixFormField.Name), "email");
+                contentBuilder.AddAttribute(2, nameof(BradixFormField.ChildContent), (RenderFragment)(fieldBuilder =>
+                {
+                    fieldBuilder.OpenComponent<BradixFormControl>(0);
+                    fieldBuilder.CloseComponent();
+                }));
+                contentBuilder.CloseComponent();
+
+                contentBuilder.OpenComponent<BradixFormField>(10);
+                contentBuilder.AddAttribute(11, nameof(BradixFormField.Name), "username");
+                contentBuilder.AddAttribute(12, nameof(BradixFormField.ChildContent), (RenderFragment)(fieldBuilder =>
+                {
+                    fieldBuilder.OpenComponent<BradixFormControl>(0);
+                    fieldBuilder.CloseComponent();
+                }));
+                contentBuilder.CloseComponent();
+
+                contentBuilder.OpenComponent<BradixFormMessage>(20);
+                contentBuilder.AddAttribute(21, nameof(BradixFormMessage.Name), _targetName);
+                contentBuilder.AddAttribute(22, nameof(BradixFormMessage.ForceMatch), true);
+                contentBuilder.AddAttribute(23, nameof(BradixFormMessage.ChildContent), (RenderFragment)(messageBuilder =>
+                {
+                    messageBuilder.AddContent(0, "Targeted message");
+                }));
+                contentBuilder.CloseComponent();
+            }));
+            builder.CloseComponent();
+        }
     }
 }

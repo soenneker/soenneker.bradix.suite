@@ -79,10 +79,19 @@
     }
 
     [JSInvokable]
-    public async Task<bool> HandleMountAutoFocusAsync(BradixAutoFocusEventArgs? presetArgs = null)
+    public Task<bool> HandleMountAutoFocusAsync()
     {
-        BradixAutoFocusEventArgs args = presetArgs ?? new BradixAutoFocusEventArgs();
+        return HandleMountAutoFocusCoreAsync(new BradixAutoFocusEventArgs());
+    }
 
+    [JSInvokable]
+    public Task<bool> HandleUnmountAutoFocusAsync()
+    {
+        return HandleUnmountAutoFocusCoreAsync(new BradixAutoFocusEventArgs());
+    }
+
+    private async Task<bool> HandleMountAutoFocusCoreAsync(BradixAutoFocusEventArgs args)
+    {
         if (OnMountAutoFocus.HasDelegate)
             await OnMountAutoFocus.InvokeAsync();
 
@@ -92,11 +101,8 @@
         return args.DefaultPrevented;
     }
 
-    [JSInvokable]
-    public async Task<bool> HandleUnmountAutoFocusAsync(BradixAutoFocusEventArgs? presetArgs = null)
+    private async Task<bool> HandleUnmountAutoFocusCoreAsync(BradixAutoFocusEventArgs args)
     {
-        BradixAutoFocusEventArgs args = presetArgs ?? new BradixAutoFocusEventArgs();
-
         if (OnUnmountAutoFocus.HasDelegate)
             await OnUnmountAutoFocus.InvokeAsync();
 

@@ -171,6 +171,12 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         return await module.InvokeAsync<bool>("isFormControl", cancellationToken, element, formId);
     }
 
+    public async ValueTask<bool> IsKeyboardInteractionMode(CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        return await module.InvokeAsync<bool>("isKeyboardInteractionMode", cancellationToken);
+    }
+
     public async ValueTask SyncCheckboxBubbleInputState(ElementReference element, bool isChecked, bool isIndeterminate, bool dispatchEvent, bool bubbles = true,
         CancellationToken cancellationToken = default)
     {
@@ -245,10 +251,11 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterScrollAreaScrollbar", cancellationToken, scrollbar);
     }
 
-    public async ValueTask MountPortal(ElementReference element, string? containerSelector = null, CancellationToken cancellationToken = default)
+    public async ValueTask MountPortal(ElementReference element, string? containerSelector = null, ElementReference container = default,
+        CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("mountPortal", cancellationToken, element, containerSelector);
+        await module.InvokeVoidAsync("mountPortal", cancellationToken, element, containerSelector, container);
     }
 
     public async ValueTask UnmountPortal(ElementReference element, CancellationToken cancellationToken = default)
@@ -310,6 +317,12 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("focusElementPreventScroll", cancellationToken, element);
     }
 
+    public async ValueTask ScrollElementIntoViewNearest(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("scrollElementIntoViewNearest", cancellationToken, element);
+    }
+
     public async ValueTask RegisterOneTimePasswordInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default)
     {
@@ -321,6 +334,19 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("unregisterOneTimePasswordInput", cancellationToken, element);
+    }
+
+    public async ValueTask RegisterAssociatedFormReset(ElementReference element, DotNetObjectReference<object> dotNetReference, string? formId = null,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("registerAssociatedFormReset", cancellationToken, element, dotNetReference, formId);
+    }
+
+    public async ValueTask UnregisterAssociatedFormReset(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("unregisterAssociatedFormReset", cancellationToken, element);
     }
 
     public async ValueTask RequestFormSubmit(ElementReference associatedElement, string? formId = null, CancellationToken cancellationToken = default)
@@ -531,19 +557,19 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterAvatarImageLoadingStatus", cancellationToken, dotNetReference);
     }
 
-    public async ValueTask RegisterNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference root,
+    public async ValueTask RegisterNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference track,
         DotNetObjectReference<object> dotNetReference, string orientation, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, root, dotNetReference, orientation)
+        await module.InvokeVoidAsync("registerNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, track, dotNetReference, orientation)
             ;
     }
 
-    public async ValueTask UpdateNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference root,
+    public async ValueTask UpdateNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference track,
         string orientation, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("updateNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, root, orientation);
+        await module.InvokeVoidAsync("updateNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, track, orientation);
     }
 
     public async ValueTask UnregisterNavigationMenuIndicator(ElementReference indicator, CancellationToken cancellationToken = default)

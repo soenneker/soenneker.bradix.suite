@@ -1,6 +1,9 @@
 @namespace Soenneker.Bradix
+@implements IAsyncDisposable
 
 @inherits BradixComponentBase
+@inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 
 <BradixDismissableLayerBranch>
     <BradixMenuAnchor>
@@ -16,6 +19,8 @@
 
 @code {
     private ElementReference _button;
+    private bool _delegatedInteractionRegistered;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     private BradixDropdownMenu? DropdownMenu { get; set; }
@@ -35,17 +40,35 @@
         ("id", DropdownMenu?.TriggerId),
         ("aria-haspopup", "menu"),
         ("aria-expanded", DropdownMenu?.CurrentOpen == true ? "true" : "false"),
-        ("aria-controls", DropdownMenu?.CurrentOpen == true ? DropdownMenu.ContentId : null),
+        ("aria-controls", DropdownMenu?.ContentId),
         ("data-state", DropdownMenu?.CurrentOpen == true ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
         ("disabled", Disabled ? true : null));
 
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             Menu?.RegisterTrigger(_button);
+            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    currentTargetOnly = true,
+                    preventDefaultKeys = new[] { "Enter", " ", "Spacebar", "ArrowDown" }
+                }
+            });
+            _delegatedInteractionRegistered = true;
+        }
+    }
 
-        return Task.CompletedTask;
+    public async ValueTask DisposeAsync()
+    {
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_button);
+
+        _dotNetReference?.Dispose();
     }
 
     private Task HandlePointerDownAsync(PointerEventArgs args)
@@ -72,5 +95,11 @@
             "ArrowDown" => DropdownMenu.SetOpenAsync(true),
             _ => Task.CompletedTask
         };
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        return Task.CompletedTask;
     }
 }

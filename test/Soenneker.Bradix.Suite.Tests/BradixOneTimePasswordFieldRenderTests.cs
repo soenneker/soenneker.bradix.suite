@@ -18,6 +18,8 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
         _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         _module.SetupVoid("registerOneTimePasswordInput", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterOneTimePasswordInput", _ => true).SetVoidResult();
+        _module.SetupVoid("registerAssociatedFormReset", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterAssociatedFormReset", _ => true).SetVoidResult();
         _module.SetupVoid("requestFormSubmit", _ => true).SetVoidResult();
         _module.SetupVoid("selectInputText", _ => true).SetVoidResult();
 
@@ -89,6 +91,23 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Fact]
+    public async Task Form_reset_clears_uncontrolled_value()
+    {
+        var cut = RenderOtpField();
+        var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
+        var root = cut.FindComponent<BradixOneTimePasswordField>();
+
+        await cut.InvokeAsync(() => input.Instance.HandlePasteAsync("1234"));
+        await cut.InvokeAsync(() => root.Instance.HandleFormResetAsync());
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(string.Empty, cut.Find("input[type='hidden']").GetAttribute("value"));
+            Assert.Equal(string.Empty, cut.Find("input[data-index='0']").GetAttribute("value"));
+        });
+    }
+
+    [Fact]
     public void Inputs_render_radix_accessibility_and_password_manager_attributes()
     {
         var cut = RenderOtpField();
@@ -134,6 +153,14 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
             Assert.Equal("0", cut.Find("input[data-index='1']").GetAttribute("tabindex"));
             Assert.Equal("-1", cut.Find("input[data-index='2']").GetAttribute("tabindex"));
         });
+    }
+
+    [Fact]
+    public void Standalone_input_does_not_emit_invalid_character_count_label()
+    {
+        var cut = Render<BradixOneTimePasswordFieldInput>();
+
+        Assert.Null(cut.Find("input").GetAttribute("aria-label"));
     }
 
     private IRenderedComponent<ContainerFragment> RenderOtpField(Action<string>? onInvalidChange = null, bool autoSubmit = false, Action<string>? onAutoSubmit = null)

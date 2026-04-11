@@ -40,7 +40,7 @@
 
     private Dictionary<string, object> ImageAttributes => BuildAttributes(
         ("src", Src),
-        ("alt", Alt),
+        ("alt", Alt ?? string.Empty),
         ("crossorigin", CrossOrigin),
         ("referrerpolicy", ReferrerPolicy));
 

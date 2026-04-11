@@ -11,6 +11,7 @@
                     Disabled="Disabled"
                     CloseOnSelect="CloseOnSelect"
                     OnSelect="HandleSelectAsync"
+                    OnSelectDetailed="@HandleSelectDetailedAsync"
                     AdditionalAttributes="@ItemAttributes">
         @ChildContent
     </BradixMenuItem>
@@ -34,6 +35,12 @@
 
     [Parameter]
     public bool CloseOnSelect { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixMenuItemSelectEventArgs> OnSelectDetailed { get; set; }
 
     [Parameter]
     public EventCallback<BradixCheckboxCheckedState> CheckedChanged { get; set; }
@@ -79,6 +86,9 @@
 
     private async Task HandleSelectAsync()
     {
+        if (OnSelect.HasDelegate)
+            await OnSelect.InvokeAsync();
+
         BradixCheckboxCheckedState nextState = GetNextState(CurrentChecked);
 
         if (Checked is null)
@@ -91,6 +101,13 @@
             await OnCheckedChange.InvokeAsync(nextState == BradixCheckboxCheckedState.Checked);
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private Task HandleSelectDetailedAsync(BradixMenuItemSelectEventArgs args)
+    {
+        return OnSelectDetailed.HasDelegate
+            ? OnSelectDetailed.InvokeAsync(args)
+            : Task.CompletedTask;
     }
 
     private static BradixCheckboxCheckedState GetNextState(BradixCheckboxCheckedState state)

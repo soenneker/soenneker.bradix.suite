@@ -4,11 +4,15 @@ public sealed class BradixDelegatedMouseEvent
 {
     public long Detail { get; set; }
     public long Button { get; set; }
+    public long PointerId { get; set; }
     public bool CtrlKey { get; set; }
     public bool ShiftKey { get; set; }
     public bool AltKey { get; set; }
     public bool MetaKey { get; set; }
     public bool DefaultPrevented { get; set; }
+    public double PageX { get; set; }
+    public double PageY { get; set; }
+    public string PointerType { get; set; } = string.Empty;
     public string TargetId { get; set; } = string.Empty;
     public string[] AncestorIds { get; set; } = [];
     public bool ActiveElementInsideLayer { get; set; }

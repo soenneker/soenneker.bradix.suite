@@ -2,6 +2,8 @@
 @implements IAsyncDisposable
 @implements IBradixMenubarTrigger
 @inherits BradixComponentBase
+@inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 
 <BradixMenuAnchor>
     <button @ref="_button"
@@ -20,6 +22,8 @@
     private ElementReference _button;
     private bool _registered;
     private bool _isFocused;
+    private bool _delegatedInteractionRegistered;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     private BradixMenubar? Menubar { get; set; }
@@ -50,29 +54,41 @@
         ("tabindex", Menubar?.IsCurrentTabStop(MenubarMenu!) == true ? 0 : -1),
         ("aria-haspopup", "menu"),
         ("aria-expanded", IsOpen ? "true" : "false"),
-        ("aria-controls", IsOpen ? MenubarMenu?.ContentId : null),
+        ("aria-controls", MenubarMenu?.ContentId),
         ("data-highlighted", _isFocused ? string.Empty : null),
         ("data-state", IsOpen ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
         ("disabled", Disabled ? true : null));
 
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender || Menubar is null || MenubarMenu is null || Menu is null)
-            return Task.CompletedTask;
+            return;
 
         Menubar.RegisterTrigger(this);
         Menu.RegisterTrigger(_button);
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+        {
+            keydown = new
+            {
+                currentTargetOnly = true,
+                preventDefaultKeys = new[] { "Enter", " ", "Spacebar", "ArrowDown" }
+            }
+        });
+        _delegatedInteractionRegistered = true;
         _registered = true;
-        return Task.CompletedTask;
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_button);
+
         if (_registered && Menubar is not null)
             Menubar.UnregisterTrigger(this);
 
-        return ValueTask.CompletedTask;
+        _dotNetReference?.Dispose();
     }
 
     ValueTask IBradixMenubarTrigger.FocusAsync() => _button.FocusAsync();
@@ -131,5 +147,11 @@
     {
         _isFocused = false;
         return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        return Task.CompletedTask;
     }
 }

@@ -29,11 +29,11 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         string? requestedValue = null;
 
         var cut = Render(CreateSingleGroup(EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
-        var group = cut.Find("[role='group']");
+        var group = cut.Find("[role='radiogroup']");
 
         var buttons = cut.FindAll("button");
 
-        Assert.False(group.HasAttribute("data-orientation"));
+        Assert.Equal("horizontal", group.GetAttribute("aria-orientation"));
         Assert.Equal("radio", buttons[0].GetAttribute("role"));
         Assert.Equal("false", buttons[0].GetAttribute("aria-checked"));
 
@@ -55,6 +55,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         IReadOnlyCollection<string>? requestedValues = null;
 
         var cut = Render(CreateMultipleGroup(EventCallback.Factory.Create<IReadOnlyCollection<string>>(this, values => requestedValues = values)));
+        Assert.NotNull(cut.Find("[role='group']"));
 
         var buttons = cut.FindAll("button");
 

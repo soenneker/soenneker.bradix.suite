@@ -26,7 +26,7 @@ public sealed class BradixPortalRenderTests : BunitContext
         var cut = Render(CreatePortal());
 
         Assert.Contains("Portaled content", cut.Markup);
-        Assert.Contains("data-bradix-portal", cut.Markup);
+        Assert.DoesNotContain("data-bradix-portal", cut.Markup);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public sealed class BradixPortalRenderTests : BunitContext
         var cut = Render(CreatePortal("#custom-container"));
 
         Assert.Contains("Portaled content", cut.Markup);
-        Assert.Contains("data-bradix-portal", cut.Markup);
+        Assert.DoesNotContain("data-bradix-portal", cut.Markup);
     }
 
     [Fact]

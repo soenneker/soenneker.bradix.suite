@@ -23,7 +23,6 @@
     }
 
     private Dictionary<string, object> ThumbAttributes => BuildAttributes(
-        ("data-bradix-scroll-area-thumb", string.Empty),
         ("data-state", Scrollbar.ScrollArea.GetThumbState(Scrollbar.Orientation)),
         ("style", BuildThumbStyle()));
 

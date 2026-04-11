@@ -157,6 +157,7 @@
             return;
 
         await SetValueAsync(nextValue);
+        SetCurrentTabStop(nextValue);
     }
 
     internal bool IsRegisteredTriggerId(string? triggerId)

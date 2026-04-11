@@ -17,7 +17,7 @@
     private readonly List<BradixAccordionTrigger> _triggers = [];
     private bool _initialized;
     private string? _uncontrolledValue;
-    private HashSet<string> _uncontrolledValues = [];
+    private List<string> _uncontrolledValues = [];
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -80,7 +80,7 @@
 
         _uncontrolledValue = DefaultValue;
         _uncontrolledValues = DefaultValues is not null
-            ? new HashSet<string>(DefaultValues, StringComparer.Ordinal)
+            ? DefaultValues.Distinct(StringComparer.Ordinal).ToList()
             : [];
 
         _initialized = true;
@@ -103,12 +103,15 @@
             return;
         }
 
-        HashSet<string> next = Values is not null
-            ? new HashSet<string>(Values, StringComparer.Ordinal)
-            : new HashSet<string>(_uncontrolledValues, StringComparer.Ordinal);
+        List<string> next = Values is not null
+            ? Values.Distinct(StringComparer.Ordinal).ToList()
+            : [.. _uncontrolledValues];
 
-        if (next.Add(value))
+        if (!next.Contains(value, StringComparer.Ordinal))
+        {
+            next.Add(value);
             await SetMultipleValuesAsync(next);
+        }
     }
 
     internal async Task CloseItemAsync(string value)
@@ -122,11 +125,11 @@
             return;
         }
 
-        HashSet<string> next = Values is not null
-            ? new HashSet<string>(Values, StringComparer.Ordinal)
-            : new HashSet<string>(_uncontrolledValues, StringComparer.Ordinal);
+        List<string> next = Values is not null
+            ? Values.Distinct(StringComparer.Ordinal).ToList()
+            : [.. _uncontrolledValues];
 
-        if (next.Remove(value))
+        if (next.RemoveAll(item => string.Equals(item, value, StringComparison.Ordinal)) > 0)
             await SetMultipleValuesAsync(next);
     }
 
@@ -207,12 +210,12 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task SetMultipleValuesAsync(HashSet<string> next)
+    private async Task SetMultipleValuesAsync(List<string> next)
     {
-        IReadOnlyCollection<string> ordered = next.OrderBy(item => item, StringComparer.Ordinal).ToArray();
+        IReadOnlyCollection<string> ordered = next.ToArray();
 
         if (Values is null)
-            _uncontrolledValues = new HashSet<string>(next, StringComparer.Ordinal);
+            _uncontrolledValues = [.. next];
 
         if (ValuesChanged.HasDelegate)
             await ValuesChanged.InvokeAsync(ordered);

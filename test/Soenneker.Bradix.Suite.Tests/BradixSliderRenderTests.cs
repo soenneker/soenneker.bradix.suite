@@ -11,13 +11,18 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixSliderRenderTests : BunitContext
 {
+    private readonly BunitJSModuleInterop _module;
+
     public BradixSliderRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.Setup<bool>("isFormControl", _ => true).SetResult(false);
-        module.SetupVoid("registerSliderPointerBridge", _ => true).SetVoidResult();
-        module.SetupVoid("unregisterSliderPointerBridge", _ => true).SetVoidResult();
-        module.SetupVoid("syncSliderBubbleInputValue", _ => true).SetVoidResult();
+        _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.Setup<bool>("isFormControl", invocation =>
+                invocation.Arguments.Count > 1 && invocation.Arguments[1] is string formId && !string.IsNullOrWhiteSpace(formId))
+            .SetResult(true);
+        _module.Setup<bool>("isFormControl", _ => true).SetResult(false);
+        _module.SetupVoid("registerSliderPointerBridge", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterSliderPointerBridge", _ => true).SetVoidResult();
+        _module.SetupVoid("syncSliderBubbleInputValue", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
@@ -28,12 +33,15 @@ public sealed class BradixSliderRenderTests : BunitContext
     {
         var cut = Render(CreateSlider(defaultValues: [20]));
 
+        var root = cut.Find("[role='group']");
         var thumb = cut.Find("[role='slider']");
         var range = cut.Find(".range");
 
+        Assert.Equal("horizontal", root.GetAttribute("aria-orientation"));
         Assert.Equal("20", thumb.GetAttribute("aria-valuenow"));
         Assert.Equal("horizontal", thumb.GetAttribute("aria-orientation"));
         Assert.Contains("left:", range.GetAttribute("style"));
+        Assert.DoesNotContain("data-bradix-slider-thumb-index", cut.Markup);
     }
 
     [Fact]
@@ -46,6 +54,23 @@ public sealed class BradixSliderRenderTests : BunitContext
         thumb = cut.Find("[role='slider']");
 
         Assert.Equal("21", thumb.GetAttribute("aria-valuenow"));
+    }
+
+    [Fact]
+    public void Home_and_end_update_first_and_last_thumb_in_multi_thumb_slider()
+    {
+        var cut = Render(CreateSlider(defaultValues: [20, 80]));
+        var thumbs = cut.FindAll("[role='slider']");
+
+        thumbs[1].KeyDown(new KeyboardEventArgs { Key = "Home" });
+        thumbs = cut.FindAll("[role='slider']");
+        Assert.Equal("0", thumbs[0].GetAttribute("aria-valuenow"));
+        Assert.Equal("80", thumbs[1].GetAttribute("aria-valuenow"));
+
+        thumbs[0].KeyDown(new KeyboardEventArgs { Key = "End" });
+        thumbs = cut.FindAll("[role='slider']");
+        Assert.Equal("0", thumbs[0].GetAttribute("aria-valuenow"));
+        Assert.Equal("100", thumbs[1].GetAttribute("aria-valuenow"));
     }
 
     [Fact]
@@ -96,6 +121,20 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Fact]
+    public void Slider_with_explicit_form_renders_bubble_inputs_outside_form()
+    {
+        var cut = Render(CreateSlider(defaultValues: [10, 30], name: "price", form: "settings-form"));
+
+        var inputs = cut.FindAll("input");
+        Assert.Equal(2, inputs.Count);
+        Assert.All(inputs, input => Assert.Equal("settings-form", input.GetAttribute("form")));
+        Assert.Contains(_module.Invocations, invocation =>
+            invocation.Identifier == "isFormControl" &&
+            invocation.Arguments.Count > 1 &&
+            Equals(invocation.Arguments[1], "settings-form"));
+    }
+
+    [Fact]
     public void Inherited_direction_flips_horizontal_back_key()
     {
         var cut = Render(builder =>
@@ -116,7 +155,7 @@ public sealed class BradixSliderRenderTests : BunitContext
         Assert.Equal("21", thumb.GetAttribute("aria-valuenow"));
     }
 
-    private static RenderFragment CreateSlider(IReadOnlyList<double> defaultValues, double minStepsBetweenThumbs = 0, string? name = null, Action? onValueCommit = null)
+    private static RenderFragment CreateSlider(IReadOnlyList<double> defaultValues, double minStepsBetweenThumbs = 0, string? name = null, Action? onValueCommit = null, string? form = null)
     {
         return builder =>
         {
@@ -129,6 +168,9 @@ public sealed class BradixSliderRenderTests : BunitContext
 
             if (onValueCommit is not null)
                 builder.AddAttribute(5, nameof(BradixSlider.OnValueCommit), EventCallback.Factory.Create<IReadOnlyList<double>>(new object(), _ => onValueCommit()));
+
+            if (form is not null)
+                builder.AddAttribute(6, nameof(BradixSlider.Form), form);
 
             builder.AddAttribute(4, nameof(BradixSlider.ChildContent), (RenderFragment) (contentBuilder =>
             {

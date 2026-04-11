@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -39,6 +40,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(false);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Share");
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
@@ -53,12 +55,18 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     {
         var cut = Render(CreateContextMenu());
         var trigger = cut.Find("[data-state='closed']");
+        string closedControls = Assert.IsType<string>(trigger.GetAttribute("aria-controls"));
+        Assert.Equal("menu", trigger.GetAttribute("aria-haspopup"));
+        Assert.Equal("false", trigger.GetAttribute("aria-expanded"));
 
         trigger.TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
 
         cut.WaitForAssertion(() =>
         {
+            var updatedTrigger = cut.Find("[aria-haspopup='menu']");
             Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
+            Assert.Equal("true", updatedTrigger.GetAttribute("aria-expanded"));
+            Assert.Equal(closedControls, updatedTrigger.GetAttribute("aria-controls"));
         });
     }
 
@@ -108,12 +116,68 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         });
     }
 
-    private static RenderFragment CreateContextMenu()
+    [Fact]
+    public async Task Non_modal_outside_interaction_prevents_close_auto_focus()
+    {
+        var cut = Render(CreateContextMenu(modal: false));
+        cut.Find("[data-state='closed']").TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
+
+        var dismissableLayer = cut.FindComponent<BradixDismissableLayer>();
+        var focusScope = cut.FindComponent<BradixFocusScope>();
+
+        await cut.InvokeAsync(() => dismissableLayer.Instance.HandlePointerDownOutsideAsync());
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+
+        Assert.True(prevented);
+    }
+
+    [Fact]
+    public async Task Detailed_close_auto_focus_can_prevent_context_menu_refocus()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixContextMenu>(0);
+            builder.AddAttribute(1, nameof(BradixContextMenu.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixContextMenuTrigger>(0);
+                content.AddAttribute(1, nameof(BradixContextMenuTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Area")));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixContextMenuPortal>(2);
+                content.AddAttribute(3, nameof(BradixContextMenuPortal.ChildContent), (RenderFragment)(portal =>
+                {
+                    portal.OpenComponent<BradixContextMenuContent>(0);
+                    portal.AddAttribute(1, nameof(BradixContextMenuContent.OnCloseAutoFocusDetailed),
+                        EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, args => args.PreventDefault()));
+                    portal.AddAttribute(2, nameof(BradixContextMenuContent.ChildContent), (RenderFragment)(menuContent =>
+                    {
+                        menuContent.OpenComponent<BradixContextMenuItem>(0);
+                        menuContent.AddAttribute(1, nameof(BradixContextMenuItem.TextValue), "Open");
+                        menuContent.AddAttribute(2, nameof(BradixContextMenuItem.ChildContent), (RenderFragment)(item => item.AddContent(0, "Open")));
+                        menuContent.CloseComponent();
+                    }));
+                    portal.CloseComponent();
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        cut.Find("[data-state='closed']").TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
+
+        var focusScope = cut.FindComponent<BradixFocusScope>();
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+
+        Assert.True(prevented);
+    }
+
+    private static RenderFragment CreateContextMenu(bool modal = true)
     {
         return builder =>
         {
             builder.OpenComponent<BradixContextMenu>(0);
-            builder.AddAttribute(1, nameof(BradixContextMenu.ChildContent), (RenderFragment)(content =>
+            builder.AddAttribute(1, nameof(BradixContextMenu.Modal), modal);
+            builder.AddAttribute(2, nameof(BradixContextMenu.ChildContent), (RenderFragment)(content =>
             {
                 content.OpenComponent<BradixContextMenuTrigger>(0);
                 content.AddAttribute(1, nameof(BradixContextMenuTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Area")));

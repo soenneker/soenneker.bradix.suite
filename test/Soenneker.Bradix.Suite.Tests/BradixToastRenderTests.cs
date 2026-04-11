@@ -24,6 +24,8 @@ public sealed class BradixToastRenderTests : BunitContext
         _module.SetupVoid("capturePointer", _ => true).SetVoidResult();
         _module.SetupVoid("releasePointer", _ => true).SetVoidResult();
         _module.SetupVoid("suppressNextClick", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementById", _ => true).SetVoidResult();
@@ -58,6 +60,7 @@ public sealed class BradixToastRenderTests : BunitContext
     {
         var cut = RenderToast();
 
+        Assert.Equal("Close", cut.Find("button[data-toast-close='true']").GetAttribute("aria-label"));
         cut.Find("button[data-toast-close='true']").Click();
         Assert.Single(cut.FindAll("li[data-radix-toast-root]"));
 
@@ -194,7 +197,42 @@ public sealed class BradixToastRenderTests : BunitContext
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "releasePointer");
     }
 
-    private IRenderedComponent<ContainerFragment> RenderToast(Action? onPause = null, Action? onResume = null, double swipeThreshold = 50)
+    [Fact]
+    public async Task Escape_closes_toast_through_delegated_keydown()
+    {
+        var cut = RenderToast();
+        var toast = cut.FindComponent<BradixToast>();
+
+        await cut.InvokeAsync(() => toast.Instance.HandleDelegatedKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "Escape"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("closed", cut.Find("li[data-radix-toast-root]").GetAttribute("data-state"));
+        });
+    }
+
+    [Fact]
+    public async Task Escape_can_be_prevented_by_detailed_callback()
+    {
+        var cut = RenderToast(onEscapeKeyDownDetailed: args => args.PreventDefault());
+        var toast = cut.FindComponent<BradixToast>();
+
+        await cut.InvokeAsync(() => toast.Instance.HandleDelegatedKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "Escape"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("open", cut.Find("li[data-radix-toast-root]").GetAttribute("data-state"));
+        });
+    }
+
+    private IRenderedComponent<ContainerFragment> RenderToast(Action? onPause = null, Action? onResume = null, double swipeThreshold = 50,
+        Action<BradixEscapeKeyDownEventArgs>? onEscapeKeyDownDetailed = null)
     {
         return Render(builder =>
         {
@@ -209,7 +247,13 @@ public sealed class BradixToastRenderTests : BunitContext
                 content.AddAttribute(2, nameof(BradixToast.Class), "toast-root");
                 content.AddAttribute(3, nameof(BradixToast.OnPause), EventCallback.Factory.Create(this, () => onPause?.Invoke()));
                 content.AddAttribute(4, nameof(BradixToast.OnResume), EventCallback.Factory.Create(this, () => onResume?.Invoke()));
-                content.AddAttribute(5, nameof(BradixToast.ChildContent), (RenderFragment)(toast =>
+                if (onEscapeKeyDownDetailed is not null)
+                {
+                    content.AddAttribute(5, nameof(BradixToast.OnEscapeKeyDownDetailed),
+                        EventCallback.Factory.Create<BradixEscapeKeyDownEventArgs>(this, onEscapeKeyDownDetailed));
+                }
+
+                content.AddAttribute(6, nameof(BradixToast.ChildContent), (RenderFragment)(toast =>
                 {
                     toast.OpenComponent<BradixToastTitle>(0);
                     toast.AddAttribute(1, nameof(BradixToastTitle.ChildContent), (RenderFragment)(title =>

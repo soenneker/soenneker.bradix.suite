@@ -1,4 +1,5 @@
 @namespace Soenneker.Bradix
+@inject IBradixSuiteInterop Interop
 <CascadingValue Value="this">
     <BradixDialogContent Class="@Class"
                          Style="@Style"
@@ -8,12 +9,15 @@
                          Role="alertdialog"
                          CloseOnPointerDownOutside="false"
                          CloseOnFocusOutside="false"
-                         OnOpenAutoFocus="@HandleOpenAutoFocusAsync"
+                         OnOpenAutoFocusDetailed="@HandleOpenAutoFocusAsync"
+                         OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
+                         OnInteractOutsideDetailed="@HandleInteractOutsideAsync"
                          OnCloseAutoFocus="OnCloseAutoFocus"
+                         OnCloseAutoFocusDetailed="@OnCloseAutoFocusDetailed"
                          OnEscapeKeyDown="OnEscapeKeyDown"
-                         OnPointerDownOutside="OnPointerDownOutside"
+                         OnEscapeKeyDownDetailed="@OnEscapeKeyDownDetailed"
                          OnFocusOutside="OnFocusOutside"
-                         OnInteractOutside="OnInteractOutside">
+                         OnFocusOutsideDetailed="@OnFocusOutsideDetailed">
         @ChildContent
     </BradixDialogContent>
 </CascadingValue>
@@ -38,19 +42,28 @@
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     [Parameter]
+    public EventCallback OnOpenAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnCloseAutoFocusDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnEscapeKeyDown { get; set; }
 
     [Parameter]
-    public EventCallback OnPointerDownOutside { get; set; }
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnFocusOutside { get; set; }
 
     [Parameter]
-    public EventCallback OnInteractOutside { get; set; }
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -61,17 +74,36 @@
         _hasCancelElement = true;
     }
 
-    private async Task HandleOpenAutoFocusAsync()
+    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
-        if (!_hasCancelElement)
+        if (OnOpenAutoFocus.HasDelegate)
+            await OnOpenAutoFocus.InvokeAsync();
+
+        if (OnOpenAutoFocusDetailed.HasDelegate)
+            await OnOpenAutoFocusDetailed.InvokeAsync(args);
+
+        if (args.DefaultPrevented || !_hasCancelElement)
             return;
 
         try
         {
-            await _cancelElement.FocusAsync();
+            await Interop.FocusElementPreventScroll(_cancelElement);
+            args.PreventDefault();
         }
         catch
         {
         }
+    }
+
+    private static Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
+    {
+        args.PreventDefault();
+        return Task.CompletedTask;
+    }
+
+    private static Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
+    {
+        args.PreventDefault();
+        return Task.CompletedTask;
     }
 }

@@ -52,6 +52,40 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Fact]
+    public async Task Escape_reports_prevent_default_when_it_dismisses()
+    {
+        var cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => _dismissed = true)));
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+
+        bool shouldPreventDefault = await layer.Instance.HandleEscapeKeyDownAsync();
+
+        Assert.True(_dismissed);
+        Assert.True(shouldPreventDefault);
+    }
+
+    [Fact]
+    public async Task Escape_does_not_report_prevent_default_when_handler_prevents_dismiss()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixDismissableLayer>(0);
+            builder.AddAttribute(1, nameof(BradixDismissableLayer.OnEscapeKeyDownDetailed), EventCallback.Factory.Create<BradixEscapeKeyDownEventArgs>(this, args => args.PreventDefault()));
+            builder.AddAttribute(2, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => _dismissed = true));
+            builder.AddAttribute(3, nameof(BradixDismissableLayer.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.AddContent(0, "Layer content");
+            }));
+            builder.CloseComponent();
+        });
+
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+        bool shouldPreventDefault = await layer.Instance.HandleEscapeKeyDownAsync();
+
+        Assert.False(_dismissed);
+        Assert.False(shouldPreventDefault);
+    }
+
+    [Fact]
     public async Task Focus_outside_triggers_interact_and_dismiss_callbacks()
     {
         bool focusOutside = false;

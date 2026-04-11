@@ -11,8 +11,9 @@
                             DismissOnEscapeKeyDown="false"
                             DismissOnPointerDownOutside="false"
                             DismissOnFocusOutside="false"
-                            OnEscapeKeyDown="@HandleEscapeKeyDownAsync"
-                            OnPointerDownOutside="@HandlePointerDownOutsideAsync">
+                            OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
+                            OnFocusOutsideDetailed="@HandleFocusOutsideAsync"
+                            OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync">
         <BradixPopperContent Side="@Side"
                              SideOffset="SideOffset"
                              Align="@Align"
@@ -46,6 +47,8 @@
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _contentRegistered;
     private string? _accessibleLabel;
+    private bool? _lastHoverableContent;
+    private string? _lastTriggerId;
 
     [CascadingParameter]
     private BradixTooltip? Tooltip { get; set; }
@@ -89,6 +92,12 @@
     [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
 
+    [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
+
     private bool IsPresent => ForceMount || PortalForceMount || Tooltip?.CurrentOpen == true;
 
     private string PositionerStyle =>
@@ -131,11 +140,19 @@
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
 
-        if (!_contentRegistered)
+        bool hoverableContent = !Tooltip.EffectiveDisableHoverableContent;
+        string? triggerId = Tooltip.TriggerElement.Id;
+        bool shouldRegister = !_contentRegistered ||
+            _lastHoverableContent != hoverableContent ||
+            !string.Equals(_lastTriggerId, triggerId, StringComparison.Ordinal);
+
+        if (shouldRegister)
         {
             await Interop.RegisterTooltipContent(_contentElement, Tooltip.TriggerElement, _dotNetReference, Tooltip.ContentId,
-                !Tooltip.EffectiveDisableHoverableContent);
+                hoverableContent);
             _contentRegistered = true;
+            _lastHoverableContent = hoverableContent;
+            _lastTriggerId = triggerId;
         }
 
         if (string.IsNullOrWhiteSpace(AriaLabel))
@@ -158,22 +175,34 @@
         _dotNetReference?.Dispose();
     }
 
-    private async Task HandleEscapeKeyDownAsync()
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
 
-        if (Tooltip is not null)
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(args);
+
+        if (!args.DefaultPrevented && Tooltip is not null)
             await Tooltip.CloseAsync();
     }
 
-    private async Task HandlePointerDownOutsideAsync()
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
 
-        if (Tooltip is not null)
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(args);
+
+        if (!args.DefaultPrevented && Tooltip is not null)
             await Tooltip.CloseAsync();
+    }
+
+    private static Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
+    {
+        args.PreventDefault();
+        return Task.CompletedTask;
     }
 
     private Task HandlePointerEnterAsync(PointerEventArgs _)

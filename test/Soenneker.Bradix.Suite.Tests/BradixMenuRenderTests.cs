@@ -38,6 +38,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
+        _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(false);
         _module.Setup<bool>("beginMenuSubmenuPointerGrace", _ => true).SetResult(false);
         _module.SetupVoid("cancelMenuSubmenuPointerGrace", _ => true).SetVoidResult();
         _module.SetupVoid("registerDismissableLayerBranch", _ => true).SetVoidResult();
@@ -94,6 +95,44 @@ public sealed class BradixMenuRenderTests : BunitContext
         {
             var updatedItems = cut.FindAll("[role='menuitem']");
             Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+        });
+    }
+
+    [Fact]
+    public async Task Focus_outside_resets_typeahead_buffer()
+    {
+        var cut = Render(CreateMenu());
+        var content = cut.FindComponent<BradixMenuContent>();
+        string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "b",
+            TargetId = contentId
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedItems = cut.FindAll("[role='menuitem']");
+            Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+        });
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOutAsync(new BradixDelegatedFocusEvent
+        {
+            TargetId = contentId,
+            RelatedTargetId = "outside-target"
+        }));
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "a",
+            TargetId = contentId
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedItems = cut.FindAll("[role='menuitem']");
+            Assert.Equal("0", updatedItems[0].GetAttribute("tabindex"));
         });
     }
 
@@ -221,6 +260,81 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Fact]
+    public void Pointer_up_on_item_after_pointer_down_on_different_item_selects_it()
+    {
+        var selected = false;
+        var cut = Render(CreateMenu(onSelect: () => selected = true));
+        var items = cut.FindAll("[role='menuitem']");
+
+        items[0].TriggerEvent("onpointerdown", new PointerEventArgs { PointerType = "mouse", Button = 0 });
+        items[2].TriggerEvent("onpointerup", new PointerEventArgs { PointerType = "mouse", Button = 0 });
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.True(selected);
+            Assert.Equal("closed", cut.Find("[role='menu']").GetAttribute("data-state"));
+        });
+    }
+
+    [Fact]
+    public void Detailed_select_callback_can_prevent_menu_close()
+    {
+        var selected = false;
+        var cut = Render(CreateMenu(
+            onSelect: () => selected = true,
+            onSelectDetailed: args => args.PreventDefault()));
+
+        cut.FindAll("[role='menuitem']")[2].Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.True(selected);
+            Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
+        });
+    }
+
+    [Fact]
+    public async Task Detailed_focus_outside_can_prevent_submenu_close()
+    {
+        var cut = Render(CreateSubmenuMenu(
+            onSubFocusOutsideDetailed: EventCallback.Factory.Create<BradixFocusOutsideEventArgs>(this, args => args.PreventDefault())));
+
+        cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[role='menu']").Count));
+
+        var layer = cut.FindComponents<BradixDismissableLayer>().Last();
+        await cut.InvokeAsync(() => layer.Instance.HandleFocusOutsideAsync(new BradixDelegatedFocusEvent
+        {
+            TargetId = "outside-target"
+        }));
+
+        Assert.Equal(2, cut.FindAll("[role='menu']").Count);
+    }
+
+    [Fact]
+    public async Task Submenu_content_keydown_callback_is_invoked()
+    {
+        string? key = null;
+
+        var cut = Render(CreateSubmenuMenu(
+            onSubContentKeyDown: EventCallback.Factory.Create<KeyboardEventArgs>(this, args => key = args.Key)));
+
+        cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[role='menu']").Count));
+
+        var submenuContent = cut.FindComponents<BradixMenuContent>().Last();
+        string submenuContentId = Assert.IsType<string>(cut.FindAll("[role='menu']").Last().Id);
+
+        await cut.InvokeAsync(() => submenuContent.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "x",
+            TargetId = submenuContentId
+        }));
+
+        Assert.Equal("x", key);
+    }
+
+    [Fact]
     public void Modal_menu_registers_scroll_lock_and_hide_others()
     {
         var cut = Render(CreateMenu());
@@ -228,6 +342,23 @@ public sealed class BradixMenuRenderTests : BunitContext
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
         Assert.Null(cut.Find("[role='menu']").GetAttribute("aria-modal"));
+    }
+
+    [Fact]
+    public async Task Controlled_open_uses_keyboard_focus_path_when_last_input_was_keyboard()
+    {
+        _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(true);
+
+        var cut = Render(CreateMenu(open: true));
+        int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
+        var focusScope = cut.FindComponent<BradixFocusScope>();
+        await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocusAsync());
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
+            Assert.Equal(focusCountBefore + 2, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
+        });
     }
 
     [Fact]
@@ -260,6 +391,21 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Fact]
+    public void Checkbox_item_select_can_prevent_close_while_still_updating_checked_state()
+    {
+        var cut = Render(CreateSelectionMenu(
+            onCheckboxSelectDetailed: EventCallback.Factory.Create<BradixMenuItemSelectEventArgs>(this, args => args.PreventDefault())));
+
+        cut.Find("[role='menuitemcheckbox']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
+            Assert.Equal("checked", cut.Find("[role='menuitemcheckbox']").GetAttribute("data-state"));
+        });
+    }
+
+    [Fact]
     public void Sub_trigger_opens_submenu_and_exposes_expanded_state()
     {
         var cut = Render(CreateSubmenuMenu());
@@ -271,6 +417,24 @@ public sealed class BradixMenuRenderTests : BunitContext
         {
             Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
             Assert.Contains("Copy link", cut.Markup);
+        });
+    }
+
+    [Fact]
+    public async Task Keyboard_opened_submenu_focuses_content_before_first_item()
+    {
+        var cut = Render(CreateSubmenuMenu());
+        var trigger = cut.Find("[aria-haspopup='menu']");
+        int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
+
+        trigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        var focusScope = cut.FindComponents<BradixFocusScope>().Last();
+        await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocusAsync());
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
+            Assert.Equal(focusCountBefore + 2, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
         });
     }
 
@@ -288,6 +452,28 @@ public sealed class BradixMenuRenderTests : BunitContext
         cut.WaitForAssertion(() =>
         {
             Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
+        });
+    }
+
+    [Fact]
+    public async Task Space_does_not_open_submenu_while_typeahead_is_active()
+    {
+        var cut = Render(CreateSubmenuMenu());
+        var content = cut.FindComponent<BradixMenuContent>();
+        string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "s",
+            TargetId = contentId
+        }));
+
+        cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDown(new KeyboardEventArgs { Key = " " });
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("false", cut.Find("[aria-haspopup='menu'][role='menuitem']").GetAttribute("aria-expanded"));
+            Assert.Single(cut.FindAll("[role='menu']"));
         });
     }
 
@@ -377,12 +563,18 @@ public sealed class BradixMenuRenderTests : BunitContext
         });
     }
 
-    private static RenderFragment CreateMenu(bool includeArrow = false, bool disableFirstItem = false, Action? onSelect = null)
+    private RenderFragment CreateMenu(bool includeArrow = false, bool disableFirstItem = false, Action? onSelect = null,
+        bool? open = null,
+        bool defaultOpen = true,
+        Action<BradixMenuItemSelectEventArgs>? onSelectDetailed = null)
     {
         return builder =>
         {
             builder.OpenComponent<BradixMenu>(0);
-            builder.AddAttribute(1, nameof(BradixMenu.DefaultOpen), true);
+            if (open.HasValue)
+                builder.AddAttribute(1, nameof(BradixMenu.Open), open.Value);
+            else
+                builder.AddAttribute(1, nameof(BradixMenu.DefaultOpen), defaultOpen);
             builder.AddAttribute(2, nameof(BradixMenu.ChildContent), (RenderFragment)(content =>
             {
                 content.OpenComponent<BradixMenuAnchor>(0);
@@ -415,13 +607,18 @@ public sealed class BradixMenuRenderTests : BunitContext
                         menuContent.OpenComponent<BradixMenuItem>(7);
                         menuContent.AddAttribute(8, nameof(BradixMenuItem.TextValue), "Beta");
                         menuContent.AddAttribute(9, nameof(BradixMenuItem.OnSelect), EventCallback.Factory.Create(new object(), (Action)(() => onSelect?.Invoke())));
-                        menuContent.AddAttribute(10, nameof(BradixMenuItem.ChildContent), (RenderFragment)(item => item.AddContent(0, "Beta")));
+                        if (onSelectDetailed is not null)
+                        {
+                            menuContent.AddAttribute(10, nameof(BradixMenuItem.OnSelectDetailed),
+                                EventCallback.Factory.Create<BradixMenuItemSelectEventArgs>(this, onSelectDetailed));
+                        }
+                        menuContent.AddAttribute(11, nameof(BradixMenuItem.ChildContent), (RenderFragment)(item => item.AddContent(0, "Beta")));
                         menuContent.CloseComponent();
 
                         if (includeArrow)
                         {
-                            menuContent.OpenComponent<BradixMenuArrow>(11);
-                            menuContent.AddAttribute(12, nameof(BradixMenuArrow.ChildContent), (RenderFragment)(arrow =>
+                            menuContent.OpenComponent<BradixMenuArrow>(12);
+                            menuContent.AddAttribute(13, nameof(BradixMenuArrow.ChildContent), (RenderFragment)(arrow =>
                             {
                                 arrow.OpenElement(0, "span");
                                 arrow.AddAttribute(1, "class", "menu-arrow-shape");
@@ -438,7 +635,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         };
     }
 
-    private static RenderFragment CreateSelectionMenu()
+    private RenderFragment CreateSelectionMenu(EventCallback<BradixMenuItemSelectEventArgs> onCheckboxSelectDetailed = default)
     {
         return builder =>
         {
@@ -466,7 +663,9 @@ public sealed class BradixMenuRenderTests : BunitContext
                         menuContent.AddAttribute(1, nameof(BradixMenuCheckboxItem.DefaultChecked), BradixCheckboxCheckedState.Indeterminate);
                         menuContent.AddAttribute(2, nameof(BradixMenuCheckboxItem.TextValue), "Show bookmarks");
                         menuContent.AddAttribute(3, nameof(BradixMenuCheckboxItem.CloseOnSelect), false);
-                        menuContent.AddAttribute(4, nameof(BradixMenuCheckboxItem.ChildContent), (RenderFragment)(item =>
+                        if (onCheckboxSelectDetailed.HasDelegate)
+                            menuContent.AddAttribute(4, nameof(BradixMenuCheckboxItem.OnSelectDetailed), onCheckboxSelectDetailed);
+                        menuContent.AddAttribute(5, nameof(BradixMenuCheckboxItem.ChildContent), (RenderFragment)(item =>
                         {
                             item.AddContent(0, "Show bookmarks");
                             item.OpenComponent<BradixMenuItemIndicator>(1);
@@ -504,7 +703,9 @@ public sealed class BradixMenuRenderTests : BunitContext
         };
     }
 
-    private static RenderFragment CreateSubmenuMenu()
+    private static RenderFragment CreateSubmenuMenu(
+        EventCallback<BradixFocusOutsideEventArgs> onSubFocusOutsideDetailed = default,
+        EventCallback<KeyboardEventArgs> onSubContentKeyDown = default)
     {
         return builder =>
         {
@@ -545,7 +746,11 @@ public sealed class BradixMenuRenderTests : BunitContext
                             sub.AddAttribute(4, nameof(BradixMenuPortal.ChildContent), (RenderFragment)(portalContent =>
                             {
                                 portalContent.OpenComponent<BradixMenuSubContent>(0);
-                                portalContent.AddAttribute(1, nameof(BradixMenuSubContent.ChildContent), (RenderFragment)(submenu =>
+                                if (onSubFocusOutsideDetailed.HasDelegate)
+                                    portalContent.AddAttribute(1, nameof(BradixMenuSubContent.OnFocusOutsideDetailed), onSubFocusOutsideDetailed);
+                                if (onSubContentKeyDown.HasDelegate)
+                                    portalContent.AddAttribute(2, nameof(BradixMenuSubContent.OnContentKeyDown), onSubContentKeyDown);
+                                portalContent.AddAttribute(3, nameof(BradixMenuSubContent.ChildContent), (RenderFragment)(submenu =>
                                 {
                                     submenu.OpenComponent<BradixMenuItem>(0);
                                     submenu.AddAttribute(1, nameof(BradixMenuItem.TextValue), "Copy link");

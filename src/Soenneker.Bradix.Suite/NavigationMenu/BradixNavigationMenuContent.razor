@@ -28,7 +28,6 @@
                 </CascadingValue>
             </div>
             <span @ref="_exitProxyElement"
-                  data-bradix-navigation-menu-focus-proxy-end=""
                   aria-hidden="true"
                   tabindex="0"
                   style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" />
@@ -139,7 +138,10 @@
     private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
     {
         if (NavigationMenu is not null && Item is not null)
+        {
+            NavigationMenu.MarkEscapeClosed(Item.ResolvedValue);
             await NavigationMenu.DismissAsync(Item.ResolvedValue);
+        }
     }
 
     private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
@@ -147,7 +149,9 @@
         if (NavigationMenu is null)
             return;
 
-        if (!NavigationMenu.IsRootMenu || NavigationMenu.ContainsRegisteredTriggerId(args.OriginalEvent.AncestorIds))
+        if (!NavigationMenu.IsRootMenu ||
+            NavigationMenu.ContainsRegisteredTriggerId(args.OriginalEvent.AncestorIds) ||
+            NavigationMenu.ContainsViewportId(args.OriginalEvent.AncestorIds))
         {
             args.PreventDefault();
             return;
@@ -161,7 +165,7 @@
         if (NavigationMenu is null)
             return;
 
-        if (NavigationMenu.ContainsRegisteredTriggerId(args.OriginalEvent.AncestorIds))
+        if (NavigationMenu.ContainsRootNavigationMenuId(args.OriginalEvent.AncestorIds))
         {
             args.PreventDefault();
             return;

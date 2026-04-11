@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -32,6 +33,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 
@@ -71,8 +73,10 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     {
         var cut = Render(CreateAlertDialog(defaultOpen: true));
 
-        Assert.Single(cut.FindAll("button[data-alert-cancel='true']"));
-        Assert.Single(cut.FindAll("button[data-alert-action='true']"));
+        var cancel = cut.Find("button[data-alert-cancel='true']");
+        var action = cut.Find("button[data-alert-action='true']");
+        Assert.Null(cancel.GetAttribute("aria-label"));
+        Assert.Null(action.GetAttribute("aria-label"));
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
     }
@@ -85,6 +89,65 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         cut.Find("button[data-alert-cancel='true']").Click();
 
         Assert.Equal("false", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
+    public async Task Detailed_open_auto_focus_can_prevent_alertdialog_cancel_focus()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixAlertDialog>(0);
+            builder.AddAttribute(1, nameof(BradixAlertDialog.DefaultOpen), true);
+            builder.AddAttribute(2, nameof(BradixAlertDialog.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixAlertDialogTrigger>(0);
+                content.AddAttribute(1, nameof(BradixAlertDialogTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Open")));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixAlertDialogPortal>(2);
+                content.AddAttribute(3, nameof(BradixAlertDialogPortal.ChildContent), (RenderFragment)(portal =>
+                {
+                    portal.OpenComponent<BradixAlertDialogContent>(0);
+                    portal.AddAttribute(1, nameof(BradixAlertDialogContent.OnOpenAutoFocusDetailed),
+                        EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, args => args.PreventDefault()));
+                    portal.AddAttribute(2, nameof(BradixAlertDialogContent.ChildContent), (RenderFragment)(dialogContent =>
+                    {
+                        dialogContent.OpenComponent<BradixAlertDialogTitle>(0);
+                        dialogContent.AddAttribute(1, nameof(BradixAlertDialogTitle.ChildContent), (RenderFragment)(title => title.AddContent(0, "Title")));
+                        dialogContent.CloseComponent();
+
+                        dialogContent.OpenComponent<BradixAlertDialogDescription>(2);
+                        dialogContent.AddAttribute(3, nameof(BradixAlertDialogDescription.ChildContent), (RenderFragment)(description => description.AddContent(0, "Description")));
+                        dialogContent.CloseComponent();
+
+                        dialogContent.OpenComponent<BradixAlertDialogCancel>(4);
+                        dialogContent.AddAttribute(5, nameof(BradixAlertDialogCancel.ChildContent), (RenderFragment)(cancel => cancel.AddContent(0, "Cancel")));
+                        dialogContent.CloseComponent();
+                    }));
+                    portal.CloseComponent();
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        var focusScope = cut.FindComponent<BradixFocusScope>();
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocusAsync());
+
+        Assert.True(prevented);
+    }
+
+    [Fact]
+    public async Task Open_auto_focus_uses_prevent_scroll_for_cancel_button()
+    {
+        var cut = Render(CreateAlertDialog(defaultOpen: true));
+        var focusScope = cut.FindComponent<BradixFocusScope>();
+        int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
+
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocusAsync());
+
+        Assert.True(prevented);
+        Assert.Equal(focusCountBefore + 1, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
     }
 
     private static RenderFragment CreateAlertDialog(bool defaultOpen = false)

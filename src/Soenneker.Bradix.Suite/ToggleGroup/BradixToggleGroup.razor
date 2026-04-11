@@ -74,7 +74,8 @@
     private string? NormalizedOrientation => Orientation is "horizontal" or "vertical" ? Orientation : null;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("role", "group"),
+        ("role", IsSingle ? "radiogroup" : "group"),
+        ("aria-orientation", NormalizedOrientation),
         ("dir", ResolvedDirection));
 
     protected override void OnInitialized()

@@ -47,6 +47,34 @@ public sealed class BradixAvatarRenderTests : BunitContext
     }
 
     [Fact]
+    public async Task Loaded_image_without_alt_renders_empty_alt_attribute()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixAvatar>(0);
+            builder.AddAttribute(1, nameof(BradixAvatar.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixAvatarImage>(0);
+                content.AddAttribute(1, nameof(BradixAvatarImage.Src), "https://example.com/avatar.png");
+                content.CloseComponent();
+
+                content.OpenComponent<BradixAvatarFallback>(2);
+                content.AddAttribute(3, nameof(BradixAvatarFallback.ChildContent), (RenderFragment)(fallback => fallback.AddContent(0, "JD")));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+        var image = cut.FindComponent<BradixAvatarImage>().Instance;
+
+        await image.HandleImageLoadingStatusChangedAsync("loaded");
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(string.Empty, cut.Find("img").GetAttribute("alt"));
+        });
+    }
+
+    [Fact]
     public async Task Delayed_fallback_waits_before_rendering()
     {
         var cut = Render(CreateAvatar(delayMs: 150));

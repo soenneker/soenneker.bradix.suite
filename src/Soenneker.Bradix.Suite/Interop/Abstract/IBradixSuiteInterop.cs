@@ -67,6 +67,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask<bool> IsFormControl(ElementReference element, string? formId = null, CancellationToken cancellationToken = default);
 
+    ValueTask<bool> IsKeyboardInteractionMode(CancellationToken cancellationToken = default);
+
     ValueTask SyncCheckboxBubbleInputState(ElementReference element, bool isChecked, bool isIndeterminate, bool dispatchEvent, bool bubbles = true,
         CancellationToken cancellationToken = default);
 
@@ -94,7 +96,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnregisterScrollAreaScrollbar(ElementReference scrollbar, CancellationToken cancellationToken = default);
 
-    ValueTask MountPortal(ElementReference element, string? containerSelector = null, CancellationToken cancellationToken = default);
+    ValueTask MountPortal(ElementReference element, string? containerSelector = null, ElementReference container = default,
+        CancellationToken cancellationToken = default);
 
     ValueTask UnmountPortal(ElementReference element, CancellationToken cancellationToken = default);
 
@@ -115,10 +118,17 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default);
 
+    ValueTask ScrollElementIntoViewNearest(ElementReference element, CancellationToken cancellationToken = default);
+
     ValueTask RegisterOneTimePasswordInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default);
 
     ValueTask UnregisterOneTimePasswordInput(ElementReference element, CancellationToken cancellationToken = default);
+
+    ValueTask RegisterAssociatedFormReset(ElementReference element, DotNetObjectReference<object> dotNetReference, string? formId = null,
+        CancellationToken cancellationToken = default);
+
+    ValueTask UnregisterAssociatedFormReset(ElementReference element, CancellationToken cancellationToken = default);
 
     ValueTask RequestFormSubmit(ElementReference associatedElement, string? formId = null, CancellationToken cancellationToken = default);
 
@@ -198,10 +208,10 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnregisterAvatarImageLoadingStatus(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference root,
+    ValueTask RegisterNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference track,
         DotNetObjectReference<object> dotNetReference, string orientation, CancellationToken cancellationToken = default);
 
-    ValueTask UpdateNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference root, string orientation,
+    ValueTask UpdateNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference track, string orientation,
         CancellationToken cancellationToken = default);
 
     ValueTask UnregisterNavigationMenuIndicator(ElementReference indicator, CancellationToken cancellationToken = default);

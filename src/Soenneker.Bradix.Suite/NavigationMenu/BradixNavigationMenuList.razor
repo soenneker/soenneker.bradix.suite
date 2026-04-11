@@ -1,10 +1,12 @@
 @namespace Soenneker.Bradix
 
+@implements IDisposable
 @inherits BradixComponentBase
 
 @if (NavigationMenu?.IsRootMenu == true)
 {
-    <div style="position:relative;">
+    <div @ref="_trackElement"
+         style="position:relative;">
         <ul @attributes="ListAttributes">
             @ChildContent
         </ul>
@@ -18,9 +20,29 @@ else
 }
 
 @code {
+    private ElementReference _trackElement;
+    private bool _trackRegistered;
+
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
 
     private Dictionary<string, object> ListAttributes => BuildAttributes(
         ("data-orientation", NavigationMenu?.Orientation ?? "horizontal"));
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (NavigationMenu?.IsRootMenu == true && !_trackRegistered)
+        {
+            NavigationMenu.RegisterIndicatorTrack(_trackElement);
+            _trackRegistered = true;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        if (_trackRegistered)
+            NavigationMenu?.UnregisterIndicatorTrack();
+    }
 }

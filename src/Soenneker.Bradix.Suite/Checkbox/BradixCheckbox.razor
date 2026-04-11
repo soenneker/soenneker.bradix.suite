@@ -68,7 +68,7 @@
 
     internal bool IsIndeterminate => CurrentChecked == BradixCheckboxCheckedState.Indeterminate;
 
-    private bool ShouldRenderBubbleInput => _isFormControl;
+    private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Form);
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
@@ -122,7 +122,7 @@
         if (firstRender)
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterCheckboxRoot(_buttonElement, _dotNetReference);
+            await Interop.RegisterCheckboxRoot(_buttonElement, _dotNetReference, Form);
             await Interop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new
             {
                 click = new
@@ -138,7 +138,7 @@
             _registered = true;
         }
 
-        bool isFormControl = await Interop.IsFormControl(_buttonElement);
+        bool isFormControl = await Interop.IsFormControl(_buttonElement, Form);
 
         if (_isFormControl != isFormControl)
         {

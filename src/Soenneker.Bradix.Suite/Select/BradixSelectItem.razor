@@ -124,6 +124,8 @@
 
     ValueTask IBradixSelectItem.FocusAsync() => Interop.FocusElementPreventScroll(_element);
 
+    ValueTask IBradixSelectItem.ScrollIntoViewAsync() => Interop.ScrollElementIntoViewNearest(_element);
+
     internal async Task NotifyResolvedTextAsync(string? text)
     {
         if (string.IsNullOrWhiteSpace(TextValue))

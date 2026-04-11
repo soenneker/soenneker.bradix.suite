@@ -4,13 +4,15 @@
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 
 <div @ref="_element"
      @onclick="HandleClickAsync"
      @onfocus="HandleFocusAsync"
      @onblur="HandleBlur"
      @onkeydown="HandleKeyDownAsync"
-     @onkeydown:preventDefault="true"
+     @onpointerdown="HandlePointerDown"
+     @onpointerup="HandlePointerUpAsync"
      @onpointermove="HandlePointerMoveAsync"
      @onpointerleave="HandlePointerLeaveAsync"
      @attributes="ItemAttributes">
@@ -21,13 +23,16 @@
     private ElementReference _element;
     private bool _registered;
     private bool _isFocused;
+    private bool _isPointerDown;
     private string? _resolvedTextValue;
+    private bool _delegatedInteractionRegistered;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     internal BradixMenu Menu { get; set; } = null!;
 
     [CascadingParameter]
-    internal BradixMenuContent Content { get; set; } = null!;
+    internal IBradixMenuContentController Content { get; set; } = null!;
 
     [Parameter]
     public bool Disabled { get; set; }
@@ -43,6 +48,9 @@
 
     [Parameter]
     public EventCallback OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixMenuItemSelectEventArgs> OnSelectDetailed { get; set; }
 
     public string? TabStopId { get; private set; }
 
@@ -72,6 +80,16 @@
         {
             Menu.RegisterItem(this);
             _registered = true;
+            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    currentTargetOnly = true,
+                    preventDefaultKeys = new[] { " ", "Spacebar", "Enter" }
+                }
+            });
+            _delegatedInteractionRegistered = true;
         }
 
         if (string.IsNullOrWhiteSpace(TextValue))
@@ -83,12 +101,15 @@
         }
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_element);
+
         if (_registered)
             Menu.UnregisterItem(this);
 
-        return ValueTask.CompletedTask;
+        _dotNetReference?.Dispose();
     }
 
     public ValueTask FocusAsync() => Interop.FocusElementPreventScroll(_element);
@@ -98,13 +119,38 @@
         if (Disabled)
             return;
 
+        var args = new BradixMenuItemSelectEventArgs();
+
         if (OnSelect.HasDelegate)
             await OnSelect.InvokeAsync();
 
+        if (OnSelectDetailed.HasDelegate)
+            await OnSelectDetailed.InvokeAsync(args);
+
         Menu.ResetTypeahead();
 
-        if (CloseOnSelect)
+        if (CloseOnSelect && !args.DefaultPrevented)
             await Menu.RootMenu.SetOpenAsync(false);
+    }
+
+    private void HandlePointerDown(PointerEventArgs args)
+    {
+        if (Disabled || args.Button != 0)
+            return;
+
+        _isPointerDown = true;
+    }
+
+    private async Task HandlePointerUpAsync(PointerEventArgs args)
+    {
+        if (Disabled || args.Button != 0)
+            return;
+
+        bool shouldSelectOnPointerUp = !_isPointerDown;
+        _isPointerDown = false;
+
+        if (shouldSelectOnPointerUp)
+            await HandleClickAsync();
     }
 
     private Task HandleBlur(FocusEventArgs _)
@@ -131,10 +177,7 @@
         if (args.Key is " " or "Spacebar")
         {
             if (Menu.IsTypeaheadActive)
-            {
-                await Content.HandleTypeaheadKeyAsync(this, " ");
                 return;
-            }
 
             await HandleClickAsync();
             return;
@@ -153,6 +196,12 @@
         }
 
         await Content.HandleItemKeyDownAsync(this, args);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
+        return Task.CompletedTask;
     }
 
     private Task HandlePointerMoveAsync(PointerEventArgs args)

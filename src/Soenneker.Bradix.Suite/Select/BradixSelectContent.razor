@@ -138,7 +138,19 @@ else
     public EventCallback OnEscapeKeyDown { get; set; }
 
     [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnCloseAutoFocusDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnPlaced { get; set; }
@@ -321,16 +333,22 @@ else
         return EnsureDelegatedInteractionAsync();
     }
 
-    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
+
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(args);
     }
 
-    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs _)
+    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
+
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(args);
     }
 
     private Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
@@ -350,6 +368,12 @@ else
 
     private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
+        if (OnCloseAutoFocus.HasDelegate)
+            await OnCloseAutoFocus.InvokeAsync();
+
+        if (OnCloseAutoFocusDetailed.HasDelegate)
+            await OnCloseAutoFocusDetailed.InvokeAsync(args);
+
         if (args.DefaultPrevented || Select is null)
             return;
 
@@ -377,7 +401,7 @@ else
             return;
         }
 
-        if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End")
+        if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
             await Select.HandleContentNavigationAsync(args.Key);
     }
 
@@ -452,7 +476,7 @@ else
             {
                 method = nameof(HandleDelegatedContentKeyDownAsync),
                 currentTargetOnly = false,
-                preventDefaultKeys = new[] { "Tab", "ArrowUp", "ArrowDown", "Home", "End" }
+                preventDefaultKeys = new[] { "Tab", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown" }
             }
         });
         _delegatedInteractionRegistered = true;

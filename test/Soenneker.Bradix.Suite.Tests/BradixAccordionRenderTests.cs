@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
@@ -89,6 +90,24 @@ public sealed class BradixAccordionRenderTests : BunitContext
         Assert.Equal("true", triggers[1].GetAttribute("aria-expanded"));
     }
 
+    [Fact]
+    public void Multiple_mode_preserves_open_order_in_value_callback()
+    {
+        IReadOnlyCollection<string>? requestedValues = null;
+
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAccordion(
+            "multiple",
+            collapsible: true,
+            onValuesChange: EventCallback.Factory.Create<IReadOnlyCollection<string>>(this, values => requestedValues = values)));
+
+        IReadOnlyList<IElement> triggers = cut.FindAll("button");
+        triggers[1].Click();
+        triggers[0].Click();
+
+        Assert.NotNull(requestedValues);
+        Assert.Equal(new[] { "two", "one" }, requestedValues!.ToArray());
+    }
+
     private static RenderFragment CreateSingleAccordion()
     {
         return CreateAccordion("single", collapsible: false);
@@ -99,13 +118,16 @@ public sealed class BradixAccordionRenderTests : BunitContext
         return CreateAccordion("multiple", collapsible: true);
     }
 
-    private static RenderFragment CreateAccordion(string type, bool collapsible)
+    private static RenderFragment CreateAccordion(string type, bool collapsible, EventCallback<IReadOnlyCollection<string>> onValuesChange = default)
     {
         return builder =>
         {
             builder.OpenComponent<BradixAccordion>(0);
             builder.AddAttribute(1, nameof(BradixAccordion.Type), type);
             builder.AddAttribute(2, nameof(BradixAccordion.Collapsible), collapsible);
+            if (onValuesChange.HasDelegate)
+                builder.AddAttribute(4, nameof(BradixAccordion.OnValuesChange), onValuesChange);
+
             builder.AddAttribute(3, nameof(BradixAccordion.ChildContent), (RenderFragment) (contentBuilder =>
             {
                 RenderItem(contentBuilder, 0, "one", "One");

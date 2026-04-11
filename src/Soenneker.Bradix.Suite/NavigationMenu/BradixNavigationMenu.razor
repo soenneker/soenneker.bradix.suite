@@ -28,12 +28,16 @@
     private readonly Dictionary<string, ElementReference> _focusProxyElements = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<IBradixNavigationMenuFocusGroupItem>> _focusGroups = new(StringComparer.Ordinal);
     private readonly Dictionary<string, BradixNavigationMenuViewportRegistration> _viewportContents = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _escapeClosedValues = new(StringComparer.Ordinal);
     private ElementReference _rootElement;
+    private ElementReference _indicatorTrackElement;
     private bool _initialized;
     private bool _hasViewport;
+    private bool _hasIndicatorTrack;
     private string? _uncontrolledValue;
     private string _previousValue = string.Empty;
     private string _lastObservedValue = string.Empty;
+    private string? _viewportId;
     private CancellationTokenSource? _openDelayTokenSource;
     private CancellationTokenSource? _closeDelayTokenSource;
     private CancellationTokenSource? _skipDelayTokenSource;
@@ -85,9 +89,18 @@
 
     internal ElementReference RootElement => _rootElement;
 
+    internal bool HasIndicatorTrack => _hasIndicatorTrack;
+
+    internal ElementReference IndicatorTrackElement => _indicatorTrackElement;
+
     internal string ActiveViewportValue => HasOpenItem ? CurrentValue : PreviousValue;
 
+    internal string RootId => string.IsNullOrWhiteSpace(Id) ? $"{BaseId}-root" : Id;
+
     private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("id", RootId),
+        ("aria-label", IsRootMenu ? "Main" : null),
+        ("style", IsRootMenu ? "position:relative;" : null),
         ("data-orientation", Orientation),
         ("dir", ResolvedDirection));
 
@@ -162,6 +175,34 @@
         foreach (string id in ids)
         {
             if (triggerIds.Contains(id))
+                return true;
+        }
+
+        return false;
+    }
+
+    internal bool ContainsRootNavigationMenuId(IEnumerable<string>? ids)
+    {
+        if (ids is null || string.IsNullOrWhiteSpace(RootId))
+            return false;
+
+        foreach (string id in ids)
+        {
+            if (string.Equals(id, RootId, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
+    }
+
+    internal bool ContainsViewportId(IEnumerable<string>? ids)
+    {
+        if (ids is null || string.IsNullOrWhiteSpace(_viewportId))
+            return false;
+
+        foreach (string id in ids)
+        {
+            if (string.Equals(id, _viewportId, StringComparison.Ordinal))
                 return true;
         }
 
@@ -254,10 +295,12 @@
             await target.FocusAsync();
     }
 
-    internal void RegisterViewport()
+    internal void RegisterViewport(string viewportId)
     {
         if (!IsRootMenu)
             return;
+
+        _viewportId = viewportId;
 
         if (_hasViewport)
             return;
@@ -266,16 +309,30 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal void UnregisterViewport()
+    internal void UnregisterViewport(string viewportId)
     {
         if (!IsRootMenu)
             return;
+
+        if (string.Equals(_viewportId, viewportId, StringComparison.Ordinal))
+            _viewportId = null;
 
         if (!_hasViewport)
             return;
 
         _hasViewport = false;
         _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void RegisterIndicatorTrack(ElementReference element)
+    {
+        _indicatorTrackElement = element;
+        _hasIndicatorTrack = true;
+    }
+
+    internal void UnregisterIndicatorTrack()
+    {
+        _hasIndicatorTrack = false;
     }
 
     internal void RegisterViewportContent(BradixNavigationMenuViewportRegistration registration)
@@ -316,6 +373,28 @@
         }
 
         return _viewportContents.TryGetValue(value, out registration!);
+    }
+
+    internal IReadOnlyList<BradixNavigationMenuViewportRegistration> GetViewportContents()
+    {
+        if (!IsRootMenu || _viewportContents.Count == 0)
+            return [];
+
+        List<BradixNavigationMenuViewportRegistration> ordered = [];
+
+        foreach (string value in GetOrderedTriggerValues())
+        {
+            if (_viewportContents.TryGetValue(value, out BradixNavigationMenuViewportRegistration? registration))
+                ordered.Add(registration);
+        }
+
+        foreach (BradixNavigationMenuViewportRegistration registration in _viewportContents.Values)
+        {
+            if (!ordered.Any(existing => string.Equals(existing.Value, registration.Value, StringComparison.Ordinal)))
+                ordered.Add(registration);
+        }
+
+        return ordered;
     }
 
     internal List<string> GetOrderedTriggerValues()
@@ -421,6 +500,23 @@
 
         CurrentTabStopValue = value;
         _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal bool WasEscapeClosed(string value)
+    {
+        return _escapeClosedValues.Contains(value);
+    }
+
+    internal void MarkEscapeClosed(string value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            _escapeClosedValues.Add(value);
+    }
+
+    internal void ClearEscapeClosed(string value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            _escapeClosedValues.Remove(value);
     }
 
     internal async Task HandleTriggerNavigationAsync(IBradixNavigationMenuTrigger trigger, KeyboardEventArgs args)

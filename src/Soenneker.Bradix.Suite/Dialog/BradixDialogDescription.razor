@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@implements IDisposable
 @inherits BradixComponentBase
 
 <p @attributes="DescriptionAttributes">
@@ -10,6 +11,18 @@
     [CascadingParameter]
     private BradixDialog? Dialog { get; set; }
 
+    private string ResolvedDescriptionId => string.IsNullOrWhiteSpace(Id) ? Dialog?.DescriptionId ?? string.Empty : Id;
+
     private Dictionary<string, object> DescriptionAttributes => BuildAttributes(
-        ("id", string.IsNullOrWhiteSpace(Id) ? Dialog?.DescriptionId : Id));
+        ("id", ResolvedDescriptionId));
+
+    protected override void OnParametersSet()
+    {
+        Dialog?.RegisterDescription(ResolvedDescriptionId);
+    }
+
+    public void Dispose()
+    {
+        Dialog?.UnregisterDescription(ResolvedDescriptionId);
+    }
 }

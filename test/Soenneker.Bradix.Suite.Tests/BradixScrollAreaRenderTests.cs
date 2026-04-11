@@ -28,6 +28,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         var cut = Render(CreateScrollArea(type: "always", includeHorizontal: true));
 
         Assert.Equal(2, cut.FindAll("[data-orientation]").Count);
+        Assert.DoesNotContain("data-bradix-scroll-area-thumb", cut.Markup);
     }
 
     [Fact]

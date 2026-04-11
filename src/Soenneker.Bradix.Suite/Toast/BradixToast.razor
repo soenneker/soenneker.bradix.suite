@@ -1,6 +1,7 @@
 @namespace Soenneker.Bradix
 @using System.Linq
 @using System.Threading
+@using Microsoft.JSInterop
 
 @implements IAsyncDisposable
 @inherits BradixComponentBase
@@ -67,6 +68,8 @@
     private double _swipeEndY;
     private bool _lastKnownOpen;
     private long? _activePointerId;
+    private bool _delegatedInteractionRegistered;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     private BradixToastProvider? Provider { get; set; }
@@ -100,6 +103,12 @@
 
     [Parameter]
     public EventCallback OnResume { get; set; }
+
+    [Parameter]
+    public EventCallback OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
 
     [Parameter]
     public EventCallback<BradixToastSwipeEventArgs> OnSwipeStart { get; set; }
@@ -155,7 +164,6 @@
             if (!string.IsNullOrWhiteSpace(_swipeState))
                 attributes["data-swipe"] = _swipeState;
 
-            attributes["onkeydown"] = EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDownAsync);
             attributes["onpointerdown"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDownAsync);
             attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMoveAsync);
             attributes["onpointerup"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUpAsync);
@@ -230,8 +238,13 @@
         if (_registered)
             Provider?.UnregisterToast(this);
 
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_toastElement);
+
         if (_portalMounted)
             await Interop.UnmountPortal(_toastElement);
+
+        _dotNetReference?.Dispose();
     }
 
     internal Task PauseAsync()
@@ -276,11 +289,25 @@
     private async Task HandleElementReferenceCapturedAsync(ElementReference element)
     {
         _toastElement = element;
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
 
         if (!PortalDisabled && !_portalMounted && Provider?.HasViewport == true)
         {
             await Interop.MountPortal(_toastElement, $"#{Provider.ViewportId}");
             _portalMounted = true;
+        }
+
+        if (!_delegatedInteractionRegistered)
+        {
+            await Interop.RegisterDelegatedInteraction(_toastElement, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    method = nameof(HandleDelegatedKeyDownAsync),
+                    keys = new[] { "Escape" }
+                }
+            });
+            _delegatedInteractionRegistered = true;
         }
 
         if (!_registered)
@@ -303,6 +330,12 @@
         {
             Provider?.UnregisterToast(this);
             _registered = false;
+        }
+
+        if (_delegatedInteractionRegistered)
+        {
+            await Interop.UnregisterDelegatedInteraction(_toastElement);
+            _delegatedInteractionRegistered = false;
         }
 
         if (_portalMounted)
@@ -382,9 +415,21 @@
         _closeTimerCts = null;
     }
 
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    [JSInvokable]
+    public async Task HandleDelegatedKeyDownAsync(BradixDelegatedKeyboardEvent args)
     {
-        if (args.Key == "Escape")
+        if (!string.Equals(args.Key, "Escape", StringComparison.Ordinal))
+            return;
+
+        if (OnEscapeKeyDown.HasDelegate)
+            await OnEscapeKeyDown.InvokeAsync();
+
+        var eventArgs = new BradixEscapeKeyDownEventArgs(args);
+
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(eventArgs);
+
+        if (!eventArgs.DefaultPrevented)
             await CloseAsync();
     }
 

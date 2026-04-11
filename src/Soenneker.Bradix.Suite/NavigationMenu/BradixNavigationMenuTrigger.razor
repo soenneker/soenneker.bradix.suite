@@ -20,7 +20,6 @@
 {
 
         <span @ref="_focusProxy"
-              data-bradix-navigation-menu-focus-proxy=""
               aria-hidden="true"
               tabindex="0"
               style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" />
@@ -38,6 +37,7 @@
     private bool _rovingFocusBridgeReady;
     private bool _wasClickClose;
     private bool _focusProxyRegistered;
+    private bool _delegatedInteractionRegistered;
     private DotNetObjectReference<object>? _dotNetReference;
     private TriggerRegistration? _registration;
 
@@ -76,6 +76,15 @@
             NavigationMenu.RegisterTrigger(_registration);
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await Interop.RegisterRovingFocusNavigationKeys(_button, _dotNetReference);
+            await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    currentTargetOnly = true,
+                    preventDefaultKeys = new[] { "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End" }
+                }
+            });
+            _delegatedInteractionRegistered = true;
         }
 
         if (NavigationMenu is not null && Item is not null)
@@ -96,6 +105,9 @@
 
     public async ValueTask DisposeAsync()
     {
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_button);
+
         await Interop.UnregisterRovingFocusNavigationKeys(_button);
         _dotNetReference?.Dispose();
 
@@ -109,12 +121,22 @@
     private Task HandlePointerEnterAsync(PointerEventArgs _)
     {
         _wasClickClose = false;
+
+        if (NavigationMenu is not null && Item is not null)
+            NavigationMenu.ClearEscapeClosed(Item.ResolvedValue);
+
         return Task.CompletedTask;
     }
 
     private async Task HandlePointerMoveAsync(PointerEventArgs args)
     {
-        if (args.PointerType == "touch" || Disabled || NavigationMenu is null || Item is null || _wasClickClose || _hasPointerMoveOpened)
+        if (args.PointerType == "touch" ||
+            Disabled ||
+            NavigationMenu is null ||
+            Item is null ||
+            _wasClickClose ||
+            NavigationMenu.WasEscapeClosed(Item.ResolvedValue) ||
+            _hasPointerMoveOpened)
             return;
 
         await NavigationMenu.HandleTriggerPointerMoveAsync(Item.ResolvedValue);
@@ -181,6 +203,12 @@
     public Task HandleRovingFocusBridgeReadyAsync()
     {
         _rovingFocusBridgeReady = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
         return Task.CompletedTask;
     }
 

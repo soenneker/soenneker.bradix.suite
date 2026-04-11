@@ -19,6 +19,8 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         _module.SetupVoid("registerDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("updateDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
@@ -54,6 +56,44 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
             Assert.Equal(content.Id, updatedTrigger.GetAttribute("aria-controls"));
             Assert.Equal(updatedTrigger.Id, content.GetAttribute("aria-labelledby"));
         });
+    }
+
+    [Fact]
+    public void Root_navigation_menu_sets_default_label_and_positioning()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixNavigationMenu>(0);
+            builder.AddAttribute(1, nameof(BradixNavigationMenu.DelayDuration), 0);
+            builder.AddAttribute(2, nameof(BradixNavigationMenu.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixNavigationMenuList>(0);
+                content.AddAttribute(1, nameof(BradixNavigationMenuList.ChildContent), (RenderFragment)(list =>
+                {
+                    BuildItem(list, 0, "products", "Products", ("Buttons", "buttons"));
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        var root = cut.Find("nav");
+        string style = root.GetAttribute("style") ?? string.Empty;
+
+        Assert.Equal("Main", root.GetAttribute("aria-label"));
+        Assert.Contains("position:relative", style.Replace(" ", string.Empty));
+    }
+
+    [Fact]
+    public void Root_navigation_menu_list_wraps_items_in_relative_indicator_track()
+    {
+        var cut = Render(CreateNavigationMenu(includeIndicator: true));
+
+        var track = cut.Find("nav > div");
+        var list = track.QuerySelector("ul");
+
+        Assert.NotNull(list);
+        Assert.Contains("position:relative", (track.GetAttribute("style") ?? string.Empty).Replace(" ", string.Empty));
     }
 
     [Fact]
@@ -105,6 +145,29 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
 
         trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
         trigger.Click();
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Getting started", cut.Markup));
+
+        trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        trigger.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Getting started", cut.Markup));
+    }
+
+    [Fact]
+    public async Task Pointer_move_does_not_reopen_immediately_after_escape_close()
+    {
+        var cut = Render(CreateNavigationMenu());
+        var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+
+        trigger.Click();
+        cut.WaitForAssertion(() => Assert.Contains("Getting started", cut.Markup));
+
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+        await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "Escape"
+        }));
+
         cut.WaitForAssertion(() => Assert.DoesNotContain("Getting started", cut.Markup));
 
         trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
@@ -177,8 +240,6 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
 
         cut.WaitForAssertion(() =>
         {
-            Assert.NotEmpty(cut.FindAll("[data-bradix-navigation-menu-focus-proxy]"));
-            Assert.NotEmpty(cut.FindAll("[data-bradix-navigation-menu-focus-proxy-end]"));
             Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerNavigationMenuContentFocusBridge");
         });
     }
@@ -217,8 +278,6 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         cut.WaitForAssertion(() =>
         {
             Assert.Contains("Buttons", cut.Markup);
-            Assert.NotEmpty(cut.FindAll("[data-bradix-navigation-menu-focus-proxy]"));
-            Assert.NotEmpty(cut.FindAll("[data-bradix-navigation-menu-focus-proxy-end]"));
             Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerNavigationMenuContentFocusBridge");
         });
     }
@@ -247,6 +306,64 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
             var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
             string? ownedId = cut.Find("[aria-owns]").GetAttribute("aria-owns");
             Assert.Equal(trigger.GetAttribute("aria-controls"), ownedId);
+        });
+    }
+
+    [Fact]
+    public async Task Viewport_pointer_down_outside_does_not_dismiss_when_target_is_root_viewport()
+    {
+        var cut = Render(CreateNavigationMenu(includeViewport: true));
+        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+
+        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+
+        var viewport = cut.Find("[id$='-viewport']");
+        Assert.False(string.IsNullOrWhiteSpace(viewport.Id));
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        {
+            AncestorIds = [viewport.Id]
+        }));
+
+        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+    }
+
+    [Fact]
+    public async Task Viewport_focus_outside_does_not_dismiss_when_target_stays_inside_root_menu()
+    {
+        var cut = Render(CreateNavigationMenu(includeViewport: true));
+        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+
+        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+
+        var root = cut.Find("nav");
+        Assert.False(string.IsNullOrWhiteSpace(root.Id));
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+
+        await cut.InvokeAsync(() => layer.Instance.HandleFocusOutsideAsync(new BradixDelegatedFocusEvent
+        {
+            AncestorIds = [root.Id]
+        }));
+
+        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+    }
+
+    [Fact]
+    public void Viewport_switch_keeps_previous_content_mounted_for_exit_motion()
+    {
+        var cut = Render(CreateNavigationMenu(includeViewport: true));
+        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+
+        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+
+        cut.FindAll("button").First(button => button.TextContent.Contains("Docs")).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Buttons", cut.Markup);
+            Assert.Contains("Getting started", cut.Markup);
+            Assert.True(cut.FindAll("[data-motion]").Count >= 2);
         });
     }
 

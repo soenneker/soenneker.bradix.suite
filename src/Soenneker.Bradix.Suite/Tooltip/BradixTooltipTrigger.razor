@@ -29,6 +29,7 @@
     private BradixTooltip? Tooltip { get; set; }
 
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("type", "button"),
         ("aria-describedby", Tooltip?.CurrentOpen == true ? Tooltip.ContentId : null),
         ("data-state", Tooltip?.StateAttribute));
 

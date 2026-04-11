@@ -57,12 +57,37 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Fact]
-    public void Modal_dialog_renders_overlay_without_redundant_aria_modal()
+    public void Dialog_without_title_or_description_does_not_emit_orphaned_relationship_ids()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixDialog>(0);
+            builder.AddAttribute(1, nameof(BradixDialog.DefaultOpen), true);
+            builder.AddAttribute(2, nameof(BradixDialog.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixDialogTrigger>(0);
+                content.AddAttribute(1, nameof(BradixDialogTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Open")));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixDialogContent>(2);
+                content.AddAttribute(3, nameof(BradixDialogContent.ChildContent), (RenderFragment)(dialogContent => dialogContent.AddContent(0, "Body")));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        var dialog = cut.Find("[role='dialog']");
+        Assert.Null(dialog.GetAttribute("aria-labelledby"));
+        Assert.Null(dialog.GetAttribute("aria-describedby"));
+    }
+
+    [Fact]
+    public void Modal_dialog_renders_overlay_and_sets_aria_modal()
     {
         var cut = Render(CreateDialog(defaultOpen: true, modal: true));
 
         Assert.Single(cut.FindAll(".dialog-overlay"));
-        Assert.Null(cut.Find("[role='dialog']").GetAttribute("aria-modal"));
+        Assert.Equal("true", cut.Find("[role='dialog']").GetAttribute("aria-modal"));
     }
 
     [Fact]
@@ -101,11 +126,40 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Fact]
+    public async Task Detailed_pointer_down_outside_can_prevent_dialog_dismiss()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixDialog>(0);
+            builder.AddAttribute(1, nameof(BradixDialog.DefaultOpen), true);
+            builder.AddAttribute(2, nameof(BradixDialog.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixDialogTrigger>(0);
+                content.AddAttribute(1, nameof(BradixDialogTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Open")));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixDialogContent>(2);
+                content.AddAttribute(3, nameof(BradixDialogContent.OnPointerDownOutsideDetailed), EventCallback.Factory.Create<BradixPointerDownOutsideEventArgs>(this, args => args.PreventDefault()));
+                content.AddAttribute(4, nameof(BradixDialogContent.ChildContent), (RenderFragment)(dialogContent => dialogContent.AddContent(0, "Body")));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+
+        Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
     public async Task Close_button_keeps_content_mounted_until_exit_animation_finishes()
     {
         var cut = Render(CreateDialog(defaultOpen: true));
 
-        cut.Find("button[data-dialog-close='true']").Click();
+        var closeButton = cut.Find("button[data-dialog-close='true']");
+        Assert.Equal("Close", closeButton.GetAttribute("aria-label"));
+        closeButton.Click();
 
         Assert.Single(cut.FindAll("[role='dialog']"));
 

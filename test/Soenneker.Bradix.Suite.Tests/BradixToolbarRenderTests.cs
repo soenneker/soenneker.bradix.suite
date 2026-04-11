@@ -52,6 +52,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
         var cut = Render(CreateToolbar());
 
         var radios = cut.FindAll("[role='radio']");
+        Assert.Equal("horizontal", cut.Find("[role='radiogroup']").GetAttribute("aria-orientation"));
         radios[2].Click();
         radios = cut.FindAll("[role='radio']");
 

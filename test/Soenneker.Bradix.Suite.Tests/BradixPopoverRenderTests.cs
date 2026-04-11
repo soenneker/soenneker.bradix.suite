@@ -58,12 +58,12 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Fact]
-    public void Modal_popover_registers_modal_infra_without_redundant_aria_modal()
+    public void Modal_popover_registers_modal_infra_and_sets_aria_modal()
     {
         var cut = Render(CreatePopover(defaultOpen: true, modal: true));
 
         var dialog = cut.Find("[role='dialog']");
-        Assert.Null(dialog.GetAttribute("aria-modal"));
+        Assert.Equal("true", dialog.GetAttribute("aria-modal"));
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
     }
@@ -94,6 +94,47 @@ public sealed class BradixPopoverRenderTests : BunitContext
         }));
 
         Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
+    public async Task Right_click_outside_does_not_dismiss_non_modal_popover()
+    {
+        var cut = Render(CreatePopover(defaultOpen: true));
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        {
+            Button = 2
+        }));
+
+        Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
+    public async Task Detailed_pointer_down_outside_can_prevent_popover_dismiss()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixPopover>(0);
+            builder.AddAttribute(1, nameof(BradixPopover.DefaultOpen), true);
+            builder.AddAttribute(2, nameof(BradixPopover.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixPopoverTrigger>(0);
+                content.AddAttribute(1, nameof(BradixPopoverTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Toggle")));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixPopoverContent>(2);
+                content.AddAttribute(3, nameof(BradixPopoverContent.OnPointerDownOutsideDetailed), EventCallback.Factory.Create<BradixPointerDownOutsideEventArgs>(this, args => args.PreventDefault()));
+                content.AddAttribute(4, nameof(BradixPopoverContent.ChildContent), (RenderFragment)(popoverContent => popoverContent.AddContent(0, "Body")));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+
+        Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
     }
 
     [Fact]

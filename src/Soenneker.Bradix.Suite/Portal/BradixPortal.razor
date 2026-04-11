@@ -16,13 +16,17 @@
     private ElementReference _element;
     private bool _isMounted;
     private bool _mounted;
+    private ElementReference _lastContainer;
+    private bool _lastContainerCaptured;
     private string? _lastContainerSelector;
 
     [Parameter]
     public string? ContainerSelector { get; set; }
 
-    private Dictionary<string, object> PortalAttributes => BuildAttributes(
-        ("data-bradix-portal", string.Empty));
+    [Parameter]
+    public ElementReference Container { get; set; }
+
+    private Dictionary<string, object> PortalAttributes => BuildAttributes();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -36,11 +40,15 @@
         if (!_isMounted)
             return;
 
-        if (_mounted && !firstRender && string.Equals(_lastContainerSelector, ContainerSelector, StringComparison.Ordinal))
+        bool containerChanged = !_lastContainerCaptured || !EqualityComparer<ElementReference>.Default.Equals(_lastContainer, Container);
+
+        if (_mounted && !firstRender && !containerChanged && string.Equals(_lastContainerSelector, ContainerSelector, StringComparison.Ordinal))
             return;
 
-        await Interop.MountPortal(_element, ContainerSelector);
+        await Interop.MountPortal(_element, ContainerSelector, Container);
         _mounted = true;
+        _lastContainer = Container;
+        _lastContainerCaptured = true;
         _lastContainerSelector = ContainerSelector;
     }
 

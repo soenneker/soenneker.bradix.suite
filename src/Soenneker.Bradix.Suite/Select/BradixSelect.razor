@@ -285,9 +285,7 @@
         if (target is null)
             return;
 
-        CurrentFocusedItemValue = target.Value;
-        await target.FocusAsync();
-        await InvokeAsync(StateHasChanged);
+        await FocusItemAsync(target);
     }
 
     internal async Task FocusFirstItemAsync()
@@ -297,9 +295,7 @@
         if (first is null)
             return;
 
-        CurrentFocusedItemValue = first.Value;
-        await first.FocusAsync();
-        await InvokeAsync(StateHasChanged);
+        await FocusItemAsync(first);
     }
 
     internal async Task FocusLastItemAsync()
@@ -309,9 +305,7 @@
         if (last is null)
             return;
 
-        CurrentFocusedItemValue = last.Value;
-        await last.FocusAsync();
-        await InvokeAsync(StateHasChanged);
+        await FocusItemAsync(last);
     }
 
     internal async Task HandleTriggerTypeaheadAsync(string key)
@@ -337,9 +331,7 @@
         if (nextItem is null)
             return;
 
-        CurrentFocusedItemValue = nextItem.Value;
-        await nextItem.FocusAsync();
-        await InvokeAsync(StateHasChanged);
+        await FocusItemAsync(nextItem);
     }
 
     internal async Task HandleContentNavigationAsync(string key)
@@ -347,9 +339,11 @@
         switch (key)
         {
             case "Home":
+            case "PageUp":
                 await FocusFirstItemAsync();
                 return;
             case "End":
+            case "PageDown":
                 await FocusLastItemAsync();
                 return;
         }
@@ -370,9 +364,7 @@
             return;
 
         IBradixSelectItem target = enabledItems[targetIndex];
-        CurrentFocusedItemValue = target.Value;
-        await target.FocusAsync();
-        await InvokeAsync(StateHasChanged);
+        await FocusItemAsync(target);
     }
 
     internal Task NotifyItemTextChangedAsync()
@@ -383,6 +375,14 @@
     internal void SuppressNextMouseUpSelection()
     {
         _suppressNextMouseUpSelection = true;
+    }
+
+    private async Task FocusItemAsync(IBradixSelectItem item)
+    {
+        CurrentFocusedItemValue = item.Value;
+        await item.ScrollIntoViewAsync();
+        await item.FocusAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     internal bool TryConsumeSuppressedMouseUpSelection()

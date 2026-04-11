@@ -64,19 +64,37 @@
     public EventCallback OnOpenAutoFocus { get; set; }
 
     [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnCloseAutoFocusDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnEscapeKeyDown { get; set; }
 
     [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnFocusOutside { get; set; }
 
     [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnPlaced { get; set; }
@@ -123,6 +141,7 @@
                 : new Dictionary<string, object>();
 
             attributes["role"] = "dialog";
+            attributes["aria-modal"] = Popover?.Modal == true ? "true" : "false";
             attributes["data-state"] = Popover?.CurrentOpen == true ? "open" : "closed";
 
             return attributes;
@@ -150,10 +169,13 @@
         }
     }
 
-    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs _)
+    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
     {
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
+
+        if (OnOpenAutoFocusDetailed.HasDelegate)
+            await OnOpenAutoFocusDetailed.InvokeAsync(args);
     }
 
     private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
@@ -161,8 +183,14 @@
         if (OnCloseAutoFocus.HasDelegate)
             await OnCloseAutoFocus.InvokeAsync();
 
+        if (OnCloseAutoFocusDetailed.HasDelegate)
+            await OnCloseAutoFocusDetailed.InvokeAsync(args);
+
         if (Popover?.Modal == true)
         {
+            if (args.DefaultPrevented)
+                goto ResetState;
+
             args.PreventDefault();
 
             if (!_isRightClickOutside)
@@ -176,15 +204,19 @@
             args.PreventDefault();
         }
 
+ResetState:
         _hasInteractedOutside = false;
         _hasPointerDownOutside = false;
         _isRightClickOutside = false;
     }
 
-    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
+    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
+
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(args);
     }
 
     private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
@@ -192,14 +224,23 @@
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
 
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(args);
+
         bool ctrlLeftClick = args.OriginalEvent.Button == 0 && args.OriginalEvent.CtrlKey;
         _isRightClickOutside = args.OriginalEvent.Button == 2 || ctrlLeftClick;
+
+        if (_isRightClickOutside)
+            args.PreventDefault();
     }
 
     private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
     {
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
+
+        if (OnFocusOutsideDetailed.HasDelegate)
+            await OnFocusOutsideDetailed.InvokeAsync(args);
 
         if (Popover?.Modal == true)
         {
@@ -212,6 +253,9 @@
     {
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();
+
+        if (OnInteractOutsideDetailed.HasDelegate)
+            await OnInteractOutsideDetailed.InvokeAsync(args);
 
         if (Popover?.Modal == true)
             return;

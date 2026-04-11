@@ -1,0 +1,279 @@
+import { focusElement } from "./core/focus.js";
+
+const sliderPointerHandlers = new WeakMap();
+const oneTimePasswordInputHandlers = new WeakMap();
+
+export function syncCheckboxBubbleInputState(element, isChecked, isIndeterminate, dispatchEvent, bubbles = true) {
+  if (!element) {
+    return;
+  }
+
+  const control = element.previousElementSibling instanceof HTMLElement ? element.previousElementSibling : null;
+
+  if (control) {
+    const rect = control.getBoundingClientRect();
+
+    if (rect.width > 0) {
+      element.style.width = `${rect.width}px`;
+    }
+
+    if (rect.height > 0) {
+      element.style.height = `${rect.height}px`;
+    }
+  }
+
+  const inputProto = window.HTMLInputElement.prototype;
+  const descriptor = Object.getOwnPropertyDescriptor(inputProto, "checked");
+  const setChecked = descriptor && typeof descriptor.set === "function" ? descriptor.set : null;
+
+  element.indeterminate = !!isIndeterminate;
+
+  if (setChecked) {
+    setChecked.call(element, !!isChecked);
+  } else {
+    element.checked = !!isChecked;
+  }
+
+  if (dispatchEvent) {
+    element.dispatchEvent(new Event("click", { bubbles: !!bubbles }));
+  }
+}
+
+export function syncSliderBubbleInputValue(element, value, dispatchEvent) {
+  if (!element) {
+    return;
+  }
+
+  const inputProto = window.HTMLInputElement.prototype;
+  const descriptor = Object.getOwnPropertyDescriptor(inputProto, "value");
+  const setValue = descriptor && typeof descriptor.set === "function" ? descriptor.set : null;
+  const nextValue = value == null ? "" : String(value);
+
+  if (setValue) {
+    setValue.call(element, nextValue);
+  } else {
+    element.value = nextValue;
+  }
+
+  if (dispatchEvent) {
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+}
+
+export function clickElement(element) {
+  if (!element) {
+    return;
+  }
+
+  element.click();
+}
+
+export function selectInputText(element) {
+  if (!element || typeof element.select !== "function") {
+    return;
+  }
+
+  element.select();
+}
+
+export function registerSliderPointerBridge(element, dotNetRef) {
+  if (!element) {
+    return;
+  }
+
+  unregisterSliderPointerBridge(element);
+
+  const getFractions = (event) => {
+    const rect = element.getBoundingClientRect();
+    const x = rect.width <= 0 ? 0 : (event.clientX - rect.left) / rect.width;
+    const y = rect.height <= 0 ? 0 : (event.clientY - rect.top) / rect.height;
+
+    return {
+      x: Math.min(1, Math.max(0, x)),
+      y: Math.min(1, Math.max(0, y))
+    };
+  };
+
+  const pointerdown = (event) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.preventDefault();
+    if (typeof element.setPointerCapture === "function") {
+      try {
+        element.setPointerCapture(event.pointerId);
+      } catch {
+      }
+    }
+
+    const thumb = event.target && typeof event.target.closest === "function"
+      ? event.target.closest('[role="slider"]')
+      : null;
+    const sliderThumbs = Array.from(element.querySelectorAll('[role="slider"]'));
+    const thumbIndex = thumb ? sliderThumbs.indexOf(thumb) : -1;
+    const fractions = getFractions(event);
+
+    dotNetRef.invokeMethodAsync("HandlePointerStartAsync", fractions.x, fractions.y, thumbIndex);
+
+    const pointermove = (moveEvent) => {
+      const moveFractions = getFractions(moveEvent);
+      dotNetRef.invokeMethodAsync("HandlePointerMoveAsync", moveFractions.x, moveFractions.y);
+    };
+
+    const pointerup = () => {
+      document.removeEventListener("pointermove", pointermove);
+      document.removeEventListener("pointerup", pointerup);
+      document.removeEventListener("pointercancel", pointercancel);
+      if (typeof element.hasPointerCapture === "function" &&
+        typeof element.releasePointerCapture === "function") {
+        try {
+          if (element.hasPointerCapture(event.pointerId)) {
+            element.releasePointerCapture(event.pointerId);
+          }
+        } catch {
+        }
+      }
+      dotNetRef.invokeMethodAsync("HandlePointerEndAsync");
+    };
+
+    const pointercancel = () => {
+      document.removeEventListener("pointermove", pointermove);
+      document.removeEventListener("pointerup", pointerup);
+      document.removeEventListener("pointercancel", pointercancel);
+      if (typeof element.hasPointerCapture === "function" &&
+        typeof element.releasePointerCapture === "function") {
+        try {
+          if (element.hasPointerCapture(event.pointerId)) {
+            element.releasePointerCapture(event.pointerId);
+          }
+        } catch {
+        }
+      }
+      dotNetRef.invokeMethodAsync("HandlePointerCancelAsync");
+    };
+
+    document.addEventListener("pointermove", pointermove);
+    document.addEventListener("pointerup", pointerup);
+    document.addEventListener("pointercancel", pointercancel);
+
+    const handlers = sliderPointerHandlers.get(element);
+    if (handlers) {
+      handlers.pointermove = pointermove;
+      handlers.pointerup = pointerup;
+      handlers.pointercancel = pointercancel;
+    }
+  };
+
+  sliderPointerHandlers.set(element, { pointerdown, pointermove: null, pointerup: null, pointercancel: null });
+  element.addEventListener("pointerdown", pointerdown);
+}
+
+export function unregisterSliderPointerBridge(element) {
+  const handlers = sliderPointerHandlers.get(element);
+
+  if (!handlers) {
+    return;
+  }
+
+  element.removeEventListener("pointerdown", handlers.pointerdown);
+
+  if (handlers.pointermove) {
+    document.removeEventListener("pointermove", handlers.pointermove);
+  }
+
+  if (handlers.pointerup) {
+    document.removeEventListener("pointerup", handlers.pointerup);
+  }
+
+  if (handlers.pointercancel) {
+    document.removeEventListener("pointercancel", handlers.pointercancel);
+  }
+
+  sliderPointerHandlers.delete(element);
+}
+
+export function capturePointer(element, pointerId) {
+  if (!element || typeof element.setPointerCapture !== "function") {
+    return;
+  }
+
+  try {
+    element.setPointerCapture(pointerId);
+  } catch {
+  }
+}
+
+export function releasePointer(element, pointerId) {
+  if (!element || typeof element.hasPointerCapture !== "function" || typeof element.releasePointerCapture !== "function") {
+    return;
+  }
+
+  try {
+    if (element.hasPointerCapture(pointerId)) {
+      element.releasePointerCapture(pointerId);
+    }
+  } catch {
+  }
+}
+
+export function suppressNextClick(element) {
+  if (!element) {
+    return;
+  }
+
+  element.addEventListener("click", (event) => {
+    event.preventDefault();
+  }, { once: true });
+}
+
+export function focusElementById(elementId) {
+  if (!elementId) {
+    return;
+  }
+
+  focusElement(document.getElementById(elementId), false);
+}
+
+export function focusElementPreventScroll(element) {
+  focusElement(element, false);
+}
+
+export function scrollElementIntoViewNearest(element) {
+  if (!element || typeof element.scrollIntoView !== "function") {
+    return;
+  }
+
+  element.scrollIntoView({ block: "nearest" });
+}
+
+export function registerOneTimePasswordInput(element, dotNetRef) {
+  if (!element) {
+    return;
+  }
+
+  unregisterOneTimePasswordInput(element);
+
+  const paste = (event) => {
+    if (!dotNetRef) {
+      return;
+    }
+
+    event.preventDefault();
+    dotNetRef.invokeMethodAsync("HandlePasteAsync", event.clipboardData?.getData("Text") || "");
+  };
+
+  element.addEventListener("paste", paste);
+  oneTimePasswordInputHandlers.set(element, { paste });
+}
+
+export function unregisterOneTimePasswordInput(element) {
+  const handlers = oneTimePasswordInputHandlers.get(element);
+
+  if (!handlers) {
+    return;
+  }
+
+  element.removeEventListener("paste", handlers.paste);
+  oneTimePasswordInputHandlers.delete(element);
+}

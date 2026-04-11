@@ -58,9 +58,7 @@
     [Parameter]
     public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
 
-    private Dictionary<string, object> LayerAttributes => BuildAttributes(
-        ("data-bradix-dismissable-layer", string.Empty),
-        ("data-bradix-dismiss-on-escape-key-down", DismissOnEscapeKeyDown ? string.Empty : null));
+    private Dictionary<string, object> LayerAttributes => BuildAttributes();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -93,7 +91,7 @@
     }
 
     [JSInvokable]
-    public async Task HandleEscapeKeyDownAsync(BradixDelegatedKeyboardEvent? originalEvent = null)
+    public async Task<bool> HandleEscapeKeyDownAsync(BradixDelegatedKeyboardEvent? originalEvent = null)
     {
         var args = new BradixEscapeKeyDownEventArgs(originalEvent ?? new BradixDelegatedKeyboardEvent());
 
@@ -103,8 +101,12 @@
         if (OnEscapeKeyDownDetailed.HasDelegate)
             await OnEscapeKeyDownDetailed.InvokeAsync(args);
 
-        if (DismissOnEscapeKeyDown && !args.DefaultPrevented && OnDismiss.HasDelegate)
+        bool shouldDismiss = DismissOnEscapeKeyDown && !args.DefaultPrevented && OnDismiss.HasDelegate;
+
+        if (shouldDismiss)
             await OnDismiss.InvokeAsync();
+
+        return shouldDismiss;
     }
 
     [JSInvokable]

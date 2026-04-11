@@ -27,6 +27,7 @@
 
     private bool _registered;
     private string? _registeredCustomMatcherFieldName;
+    private string? _registeredMessageFieldName;
 
     [CascadingParameter]
     private BradixForm? Form { get; set; }
@@ -102,17 +103,30 @@
     {
         bool shouldRegister = ShouldDisplay && !string.IsNullOrWhiteSpace(ResolvedName);
 
+        if (_registered && !string.Equals(_registeredMessageFieldName, ResolvedName, StringComparison.Ordinal))
+        {
+            if (!string.IsNullOrWhiteSpace(_registeredMessageFieldName))
+                Form?.UnregisterFieldMessageId(_registeredMessageFieldName, MessageId);
+
+            _registered = false;
+            _registeredMessageFieldName = null;
+        }
+
         if (shouldRegister && !_registered)
         {
             Form?.RegisterFieldMessageId(ResolvedName, MessageId);
             _registered = true;
+            _registeredMessageFieldName = ResolvedName;
             return;
         }
 
         if (!shouldRegister && _registered)
         {
-            Form?.UnregisterFieldMessageId(ResolvedName, MessageId);
+            if (!string.IsNullOrWhiteSpace(_registeredMessageFieldName))
+                Form?.UnregisterFieldMessageId(_registeredMessageFieldName, MessageId);
+
             _registered = false;
+            _registeredMessageFieldName = null;
         }
     }
 
@@ -120,8 +134,8 @@
     {
         UnregisterCustomMatcher();
 
-        if (_registered && !string.IsNullOrWhiteSpace(ResolvedName))
-            Form?.UnregisterFieldMessageId(ResolvedName, MessageId);
+        if (_registered && !string.IsNullOrWhiteSpace(_registeredMessageFieldName))
+            Form?.UnregisterFieldMessageId(_registeredMessageFieldName, MessageId);
     }
 
     private bool MatchesCurrentState()

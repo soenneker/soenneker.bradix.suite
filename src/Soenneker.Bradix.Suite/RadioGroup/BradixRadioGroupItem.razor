@@ -45,13 +45,16 @@
     [Parameter]
     public string InputValue { get; set; } = "on";
 
+    [Parameter]
+    public string? Form { get; set; }
+
     internal string? TabStopId { get; private set; }
 
     internal bool IsDisabled => Group.Disabled || Disabled;
 
     internal bool IsChecked => Group.IsChecked(Value);
 
-    private bool ShouldRenderBubbleInput => _isFormControl;
+    private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Form);
 
     private Dictionary<string, object> ItemAttributes => BuildAttributes(
         ("type", "button"),
@@ -66,23 +69,33 @@
         ("data-bradix-roving-orientation", Group.Orientation),
         ("data-bradix-roving-dir", Group.ResolvedDirection),
         ("data-bradix-roving-loop", Group.Loop ? "true" : "false"),
-        ("data-bradix-roving-click-on-focus", "true"),
         ("disabled", IsDisabled ? true : null),
         ("value", InputValue),
         ("tabindex", Group.IsCurrentTabStop(this) ? 0 : -1));
 
-    private Dictionary<string, object> BubbleInputAttributes => new()
+    private Dictionary<string, object> BubbleInputAttributes
     {
-        ["type"] = "radio",
-        ["name"] = Group.Name!,
-        ["value"] = InputValue,
-        ["checked"] = IsChecked,
-        ["required"] = Group.Required,
-        ["disabled"] = IsDisabled,
-        ["tabindex"] = -1,
-        ["aria-hidden"] = "true",
-        ["style"] = "position:absolute;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);"
-    };
+        get
+        {
+            Dictionary<string, object> attributes = new()
+            {
+                ["type"] = "radio",
+                ["name"] = Group.Name!,
+                ["value"] = InputValue,
+                ["checked"] = IsChecked,
+                ["required"] = Group.Required,
+                ["disabled"] = IsDisabled,
+                ["tabindex"] = -1,
+                ["aria-hidden"] = "true",
+                ["style"] = "position:absolute;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);"
+            };
+
+            if (!string.IsNullOrWhiteSpace(Form))
+                attributes["form"] = Form;
+
+            return attributes;
+        }
+    }
 
     protected override void OnInitialized()
     {
@@ -101,7 +114,7 @@
             _lastRenderedChecked = IsChecked;
         }
 
-        bool isFormControl = await Interop.IsFormControl(_element);
+        bool isFormControl = await Interop.IsFormControl(_element, Form);
 
         if (_isFormControl != isFormControl)
         {

@@ -79,6 +79,8 @@
     internal IReadOnlyList<double> CurrentValues => Values ?? _uncontrolledValues;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
+        ("role", "group"),
+        ("aria-orientation", Orientation),
         ("data-orientation", Orientation),
         ("data-disabled", Disabled ? string.Empty : null),
         ("aria-disabled", Disabled ? "true" : null),
@@ -186,13 +188,13 @@
 
         if (args.Key == "Home")
         {
-            await UpdateValueAsync(Min, index, commit: true);
+            await UpdateValueAsync(Min, 0, commit: true);
             return;
         }
 
         if (args.Key == "End")
         {
-            await UpdateValueAsync(Max, index, commit: true);
+            await UpdateValueAsync(Max, CurrentValues.Count - 1, commit: true);
             return;
         }
 

@@ -1,7 +1,9 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -44,6 +46,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
         var cut = Render(CreateTooltip());
 
         var trigger = cut.Find("button");
+        Assert.Equal("button", trigger.GetAttribute("type"));
         trigger.Focus();
 
         cut.WaitForAssertion(() =>
@@ -95,6 +98,21 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Fact]
+    public async Task Pointer_down_outside_can_be_prevented_by_detailed_callback()
+    {
+        var cut = Render(CreateTooltip(defaultOpen: true, onPointerDownOutsideDetailed: args => args.PreventDefault()));
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Single(cut.FindAll("[role='tooltip']"));
+            Assert.Contains("Tooltip body", cut.Markup);
+        });
+    }
+
+    [Fact]
     public void Hoverable_content_pointer_leave_does_not_close_before_grace_area_exit()
     {
         var cut = Render(CreateTooltip(defaultOpen: true));
@@ -134,8 +152,28 @@ public sealed class BradixTooltipRenderTests : BunitContext
         });
     }
 
-    private static RenderFragment CreateTooltip(string triggerText = "Trigger", string contentText = "Tooltip body", bool defaultOpen = false, bool includeArrow = false,
-        string? ariaLabel = null)
+    [Fact]
+    public void Toggling_disable_hoverable_content_re_registers_tooltip_content_bridge()
+    {
+        var cut = Render<TooltipHoverableToggleHost>();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Single(_module.Invocations, invocation => invocation.Identifier == "registerTooltipContent");
+            Assert.Single(cut.FindAll("[role='tooltip']"));
+        });
+
+        cut.Find("button[data-toggle-hoverable='true']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(2, _module.Invocations.Count(invocation => invocation.Identifier == "registerTooltipContent"));
+            Assert.Single(cut.FindAll("[role='tooltip']"));
+        });
+    }
+
+    private RenderFragment CreateTooltip(string triggerText = "Trigger", string contentText = "Tooltip body", bool defaultOpen = false, bool includeArrow = false,
+        string? ariaLabel = null, Action<BradixPointerDownOutsideEventArgs>? onPointerDownOutsideDetailed = null)
     {
         return builder =>
         {
@@ -157,7 +195,13 @@ public sealed class BradixTooltipRenderTests : BunitContext
                     portal.OpenComponent<BradixTooltipContent>(0);
                     portal.AddAttribute(1, nameof(BradixTooltipContent.Class), "tooltip-content");
                     portal.AddAttribute(2, nameof(BradixTooltipContent.AriaLabel), ariaLabel);
-                    portal.AddAttribute(3, nameof(BradixTooltipContent.ChildContent), (RenderFragment)(tooltipContent =>
+                    if (onPointerDownOutsideDetailed is not null)
+                    {
+                        portal.AddAttribute(3, nameof(BradixTooltipContent.OnPointerDownOutsideDetailed),
+                            EventCallback.Factory.Create<BradixPointerDownOutsideEventArgs>(this, onPointerDownOutsideDetailed));
+                    }
+
+                    portal.AddAttribute(4, nameof(BradixTooltipContent.ChildContent), (RenderFragment)(tooltipContent =>
                     {
                         tooltipContent.AddContent(0, contentText);
 
@@ -179,5 +223,46 @@ public sealed class BradixTooltipRenderTests : BunitContext
             }));
             builder.CloseComponent();
         };
+    }
+
+    private sealed class TooltipHoverableToggleHost : ComponentBase
+    {
+        private bool _disableHoverableContent;
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, "div");
+
+            builder.OpenElement(1, "button");
+            builder.AddAttribute(2, "type", "button");
+            builder.AddAttribute(3, "data-toggle-hoverable", "true");
+            builder.AddAttribute(4, "onclick", EventCallback.Factory.Create(this, () => _disableHoverableContent = !_disableHoverableContent));
+            builder.AddContent(5, "Toggle hoverable");
+            builder.CloseElement();
+
+            builder.OpenComponent<BradixTooltip>(6);
+            builder.AddAttribute(7, nameof(BradixTooltip.DefaultOpen), true);
+            builder.AddAttribute(8, nameof(BradixTooltip.DelayDuration), 0);
+            builder.AddAttribute(9, nameof(BradixTooltip.DisableHoverableContent), _disableHoverableContent);
+            builder.AddAttribute(10, nameof(BradixTooltip.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixTooltipTrigger>(0);
+                content.AddAttribute(1, nameof(BradixTooltipTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Trigger")));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixTooltipPortal>(2);
+                content.AddAttribute(3, nameof(BradixTooltipPortal.ChildContent), (RenderFragment)(portal =>
+                {
+                    portal.OpenComponent<BradixTooltipContent>(0);
+                    portal.AddAttribute(1, nameof(BradixTooltipContent.Class), "tooltip-content");
+                    portal.AddAttribute(2, nameof(BradixTooltipContent.ChildContent), (RenderFragment)(tooltipContent => tooltipContent.AddContent(0, "Tooltip body")));
+                    portal.CloseComponent();
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+
+            builder.CloseElement();
+        }
     }
 }

@@ -15,11 +15,15 @@
                    Style="@MergedStyle"
                    AdditionalAttributes="@ContentAttributes"
                    OnOpenAutoFocus="@OnOpenAutoFocus"
-                   OnCloseAutoFocus="@OnCloseAutoFocus"
+                   OnOpenAutoFocusDetailed="@OnOpenAutoFocusDetailed"
+                   OnCloseAutoFocusDetailed="@HandleCloseAutoFocusAsync"
                    OnEscapeKeyDown="@OnEscapeKeyDown"
+                   OnEscapeKeyDownDetailed="@OnEscapeKeyDownDetailed"
                    OnPointerDownOutside="@OnPointerDownOutside"
+                   OnPointerDownOutsideDetailed="@OnPointerDownOutsideDetailed"
                    OnFocusOutside="@OnFocusOutside"
-                   OnInteractOutside="@OnInteractOutside"
+                   OnFocusOutsideDetailed="@OnFocusOutsideDetailed"
+                   OnInteractOutsideDetailed="@HandleInteractOutsideAsync"
                    OnPlaced="@OnPlaced">
     @ChildContent
 </BradixMenuContent>
@@ -27,6 +31,11 @@
 @code {
     [CascadingParameter]
     private BradixDropdownMenu? DropdownMenu { get; set; }
+
+    [CascadingParameter]
+    private BradixMenu? Menu { get; set; }
+
+    private bool _hasInteractedOutside;
 
     [Parameter]
     public bool ForceMount { get; set; }
@@ -77,19 +86,37 @@
     public EventCallback OnOpenAutoFocus { get; set; }
 
     [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnCloseAutoFocusDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnEscapeKeyDown { get; set; }
 
     [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnFocusOutside { get; set; }
 
     [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnPlaced { get; set; }
@@ -120,5 +147,37 @@
 
             return attributes;
         }
+    }
+
+    private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
+    {
+        if (OnCloseAutoFocus.HasDelegate)
+            await OnCloseAutoFocus.InvokeAsync();
+
+        if (OnCloseAutoFocusDetailed.HasDelegate)
+            await OnCloseAutoFocusDetailed.InvokeAsync(args);
+
+        if (!args.DefaultPrevented && !_hasInteractedOutside && Menu is not null)
+            await Menu.FocusTriggerAsync();
+
+        _hasInteractedOutside = false;
+        args.PreventDefault();
+    }
+
+    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
+    {
+        if (OnInteractOutside.HasDelegate)
+            await OnInteractOutside.InvokeAsync();
+
+        if (OnInteractOutsideDetailed.HasDelegate)
+            await OnInteractOutsideDetailed.InvokeAsync(args);
+
+        if (!args.DefaultPrevented && (DropdownMenu?.Modal == false || IsRightClick(args.PointerDownOutsideEvent)))
+            _hasInteractedOutside = true;
+    }
+
+    private static bool IsRightClick(BradixDelegatedMouseEvent? args)
+    {
+        return args is not null && (args.Button == 2 || (args.Button == 0 && args.CtrlKey));
     }
 }

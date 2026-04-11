@@ -8,6 +8,8 @@
                         DefaultChecked="@DefaultChecked"
                         Disabled="@Disabled"
                         CloseOnSelect="@CloseOnSelect"
+                        OnSelect="@OnSelect"
+                        OnSelectDetailed="@OnSelectDetailed"
                         CheckedChanged="@CheckedChanged"
                         OnCheckedChange="@OnCheckedChange"
                         AdditionalAttributes="@AdditionalAttributes">
@@ -38,6 +40,12 @@
 
     [Parameter]
     public bool CloseOnSelect { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixMenuItemSelectEventArgs> OnSelectDetailed { get; set; }
 
     [Parameter]
     public EventCallback<BradixCheckboxCheckedState> CheckedChanged { get; set; }

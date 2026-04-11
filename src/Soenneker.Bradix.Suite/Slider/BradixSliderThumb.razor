@@ -41,7 +41,7 @@
 
     private string? InputName => Slider.GetThumbInputName(this);
 
-    private bool ShouldRenderBubbleInput => _isFormControl;
+    private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Slider.Form);
 
     private Dictionary<string, object> WrapperAttributes
     {
@@ -87,7 +87,6 @@
                 ("aria-orientation", Slider.Orientation),
                 ("data-orientation", Slider.Orientation),
                 ("data-disabled", Slider.Disabled ? string.Empty : null),
-                ("data-bradix-slider-thumb-index", Index >= 0 ? Index : null),
                 ("tabindex", Slider.Disabled ? null : 0),
                 ("style", Value is null ? "display: none;" : null));
 
@@ -124,7 +123,7 @@
             _lastRenderedValue = Value;
         }
 
-        bool isFormControl = await Interop.IsFormControl(_element);
+        bool isFormControl = await Interop.IsFormControl(_element, Slider.Form);
 
         if (_isFormControl != isFormControl)
         {

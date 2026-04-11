@@ -13,7 +13,6 @@
      @onfocus="HandleFocusAsync"
      @onblur="HandleBlur"
      @onkeydown="HandleKeyDownAsync"
-     @onkeydown:preventDefault="true"
      @onpointermove="HandlePointerMoveAsync"
      @onpointerleave="HandlePointerLeaveAsync"
      @attributes="ItemAttributes">
@@ -28,12 +27,13 @@
     private string? _resolvedTextValue;
     private CancellationTokenSource? _openPointerMoveCts;
     private DotNetObjectReference<object>? _dotNetReference;
+    private bool _delegatedInteractionRegistered;
 
     [CascadingParameter]
     internal BradixMenu SubMenu { get; set; } = null!;
 
     [CascadingParameter]
-    internal BradixMenuContent ParentContent { get; set; } = null!;
+    internal IBradixMenuContentController ParentContent { get; set; } = null!;
 
     [CascadingParameter]
     internal BradixMenuSub Sub { get; set; } = null!;
@@ -81,6 +81,15 @@
             ParentMenu.RegisterItem(this);
             SubMenu.RegisterTrigger(_element);
             _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    currentTargetOnly = true,
+                    preventDefaultKeys = new[] { "ArrowLeft", "ArrowRight", "Enter", " ", "Spacebar" }
+                }
+            });
+            _delegatedInteractionRegistered = true;
             _registered = true;
         }
 
@@ -100,6 +109,9 @@
 
         if (_registered)
             ParentMenu.UnregisterItem(this);
+
+        if (_delegatedInteractionRegistered)
+            await Interop.UnregisterDelegatedInteraction(_element);
 
         await Interop.CancelMenuSubmenuPointerGrace(_element);
         _dotNetReference?.Dispose();
@@ -139,6 +151,9 @@
     private async Task HandleKeyDownAsync(KeyboardEventArgs args)
     {
         if (Disabled || args.CtrlKey || args.AltKey || args.MetaKey)
+            return;
+
+        if (ParentMenu.IsTypeaheadActive && args.Key is " " or "Spacebar")
             return;
 
         bool isOpenKey = ParentMenu.ResolvedDirection == "rtl"
@@ -224,6 +239,12 @@
     {
         _pointerGraceActive = active;
         ParentContent.SetSubmenuPointerGrace(TabStopId, active);
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedInteractionReadyAsync()
+    {
         return Task.CompletedTask;
     }
 

@@ -37,6 +37,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
+        _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(false);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Share");
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
@@ -51,6 +52,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     {
         var cut = Render(CreateMenubar());
         var triggers = cut.FindAll("button[role='menuitem']");
+        string closedControls = Assert.IsType<string>(triggers[0].GetAttribute("aria-controls"));
 
         triggers[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
 
@@ -59,6 +61,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
             var updatedTriggers = cut.FindAll("button[role='menuitem']");
             var menu = cut.Find("[role='menu']");
             Assert.Equal("true", updatedTriggers[0].GetAttribute("aria-expanded"));
+            Assert.Equal(closedControls, updatedTriggers[0].GetAttribute("aria-controls"));
             Assert.Equal(menu.Id, updatedTriggers[0].GetAttribute("aria-controls"));
             Assert.Equal(updatedTriggers[0].Id, menu.GetAttribute("aria-labelledby"));
         });
@@ -109,6 +112,29 @@ public sealed class BradixMenubarRenderTests : BunitContext
             var updatedTriggers = cut.FindAll("button[role='menuitem']");
             Assert.Equal("true", updatedTriggers[1].GetAttribute("aria-expanded"));
             Assert.Equal("false", updatedTriggers[0].GetAttribute("aria-expanded"));
+            Assert.Equal("0", updatedTriggers[1].GetAttribute("tabindex"));
+            Assert.Equal("-1", updatedTriggers[0].GetAttribute("tabindex"));
+        });
+    }
+
+    [Fact]
+    public async Task Menubar_content_root_character_key_runs_typeahead()
+    {
+        var cut = Render(CreateMenubar());
+        cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+        var content = FindOpenContent(cut);
+        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "s",
+            TargetId = currentContentId
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            var items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
+            Assert.Equal("0", items[1].GetAttribute("tabindex"));
         });
     }
 
@@ -145,6 +171,39 @@ public sealed class BradixMenubarRenderTests : BunitContext
         var updatedTriggers = cut.FindAll("button[role='menuitem']");
         Assert.Equal("true", updatedTriggers[0].GetAttribute("aria-expanded"));
         Assert.Equal("false", updatedTriggers[1].GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
+    public async Task Menubar_content_focus_outside_resets_typeahead_buffer()
+    {
+        var cut = Render(CreateMenubar());
+        cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+        var content = FindOpenContent(cut);
+        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+        var items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
+
+        items[0].KeyDown(new KeyboardEventArgs { Key = "s" });
+
+        cut.WaitForAssertion(() =>
+        {
+            items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
+            Assert.Equal("0", items[1].GetAttribute("tabindex"));
+        });
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOutAsync(new BradixDelegatedFocusEvent
+        {
+            TargetId = currentContentId,
+            RelatedTargetId = "outside-target"
+        }));
+
+        items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
+        items[1].KeyDown(new KeyboardEventArgs { Key = "f" });
+
+        cut.WaitForAssertion(() =>
+        {
+            items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
+            Assert.Equal("0", items[0].GetAttribute("tabindex"));
+        });
     }
 
     [Fact]
@@ -189,6 +248,53 @@ public sealed class BradixMenubarRenderTests : BunitContext
             Assert.Equal("true", cut.Find("[data-radix-menubar-subtrigger]").GetAttribute("aria-expanded"));
             Assert.Contains("Copy link", cut.Markup);
         });
+    }
+
+    [Fact]
+    public async Task Detailed_escape_keydown_can_prevent_menubar_content_dismiss()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixMenubar>(0);
+            builder.AddAttribute(1, nameof(BradixMenubar.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixMenubarMenu>(0);
+                content.AddAttribute(1, nameof(BradixMenubarMenu.Value), "file");
+                content.AddAttribute(2, nameof(BradixMenubarMenu.ChildContent), (RenderFragment)(menu =>
+                {
+                    menu.OpenComponent<BradixMenubarTrigger>(0);
+                    menu.AddAttribute(1, nameof(BradixMenubarTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "File")));
+                    menu.CloseComponent();
+
+                    menu.OpenComponent<BradixMenubarPortal>(2);
+                    menu.AddAttribute(3, nameof(BradixMenubarPortal.ChildContent), (RenderFragment)(portal =>
+                    {
+                        portal.OpenComponent<BradixMenubarContent>(0);
+                        portal.AddAttribute(1, nameof(BradixMenubarContent.OnEscapeKeyDownDetailed),
+                            EventCallback.Factory.Create<BradixEscapeKeyDownEventArgs>(this, args => args.PreventDefault()));
+                        portal.AddAttribute(2, nameof(BradixMenubarContent.ChildContent), (RenderFragment)(menuContent =>
+                        {
+                            menuContent.OpenComponent<BradixMenubarItem>(0);
+                            menuContent.AddAttribute(1, nameof(BradixMenubarItem.TextValue), "Open");
+                            menuContent.AddAttribute(2, nameof(BradixMenubarItem.ChildContent), (RenderFragment)(item => item.AddContent(0, "Open")));
+                            menuContent.CloseComponent();
+                        }));
+                        portal.CloseComponent();
+                    }));
+                    menu.CloseComponent();
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        cut.Find("button[role='menuitem']").KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+        var layer = cut.FindComponent<BradixDismissableLayer>();
+
+        bool prevented = await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDownAsync());
+
+        Assert.False(prevented);
+        Assert.Single(cut.FindAll("[role='menu']"));
     }
 
     private static RenderFragment CreateMenubar()

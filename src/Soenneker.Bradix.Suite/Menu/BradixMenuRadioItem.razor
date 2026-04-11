@@ -11,6 +11,7 @@
                     Disabled="IsDisabled"
                     CloseOnSelect="CloseOnSelect"
                     OnSelect="HandleSelectAsync"
+                    OnSelectDetailed="@HandleSelectDetailedAsync"
                     AdditionalAttributes="@ItemAttributes">
         @ChildContent
     </BradixMenuItem>
@@ -31,6 +32,12 @@
 
     [Parameter]
     public bool CloseOnSelect { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixMenuItemSelectEventArgs> OnSelectDetailed { get; set; }
 
     private bool IsDisabled => Group.Disabled || Disabled;
 
@@ -57,8 +64,18 @@
         }
     }
 
-    private Task HandleSelectAsync()
+    private async Task HandleSelectAsync()
     {
-        return Group.SetValueAsync(Value);
+        if (OnSelect.HasDelegate)
+            await OnSelect.InvokeAsync();
+
+        await Group.SetValueAsync(Value);
+    }
+
+    private Task HandleSelectDetailedAsync(BradixMenuItemSelectEventArgs args)
+    {
+        return OnSelectDetailed.HasDelegate
+            ? OnSelectDetailed.InvokeAsync(args)
+            : Task.CompletedTask;
     }
 }

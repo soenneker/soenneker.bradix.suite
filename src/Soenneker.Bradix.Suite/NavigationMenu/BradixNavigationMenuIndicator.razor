@@ -77,7 +77,11 @@
     {
         BradixNavigationMenu? navigationMenu = NavigationMenu;
 
-        if (!_hasElement || navigationMenu is null || !navigationMenu.HasOpenItem || !navigationMenu.TryGetOpenTrigger(out IBradixNavigationMenuTrigger trigger))
+        if (!_hasElement ||
+            navigationMenu is null ||
+            !navigationMenu.HasIndicatorTrack ||
+            !navigationMenu.HasOpenItem ||
+            !navigationMenu.TryGetOpenTrigger(out IBradixNavigationMenuTrigger trigger))
         {
             if (_registered)
             {
@@ -92,11 +96,12 @@
 
         if (_registered)
         {
-            await Interop.UpdateNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.RootElement, navigationMenu.Orientation);
+            await Interop.UpdateNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, navigationMenu.Orientation);
         }
         else
         {
-            await Interop.RegisterNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.RootElement, _dotNetReference, navigationMenu.Orientation);
+            await Interop.RegisterNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, _dotNetReference,
+                navigationMenu.Orientation);
             _registered = true;
         }
     }

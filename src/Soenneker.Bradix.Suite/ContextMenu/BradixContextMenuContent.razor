@@ -12,16 +12,25 @@
                    Style="@MergedStyle"
                    AdditionalAttributes="@AdditionalAttributes"
                    OnOpenAutoFocus="@OnOpenAutoFocus"
-                   OnCloseAutoFocus="@OnCloseAutoFocus"
+                   OnOpenAutoFocusDetailed="@OnOpenAutoFocusDetailed"
+                   OnCloseAutoFocusDetailed="@HandleCloseAutoFocusAsync"
                    OnEscapeKeyDown="@OnEscapeKeyDown"
+                   OnEscapeKeyDownDetailed="@OnEscapeKeyDownDetailed"
                    OnPointerDownOutside="@OnPointerDownOutside"
+                   OnPointerDownOutsideDetailed="@OnPointerDownOutsideDetailed"
                    OnFocusOutside="@OnFocusOutside"
-                   OnInteractOutside="@OnInteractOutside"
+                   OnFocusOutsideDetailed="@OnFocusOutsideDetailed"
+                   OnInteractOutsideDetailed="@HandleInteractOutsideAsync"
                    OnPlaced="@OnPlaced">
     @ChildContent
 </BradixMenuContent>
 
 @code {
+    private bool _hasInteractedOutside;
+
+    [CascadingParameter]
+    private BradixContextMenu? ContextMenu { get; set; }
+
     [Parameter]
     public bool ForceMount { get; set; }
 
@@ -56,19 +65,37 @@
     public EventCallback OnOpenAutoFocus { get; set; }
 
     [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnCloseAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnCloseAutoFocusDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnEscapeKeyDown { get; set; }
 
     [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnFocusOutside { get; set; }
 
     [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
 
     [Parameter]
     public EventCallback OnPlaced { get; set; }
@@ -82,5 +109,31 @@
 
             return string.IsNullOrWhiteSpace(Style) ? contextMenuVariables : $"{contextMenuVariables} {Style}";
         }
+    }
+
+    private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
+    {
+        if (OnCloseAutoFocus.HasDelegate)
+            await OnCloseAutoFocus.InvokeAsync();
+
+        if (OnCloseAutoFocusDetailed.HasDelegate)
+            await OnCloseAutoFocusDetailed.InvokeAsync(args);
+
+        if (!args.DefaultPrevented && _hasInteractedOutside && ContextMenu?.Modal == false)
+            args.PreventDefault();
+
+        _hasInteractedOutside = false;
+    }
+
+    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
+    {
+        if (OnInteractOutside.HasDelegate)
+            await OnInteractOutside.InvokeAsync();
+
+        if (OnInteractOutsideDetailed.HasDelegate)
+            await OnInteractOutsideDetailed.InvokeAsync(args);
+
+        if (!args.DefaultPrevented && ContextMenu?.Modal == false)
+            _hasInteractedOutside = true;
     }
 }

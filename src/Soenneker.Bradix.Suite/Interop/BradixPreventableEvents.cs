@@ -14,6 +14,10 @@ public sealed class BradixAutoFocusEventArgs : BradixPreventableEventArgs
 {
 }
 
+public sealed class BradixMenuItemSelectEventArgs : BradixPreventableEventArgs
+{
+}
+
 public sealed class BradixEscapeKeyDownEventArgs : BradixPreventableEventArgs
 {
     public BradixEscapeKeyDownEventArgs(BradixDelegatedKeyboardEvent originalEvent)

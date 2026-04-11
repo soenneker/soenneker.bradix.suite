@@ -13,6 +13,7 @@
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
+        ("aria-label", "Close"),
         ("data-radix-toast-announce-exclude", string.Empty));
 
     private Task HandleClickAsync()

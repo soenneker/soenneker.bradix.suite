@@ -46,6 +46,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
+        _module.SetupVoid("scrollElementIntoViewNearest", _ => true).SetVoidResult();
         _module.Setup<string>("getTextContent", _ => true).SetResult("Fruit");
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
@@ -69,6 +70,29 @@ public sealed class BradixSelectRenderTests : BunitContext
             Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
             Assert.Equal(content.Id, trigger.GetAttribute("aria-controls"));
             Assert.Equal("open", content.GetAttribute("data-state"));
+        });
+
+        Assert.Equal("listbox", trigger.GetAttribute("aria-haspopup"));
+    }
+
+    [Fact]
+    public async Task Primary_mouse_pointer_down_opens_content_from_delegated_trigger_path()
+    {
+        var cut = Render(CreateSelect());
+        var trigger = cut.FindComponent<BradixSelectTrigger>();
+
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        {
+            Button = 0,
+            PageX = 12,
+            PageY = 24,
+            PointerType = "mouse"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("true", cut.Find("button[role='combobox']").GetAttribute("aria-expanded"));
+            Assert.Equal("open", cut.Find("[role='listbox']").GetAttribute("data-state"));
         });
     }
 
@@ -126,11 +150,10 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Fact]
-    public async Task Page_up_and_page_down_do_not_move_focus_in_content()
+    public async Task Page_up_and_page_down_move_focus_to_first_and_last_items()
     {
         var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         var content = cut.FindComponent<BradixSelectContent>();
-        var initialTabIndexes = cut.FindAll("[role='option']").Select(item => item.GetAttribute("tabindex")).ToArray();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
         {
@@ -140,7 +163,9 @@ public sealed class BradixSelectRenderTests : BunitContext
         cut.WaitForAssertion(() =>
         {
             var items = cut.FindAll("[role='option']");
-            Assert.Equal(initialTabIndexes, items.Select(item => item.GetAttribute("tabindex")).ToArray());
+            Assert.Equal("-1", items[0].GetAttribute("tabindex"));
+            Assert.Equal("-1", items[1].GetAttribute("tabindex"));
+            Assert.Equal("0", items[2].GetAttribute("tabindex"));
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
@@ -151,8 +176,34 @@ public sealed class BradixSelectRenderTests : BunitContext
         cut.WaitForAssertion(() =>
         {
             var items = cut.FindAll("[role='option']");
-            Assert.Equal(initialTabIndexes, items.Select(item => item.GetAttribute("tabindex")).ToArray());
+            Assert.Equal("0", items[0].GetAttribute("tabindex"));
+            Assert.Equal("-1", items[1].GetAttribute("tabindex"));
+            Assert.Equal("-1", items[2].GetAttribute("tabindex"));
         });
+
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "scrollElementIntoViewNearest");
+    }
+
+    [Fact]
+    public async Task Content_typeahead_scrolls_newly_focused_item_into_view()
+    {
+        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        var content = cut.FindComponent<BradixSelectContent>();
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        {
+            Key = "s"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            var items = cut.FindAll("[role='option']");
+            Assert.Equal("-1", items[0].GetAttribute("tabindex"));
+            Assert.Equal("-1", items[1].GetAttribute("tabindex"));
+            Assert.Equal("0", items[2].GetAttribute("tabindex"));
+        });
+
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "scrollElementIntoViewNearest");
     }
 
     [Fact]
@@ -252,6 +303,47 @@ public sealed class BradixSelectRenderTests : BunitContext
         {
             Assert.Empty(cut.FindAll("[role='listbox']"));
         });
+    }
+
+    [Fact]
+    public async Task Detailed_close_auto_focus_can_prevent_select_trigger_refocus()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixSelect>(0);
+            builder.AddAttribute(1, nameof(BradixSelect.DefaultOpen), true);
+            builder.AddAttribute(2, nameof(BradixSelect.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixSelectTrigger>(0);
+                content.AddAttribute(1, nameof(BradixSelectTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Trigger")));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixSelectPortal>(2);
+                content.AddAttribute(3, nameof(BradixSelectPortal.ChildContent), (RenderFragment)(portal =>
+                {
+                    portal.OpenComponent<BradixSelectContent>(0);
+                    portal.AddAttribute(1, nameof(BradixSelectContent.OnCloseAutoFocusDetailed),
+                        EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, args => args.PreventDefault()));
+                    portal.AddAttribute(2, nameof(BradixSelectContent.ChildContent), (RenderFragment)(selectContent =>
+                    {
+                        selectContent.OpenComponent<BradixSelectViewport>(0);
+                        selectContent.AddAttribute(1, nameof(BradixSelectViewport.ChildContent), (RenderFragment)(viewport =>
+                        {
+                            RenderItem(viewport, 0, "orange", "Orange");
+                        }));
+                        selectContent.CloseComponent();
+                    }));
+                    portal.CloseComponent();
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        var focusScope = cut.FindComponent<BradixFocusScope>();
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+
+        Assert.True(prevented);
     }
 
     private static RenderFragment CreateSelect(bool defaultOpen = false, string? defaultValue = null, string? position = null, bool includeScrollButtons = false)

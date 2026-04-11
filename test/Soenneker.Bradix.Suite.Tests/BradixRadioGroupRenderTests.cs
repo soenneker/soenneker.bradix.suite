@@ -10,15 +10,20 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixRadioGroupRenderTests : BunitContext
 {
+    private readonly BunitJSModuleInterop _module;
+
     public BradixRadioGroupRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.Setup<bool>("isFormControl", _ => true).SetResult(false);
-        module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
-        module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
-        module.SetupVoid("registerRadioGroupItemKeys", _ => true).SetVoidResult();
-        module.SetupVoid("unregisterRadioGroupItemKeys", _ => true).SetVoidResult();
-        module.SetupVoid("syncCheckboxBubbleInputState", _ => true).SetVoidResult();
+        _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.Setup<bool>("isFormControl", invocation =>
+                invocation.Arguments.Count > 1 && invocation.Arguments[1] is string formId && !string.IsNullOrWhiteSpace(formId))
+            .SetResult(true);
+        _module.Setup<bool>("isFormControl", _ => true).SetResult(false);
+        _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        _module.SetupVoid("registerRadioGroupItemKeys", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterRadioGroupItemKeys", _ => true).SetVoidResult();
+        _module.SetupVoid("syncCheckboxBubbleInputState", _ => true).SetVoidResult();
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
@@ -37,6 +42,20 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
         Assert.Equal("true", buttons[0].GetAttribute("aria-checked"));
         Assert.Equal("checked", buttons[0].GetAttribute("data-state"));
         Assert.Empty(cut.FindAll("input[type='radio']"));
+    }
+
+    [Fact]
+    public void Radio_item_with_explicit_form_renders_hidden_input_outside_form()
+    {
+        var cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", itemForm: "settings-form"));
+
+        var inputs = cut.FindAll("input[type='radio']");
+        Assert.Equal(3, inputs.Count);
+        Assert.All(inputs, input => Assert.Equal("settings-form", input.GetAttribute("form")));
+        Assert.Contains(_module.Invocations, invocation =>
+            invocation.Identifier == "isFormControl" &&
+            invocation.Arguments.Count > 1 &&
+            Equals(invocation.Arguments[1], "settings-form"));
     }
 
     [Fact]
@@ -120,7 +139,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
         Assert.Equal("true", buttons[2].GetAttribute("aria-checked"));
     }
 
-    private static RenderFragment CreateRadioGroup(string? defaultValue = null, string? name = null, bool required = false, EventCallback<string?> onValueChange = default, bool forceMountIndicator = false, bool includeDisabledMiddle = true)
+    private static RenderFragment CreateRadioGroup(string? defaultValue = null, string? name = null, bool required = false, EventCallback<string?> onValueChange = default, bool forceMountIndicator = false, bool includeDisabledMiddle = true, string? itemForm = null)
     {
         return builder =>
         {
@@ -139,21 +158,24 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
 
             builder.AddAttribute(5, nameof(BradixRadioGroup.ChildContent), (RenderFragment) (contentBuilder =>
             {
-                RenderItem(contentBuilder, 0, "one", forceMountIndicator);
-                RenderItem(contentBuilder, 10, "two", forceMountIndicator, includeDisabledMiddle);
-                RenderItem(contentBuilder, 20, "three", forceMountIndicator);
+                RenderItem(contentBuilder, 0, "one", forceMountIndicator, form: itemForm);
+                RenderItem(contentBuilder, 10, "two", forceMountIndicator, includeDisabledMiddle, itemForm);
+                RenderItem(contentBuilder, 20, "three", forceMountIndicator, form: itemForm);
             }));
             builder.CloseComponent();
         };
     }
 
-    private static void RenderItem(RenderTreeBuilder builder, int sequence, string value, bool forceMountIndicator, bool disabled = false)
+    private static void RenderItem(RenderTreeBuilder builder, int sequence, string value, bool forceMountIndicator, bool disabled = false, string? form = null)
     {
         builder.OpenComponent<BradixRadioGroupItem>(sequence);
         builder.AddAttribute(sequence + 1, nameof(BradixRadioGroupItem.Value), value);
         builder.AddAttribute(sequence + 2, nameof(BradixRadioGroupItem.InputValue), value);
         builder.AddAttribute(sequence + 3, nameof(BradixRadioGroupItem.Disabled), disabled);
-        builder.AddAttribute(sequence + 4, nameof(BradixRadioGroupItem.ChildContent), (RenderFragment) (contentBuilder =>
+        if (form is not null)
+            builder.AddAttribute(sequence + 4, nameof(BradixRadioGroupItem.Form), form);
+
+        builder.AddAttribute(sequence + 5, nameof(BradixRadioGroupItem.ChildContent), (RenderFragment) (contentBuilder =>
         {
             contentBuilder.OpenComponent<BradixRadioGroupIndicator>(0);
             contentBuilder.AddAttribute(1, nameof(BradixRadioGroupIndicator.ForceMount), forceMountIndicator);

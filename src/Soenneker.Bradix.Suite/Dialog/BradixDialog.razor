@@ -36,6 +36,8 @@
     internal string TitleId => $"{BaseId}-title";
     internal string DescriptionId => $"{BaseId}-description";
     internal string DefaultTriggerId => $"{BaseId}-trigger";
+    internal string? RegisteredTitleId { get; private set; }
+    internal string? RegisteredDescriptionId { get; private set; }
 
     internal ElementReference TriggerElement { get; private set; }
     internal bool HasTrigger { get; private set; }
@@ -82,6 +84,28 @@
         TriggerElement = element;
         ResolvedTriggerId = string.IsNullOrWhiteSpace(triggerId) ? DefaultTriggerId : triggerId;
         HasTrigger = true;
+    }
+
+    internal void RegisterTitle(string? titleId)
+    {
+        RegisteredTitleId = string.IsNullOrWhiteSpace(titleId) ? null : titleId;
+    }
+
+    internal void UnregisterTitle(string? titleId)
+    {
+        if (string.Equals(RegisteredTitleId, titleId, StringComparison.Ordinal))
+            RegisteredTitleId = null;
+    }
+
+    internal void RegisterDescription(string? descriptionId)
+    {
+        RegisteredDescriptionId = string.IsNullOrWhiteSpace(descriptionId) ? null : descriptionId;
+    }
+
+    internal void UnregisterDescription(string? descriptionId)
+    {
+        if (string.Equals(RegisteredDescriptionId, descriptionId, StringComparison.Ordinal))
+            RegisteredDescriptionId = null;
     }
 
     internal bool ContainsTriggerTarget(string? targetId, IEnumerable<string>? ancestorIds)

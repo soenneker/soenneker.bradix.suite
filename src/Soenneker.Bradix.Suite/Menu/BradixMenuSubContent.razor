@@ -15,12 +15,16 @@
                        Class="@Class"
                        Style="@Style"
                        AdditionalAttributes="@ContentAttributes"
+                       OnOpenAutoFocus="@OnOpenAutoFocus"
+                       OnOpenAutoFocusDetailed="@OnOpenAutoFocusDetailed"
                        OnEscapeKeyDownDetailed="HandleEscapeKeyDownAsync"
                        OnContentKeyDown="HandleContentKeyDownAsync"
                        OnCloseAutoFocusDetailed="HandleCloseAutoFocusAsync"
                        OnPointerDownOutside="OnPointerDownOutside"
+                       OnPointerDownOutsideDetailed="OnPointerDownOutsideDetailed"
                        OnFocusOutsideDetailed="HandleFocusOutsideAsync"
                        OnInteractOutside="OnInteractOutside"
+                       OnInteractOutsideDetailed="OnInteractOutsideDetailed"
                        OnPlaced="OnPlaced">
         @ChildContent
     </BradixMenuContent>
@@ -76,10 +80,37 @@
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
+    public EventCallback OnOpenAutoFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnPointerDownOutside { get; set; }
 
     [Parameter]
+    public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback OnFocusOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
+
+    [Parameter]
     public EventCallback OnInteractOutside { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnContentKeyDown { get; set; }
 
     [Parameter]
     public EventCallback OnPlaced { get; set; }
@@ -105,23 +136,46 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
+    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
     {
+        if (OnFocusOutside.HasDelegate)
+            await OnFocusOutside.InvokeAsync();
+
+        if (OnFocusOutsideDetailed.HasDelegate)
+            await OnFocusOutsideDetailed.InvokeAsync(args);
+
+        if (args.DefaultPrevented)
+            return;
+
         if (!string.Equals(args.OriginalEvent.TargetId, Sub.TriggerId, StringComparison.Ordinal))
-            return SubMenu.SetOpenAsync(false);
+        {
+            await SubMenu.SetOpenAsync(false);
+            return;
+        }
 
         args.PreventDefault();
-        return Task.CompletedTask;
     }
 
     private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
     {
+        if (OnEscapeKeyDown.HasDelegate)
+            await OnEscapeKeyDown.InvokeAsync();
+
+        if (OnEscapeKeyDownDetailed.HasDelegate)
+            await OnEscapeKeyDownDetailed.InvokeAsync(args);
+
+        if (args.DefaultPrevented)
+            return;
+
         args.PreventDefault();
         await RootMenu.SetOpenAsync(false);
     }
 
     private async Task HandleContentKeyDownAsync(KeyboardEventArgs args)
     {
+        if (OnContentKeyDown.HasDelegate)
+            await OnContentKeyDown.InvokeAsync(args);
+
         bool isCloseKey = ParentMenu.ResolvedDirection == "rtl"
             ? args.Key == "ArrowRight"
             : args.Key == "ArrowLeft";

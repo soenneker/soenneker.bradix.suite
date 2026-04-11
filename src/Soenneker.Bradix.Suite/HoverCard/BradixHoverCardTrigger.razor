@@ -3,14 +3,14 @@
 @inherits BradixComponentBase
 
 <BradixPopperAnchor>
-    <a @onpointerenter="HandlePointerEnterAsync"
-       @onpointerleave="HandlePointerLeaveAsync"
-       @onfocus="HandleFocusAsync"
-       @onblur="HandleBlurAsync"
-       @ontouchstart:preventDefault="true"
-       @attributes="TriggerAttributes">
+    <button @onpointerenter="HandlePointerEnterAsync"
+            @onpointerleave="HandlePointerLeaveAsync"
+            @onfocus="HandleFocusAsync"
+            @onblur="HandleBlurAsync"
+            @ontouchstart:preventDefault="true"
+            @attributes="TriggerAttributes">
         @ChildContent
-    </a>
+    </button>
 </BradixPopperAnchor>
 
 @code {
@@ -18,6 +18,7 @@
     private BradixHoverCard? HoverCard { get; set; }
 
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
+        ("type", "button"),
         ("data-state", HoverCard?.CurrentOpen == true ? "open" : "closed"));
 
     private Task HandlePointerEnterAsync(PointerEventArgs args)
@@ -30,6 +31,9 @@
 
     private Task HandlePointerLeaveAsync(PointerEventArgs args)
     {
+        if (args.PointerType == "touch")
+            return Task.CompletedTask;
+
         return HoverCard?.HandleTriggerLeaveAsync() ?? Task.CompletedTask;
     }
 
