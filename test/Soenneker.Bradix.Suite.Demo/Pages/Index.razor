@@ -1,5 +1,4 @@
 @page "/"
-@inject IBradixComponent Suite
 
 <PageTitle>Bradix Demo</PageTitle>
 
@@ -262,11 +261,5 @@
 </section>
 
 @code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-            return;
 
-        await Suite.Initialize();
-    }
 }

@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Bradix;
 
+///<inheritdoc cref="IBradixComponent"/>
 public sealed class BradixComponent : IBradixComponent
 {
-    private readonly ISuiteInterop _suiteInterop;
+    private readonly IBradixSuiteInterop _suiteInterop;
 
-    public BradixComponent(ISuiteInterop suiteInterop)
+    public BradixComponent(IBradixSuiteInterop suiteInterop)
     {
         _suiteInterop = suiteInterop;
     }

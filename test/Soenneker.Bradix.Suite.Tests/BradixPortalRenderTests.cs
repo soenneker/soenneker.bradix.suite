@@ -15,6 +15,7 @@ public sealed class BradixPortalRenderTests : BunitContext
         module.SetupVoid("unmountPortal", _ => true);
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]

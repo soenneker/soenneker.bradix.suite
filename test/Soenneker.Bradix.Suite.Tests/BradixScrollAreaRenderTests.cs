@@ -19,6 +19,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         module.SetupVoid("unregisterScrollAreaScrollbar", _ => true);
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]

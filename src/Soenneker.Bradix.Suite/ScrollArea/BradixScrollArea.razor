@@ -4,7 +4,7 @@
 @using System.Threading
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject BradixSuiteInterop Interop
+@inject IBradixSuiteInterop Interop
 
 <CascadingValue Value="this">
     <div @ref="_element"

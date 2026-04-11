@@ -11,16 +11,34 @@
     <div class="demo-grid">
         <section class="card stack stack--compact">
             <h3>Wrapping a control</h3>
+            <p class="state-line"><strong>Notifications:</strong> @(_notificationsEnabled ? "Enabled" : "Disabled")</p>
             <BradixLabel Class="field">
-                <button type="button" class="primitive__trigger">Nested control</button>
-                <span>Label text</span>
+                <input type="checkbox"
+                       checked="@_notificationsEnabled"
+                       @onchange="HandleNotificationsChanged" />
+                <span>Email me when deployments finish</span>
             </BradixLabel>
         </section>
 
         <section class="card stack stack--compact">
             <h3>Referencing a control</h3>
-            <input id="label-demo-input" class="text-input" placeholder="Name" />
-            <BradixLabel for="label-demo-input">Name</BradixLabel>
+            <p class="state-line"><strong>Current value:</strong> @_displayName</p>
+            <input id="label-demo-input"
+                   class="text-input"
+                   @bind="_displayName"
+                   placeholder="Name" />
+            <BradixLabel For="label-demo-input">Display name</BradixLabel>
         </section>
     </div>
 </section>
+
+@code {
+    private bool _notificationsEnabled = true;
+    private string _displayName = "Jake";
+
+    private Task HandleNotificationsChanged(ChangeEventArgs args)
+    {
+        _notificationsEnabled = args.Value as bool? ?? false;
+        return Task.CompletedTask;
+    }
+}

@@ -4,7 +4,7 @@
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject BradixSuiteInterop Interop
+@inject IBradixSuiteInterop Interop
 
 @if (Select?.CurrentOpen == true || ForceMount)
 {

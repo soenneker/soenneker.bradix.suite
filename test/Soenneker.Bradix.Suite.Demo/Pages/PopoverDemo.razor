@@ -11,9 +11,11 @@
     <div class="demo-grid">
         <section class="card stack stack--compact">
             <h3>Default trigger anchor</h3>
+            <p class="state-line"><strong>Quick action:</strong> @_quickAction</p>
 
-            <BradixPopover>
-                <BradixPopoverTrigger Class="primitive__trigger">Open popover</BradixPopoverTrigger>
+            <BradixPopover Open="@_defaultPopoverOpen"
+                           OpenChanged="HandleDefaultPopoverOpenChanged">
+                <BradixPopoverTrigger Class="primitive__trigger primitive__trigger--fit">Open popover</BradixPopoverTrigger>
                 <BradixPopoverPortal>
                     <BradixPopoverContent Class="popover-surface"
                                           Side="bottom"
@@ -21,7 +23,21 @@
                                           CollisionPadding="12">
                         <div class="stack stack--compact">
                             <p class="state-line">Default trigger anchoring with portal-mounted content.</p>
-                            <BradixPopoverClose Class="primitive__trigger">Close</BradixPopoverClose>
+                            <div class="button-row">
+                                <button type="button"
+                                        class="primitive__trigger primitive__trigger--fit"
+                                        @onclick='@(() => ApplyQuickAction("Pinned"))'>
+                                    Pin card
+                                </button>
+                                <button type="button"
+                                        class="primitive__trigger primitive__trigger--fit"
+                                        @onclick='@(() => ApplyQuickAction("Snoozed for later"))'>
+                                    Snooze
+                                </button>
+                                <span @onclick="HandleDefaultPopoverDismissed">
+                                    <BradixPopoverClose Class="primitive__trigger primitive__trigger--fit">Close</BradixPopoverClose>
+                                </span>
+                            </div>
                         </div>
                     </BradixPopoverContent>
                 </BradixPopoverPortal>
@@ -30,12 +46,14 @@
 
         <section class="card stack stack--compact">
             <h3>Custom anchor</h3>
+            <p class="state-line"><strong>Popover state:</strong> @(_customPopoverOpen ? "Open" : "Closed")</p>
 
-            <BradixPopover>
+            <BradixPopover Open="@_customPopoverOpen"
+                           OpenChanged="HandleCustomPopoverOpenChanged">
                 <BradixPopoverAnchor>
                     <div class="button-row">
                         <span class="state-line">Anchor label</span>
-                        <BradixPopoverTrigger Class="primitive__trigger">Details</BradixPopoverTrigger>
+                        <BradixPopoverTrigger Class="primitive__trigger primitive__trigger--fit">Details</BradixPopoverTrigger>
                     </div>
                 </BradixPopoverAnchor>
 
@@ -56,9 +74,12 @@
 
         <section class="card stack stack--compact">
             <h3>Modal popover</h3>
+            <p class="state-line"><strong>Saved note:</strong> @_modalNote</p>
 
-            <BradixPopover Modal>
-                <BradixPopoverTrigger Class="primitive__trigger">Open modal popover</BradixPopoverTrigger>
+            <BradixPopover Open="@_modalPopoverOpen"
+                           OpenChanged="HandleModalPopoverOpenChanged"
+                           Modal>
+                <BradixPopoverTrigger Class="primitive__trigger primitive__trigger--fit">Open modal popover</BradixPopoverTrigger>
                 <BradixPopoverPortal>
                     <BradixPopoverContent Class="popover-surface popover-surface--animated"
                                           Side="bottom"
@@ -66,8 +87,17 @@
                                           SideOffset="10">
                         <div class="stack stack--compact">
                             <p class="state-line">Modal mode traps focus while open and restores focus to the trigger on close.</p>
-                            <input class="text-input" value="Focusable input" />
-                            <BradixPopoverClose Class="primitive__trigger">Dismiss</BradixPopoverClose>
+                            <input class="text-input" @bind="_modalDraft" placeholder="Describe the environment note" />
+                            <div class="button-row">
+                                <button class="primitive__trigger primitive__trigger--fit"
+                                        type="button"
+                                        @onclick="SaveModalNoteAsync">
+                                    Save note
+                                </button>
+                                <span @onclick="RestoreModalDraft">
+                                    <BradixPopoverClose Class="primitive__trigger primitive__trigger--fit">Dismiss</BradixPopoverClose>
+                                </span>
+                            </div>
                         </div>
                     </BradixPopoverContent>
                 </BradixPopoverPortal>
@@ -75,3 +105,59 @@
         </section>
     </div>
 </section>
+
+@code {
+    private bool _defaultPopoverOpen;
+    private bool _customPopoverOpen;
+    private bool _modalPopoverOpen;
+    private string _quickAction = "No action taken.";
+    private string _modalNote = "Rollback ready.";
+    private string _modalDraft = "Rollback ready.";
+
+    private Task HandleDefaultPopoverOpenChanged(bool open)
+    {
+        _defaultPopoverOpen = open;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleCustomPopoverOpenChanged(bool open)
+    {
+        _customPopoverOpen = open;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleModalPopoverOpenChanged(bool open)
+    {
+        _modalPopoverOpen = open;
+
+        if (open)
+            RestoreModalDraft();
+
+        return Task.CompletedTask;
+    }
+
+    private Task ApplyQuickAction(string action)
+    {
+        _quickAction = action;
+        _defaultPopoverOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleDefaultPopoverDismissed()
+    {
+        _quickAction = "Closed without taking action.";
+        return Task.CompletedTask;
+    }
+
+    private Task SaveModalNoteAsync()
+    {
+        _modalNote = _modalDraft;
+        _modalPopoverOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private void RestoreModalDraft()
+    {
+        _modalDraft = _modalNote;
+    }
+}

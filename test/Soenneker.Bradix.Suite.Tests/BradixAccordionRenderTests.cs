@@ -21,6 +21,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
 
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]

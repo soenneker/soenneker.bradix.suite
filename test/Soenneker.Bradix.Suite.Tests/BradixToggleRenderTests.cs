@@ -14,6 +14,7 @@ public sealed class BradixToggleRenderTests : BunitContext
         module.SetupVoid("unregisterDelegatedInteraction", _ => true);
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]

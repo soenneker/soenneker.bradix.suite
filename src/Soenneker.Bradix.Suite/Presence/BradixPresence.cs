@@ -9,7 +9,7 @@ namespace Soenneker.Bradix;
 public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
 {
     [Inject]
-    public BradixSuiteInterop Interop { get; set; } = null!;
+    public IBradixSuiteInterop Interop { get; set; } = null!;
 
     [Parameter]
     public bool Present { get; set; }

@@ -42,6 +42,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
     }
 

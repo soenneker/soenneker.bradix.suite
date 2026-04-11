@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Soenneker.Bradix;
 
 /// <summary>
-/// A higher-level Blazor utility built on top of <see cref="ISuiteInterop"/>.
+/// A higher-level Blazor utility built on top of <see cref="IBradixSuiteInterop"/>.
 /// </summary>
 public interface IBradixComponent
 {

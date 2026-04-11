@@ -18,6 +18,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
         _module.SetupVoid("unregisterAvatarImageLoadingStatus", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
     }
 

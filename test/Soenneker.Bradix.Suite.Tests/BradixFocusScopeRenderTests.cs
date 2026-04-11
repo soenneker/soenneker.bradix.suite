@@ -16,6 +16,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
         module.SetupVoid("unregisterFocusScope", _ => true);
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]

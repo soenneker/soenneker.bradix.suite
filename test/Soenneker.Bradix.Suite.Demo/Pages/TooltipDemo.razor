@@ -12,10 +12,13 @@
         <div class="demo-grid">
             <section class="card stack stack--compact">
                 <h3>Provider-controlled delay</h3>
+                <p class="state-line"><strong>First trigger:</strong> @(_firstTooltipOpen ? "Open" : "Closed")</p>
+                <p class="state-line"><strong>Second trigger:</strong> @(_secondTooltipOpen ? "Open" : "Closed")</p>
 
                 <div class="button-row">
-                    <BradixTooltip>
-                        <BradixTooltipTrigger Class="primitive__trigger">First trigger</BradixTooltipTrigger>
+                    <BradixTooltip Open="@_firstTooltipOpen"
+                                   OpenChanged="HandleFirstTooltipOpenChanged">
+                        <BradixTooltipTrigger Class="primitive__trigger primitive__trigger--fit">First trigger</BradixTooltipTrigger>
                         <BradixTooltipPortal>
                             <BradixTooltipContent Class="tooltip-surface tooltip-surface--animated" Side="top" SideOffset="8">
                                 <span>Opens with provider delay.</span>
@@ -26,8 +29,9 @@
                         </BradixTooltipPortal>
                     </BradixTooltip>
 
-                    <BradixTooltip>
-                        <BradixTooltipTrigger Class="primitive__trigger">Second trigger</BradixTooltipTrigger>
+                    <BradixTooltip Open="@_secondTooltipOpen"
+                                   OpenChanged="HandleSecondTooltipOpenChanged">
+                        <BradixTooltipTrigger Class="primitive__trigger primitive__trigger--fit">Second trigger</BradixTooltipTrigger>
                         <BradixTooltipPortal>
                             <BradixTooltipContent Class="tooltip-surface tooltip-surface--animated" Side="top" SideOffset="8">
                                 <span>Reuses provider skip-delay behavior.</span>
@@ -39,9 +43,12 @@
 
             <section class="card stack stack--compact">
                 <h3>Disable hoverable content</h3>
+                <p class="state-line"><strong>Tooltip:</strong> @(_nonHoverableTooltipOpen ? "Open" : "Closed")</p>
 
-                <BradixTooltip DisableHoverableContent="true">
-                    <BradixTooltipTrigger Class="primitive__trigger">Non-hoverable</BradixTooltipTrigger>
+                <BradixTooltip Open="@_nonHoverableTooltipOpen"
+                               OpenChanged="HandleNonHoverableTooltipOpenChanged"
+                               DisableHoverableContent="true">
+                    <BradixTooltipTrigger Class="primitive__trigger primitive__trigger--fit">Non-hoverable</BradixTooltipTrigger>
                     <BradixTooltipPortal>
                         <BradixTooltipContent Class="tooltip-surface tooltip-surface--animated"
                                               Side="right"
@@ -56,3 +63,27 @@
         </div>
     </BradixTooltipProvider>
 </section>
+
+@code {
+    private bool _firstTooltipOpen;
+    private bool _secondTooltipOpen;
+    private bool _nonHoverableTooltipOpen;
+
+    private Task HandleFirstTooltipOpenChanged(bool open)
+    {
+        _firstTooltipOpen = open;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSecondTooltipOpenChanged(bool open)
+    {
+        _secondTooltipOpen = open;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleNonHoverableTooltipOpenChanged(bool open)
+    {
+        _nonHoverableTooltipOpen = open;
+        return Task.CompletedTask;
+    }
+}

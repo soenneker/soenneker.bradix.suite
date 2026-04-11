@@ -12,19 +12,35 @@
         <section class="card stack stack--compact">
             <h3>Modal dialog</h3>
 
-            <BradixDialog>
-                <BradixDialogTrigger Class="primitive__trigger">Open dialog</BradixDialogTrigger>
+            <p class="state-line"><strong>Project name:</strong> @_projectName</p>
+            <p class="state-line"><strong>Owner:</strong> @_projectOwner</p>
+            <p class="state-line"><strong>Environment:</strong> @_projectEnvironment</p>
+
+            <BradixDialog Open="@_projectDialogOpen"
+                          OpenChanged="HandleProjectDialogOpenChanged">
+                <BradixDialogTrigger Class="primitive__trigger primitive__trigger--fit">
+                    Edit project details
+                </BradixDialogTrigger>
 
                 <BradixDialogPortal>
                     <BradixDialogOverlay Class="dialog-overlay" />
 
                     <BradixDialogContent Class="dialog-surface dialog-surface--animated">
                         <div class="stack stack--compact">
-                            <BradixDialogTitle>Delete project</BradixDialogTitle>
-                            <BradixDialogDescription>This action cannot be undone and will remove associated records.</BradixDialogDescription>
+                            <BradixDialogTitle>Edit deployment project</BradixDialogTitle>
+                            <BradixDialogDescription>Use the dialog to adjust committed project metadata without leaving the page.</BradixDialogDescription>
+                            <input class="text-input" @bind="_projectDraftName" placeholder="Project name" />
+                            <input class="text-input" @bind="_projectDraftOwner" placeholder="Owner" />
+                            <input class="text-input" @bind="_projectDraftEnvironment" placeholder="Environment" />
                             <div class="button-row">
-                                <BradixDialogClose Class="primitive__trigger">Cancel</BradixDialogClose>
-                                <button class="primitive__trigger" type="button">Confirm</button>
+                                <span @onclick="RestoreProjectDrafts">
+                                    <BradixDialogClose Class="primitive__trigger primitive__trigger--fit">Cancel</BradixDialogClose>
+                                </span>
+                                <button class="primitive__trigger primitive__trigger--fit"
+                                        type="button"
+                                        @onclick="SaveProjectAsync">
+                                    Save changes
+                                </button>
                             </div>
                         </div>
                     </BradixDialogContent>
@@ -34,17 +50,29 @@
 
         <section class="card stack stack--compact">
             <h3>Non-modal dialog</h3>
+            <p class="state-line"><strong>Inspector note:</strong> @_inspectorNote</p>
 
-            <BradixDialog Modal="false">
-                <BradixDialogTrigger Class="primitive__trigger">Open non-modal</BradixDialogTrigger>
+            <BradixDialog Open="@_inspectorOpen"
+                          OpenChanged="HandleInspectorOpenChanged"
+                          Modal="false">
+                <BradixDialogTrigger Class="primitive__trigger primitive__trigger--fit">Open non-modal</BradixDialogTrigger>
 
                 <BradixDialogPortal>
                     <BradixDialogContent Class="dialog-surface dialog-surface--animated">
                         <div class="stack stack--compact">
                             <BradixDialogTitle>Inspector</BradixDialogTitle>
                             <BradixDialogDescription>This non-modal dialog can coexist with surrounding content and restore focus appropriately.</BradixDialogDescription>
-                            <input class="text-input" value="Editable field" />
-                            <BradixDialogClose Class="primitive__trigger">Close</BradixDialogClose>
+                            <input class="text-input" @bind="_inspectorDraft" placeholder="Leave a note for the next reviewer" />
+                            <div class="button-row">
+                                <button class="primitive__trigger primitive__trigger--fit"
+                                        type="button"
+                                        @onclick="SaveInspectorAsync">
+                                    Save note
+                                </button>
+                                <span @onclick="RestoreInspectorDraft">
+                                    <BradixDialogClose Class="primitive__trigger primitive__trigger--fit">Close</BradixDialogClose>
+                                </span>
+                            </div>
                         </div>
                     </BradixDialogContent>
                 </BradixDialogPortal>
@@ -52,3 +80,64 @@
         </section>
     </div>
 </section>
+
+@code {
+    private bool _projectDialogOpen;
+    private bool _inspectorOpen;
+    private string _projectName = "Quark Gateway";
+    private string _projectOwner = "Platform team";
+    private string _projectEnvironment = "Production";
+    private string _projectDraftName = "Quark Gateway";
+    private string _projectDraftOwner = "Platform team";
+    private string _projectDraftEnvironment = "Production";
+    private string _inspectorNote = "Traffic is healthy.";
+    private string _inspectorDraft = "Traffic is healthy.";
+
+    private Task HandleProjectDialogOpenChanged(bool open)
+    {
+        _projectDialogOpen = open;
+
+        if (open)
+            RestoreProjectDrafts();
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandleInspectorOpenChanged(bool open)
+    {
+        _inspectorOpen = open;
+
+        if (open)
+            RestoreInspectorDraft();
+
+        return Task.CompletedTask;
+    }
+
+    private Task SaveProjectAsync()
+    {
+        _projectName = _projectDraftName;
+        _projectOwner = _projectDraftOwner;
+        _projectEnvironment = _projectDraftEnvironment;
+        _projectDialogOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private Task SaveInspectorAsync()
+    {
+        _inspectorNote = _inspectorDraft;
+        _inspectorOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private void RestoreProjectDrafts()
+    {
+        _projectDraftName = _projectName;
+        _projectDraftOwner = _projectOwner;
+        _projectDraftEnvironment = _projectEnvironment;
+    }
+
+    private void RestoreInspectorDraft()
+    {
+        _inspectorDraft = _inspectorNote;
+    }
+}

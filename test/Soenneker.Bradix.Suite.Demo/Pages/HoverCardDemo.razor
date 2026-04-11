@@ -14,8 +14,11 @@
     <div class="grid">
         <article class="card stack">
             <h3>Link preview</h3>
+            <p class="state-line"><strong>Preview state:</strong> @(_profilePreviewOpen ? "Open" : "Closed")</p>
+            <p class="state-line"><strong>Open count:</strong> @_profilePreviewOpenCount</p>
 
-            <BradixHoverCard>
+            <BradixHoverCard Open="@_profilePreviewOpen"
+                             OpenChanged="HandleProfilePreviewOpenChanged">
                 <BradixHoverCardTrigger Class="demo-link">@@soenneker</BradixHoverCardTrigger>
                 <BradixHoverCardPortal>
                     <BradixHoverCardContent Class="popover-surface popover-surface--animated"
@@ -37,10 +40,13 @@
 
         <article class="card stack">
             <h3>Instant open, slower close</h3>
+            <p class="state-line"><strong>Timing card:</strong> @(_timingPreviewOpen ? "Open" : "Closed")</p>
 
-            <BradixHoverCard OpenDelay="0"
+            <BradixHoverCard Open="@_timingPreviewOpen"
+                             OpenChanged="HandleTimingPreviewOpenChanged"
+                             OpenDelay="0"
                              CloseDelay="500">
-                <BradixHoverCardTrigger Class="primitive__trigger">Hover or focus me</BradixHoverCardTrigger>
+                <BradixHoverCardTrigger Class="primitive__trigger primitive__trigger--fit">Hover or focus me</BradixHoverCardTrigger>
                 <BradixHoverCardPortal>
                     <BradixHoverCardContent Class="popover-surface"
                                             Side="right"
@@ -55,3 +61,24 @@
         </article>
     </div>
 </section>
+
+@code {
+    private bool _profilePreviewOpen;
+    private bool _timingPreviewOpen;
+    private int _profilePreviewOpenCount;
+
+    private Task HandleProfilePreviewOpenChanged(bool open)
+    {
+        if (open && !_profilePreviewOpen)
+            _profilePreviewOpenCount++;
+
+        _profilePreviewOpen = open;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleTimingPreviewOpenChanged(bool open)
+    {
+        _timingPreviewOpen = open;
+        return Task.CompletedTask;
+    }
+}

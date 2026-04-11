@@ -18,6 +18,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-in", Display = "block" });
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]

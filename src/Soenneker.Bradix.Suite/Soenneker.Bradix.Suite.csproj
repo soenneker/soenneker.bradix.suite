@@ -49,11 +49,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.5" />
         <PackageReference Include="Soenneker.Asyncs.Initializers" Version="4.0.45" />
         <PackageReference Include="Soenneker.Blazor.Extensions.EventCallback" Version="4.0.445" />
-        <PackageReference Include="Soenneker.Blazor.Utils.ResourceLoader" Version="4.0.1646" />
+        <PackageReference Include="Soenneker.Blazor.Utils.ModuleImport" Version="4.0.1794" />
         <PackageReference Include="Soenneker.Utils.Json" Version="4.0.2510" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="wwwroot\js\" />
     </ItemGroup>
 </Project>

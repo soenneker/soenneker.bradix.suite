@@ -17,6 +17,7 @@ public sealed class BradixSliderRenderTests : BunitContext
         module.SetupVoid("unregisterSliderPointerBridge", _ => true);
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]

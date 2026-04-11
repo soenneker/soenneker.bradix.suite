@@ -28,6 +28,7 @@ public sealed class BradixToastRenderTests : BunitContext
             .SetResult(new BradixPresenceSnapshot { AnimationName = "toast-out", Display = "block" });
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
     }
 

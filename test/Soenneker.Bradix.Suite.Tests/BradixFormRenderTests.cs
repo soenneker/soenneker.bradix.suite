@@ -28,6 +28,7 @@ public sealed class BradixFormRenderTests : BunitContext
             .SetResult(new BradixFormControlSnapshot());
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
     }
 

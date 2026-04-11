@@ -17,6 +17,7 @@ public sealed class BradixPopperRenderTests : BunitContext
         module.SetupVoid("unregisterPopperContent", _ => true);
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]

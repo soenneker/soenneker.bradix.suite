@@ -19,6 +19,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
         module.SetupVoid("syncCheckboxBubbleInputState", _ => true);
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]

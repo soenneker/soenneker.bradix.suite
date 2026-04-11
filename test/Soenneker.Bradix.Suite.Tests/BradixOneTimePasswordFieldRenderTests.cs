@@ -21,6 +21,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
         _module.SetupVoid("requestFormSubmit", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
         Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
     }
 

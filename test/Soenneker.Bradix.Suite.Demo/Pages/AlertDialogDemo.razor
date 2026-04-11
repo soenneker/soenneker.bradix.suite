@@ -11,28 +11,80 @@
     <div class="demo-grid">
         <section class="card stack stack--compact">
             <h3>Confirmation flow</h3>
+            <p class="state-line"><strong>Repository:</strong> quark/production</p>
+            <p class="state-line"><strong>Status:</strong> @(_repositoryDeleted ? "Deleted in demo" : "Active")</p>
+            <p class="state-line"><strong>Last action:</strong> @_lastAction</p>
 
-            <BradixAlertDialog>
-                <BradixAlertDialogTrigger Class="primitive__trigger">Delete repository</BradixAlertDialogTrigger>
+            <div class="button-row">
+                <BradixAlertDialog Open="@_open"
+                                   OpenChanged="HandleOpenChanged">
+                    <BradixAlertDialogTrigger Class="primitive__trigger primitive__trigger--fit">
+                        Delete repository
+                    </BradixAlertDialogTrigger>
 
-                <BradixAlertDialogPortal>
-                    <BradixAlertDialogOverlay Class="dialog-overlay" />
+                    <BradixAlertDialogPortal>
+                        <BradixAlertDialogOverlay Class="dialog-overlay" />
 
-                    <BradixAlertDialogContent Class="dialog-surface dialog-surface--animated">
-                        <div class="stack stack--compact">
-                            <BradixAlertDialogTitle>Delete repository?</BradixAlertDialogTitle>
-                            <BradixAlertDialogDescription>
-                                This action is permanent and will remove source history, pull requests, and release metadata.
-                            </BradixAlertDialogDescription>
+                        <BradixAlertDialogContent Class="dialog-surface dialog-surface--animated">
+                            <div class="stack stack--compact">
+                                <BradixAlertDialogTitle>Delete repository?</BradixAlertDialogTitle>
+                                <BradixAlertDialogDescription>
+                                    This action is permanent and will remove source history, pull requests, and release metadata.
+                                </BradixAlertDialogDescription>
 
-                            <div class="button-row">
-                                <BradixAlertDialogCancel Class="primitive__trigger">Cancel</BradixAlertDialogCancel>
-                                <BradixAlertDialogAction Class="primitive__trigger">Delete</BradixAlertDialogAction>
+                                <div class="button-row">
+                                    <span @onclick="HandleCancelClicked">
+                                        <BradixAlertDialogCancel Class="primitive__trigger primitive__trigger--fit">Cancel</BradixAlertDialogCancel>
+                                    </span>
+                                    <span @onclick="HandleDeleteClicked">
+                                        <BradixAlertDialogAction Class="primitive__trigger primitive__trigger--fit">Delete</BradixAlertDialogAction>
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    </BradixAlertDialogContent>
-                </BradixAlertDialogPortal>
-            </BradixAlertDialog>
+                        </BradixAlertDialogContent>
+                    </BradixAlertDialogPortal>
+                </BradixAlertDialog>
+
+                <button type="button"
+                        class="primitive__trigger primitive__trigger--fit"
+                        @onclick="ResetDemo">
+                    Reset demo
+                </button>
+            </div>
         </section>
     </div>
 </section>
+
+@code {
+    private bool _open;
+    private bool _repositoryDeleted;
+    private string _lastAction = "No decision yet.";
+
+    private Task HandleOpenChanged(bool open)
+    {
+        _open = open;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleCancelClicked()
+    {
+        _repositoryDeleted = false;
+        _lastAction = "Deletion canceled. The repository is still active.";
+        return Task.CompletedTask;
+    }
+
+    private Task HandleDeleteClicked()
+    {
+        _repositoryDeleted = true;
+        _lastAction = "Repository deleted in the demo flow.";
+        return Task.CompletedTask;
+    }
+
+    private Task ResetDemo()
+    {
+        _open = false;
+        _repositoryDeleted = false;
+        _lastAction = "Demo reset. The repository is active again.";
+        return Task.CompletedTask;
+    }
+}

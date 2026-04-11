@@ -16,6 +16,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
+        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
     [Fact]
