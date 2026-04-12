@@ -75,7 +75,7 @@
             attributes["id"] = Registration.ContentId;
             attributes["aria-labelledby"] = Registration.TriggerId;
             attributes["data-state"] = IsOpen ? "open" : "closed";
-            attributes["data-orientation"] = NavigationMenu?.Orientation ?? "horizontal";
+            attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? BradixOrientation.Horizontal.Value;
             attributes["tabindex"] = -1;
             attributes["onpointerenter"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerEnter);
             attributes["onpointerleave"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerLeave);

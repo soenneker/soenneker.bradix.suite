@@ -119,7 +119,7 @@
                 : new Dictionary<string, object>();
 
             attributes["data-state"] = IsOpen ? "open" : "closed";
-            attributes["data-orientation"] = NavigationMenu?.Orientation ?? "horizontal";
+            attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? BradixOrientation.Horizontal.Value;
             attributes["aria-labelledby"] = Item?.TriggerId ?? string.Empty;
             return attributes;
         }

@@ -178,7 +178,7 @@
             return;
 
         string verticalEntryKey = NavigationMenu.ResolvedDirection == "rtl" ? "ArrowLeft" : "ArrowRight";
-        string entryKey = NavigationMenu.Orientation == "vertical" ? verticalEntryKey : "ArrowDown";
+        string entryKey = NavigationMenu.Orientation == BradixOrientation.Vertical ? verticalEntryKey : "ArrowDown";
 
         if (IsOpen && string.Equals(args.Key, entryKey, StringComparison.Ordinal))
         {
