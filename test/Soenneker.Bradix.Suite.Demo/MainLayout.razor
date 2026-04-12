@@ -4,7 +4,7 @@
 
 <div class="docs-shell">
     <header class="docs-shell__header">
-        <NavLink href="/" Match="NavLinkMatch.All" class="docs-shell__brand-link">
+        <NavLink href="@DemoCatalog.Overview.Href" Match="NavLinkMatch.All" class="docs-shell__brand-link">
             <span class="eyebrow">Bradix</span>
             <span class="docs-shell__brand-title">Blazor primitives demo</span>
         </NavLink>
@@ -13,7 +13,7 @@
     <div class="docs-shell__frame">
         <aside class="docs-shell__sidebar" aria-label="Component navigation">
             <nav class="docs-nav" aria-label="Bradix primitives">
-                <NavLink href="/" Match="NavLinkMatch.All" class="docs-nav__overview">Overview</NavLink>
+                <NavLink href="@DemoCatalog.Overview.Href" Match="NavLinkMatch.All" class="docs-nav__overview">Overview</NavLink>
 
                 @foreach (DemoPageGroup group in FilteredGroups)
                 {
@@ -25,7 +25,7 @@
                         <div class="docs-nav__group-links">
                             @foreach (DemoPageLink demoPage in group.Pages)
                             {
-                                <NavLink href="@demoPage.Route" class="docs-nav__link">@demoPage.Title</NavLink>
+                                <NavLink href="@demoPage.Href" class="docs-nav__link">@demoPage.Title</NavLink>
                             }
                         </div>
                     </section>
@@ -66,7 +66,7 @@
 
     private void UpdateCurrentPage()
     {
-        string route = DemoCatalog.NormalizeRoute(new Uri(Navigation.Uri).AbsolutePath);
+        string route = DemoCatalog.NormalizeRoute(Navigation.ToBaseRelativePath(Navigation.Uri));
         CurrentPage = DemoCatalog.Find(route);
     }
 

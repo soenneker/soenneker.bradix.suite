@@ -18,7 +18,7 @@
             <div class="simple-link-list">
                 @foreach (DemoPageLink demoPage in group.Pages)
                 {
-                    <NavLink href="@demoPage.Route" class="simple-link-list__item">
+                    <NavLink href="@demoPage.Href" class="simple-link-list__item">
                         <span>@demoPage.Title</span>
                         <span>@demoPage.Description</span>
                     </NavLink>
