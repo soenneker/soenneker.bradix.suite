@@ -1,15 +1,13 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Soenneker.Bradix;
 
 /// <summary>
 /// Popover surface with focus scope, dismissable layer, and popper placement.
 /// </summary>
-public interface IBradixPopoverContent
-{
+public interface IBradixPopoverContent : IAsyncDisposable {
     /// <summary>When true, keeps content mounted for exit animations.</summary>
     bool ForceMount { get; set; }
 
@@ -100,6 +98,4 @@ public interface IBradixPopoverContent
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters modal hide-others when applicable.</summary>
-    ValueTask DisposeAsync();
 }

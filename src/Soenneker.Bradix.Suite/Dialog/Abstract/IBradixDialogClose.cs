@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
@@ -6,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Describes the public API of <see cref="BradixDialogClose"/>.
 /// </summary>
-public interface IBradixDialogClose
-{
+public interface IBradixDialogClose : IAsyncDisposable {
     /// <summary>
     /// Gets or sets the callback invoked when the close button element reference is available.
     /// </summary>
@@ -18,10 +18,6 @@ public interface IBradixDialogClose
     /// </summary>
     string? AriaLabel { get; set; }
 
-    /// <summary>
-    /// Releases resources used by delegated interaction registration.
-    /// </summary>
-    ValueTask DisposeAsync();
 
     /// <summary>
     /// Called when delegated interaction handling is ready on the close button.

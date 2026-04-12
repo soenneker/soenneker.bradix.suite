@@ -1,9 +1,13 @@
 @namespace Soenneker.Bradix
+
 @using System.Linq
+
 @inherits BradixComponentBase
+
+@implements IBradixSelect
+
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
-
 <BradixPopper>
     <CascadingValue Value="this">
         @ChildContent

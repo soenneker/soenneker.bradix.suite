@@ -1,12 +1,11 @@
-using System.Threading.Tasks;
+using System;
 
 namespace Soenneker.Bradix;
 
 /// <summary>
 /// Describes the public API of <see cref="BradixCollapsibleContent"/>.
 /// </summary>
-public interface IBradixCollapsibleContent
-{
+public interface IBradixCollapsibleContent : IAsyncDisposable {
     /// <summary>
     /// Gets or sets whether the content stays mounted while closed.
     /// </summary>
@@ -27,8 +26,4 @@ public interface IBradixCollapsibleContent
     /// </summary>
     string? AriaDescribedBy { get; set; }
 
-    /// <summary>
-    /// Releases resources used by collapsible content observation.
-    /// </summary>
-    ValueTask DisposeAsync();
 }

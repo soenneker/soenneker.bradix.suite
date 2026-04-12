@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixScrollArea"/>.
 /// </summary>
-public interface IBradixScrollArea
-{
+public interface IBradixScrollArea : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -33,8 +33,6 @@ public interface IBradixScrollArea
     /// <summary>Gets or sets the delay before scrollbars hide after activity, in milliseconds.</summary>
     int ScrollHideDelay { get; set; }
 
-    /// <summary>Releases resources used by the scroll area.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Called from script when hover state over the root changes.</summary>
     Task HandleHoverChanged(bool hovering);

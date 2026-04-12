@@ -1,15 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Soenneker.Bradix;
 
 /// <summary>
 /// Defines the public API for <see cref="BradixSelectContent"/>.
 /// </summary>
-public interface IBradixSelectContent
-{
+public interface IBradixSelectContent : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -76,8 +75,6 @@ public interface IBradixSelectContent
     /// <summary>Gets or sets the callback invoked after the popper is placed.</summary>
     EventCallback OnPlaced { get; set; }
 
-    /// <summary>Releases script registrations for the content layer.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Called from script when viewport scroll metrics change.</summary>
     Task HandleViewportMetricsChanged(double scrollTop, double scrollHeight, double viewportHeight);

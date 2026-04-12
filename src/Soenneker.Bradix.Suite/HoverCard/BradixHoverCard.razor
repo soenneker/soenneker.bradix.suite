@@ -1,10 +1,12 @@
 @namespace Soenneker.Bradix
+
 @using System.Threading
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject IBradixIdGenerator IdGenerator
 
+@implements IBradixHoverCard
+
+@inject IBradixIdGenerator IdGenerator
 <BradixPopper>
     <CascadingValue Value="this">
         @ChildContent

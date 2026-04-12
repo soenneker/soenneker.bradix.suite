@@ -1,11 +1,13 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
-@implements IAsyncDisposable
-@implements IBradixNavigationMenuFocusGroupItem
-@inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@inherits BradixComponentBase
+
+@implements IBradixNavigationMenuFocusGroupItem
+@implements IBradixNavigationMenuLink
+
+@inject IBradixSuiteInterop Interop
 <a @ref="_element"
    @onclick="HandleClick"
    @onkeydown="HandleKeyDown"

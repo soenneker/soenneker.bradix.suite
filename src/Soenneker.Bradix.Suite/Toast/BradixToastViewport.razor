@@ -1,10 +1,12 @@
 @namespace Soenneker.Bradix
+
 @using Microsoft.JSInterop
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@implements IBradixToastViewport
+
+@inject IBradixSuiteInterop Interop
 <div @ref="_wrapperElement"
      @attributes="RegionAttributes">
     @if (Provider?.ToastCount > 0)

@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Optional custom anchor region for a popover.
 /// </summary>
-public interface IBradixPopoverAnchor
-{
+public interface IBradixPopoverAnchor : IAsyncDisposable {
     /// <summary>Root element id.</summary>
     string? Id { get; set; }
 
@@ -24,6 +23,4 @@ public interface IBradixPopoverAnchor
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Removes custom anchor registration from the popover.</summary>
-    ValueTask DisposeAsync();
 }

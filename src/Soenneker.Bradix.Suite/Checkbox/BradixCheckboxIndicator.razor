@@ -2,6 +2,8 @@
 
 @inherits BradixComponentBase
 
+@implements IBradixCheckboxIndicator
+
 @if (ForceMount || Checkbox.CurrentChecked != BradixCheckboxCheckedState.Unchecked)
 {
     <span @attributes="IndicatorAttributes">

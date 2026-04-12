@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Link inside navigation menu content with roving tabindex support.
 /// </summary>
-public interface IBradixNavigationMenuLink
-{
+public interface IBradixNavigationMenuLink : IAsyncDisposable {
     /// <summary>When true, marks the link as the active page.</summary>
     bool Active { get; set; }
 
@@ -30,8 +30,6 @@ public interface IBradixNavigationMenuLink
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters roving focus interop and focus group membership.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when roving focus bridge is ready.</summary>
     Task HandleRovingFocusBridgeReady();

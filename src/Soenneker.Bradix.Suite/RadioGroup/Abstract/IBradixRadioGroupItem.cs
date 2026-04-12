@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixRadioGroupItem"/>.
 /// </summary>
-public interface IBradixRadioGroupItem
-{
+public interface IBradixRadioGroupItem : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -36,8 +36,6 @@ public interface IBradixRadioGroupItem
     /// <summary>Gets or sets the <c>form</c> attribute for detached native inputs.</summary>
     string? Form { get; set; }
 
-    /// <summary>Releases resources used by the component.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Called from script when the roving-focus bridge is ready.</summary>
     Task HandleRovingFocusBridgeReady();

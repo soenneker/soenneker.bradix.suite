@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixSliderThumb"/>.
 /// </summary>
-public interface IBradixSliderThumb
-{
+public interface IBradixSliderThumb : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -30,6 +29,4 @@ public interface IBradixSliderThumb
     /// <summary>Gets or sets the accessible label for this thumb.</summary>
     string? AriaLabel { get; set; }
 
-    /// <summary>Releases thumb registration with the parent slider.</summary>
-    ValueTask DisposeAsync();
 }

@@ -1,22 +1,17 @@
+using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
 
 /// <summary>
 /// Describes the public API of <see cref="BradixDialogTrigger"/>.
 /// </summary>
-public interface IBradixDialogTrigger
-{
+public interface IBradixDialogTrigger : IAsyncDisposable {
     /// <summary>
     /// Gets or sets whether the trigger is disabled.
     /// </summary>
     bool Disabled { get; set; }
 
-    /// <summary>
-    /// Releases resources used by delegated interaction registration.
-    /// </summary>
-    ValueTask DisposeAsync();
 
     /// <summary>
     /// Called when delegated interaction handling is ready on the trigger.

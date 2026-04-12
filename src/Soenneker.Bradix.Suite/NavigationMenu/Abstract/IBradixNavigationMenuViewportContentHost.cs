@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Hosts a single viewport-registered navigation menu content instance with focus bridging.
 /// </summary>
-public interface IBradixNavigationMenuViewportContentHost
-{
+public interface IBradixNavigationMenuViewportContentHost : IAsyncDisposable {
     /// <summary>Registration metadata for this viewport slot.</summary>
     BradixNavigationMenuViewportRegistration Registration { get; set; }
 
@@ -45,6 +44,4 @@ public interface IBradixNavigationMenuViewportContentHost
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters focus bridge interop.</summary>
-    ValueTask DisposeAsync();
 }

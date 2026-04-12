@@ -1,8 +1,10 @@
 @namespace Soenneker.Bradix
 
 @inherits BradixComponentBase
-@inject IBradixIdGenerator IdGenerator
 
+@implements IBradixToastProvider
+
+@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     @ChildContent
 </CascadingValue>

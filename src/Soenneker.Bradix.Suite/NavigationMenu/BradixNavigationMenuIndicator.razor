@@ -1,9 +1,12 @@
 @namespace Soenneker.Bradix
+
 @using System.Globalization
 @using Microsoft.JSInterop
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
+
+@implements IBradixNavigationMenuIndicator
+
 @inject IBradixSuiteInterop Interop
 
 @if (ForceMount || NavigationMenu?.HasOpenItem == true)

@@ -1,11 +1,14 @@
 @namespace Soenneker.Bradix
+
 @using Microsoft.JSInterop
-@implements IAsyncDisposable
-@implements IBradixToolbarRovingItem
+
 @inherits BradixComponentBase
+
+@implements IBradixToolbarRovingItem
+@implements IBradixToolbarButton
+
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
-
 <button @ref="_element"
         @onmousedown="HandleMouseDown"
         @onfocus="HandleFocus"

@@ -1,8 +1,10 @@
 @namespace Soenneker.Bradix
 
 @inherits BradixComponentBase
-@inject IBradixIdGenerator IdGenerator
 
+@implements IBradixSelectGroup
+
+@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="_context">
     <div role="group"
          aria-labelledby="@_context.LabelId"

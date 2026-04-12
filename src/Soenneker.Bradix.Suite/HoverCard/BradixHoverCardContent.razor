@@ -1,8 +1,11 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
-@implements IAsyncDisposable
+
 @inherits BradixComponentBase
+
+@implements IBradixHoverCardContent
+
 @inject IBradixSuiteInterop Interop
 
 @if (IsPresent)

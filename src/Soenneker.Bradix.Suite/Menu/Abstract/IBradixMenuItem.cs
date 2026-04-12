@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -5,8 +6,7 @@ using Microsoft.AspNetCore.Components;
 namespace Soenneker.Bradix;
 
 /// <summary>Defines the public API for <see cref="BradixMenuItem"/>.</summary>
-public interface IBradixMenuItem
-{
+public interface IBradixMenuItem : IAsyncDisposable {
     /// <summary>Gets or sets a value indicating whether the item is disabled.</summary>
     bool Disabled { get; set; }
 
@@ -28,8 +28,6 @@ public interface IBradixMenuItem
     /// <summary>Gets the tab stop id assigned to this item.</summary>
     string? TabStopId { get; }
 
-    /// <summary>Releases resources used by the item.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Moves keyboard focus to this item without scrolling the page.</summary>
     ValueTask Focus();

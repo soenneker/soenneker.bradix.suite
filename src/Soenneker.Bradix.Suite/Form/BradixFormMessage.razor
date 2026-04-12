@@ -1,7 +1,9 @@
 @namespace Soenneker.Bradix
 
-@implements IDisposable
 @inherits BradixComponentBase
+
+@implements IBradixFormMessage
+
 @inject IBradixIdGenerator IdGenerator
 
 @if (ShouldDisplay)

@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Navigation menu content panel for an item.
 /// </summary>
-public interface IBradixNavigationMenuContent
-{
+public interface IBradixNavigationMenuContent : IAsyncDisposable {
     /// <summary>When true, keeps content mounted for animations.</summary>
     bool ForceMount { get; set; }
 
@@ -27,6 +26,4 @@ public interface IBradixNavigationMenuContent
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters focus bridge and viewport registrations.</summary>
-    ValueTask DisposeAsync();
 }

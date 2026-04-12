@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -6,8 +7,7 @@ using Microsoft.AspNetCore.Components.Web;
 namespace Soenneker.Bradix;
 
 /// <summary>Defines the public API for <see cref="BradixMenuContent"/>.</summary>
-public interface IBradixMenuContent
-{
+public interface IBradixMenuContent : IAsyncDisposable {
     /// <summary>Gets or sets a value indicating whether content is mounted while closed for measurement.</summary>
     bool ForceMount { get; set; }
 
@@ -95,8 +95,6 @@ public interface IBradixMenuContent
     /// <summary>Gets or sets the child content.</summary>
     RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Releases resources used by the content.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Handles a delegated keydown event from JavaScript interop.</summary>
     Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args);

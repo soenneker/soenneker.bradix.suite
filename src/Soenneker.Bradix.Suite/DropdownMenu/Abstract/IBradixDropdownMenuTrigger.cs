@@ -1,17 +1,14 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
 
 /// <summary>Defines the public API for <see cref="BradixDropdownMenuTrigger"/>.</summary>
-public interface IBradixDropdownMenuTrigger
-{
+public interface IBradixDropdownMenuTrigger : IAsyncDisposable {
     /// <summary>Gets or sets a value indicating whether the trigger is disabled.</summary>
     bool Disabled { get; set; }
 
-    /// <summary>Releases resources used by the trigger.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Gets or sets the element id.</summary>
     string? Id { get; set; }

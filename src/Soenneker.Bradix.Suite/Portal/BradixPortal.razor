@@ -1,9 +1,10 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@implements IBradixPortal
+
+@inject IBradixSuiteInterop Interop
 <div @ref="_element"
      @attributes="PortalAttributes">
     @ChildContent

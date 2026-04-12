@@ -2,6 +2,8 @@
 
 @inherits ComponentBase
 
+@implements IBradixFormValidityState
+
 @if (ChildContent is not null)
 {
     @ChildContent(ResolvedValidity)

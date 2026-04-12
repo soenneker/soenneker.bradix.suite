@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -8,8 +9,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixTabsTrigger"/>.
 /// </summary>
-public interface IBradixTabsTrigger
-{
+public interface IBradixTabsTrigger : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -40,8 +40,6 @@ public interface IBradixTabsTrigger
     /// <summary>Gets or sets the callback invoked on focus.</summary>
     EventCallback<FocusEventArgs> OnFocus { get; set; }
 
-    /// <summary>Releases script registrations for this trigger.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Called from script when delegated interaction wiring is ready.</summary>
     Task HandleDelegatedInteractionReady();

@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Tooltip root coordinating open state, delays, and provider coordination.
 /// </summary>
-public interface IBradixTooltip
-{
+public interface IBradixTooltip : IAsyncDisposable {
     /// <summary>Controlled open state; null for uncontrolled usage.</summary>
     bool? Open { get; set; }
 
@@ -42,6 +41,4 @@ public interface IBradixTooltip
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Cancels pending open delays.</summary>
-    ValueTask DisposeAsync();
 }

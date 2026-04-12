@@ -1,7 +1,10 @@
 @namespace Soenneker.Bradix
-@inherits BradixComponentBase
-@inject IBradixIdGenerator IdGenerator
 
+@inherits BradixComponentBase
+
+@implements IBradixMenubarMenu
+
+@inject IBradixIdGenerator IdGenerator
 <BradixMenu Open="@IsOpen"
             OpenChanged="HandleMenuOpenChanged"
             Dir="@Menubar?.ResolvedDirection"

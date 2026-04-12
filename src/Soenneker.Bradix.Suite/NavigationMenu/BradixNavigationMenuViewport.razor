@@ -1,9 +1,12 @@
 @namespace Soenneker.Bradix
+
 @using System.Globalization
 @using Microsoft.JSInterop
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
+
+@implements IBradixNavigationMenuViewport
+
 @inject IBradixSuiteInterop Interop
 
 @if (ShouldRenderViewport)

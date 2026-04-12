@@ -1,9 +1,10 @@
 @namespace Soenneker.Bradix
+
 @using System.Threading
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
 
+@implements IBradixContextMenuTrigger
 <span @oncontextmenu="HandleContextMenu"
       @oncontextmenu:preventDefault="@(!Disabled)"
       @onpointerdown="HandlePointerDown"

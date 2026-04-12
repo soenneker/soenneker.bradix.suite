@@ -2,6 +2,8 @@
 
 @inherits BradixComponentBase
 
+@implements IBradixDialogOverlay
+
 @if (ShouldRenderOverlay)
 {
     <BradixPresence Present="Dialog?.CurrentOpen == true || ForceMount || PortalForceMount"

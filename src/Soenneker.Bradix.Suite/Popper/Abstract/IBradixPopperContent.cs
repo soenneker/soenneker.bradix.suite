@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Floating content positioned relative to the popper anchor via JS interop.
 /// </summary>
-public interface IBradixPopperContent
-{
+public interface IBradixPopperContent : IAsyncDisposable {
     /// <summary>Preferred popper side.</summary>
     string Side { get; set; }
 
@@ -51,8 +51,6 @@ public interface IBradixPopperContent
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters popper content interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when popper geometry updates.</summary>
     Task HandlePositionChanged(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth,

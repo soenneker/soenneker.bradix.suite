@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Single OTP cell input participating in the OTP field group.
 /// </summary>
-public interface IBradixOneTimePasswordFieldInput
-{
+public interface IBradixOneTimePasswordFieldInput : IAsyncDisposable {
     /// <summary>Explicit cell index; otherwise auto-assigned.</summary>
     int? Index { get; set; }
 
@@ -30,8 +30,6 @@ public interface IBradixOneTimePasswordFieldInput
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters OTP input interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler for paste events from script.</summary>
     Task HandlePaste(string value);

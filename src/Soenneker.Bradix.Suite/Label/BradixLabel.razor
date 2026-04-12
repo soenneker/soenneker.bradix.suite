@@ -1,10 +1,12 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
-@inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 @using Microsoft.JSInterop
 
+@inherits BradixComponentBase
+
+@implements IBradixLabel
+
+@inject IBradixSuiteInterop Interop
 <label @ref="_element"
        @attributes="LabelAttributes">
     @ChildContent

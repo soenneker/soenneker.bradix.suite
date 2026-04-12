@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixToastViewport"/>.
 /// </summary>
-public interface IBradixToastViewport
-{
+public interface IBradixToastViewport : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -30,8 +30,6 @@ public interface IBradixToastViewport
     /// <summary>Gets or sets the region label; may include a <c>{hotkey}</c> token.</summary>
     string Label { get; set; }
 
-    /// <summary>Releases viewport script registrations.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Called from script when the pause hotkey chord is pressed.</summary>
     Task HandlePause();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Button that closes its parent popover.
 /// </summary>
-public interface IBradixPopoverClose
-{
+public interface IBradixPopoverClose : IAsyncDisposable {
     /// <summary>Root element id.</summary>
     string? Id { get; set; }
 
@@ -24,8 +24,6 @@ public interface IBradixPopoverClose
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters delegated interaction interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when delegated interaction is ready.</summary>
     Task HandleDelegatedInteractionReady();

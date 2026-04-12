@@ -1,7 +1,9 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
+
+@implements IBradixNavigationMenuContent
+
 @inject IBradixSuiteInterop Interop
 
 @if (ShouldRenderInline && (ForceMount || IsOpen))

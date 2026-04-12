@@ -1,10 +1,12 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
-@implements IBradixMenuContentController
-@inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 @using Microsoft.JSInterop
+
+@inherits BradixComponentBase
+
+@implements IBradixMenuContentController
+
+@inject IBradixSuiteInterop Interop
 
 @if (ShouldRenderContainer)
 {

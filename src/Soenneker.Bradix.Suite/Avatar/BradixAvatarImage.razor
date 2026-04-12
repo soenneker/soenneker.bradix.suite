@@ -1,8 +1,11 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
-@implements IAsyncDisposable
+
 @inherits BradixComponentBase
+
+@implements IBradixAvatarImage
+
 @inject IBradixSuiteInterop Interop
 
 @if (_loadingStatus == BradixAvatarImageLoadingStatus.Loaded)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixSelectTrigger"/>.
 /// </summary>
-public interface IBradixSelectTrigger
-{
+public interface IBradixSelectTrigger : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -27,8 +27,6 @@ public interface IBradixSelectTrigger
     /// <summary>Gets or sets whether the trigger is disabled.</summary>
     bool Disabled { get; set; }
 
-    /// <summary>Releases script registrations for the trigger.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Called from script for delegated primary pointer down handling.</summary>
     Task HandleDelegatedPointerDown(BradixDelegatedMouseEvent args);

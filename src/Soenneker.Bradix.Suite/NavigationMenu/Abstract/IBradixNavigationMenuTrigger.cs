@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Button trigger that toggles its navigation menu item content.
 /// </summary>
-public interface IBradixNavigationMenuTrigger
-{
+public interface IBradixNavigationMenuTrigger : IAsyncDisposable {
     /// <summary>When true, the trigger is inactive.</summary>
     bool Disabled { get; set; }
 
@@ -27,8 +27,6 @@ public interface IBradixNavigationMenuTrigger
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters interop and focus proxy wiring.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when roving focus bridge is ready.</summary>
     Task HandleRovingFocusBridgeReady();

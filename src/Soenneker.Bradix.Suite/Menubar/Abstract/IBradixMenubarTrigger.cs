@@ -1,12 +1,11 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
 
 /// <summary>Defines the public API for <see cref="BradixMenubarTrigger"/>.</summary>
-public interface IBradixMenubarTrigger
-{
+public interface IBradixMenubarTrigger : IAsyncDisposable {
     /// <summary>Gets or sets a value indicating whether the trigger is disabled.</summary>
     bool Disabled { get; set; }
 
@@ -25,6 +24,4 @@ public interface IBradixMenubarTrigger
     /// <summary>Gets or sets additional attributes spread onto the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Releases resources used by the trigger.</summary>
-    ValueTask DisposeAsync();
 }

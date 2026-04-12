@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Describes the public API of <see cref="BradixCollapsibleTrigger"/>.
 /// </summary>
-public interface IBradixCollapsibleTrigger
-{
+public interface IBradixCollapsibleTrigger : IAsyncDisposable {
     /// <summary>
     /// Gets or sets the callback invoked when the trigger is clicked.
     /// </summary>
@@ -24,10 +24,6 @@ public interface IBradixCollapsibleTrigger
     /// </summary>
     string? AriaDisabled { get; set; }
 
-    /// <summary>
-    /// Releases resources used by delegated interaction registration.
-    /// </summary>
-    ValueTask DisposeAsync();
 
     /// <summary>
     /// Called when delegated interaction handling is ready on the trigger element.

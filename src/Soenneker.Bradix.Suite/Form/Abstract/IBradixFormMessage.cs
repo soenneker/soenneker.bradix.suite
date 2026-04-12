@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
 
@@ -6,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Displays validation or custom messages for a form field.
 /// </summary>
-public interface IBradixFormMessage
-{
+public interface IBradixFormMessage : IDisposable {
     /// <summary>Built-in validity key, custom matcher delegate, or null for generic invalid.</summary>
     object? Match { get; set; }
 
@@ -32,6 +32,4 @@ public interface IBradixFormMessage
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters matchers and message id wiring.</summary>
-    void Dispose();
 }

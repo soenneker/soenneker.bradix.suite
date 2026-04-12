@@ -2,10 +2,12 @@
 
 @using Microsoft.JSInterop
 @using System.Threading
-@implements IAsyncDisposable
-@inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@inherits BradixComponentBase
+
+@implements IBradixScrollArea
+
+@inject IBradixSuiteInterop Interop
 <CascadingValue Value="this">
     <div @ref="_element"
          @attributes="RootAttributes">

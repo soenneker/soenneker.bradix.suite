@@ -2,6 +2,8 @@
 
 @inherits BradixComponentBase
 
+@implements IBradixRadioGroupIndicator
+
 @if (ForceMount || Item.IsChecked)
 {
     <span @attributes="IndicatorAttributes">

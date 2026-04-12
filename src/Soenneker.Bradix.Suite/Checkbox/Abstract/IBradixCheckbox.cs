@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
@@ -6,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Describes the public API of <see cref="BradixCheckbox"/>.
 /// </summary>
-public interface IBradixCheckbox
-{
+public interface IBradixCheckbox : IAsyncDisposable {
     /// <summary>
     /// Gets or sets the controlled checked state.
     /// </summary>
@@ -53,10 +53,6 @@ public interface IBradixCheckbox
     /// </summary>
     EventCallback<BradixCheckboxCheckedState> OnCheckedChange { get; set; }
 
-    /// <summary>
-    /// Releases resources used by checkbox interop registrations.
-    /// </summary>
-    ValueTask DisposeAsync();
 
     /// <summary>
     /// Called when delegated interaction handling is ready on the root button.

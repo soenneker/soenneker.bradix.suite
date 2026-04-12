@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -5,8 +6,7 @@ using Microsoft.AspNetCore.Components;
 namespace Soenneker.Bradix;
 
 /// <summary>Defines the public API for <see cref="BradixMenuSubTrigger"/>.</summary>
-public interface IBradixMenuSubTrigger
-{
+public interface IBradixMenuSubTrigger : IAsyncDisposable {
     /// <summary>Gets or sets a value indicating whether the trigger is disabled.</summary>
     bool Disabled { get; set; }
 
@@ -16,8 +16,6 @@ public interface IBradixMenuSubTrigger
     /// <summary>Gets the tab stop id assigned to this trigger.</summary>
     string? TabStopId { get; }
 
-    /// <summary>Releases resources used by the trigger.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Moves keyboard focus to this trigger without scrolling the page.</summary>
     ValueTask Focus();

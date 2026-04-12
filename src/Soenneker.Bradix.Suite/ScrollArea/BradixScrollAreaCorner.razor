@@ -2,6 +2,8 @@
 
 @inherits BradixComponentBase
 
+@implements IBradixScrollAreaCorner
+
 @if (ScrollArea.ShouldRenderCorner)
 {
     <div @attributes="CornerAttributes"></div>

@@ -1,7 +1,9 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
+
+@implements IBradixDialogContent
+
 @inject IBradixSuiteInterop Interop
 
 @if (ShouldRenderContainer)

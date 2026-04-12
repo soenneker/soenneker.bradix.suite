@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Viewport host that animates between multiple navigation menu content panels.
 /// </summary>
-public interface IBradixNavigationMenuViewport
-{
+public interface IBradixNavigationMenuViewport : IAsyncDisposable {
     /// <summary>When true, keeps the viewport mounted while closed.</summary>
     bool ForceMount { get; set; }
 
@@ -27,8 +27,6 @@ public interface IBradixNavigationMenuViewport
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters viewport sizing interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when viewport dimensions change.</summary>
     Task HandleViewportSizeChanged(double width, double height);

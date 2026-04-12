@@ -1,8 +1,10 @@
 @namespace Soenneker.Bradix
 
 @inherits BradixComponentBase
-@inject IBradixIdGenerator IdGenerator
 
+@implements IBradixAccordionItem
+
+@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     <BradixCollapsible Id="@Id"
                        Class="@Class"

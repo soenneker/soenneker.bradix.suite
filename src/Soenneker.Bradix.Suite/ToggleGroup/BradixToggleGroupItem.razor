@@ -1,10 +1,11 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
+
+@implements IBradixToggleGroupItem
+
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
-
 <BradixToggle @ref="_toggle"
               Id="@Id"
               Class="@Class"

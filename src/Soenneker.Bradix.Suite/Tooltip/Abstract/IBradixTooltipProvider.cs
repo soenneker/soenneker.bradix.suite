@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -6,7 +6,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Coordinates delay skipping and single-open behavior across nested tooltips.
 /// </summary>
-public interface IBradixTooltipProvider
+public interface IBradixTooltipProvider : IAsyncDisposable
 {
     /// <summary>Default open delay in milliseconds.</summary>
     int DelayDuration { get; set; }
@@ -19,7 +19,4 @@ public interface IBradixTooltipProvider
 
     /// <summary>Provider subtree containing tooltips.</summary>
     RenderFragment? ChildContent { get; set; }
-
-    /// <summary>Releases skip-delay timers.</summary>
-    ValueTask DisposeAsync();
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Button trigger that toggles the popover open state.
 /// </summary>
-public interface IBradixPopoverTrigger
-{
+public interface IBradixPopoverTrigger : IAsyncDisposable {
     /// <summary>When true, the trigger ignores interactions.</summary>
     bool Disabled { get; set; }
 
@@ -27,8 +27,6 @@ public interface IBradixPopoverTrigger
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters delegated interaction interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when delegated interaction is ready.</summary>
     Task HandleDelegatedInteractionReady();

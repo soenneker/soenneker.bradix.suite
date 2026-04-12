@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Tooltip floating content with popper placement and accessible labeling.
 /// </summary>
-public interface IBradixTooltipContent
-{
+public interface IBradixTooltipContent : IAsyncDisposable {
     /// <summary>When true, keeps content mounted while closed.</summary>
     bool ForceMount { get; set; }
 
@@ -66,8 +66,6 @@ public interface IBradixTooltipContent
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters tooltip content interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when another tooltip requests exclusive open.</summary>
     Task HandleTooltipOpenFromOutside();

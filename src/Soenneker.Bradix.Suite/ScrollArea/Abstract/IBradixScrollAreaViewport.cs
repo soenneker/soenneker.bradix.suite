@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixScrollAreaViewport"/>.
 /// </summary>
-public interface IBradixScrollAreaViewport
-{
+public interface IBradixScrollAreaViewport : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -27,6 +26,4 @@ public interface IBradixScrollAreaViewport
     /// <summary>Gets or sets the CSP nonce applied to injected viewport styles.</summary>
     string? Nonce { get; set; }
 
-    /// <summary>Releases viewport script registrations.</summary>
-    ValueTask DisposeAsync();
 }

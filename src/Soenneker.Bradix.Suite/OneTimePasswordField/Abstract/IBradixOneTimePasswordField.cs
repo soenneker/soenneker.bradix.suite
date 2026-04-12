@@ -8,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// One-time password / OTP input group coordinating segmented inputs and hidden submission.
 /// </summary>
-public interface IBradixOneTimePasswordField
-{
+public interface IBradixOneTimePasswordField : IAsyncDisposable{
     /// <summary>Value for the autocomplete attribute on supported inputs.</summary>
     string AutoComplete { get; set; }
 
@@ -79,8 +78,6 @@ public interface IBradixOneTimePasswordField
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters form reset interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when the associated form resets.</summary>
     Task HandleFormReset();

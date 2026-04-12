@@ -1,9 +1,12 @@
 @namespace Soenneker.Bradix
+
 @using System.Threading
 @using Microsoft.JSInterop
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
+
+@implements IBradixToast
+
 @inject IBradixSuiteInterop Interop
 
 @if (_announceVisible)

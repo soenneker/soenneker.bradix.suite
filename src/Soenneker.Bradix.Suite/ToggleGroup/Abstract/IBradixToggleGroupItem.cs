@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixToggleGroupItem"/>.
 /// </summary>
-public interface IBradixToggleGroupItem
-{
+public interface IBradixToggleGroupItem : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -30,6 +29,4 @@ public interface IBradixToggleGroupItem
     /// <summary>Gets or sets whether this item is disabled.</summary>
     bool Disabled { get; set; }
 
-    /// <summary>Releases item registration and script hooks.</summary>
-    ValueTask DisposeAsync();
 }

@@ -1,9 +1,10 @@
 @namespace Soenneker.Bradix
-@implements IAsyncDisposable
+
+@implements IBradixRemoveScroll
+
 @inject IBradixSuiteInterop Interop
 
 @ChildContent
-
 @code {
     private bool _registered;
 

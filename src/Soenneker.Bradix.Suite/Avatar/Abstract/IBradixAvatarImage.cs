@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
@@ -6,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Describes the public API of <see cref="BradixAvatarImage"/>.
 /// </summary>
-public interface IBradixAvatarImage
-{
+public interface IBradixAvatarImage : IAsyncDisposable {
     /// <summary>
     /// Gets or sets the image URL.
     /// </summary>
@@ -33,10 +33,6 @@ public interface IBradixAvatarImage
     /// </summary>
     EventCallback<BradixAvatarImageLoadingStatus> OnLoadingStatusChange { get; set; }
 
-    /// <summary>
-    /// Releases resources used by the image loading bridge.
-    /// </summary>
-    ValueTask DisposeAsync();
 
     /// <summary>
     /// Handles a loading status update emitted from JavaScript.

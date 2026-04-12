@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Root form primitive coordinating client validity, custom matchers, and field messaging.
 /// </summary>
-public interface IBradixForm
-{
+public interface IBradixForm : IAsyncDisposable {
     /// <summary>Raised on submit after the form begins clearing server-side errors.</summary>
     EventCallback OnClearServerErrors { get; set; }
 
@@ -27,8 +27,6 @@ public interface IBradixForm
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters form root interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when invalid controls are reported from script.</summary>
     Task HandleInvalidControls(string[] fieldNames);

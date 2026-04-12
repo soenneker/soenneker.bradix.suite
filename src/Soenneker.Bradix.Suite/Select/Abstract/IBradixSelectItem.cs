@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixSelectItem"/>.
 /// </summary>
-public interface IBradixSelectItem
-{
+public interface IBradixSelectItem : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -33,6 +32,4 @@ public interface IBradixSelectItem
     /// <summary>Gets or sets the text value used for typeahead matching.</summary>
     string? TextValue { get; set; }
 
-    /// <summary>Releases item registration and script hooks.</summary>
-    ValueTask DisposeAsync();
 }

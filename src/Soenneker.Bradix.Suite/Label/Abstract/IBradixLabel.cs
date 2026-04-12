@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -8,8 +9,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Associates label text with a form control and guards text selection on mouse down.
 /// </summary>
-public interface IBradixLabel
-{
+public interface IBradixLabel : IAsyncDisposable {
     /// <summary>Value for the label's <c>for</c> attribute.</summary>
     string? For { get; set; }
 
@@ -31,8 +31,6 @@ public interface IBradixLabel
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters label interop handlers.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler for delegated mouse down events.</summary>
     Task HandleMouseDownFromJs(BradixDelegatedMouseEvent args);

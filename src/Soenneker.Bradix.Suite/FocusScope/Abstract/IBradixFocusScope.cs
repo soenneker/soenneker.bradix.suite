@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Traps and restores focus within a subtree, with optional looping tab navigation.
 /// </summary>
-public interface IBradixFocusScope
-{
+public interface IBradixFocusScope : IAsyncDisposable {
     /// <summary>When true, focus cycles from last to first tab stop and vice versa.</summary>
     bool Loop { get; set; }
 
@@ -48,8 +48,6 @@ public interface IBradixFocusScope
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters the focus scope from interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler for mount autofocus.</summary>
     Task<bool> HandleMountAutoFocus();

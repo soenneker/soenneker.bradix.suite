@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Renders children into a portal target in the DOM.
 /// </summary>
-public interface IBradixPortal
-{
+public interface IBradixPortal : IAsyncDisposable {
     /// <summary>CSS selector for the portal container element.</summary>
     string? ContainerSelector { get; set; }
 
@@ -30,6 +29,4 @@ public interface IBradixPortal
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unmounts the portal.</summary>
-    ValueTask DisposeAsync();
 }

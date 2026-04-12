@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixToolbarToggleItem"/>.
 /// </summary>
-public interface IBradixToolbarToggleItem
-{
+public interface IBradixToolbarToggleItem : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -33,8 +33,6 @@ public interface IBradixToolbarToggleItem
     /// <summary>Gets the stable id used for roving tabindex.</summary>
     string? TabStopId { get; }
 
-    /// <summary>Releases roving-focus registrations.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Moves focus to the toolbar toggle item.</summary>
     ValueTask Focus();

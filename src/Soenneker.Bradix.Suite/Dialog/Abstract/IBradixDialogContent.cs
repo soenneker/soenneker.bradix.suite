@@ -1,14 +1,12 @@
-using System.Threading.Tasks;
+using System;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Soenneker.Bradix;
 
 /// <summary>
 /// Describes the public API of <see cref="BradixDialogContent"/>.
 /// </summary>
-public interface IBradixDialogContent
-{
+public interface IBradixDialogContent : IAsyncDisposable {
     /// <summary>
     /// Gets or sets whether the content stays mounted while closed.
     /// </summary>
@@ -94,8 +92,4 @@ public interface IBradixDialogContent
     /// </summary>
     bool CloseOnFocusOutside { get; set; }
 
-    /// <summary>
-    /// Releases resources used by the dialog content layer.
-    /// </summary>
-    ValueTask DisposeAsync();
 }

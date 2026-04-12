@@ -1,9 +1,10 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@implements IBradixFormControl
+
+@inject IBradixSuiteInterop Interop
 <input @ref="_element"
        @oninvalid:preventDefault="true"
        @oninvalid="HandleInvalid"

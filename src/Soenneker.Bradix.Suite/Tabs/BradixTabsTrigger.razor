@@ -1,10 +1,12 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
-@implements IAsyncDisposable
-@inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@inherits BradixComponentBase
+
+@implements IBradixTabsTrigger
+
+@inject IBradixSuiteInterop Interop
 <button @ref="_element"
         @onmousedown="HandleMouseDown"
         @onkeydown="HandleKeyDown"

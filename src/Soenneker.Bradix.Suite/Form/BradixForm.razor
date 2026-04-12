@@ -1,11 +1,13 @@
 @namespace Soenneker.Bradix
-@using System.Linq
 
-@implements IAsyncDisposable
-@inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
+@using System.Linq
 @using Microsoft.JSInterop
 
+@inherits BradixComponentBase
+
+@implements IBradixForm
+
+@inject IBradixSuiteInterop Interop
 <CascadingValue Value="this">
     <form @ref="_formElement"
           @onsubmit="HandleSubmit"

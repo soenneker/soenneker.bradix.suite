@@ -1,8 +1,10 @@
 @namespace Soenneker.Bradix
 
 @inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@implements IBradixSelectItemText
+
+@inject IBradixSuiteInterop Interop
 <span @ref="_element"
       @attributes="ItemTextAttributes">
     @ChildContent

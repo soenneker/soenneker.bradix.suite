@@ -1,11 +1,14 @@
 @namespace Soenneker.Bradix
+
 @using Microsoft.JSInterop
-@implements IAsyncDisposable
 @using System.Linq
+
 @inherits BradixComponentBase
+
+@implements IBradixMenubar
+
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
-
 <CascadingValue Value="this">
     <div @ref="_element"
          @attributes="RootAttributes">

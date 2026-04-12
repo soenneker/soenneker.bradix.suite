@@ -1,10 +1,13 @@
 @namespace Soenneker.Bradix
+
 @using System.Linq
 
 @inherits BradixComponentBase
+
+@implements IBradixMenu
+
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
-
 <BradixPopper @ref="_popper">
     <CascadingValue Name="BradixMenuRoot" Value="RootMenu">
         <CascadingValue Value="this">

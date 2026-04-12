@@ -1,9 +1,12 @@
 @namespace Soenneker.Bradix
-@using System.Threading
 
+@using System.Threading
 @using Microsoft.JSInterop
-@implements IAsyncDisposable
+
 @inherits BradixComponentBase
+
+@implements IBradixSelectContent
+
 @inject IBradixSuiteInterop Interop
 
 @if (Select?.CurrentOpen == true || ForceMount)

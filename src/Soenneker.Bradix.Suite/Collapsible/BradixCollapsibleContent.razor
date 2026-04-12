@@ -1,9 +1,10 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@implements IBradixCollapsibleContent
+
+@inject IBradixSuiteInterop Interop
 <BradixPresence Present="Present"
                 Tag="div"
                 AdditionalAttributes="@ContentAttributes"

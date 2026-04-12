@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixToast"/>.
 /// </summary>
-public interface IBradixToast
-{
+public interface IBradixToast : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -69,8 +69,6 @@ public interface IBradixToast
     /// <summary>Gets or sets the callback invoked when a swipe completes.</summary>
     EventCallback<BradixToastSwipeEventArgs> OnSwipeEnd { get; set; }
 
-    /// <summary>Releases toast registrations and script hooks.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Called from script for delegated escape key handling.</summary>
     Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args);

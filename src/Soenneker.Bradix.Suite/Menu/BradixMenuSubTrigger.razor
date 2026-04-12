@@ -1,13 +1,15 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
-@implements IBradixMenuRovingItem
-@inherits BradixComponentBase
-@inject IBradixIdGenerator IdGenerator
-@inject IBradixSuiteInterop Interop
 @using Microsoft.JSInterop
 @using System.Threading
 
+@inherits BradixComponentBase
+
+@implements IBradixMenuRovingItem
+@implements IBradixMenuSubTrigger
+
+@inject IBradixIdGenerator IdGenerator
+@inject IBradixSuiteInterop Interop
 <div @ref="_element"
      @onclick="HandleClick"
      @onfocus="HandleFocus"

@@ -1,8 +1,10 @@
 @namespace Soenneker.Bradix
+
 @using System.Threading
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
+
+@implements IBradixAvatarFallback
 
 @if (CanRenderFallback)
 {

@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Root primitive for a hover-activated floating card.
 /// </summary>
-public interface IBradixHoverCard
-{
+public interface IBradixHoverCard : IAsyncDisposable {
     /// <summary>Controlled open state; null for uncontrolled usage.</summary>
     bool? Open { get; set; }
 
@@ -42,6 +41,4 @@ public interface IBradixHoverCard
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Cancels pending open/close delays.</summary>
-    ValueTask DisposeAsync();
 }

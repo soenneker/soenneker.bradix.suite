@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixSlider"/>.
 /// </summary>
-public interface IBradixSlider
-{
+public interface IBradixSlider : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -69,8 +69,6 @@ public interface IBradixSlider
     /// <summary>Gets or sets the <c>form</c> attribute for detached native inputs.</summary>
     string? Form { get; set; }
 
-    /// <summary>Releases script registrations for the slider.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Called from script when a pointer drag begins.</summary>
     Task HandlePointerStart(double xFraction, double yFraction, int thumbIndex);

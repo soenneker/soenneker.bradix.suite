@@ -2,6 +2,8 @@
 
 @inherits BradixComponentBase
 
+@implements IBradixScrollAreaThumb
+
 @if (Scrollbar.ScrollArea.ShouldRenderThumb(Scrollbar.Orientation, ForceMount))
 {
     <div @ref="_thumb"

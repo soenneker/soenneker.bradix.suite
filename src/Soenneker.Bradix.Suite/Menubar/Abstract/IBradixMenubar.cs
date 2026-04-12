@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -5,8 +6,7 @@ using Microsoft.AspNetCore.Components;
 namespace Soenneker.Bradix;
 
 /// <summary>Defines the public API for <see cref="BradixMenubar"/>.</summary>
-public interface IBradixMenubar
-{
+public interface IBradixMenubar : IAsyncDisposable {
     /// <summary>Gets or sets the controlled value identifying the open menu.</summary>
     string? Value { get; set; }
 
@@ -25,8 +25,6 @@ public interface IBradixMenubar
     /// <summary>Gets or sets the text direction (e.g. <c>ltr</c> or <c>rtl</c>).</summary>
     string? Dir { get; set; }
 
-    /// <summary>Releases resources used by the menubar.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Handles a document-level pointer down outside interaction from JavaScript interop.</summary>
     Task HandleDocumentPointerDownOutside();

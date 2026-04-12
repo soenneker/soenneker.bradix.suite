@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
 
@@ -6,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// List container for navigation menu triggers, optionally registering the indicator track.
 /// </summary>
-public interface IBradixNavigationMenuList
-{
+public interface IBradixNavigationMenuList : IDisposable {
     /// <summary>Root element id.</summary>
     string? Id { get; set; }
 
@@ -23,6 +23,4 @@ public interface IBradixNavigationMenuList
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters the indicator track when applicable.</summary>
-    void Dispose();
 }

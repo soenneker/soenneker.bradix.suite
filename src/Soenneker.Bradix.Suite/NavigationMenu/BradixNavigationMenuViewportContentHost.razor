@@ -1,9 +1,10 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@implements IBradixNavigationMenuViewportContentHost
+
+@inject IBradixSuiteInterop Interop
 <BradixPresence Present="@Present"
                 Tag="div">
     <BradixDismissableLayer DisableOutsidePointerEvents="false"

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Input control wired to <see cref="BradixForm"/> validation and field state.
 /// </summary>
-public interface IBradixFormControl
-{
+public interface IBradixFormControl : IAsyncDisposable {
     /// <summary>Control name submitted with the form.</summary>
     string? Name { get; set; }
 
@@ -36,6 +36,4 @@ public interface IBradixFormControl
     /// <summary>Propagates control snapshot changes for custom validation.</summary>
     Task HandleControlStateChanged(BradixFormControlSnapshot snapshot);
 
-    /// <summary>Unregisters the control from the parent form.</summary>
-    ValueTask DisposeAsync();
 }

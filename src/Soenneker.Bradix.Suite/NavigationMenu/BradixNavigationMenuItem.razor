@@ -1,8 +1,10 @@
 @namespace Soenneker.Bradix
 
 @inherits BradixComponentBase
-@inject IBradixIdGenerator IdGenerator
 
+@implements IBradixNavigationMenuItem
+
+@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     <li @attributes="ItemAttributes">
         @ChildContent

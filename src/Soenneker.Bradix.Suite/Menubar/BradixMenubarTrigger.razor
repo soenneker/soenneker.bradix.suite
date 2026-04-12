@@ -1,10 +1,12 @@
 @namespace Soenneker.Bradix
-@implements IAsyncDisposable
-@implements IBradixMenubarTriggerEntry
-@inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
+
 @using Microsoft.JSInterop
 
+@inherits BradixComponentBase
+
+@implements IBradixMenubarTriggerEntry
+
+@inject IBradixSuiteInterop Interop
 <BradixMenuAnchor>
     <button @ref="_button"
             @onclick="HandleClick"

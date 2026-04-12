@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Hover card floating content with dismissable-layer and popper placement.
 /// </summary>
-public interface IBradixHoverCardContent
-{
+public interface IBradixHoverCardContent : IAsyncDisposable {
     /// <summary>When true, keeps the subtree mounted for exit animations.</summary>
     bool ForceMount { get; set; }
 
@@ -75,8 +75,6 @@ public interface IBradixHoverCardContent
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters selection containment interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when the document receives pointer up after selection.</summary>
     Task HandleDocumentPointerUp(bool hasSelection);

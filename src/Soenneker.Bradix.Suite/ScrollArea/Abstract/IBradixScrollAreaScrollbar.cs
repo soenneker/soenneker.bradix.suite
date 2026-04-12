@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -7,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixScrollAreaScrollbar"/>.
 /// </summary>
-public interface IBradixScrollAreaScrollbar
-{
+public interface IBradixScrollAreaScrollbar : IAsyncDisposable {
     /// <summary>Gets or sets the element identifier.</summary>
     string? Id { get; set; }
 
@@ -30,6 +29,4 @@ public interface IBradixScrollAreaScrollbar
     /// <summary>Gets or sets whether the scrollbar stays mounted when not visible.</summary>
     bool ForceMount { get; set; }
 
-    /// <summary>Releases resources used by the scrollbar registration.</summary>
-    ValueTask DisposeAsync();
 }

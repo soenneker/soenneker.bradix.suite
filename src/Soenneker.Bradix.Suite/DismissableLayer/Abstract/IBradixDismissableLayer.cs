@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
@@ -6,8 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Describes the public API of <see cref="BradixDismissableLayer"/>.
 /// </summary>
-public interface IBradixDismissableLayer
-{
+public interface IBradixDismissableLayer : IAsyncDisposable {
     /// <summary>
     /// Gets or sets whether pointer events outside the layer are disabled.
     /// </summary>
@@ -78,10 +78,6 @@ public interface IBradixDismissableLayer
     /// </summary>
     EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
 
-    /// <summary>
-    /// Releases resources used by dismissable layer interop registrations.
-    /// </summary>
-    ValueTask DisposeAsync();
 
     /// <summary>
     /// Handles an escape key event forwarded from JavaScript.

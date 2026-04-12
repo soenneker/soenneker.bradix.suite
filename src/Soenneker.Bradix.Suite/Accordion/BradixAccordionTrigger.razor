@@ -1,11 +1,12 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
-@implements IDisposable
-@implements IAsyncDisposable
-@inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@inherits BradixComponentBase
+
+@implements IBradixAccordionTrigger
+
+@inject IBradixSuiteInterop Interop
 <BradixCollapsibleTrigger @ref="_trigger"
                           Id="@Item.TriggerId"
                           Class="@Class"

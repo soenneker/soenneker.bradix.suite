@@ -1,9 +1,10 @@
 @namespace Soenneker.Bradix
 
-@implements IAsyncDisposable
 @inherits BradixComponentBase
-@inject IBradixSuiteInterop Interop
 
+@implements IBradixSliderThumb
+
+@inject IBradixSuiteInterop Interop
 <span @attributes="WrapperAttributes">
     <span @ref="_element"
           @onfocus="HandleFocus"

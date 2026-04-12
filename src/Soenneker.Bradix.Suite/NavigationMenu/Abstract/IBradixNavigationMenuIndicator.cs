@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -7,8 +8,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Sliding indicator aligned to the active navigation menu trigger.
 /// </summary>
-public interface IBradixNavigationMenuIndicator
-{
+public interface IBradixNavigationMenuIndicator : IAsyncDisposable {
     /// <summary>When true, keeps the indicator mounted while closed.</summary>
     bool ForceMount { get; set; }
 
@@ -27,8 +27,6 @@ public interface IBradixNavigationMenuIndicator
     /// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Unregisters indicator interop.</summary>
-    ValueTask DisposeAsync();
 
     /// <summary>Interop handler when indicator size/position updates.</summary>
     Task HandleIndicatorPositionChanged(double size, double offset);

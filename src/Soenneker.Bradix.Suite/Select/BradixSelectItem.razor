@@ -1,11 +1,14 @@
 @namespace Soenneker.Bradix
-@implements IAsyncDisposable
-@implements IBradixSelectCollectionItem
-@inherits BradixComponentBase
-@inject IBradixIdGenerator IdGenerator
-@inject IBradixSuiteInterop Interop
+
 @using Microsoft.JSInterop
 
+@inherits BradixComponentBase
+
+@implements IBradixSelectCollectionItem
+@implements IBradixSelectItem
+
+@inject IBradixIdGenerator IdGenerator
+@inject IBradixSuiteInterop Interop
 <CascadingValue Value="this">
     <div @ref="_element"
          @onclick="HandleClick"

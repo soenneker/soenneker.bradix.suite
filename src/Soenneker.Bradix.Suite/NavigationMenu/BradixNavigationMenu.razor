@@ -1,10 +1,13 @@
 @namespace Soenneker.Bradix
+
 @using System.Linq
 @using System.Threading
 
 @inherits BradixComponentBase
-@inject IBradixIdGenerator IdGenerator
 
+@implements IBradixNavigationMenu
+
+@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     @if (IsRootMenu)
     {
