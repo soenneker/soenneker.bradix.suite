@@ -14,7 +14,7 @@
 </CascadingValue>
 
 @code {
-    private readonly BradixCollectionRegistry<IBradixMenubarTrigger> _triggers = new();
+    private readonly BradixCollectionRegistry<IBradixMenubarTriggerEntry> _triggers = new();
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _documentDismissRegistered;
@@ -97,14 +97,14 @@
         return string.Equals(CurrentTabStopId, menu.CurrentValue, StringComparison.Ordinal);
     }
 
-    internal void RegisterTrigger(IBradixMenubarTrigger trigger)
+    internal void RegisterTrigger(IBradixMenubarTriggerEntry trigger)
     {
         _triggers.Register(trigger.Value, trigger);
         EnsureCurrentTabStopId();
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal void UnregisterTrigger(IBradixMenubarTrigger trigger)
+    internal void UnregisterTrigger(IBradixMenubarTriggerEntry trigger)
     {
         _triggers.Unregister(trigger.Value);
         EnsureCurrentTabStopId();
@@ -141,12 +141,12 @@
         SetCurrentTabStop(value);
     }
 
-    internal async Task HandleTriggerKeyDownAsync(IBradixMenubarTrigger trigger, KeyboardEventArgs args)
+    internal async Task HandleTriggerKeyDownAsync(IBradixMenubarTriggerEntry trigger, KeyboardEventArgs args)
     {
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<IBradixMenubarTrigger> focusableTriggers = GetFocusableTriggers();
+        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
         int currentIndex = focusableTriggers.IndexOf(trigger);
 
         if (currentIndex < 0)
@@ -155,7 +155,7 @@
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(args.Key, "horizontal", ResolvedDirection, currentIndex, focusableTriggers.Count, Loop, out int targetIndex))
             return;
 
-        IBradixMenubarTrigger target = focusableTriggers[targetIndex];
+        IBradixMenubarTriggerEntry target = focusableTriggers[targetIndex];
         CurrentTabStopId = target.Value;
         await target.FocusAsync();
 
@@ -167,7 +167,7 @@
 
     internal async Task MoveToAdjacentMenuAsync(string value, string key)
     {
-        List<IBradixMenubarTrigger> focusableTriggers = GetFocusableTriggers();
+        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
         List<string> candidateValues = focusableTriggers.Select(trigger => trigger.Value).ToList();
 
         string previousMenuKey = ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
@@ -236,7 +236,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private List<IBradixMenubarTrigger> GetFocusableTriggers()
+    private List<IBradixMenubarTriggerEntry> GetFocusableTriggers()
     {
         return _triggers.Snapshot()
             .Select(entry => entry.Item)
@@ -246,7 +246,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixMenubarTrigger> focusableTriggers = GetFocusableTriggers();
+        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
 
         if (focusableTriggers.Count == 0)
         {

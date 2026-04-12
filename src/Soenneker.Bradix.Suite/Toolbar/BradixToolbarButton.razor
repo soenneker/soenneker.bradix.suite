@@ -1,7 +1,7 @@
 @namespace Soenneker.Bradix
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
-@implements Soenneker.Bradix.IBradixToolbarItem
+@implements IBradixToolbarRovingItem
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
@@ -28,7 +28,7 @@
 
     public string? TabStopId { get; private set; }
 
-    bool IBradixToolbarItem.IsDisabled => Disabled;
+    bool IBradixToolbarRovingItem.IsDisabled => Disabled;
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),

@@ -9,7 +9,7 @@
 </CascadingValue>
 
 @code {
-    private readonly List<IBradixToolbarItem> _items = [];
+    private readonly List<IBradixToolbarRovingItem> _items = [];
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -45,12 +45,12 @@
         EnsureCurrentTabStopId();
     }
 
-    internal bool IsCurrentTabStop(IBradixToolbarItem item)
+    internal bool IsCurrentTabStop(IBradixToolbarRovingItem item)
     {
         return string.Equals(CurrentTabStopId, item.TabStopId, StringComparison.Ordinal);
     }
 
-    internal void RegisterItem(IBradixToolbarItem item)
+    internal void RegisterItem(IBradixToolbarRovingItem item)
     {
         if (_items.Contains(item))
             return;
@@ -60,7 +60,7 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal void UnregisterItem(IBradixToolbarItem item)
+    internal void UnregisterItem(IBradixToolbarRovingItem item)
     {
         _items.Remove(item);
         EnsureCurrentTabStopId();
@@ -76,12 +76,12 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal async Task HandleItemKeyDownAsync(IBradixToolbarItem item, KeyboardEventArgs args)
+    internal async Task HandleItemKeyDownAsync(IBradixToolbarRovingItem item, KeyboardEventArgs args)
     {
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<IBradixToolbarItem> focusableItems = _items
+        List<IBradixToolbarRovingItem> focusableItems = _items
             .Where(candidate => !candidate.IsDisabled)
             .ToList();
 
@@ -102,7 +102,7 @@
             return;
         }
 
-        IBradixToolbarItem target = focusableItems[targetIndex];
+        IBradixToolbarRovingItem target = focusableItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
         await target.FocusAsync();
         await InvokeAsync(StateHasChanged);
@@ -110,7 +110,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixToolbarItem> focusableItems = _items
+        List<IBradixToolbarRovingItem> focusableItems = _items
             .Where(item => !item.IsDisabled)
             .ToList();
 

@@ -81,7 +81,7 @@
             navigationMenu is null ||
             !navigationMenu.HasIndicatorTrack ||
             !navigationMenu.HasOpenItem ||
-            !navigationMenu.TryGetOpenTrigger(out IBradixNavigationMenuTrigger trigger))
+            !navigationMenu.TryGetOpenTrigger(out IBradixNavigationMenuRegisteredTrigger trigger))
         {
             if (_registered)
             {

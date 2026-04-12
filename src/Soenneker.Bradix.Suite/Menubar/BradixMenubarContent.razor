@@ -365,19 +365,19 @@
         return ancestorIds?.Contains(contentId) == true;
     }
 
-    Task IBradixMenuContentController.HandleItemKeyDownAsync(IBradixMenuItem item, KeyboardEventArgs args)
+    Task IBradixMenuContentController.HandleItemKeyDownAsync(IBradixMenuRovingItem item, KeyboardEventArgs args)
     {
         return Menu is null
             ? Task.CompletedTask
             : Menu.HandleItemNavigationAsync(item, args.Key, Loop);
     }
 
-    Task IBradixMenuContentController.HandleTypeaheadKeyAsync(IBradixMenuItem item, string key)
+    Task IBradixMenuContentController.HandleTypeaheadKeyAsync(IBradixMenuRovingItem item, string key)
     {
         return Menu is null ? Task.CompletedTask : Menu.HandleTypeaheadAsync(item, key);
     }
 
-    Task IBradixMenuContentController.HandlePointerMoveAsync(IBradixMenuItem item, string? pointerType)
+    Task IBradixMenuContentController.HandlePointerMoveAsync(IBradixMenuRovingItem item, string? pointerType)
     {
         if (Menu is null || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
             return Task.CompletedTask;

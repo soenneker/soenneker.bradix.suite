@@ -439,7 +439,7 @@ else
         if (Select is null || !UseItemAlignedPosition || !_hasContentElement || !_hasViewportElement || !Select.HasTrigger || !Select.HasValueNode)
             return;
 
-        IBradixSelectItem? selectedItem = Select.GetSelectedOrFirstEnabledItem();
+        IBradixSelectCollectionItem? selectedItem = Select.GetSelectedOrFirstEnabledItem();
 
         if (selectedItem is null || !selectedItem.HasItemTextElement)
             return;
@@ -467,7 +467,7 @@ else
             if (Select is null)
                 return;
 
-            IBradixSelectItem? item = Select.GetSelectedOrFirstEnabledItem();
+            IBradixSelectCollectionItem? item = Select.GetSelectedOrFirstEnabledItem();
 
             if (item is not null)
                 await Interop.ScrollSelectViewportByItem(_viewportElement, item.ItemElement, upward, cancellationToken);

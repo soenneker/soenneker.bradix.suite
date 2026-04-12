@@ -1,7 +1,7 @@
 @namespace Soenneker.Bradix
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
-@implements IBradixToolbarItem
+@implements IBradixToolbarRovingItem
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
@@ -37,7 +37,7 @@
 
     internal bool IsPressed => Group.IsItemPressed(Value);
 
-    bool IBradixToolbarItem.IsDisabled => IsDisabled;
+    bool IBradixToolbarRovingItem.IsDisabled => IsDisabled;
 
     private bool IsDisabled => Group.Disabled || Disabled;
 

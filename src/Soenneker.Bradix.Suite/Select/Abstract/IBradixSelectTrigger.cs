@@ -1,0 +1,35 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+
+namespace Soenneker.Bradix;
+
+/// <summary>
+/// Defines the public API for <see cref="BradixSelectTrigger"/>.
+/// </summary>
+public interface IBradixSelectTrigger
+{
+    /// <summary>Gets or sets the element identifier.</summary>
+    string? Id { get; set; }
+
+    /// <summary>Gets or sets the CSS class.</summary>
+    string? Class { get; set; }
+
+    /// <summary>Gets or sets the inline style.</summary>
+    string? Style { get; set; }
+
+    /// <summary>Gets or sets the child content.</summary>
+    RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Gets or sets additional attributes merged onto the root element.</summary>
+    IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>Gets or sets whether the trigger is disabled.</summary>
+    bool Disabled { get; set; }
+
+    /// <summary>Releases script registrations for the trigger.</summary>
+    ValueTask DisposeAsync();
+
+    /// <summary>Called from script for delegated primary pointer down handling.</summary>
+    Task HandleDelegatedPointerDownAsync(BradixDelegatedMouseEvent args);
+}

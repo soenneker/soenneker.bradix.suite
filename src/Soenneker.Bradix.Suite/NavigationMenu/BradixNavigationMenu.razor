@@ -23,7 +23,7 @@
 </CascadingValue>
 
 @code {
-    private readonly BradixCollectionRegistry<IBradixNavigationMenuTrigger> _triggers = new();
+    private readonly BradixCollectionRegistry<IBradixNavigationMenuRegisteredTrigger> _triggers = new();
     private readonly Dictionary<string, ElementReference> _contentElements = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ElementReference> _focusProxyElements = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<IBradixNavigationMenuFocusGroupItem>> _focusGroups = new(StringComparer.Ordinal);
@@ -143,9 +143,9 @@
         return string.Equals(CurrentValue, item.ResolvedValue, StringComparison.Ordinal);
     }
 
-    internal bool TryGetOpenTrigger(out IBradixNavigationMenuTrigger trigger)
+    internal bool TryGetOpenTrigger(out IBradixNavigationMenuRegisteredTrigger trigger)
     {
-        IBradixNavigationMenuTrigger? resolvedTrigger = _triggers.Snapshot()
+        IBradixNavigationMenuRegisteredTrigger? resolvedTrigger = _triggers.Snapshot()
             .Select(entry => entry.Item)
             .FirstOrDefault(candidate => string.Equals(candidate.Value, CurrentValue, StringComparison.Ordinal));
 
@@ -153,9 +153,9 @@
         return resolvedTrigger is not null;
     }
 
-    internal bool TryGetTrigger(string value, out IBradixNavigationMenuTrigger trigger)
+    internal bool TryGetTrigger(string value, out IBradixNavigationMenuRegisteredTrigger trigger)
     {
-        IBradixNavigationMenuTrigger? resolvedTrigger = _triggers.Snapshot()
+        IBradixNavigationMenuRegisteredTrigger? resolvedTrigger = _triggers.Snapshot()
             .Select(entry => entry.Item)
             .FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.Ordinal));
 
@@ -209,14 +209,14 @@
         return false;
     }
 
-    internal void RegisterTrigger(IBradixNavigationMenuTrigger trigger)
+    internal void RegisterTrigger(IBradixNavigationMenuRegisteredTrigger trigger)
     {
         _triggers.Register(trigger.Value, trigger);
         EnsureCurrentTabStopValue();
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal void UnregisterTrigger(IBradixNavigationMenuTrigger trigger)
+    internal void UnregisterTrigger(IBradixNavigationMenuRegisteredTrigger trigger)
     {
         _triggers.Unregister(trigger.Value);
         EnsureCurrentTabStopValue();
@@ -482,7 +482,7 @@
 
     internal async Task FocusTriggerAsync(string value)
     {
-        IBradixNavigationMenuTrigger? trigger = GetFocusableTriggers().FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.Ordinal));
+        IBradixNavigationMenuRegisteredTrigger? trigger = GetFocusableTriggers().FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.Ordinal));
         if (trigger is not null)
             await trigger.FocusAsync();
     }
@@ -519,12 +519,12 @@
             _escapeClosedValues.Remove(value);
     }
 
-    internal async Task HandleTriggerNavigationAsync(IBradixNavigationMenuTrigger trigger, KeyboardEventArgs args)
+    internal async Task HandleTriggerNavigationAsync(IBradixNavigationMenuRegisteredTrigger trigger, KeyboardEventArgs args)
     {
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<IBradixNavigationMenuTrigger> focusableTriggers = GetFocusableTriggers();
+        List<IBradixNavigationMenuRegisteredTrigger> focusableTriggers = GetFocusableTriggers();
         int currentIndex = focusableTriggers.IndexOf(trigger);
 
         if (currentIndex < 0)
@@ -542,7 +542,7 @@
             return;
         }
 
-        IBradixNavigationMenuTrigger target = focusableTriggers[targetIndex];
+        IBradixNavigationMenuRegisteredTrigger target = focusableTriggers[targetIndex];
         CurrentTabStopValue = target.Value;
         await target.FocusAsync();
         await InvokeAsync(StateHasChanged);
@@ -620,7 +620,7 @@
 
     private void EnsureCurrentTabStopValue()
     {
-        List<IBradixNavigationMenuTrigger> focusableTriggers = GetFocusableTriggers();
+        List<IBradixNavigationMenuRegisteredTrigger> focusableTriggers = GetFocusableTriggers();
 
         if (focusableTriggers.Count == 0)
         {
@@ -634,11 +634,11 @@
             return;
         }
 
-        IBradixNavigationMenuTrigger? activeTrigger = focusableTriggers.FirstOrDefault(trigger => string.Equals(trigger.Value, CurrentValue, StringComparison.Ordinal));
+        IBradixNavigationMenuRegisteredTrigger? activeTrigger = focusableTriggers.FirstOrDefault(trigger => string.Equals(trigger.Value, CurrentValue, StringComparison.Ordinal));
         CurrentTabStopValue = activeTrigger?.Value ?? focusableTriggers[0].Value;
     }
 
-    private List<IBradixNavigationMenuTrigger> GetFocusableTriggers()
+    private List<IBradixNavigationMenuRegisteredTrigger> GetFocusableTriggers()
     {
         return _triggers.Snapshot()
             .Select(entry => entry.Item)

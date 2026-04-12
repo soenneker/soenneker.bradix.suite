@@ -14,7 +14,7 @@
 </BradixPopper>
 
 @code {
-    private readonly BradixCollectionRegistry<IBradixMenuItem> _items = new();
+    private readonly BradixCollectionRegistry<IBradixMenuRovingItem> _items = new();
     private readonly BradixTypeaheadBuffer _typeahead = new();
     private BradixPopper? _popper;
     private bool _initialized;
@@ -106,19 +106,19 @@
         _lastControlledOpen = controlledOpen;
     }
 
-    internal bool IsCurrentTabStop(IBradixMenuItem item)
+    internal bool IsCurrentTabStop(IBradixMenuRovingItem item)
     {
         return string.Equals(CurrentTabStopId, item.TabStopId, StringComparison.Ordinal);
     }
 
-    internal void RegisterItem(IBradixMenuItem item)
+    internal void RegisterItem(IBradixMenuRovingItem item)
     {
         _items.Register(item.TabStopId, item);
         EnsureCurrentTabStopId();
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal void UnregisterItem(IBradixMenuItem item)
+    internal void UnregisterItem(IBradixMenuRovingItem item)
     {
         _items.Unregister(item.TabStopId);
         EnsureCurrentTabStopId();
@@ -139,9 +139,9 @@
         SetCurrentTabStop(null);
     }
 
-    internal async Task<bool> HandleItemNavigationAsync(IBradixMenuItem item, string key, bool loop)
+    internal async Task<bool> HandleItemNavigationAsync(IBradixMenuRovingItem item, string key, bool loop)
     {
-        List<IBradixMenuItem> enabledItems = GetEnabledItems();
+        List<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
         int currentIndex = enabledItems.IndexOf(item);
 
         if (currentIndex < 0)
@@ -150,19 +150,19 @@
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, loop, out int targetIndex))
             return false;
 
-        IBradixMenuItem target = enabledItems[targetIndex];
+        IBradixMenuRovingItem target = enabledItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
         await target.FocusAsync();
         await InvokeAsync(StateHasChanged);
         return true;
     }
 
-    internal async Task HandleTypeaheadAsync(IBradixMenuItem? currentItem, string key)
+    internal async Task HandleTypeaheadAsync(IBradixMenuRovingItem? currentItem, string key)
     {
         string search = _typeahead.Append(key);
-        IReadOnlyList<IBradixMenuItem> enabledItems = GetEnabledItems();
+        IReadOnlyList<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
 
-        IBradixMenuItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
+        IBradixMenuRovingItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
 
         if (nextItem is null)
             return;
@@ -203,7 +203,7 @@
 
     internal async Task FocusFirstItemAsync()
     {
-        IBradixMenuItem? first = GetEnabledItems().FirstOrDefault();
+        IBradixMenuRovingItem? first = GetEnabledItems().FirstOrDefault();
         if (first is null)
             return;
 
@@ -214,7 +214,7 @@
 
     internal async Task FocusLastItemAsync()
     {
-        IBradixMenuItem? last = GetEnabledItems().LastOrDefault();
+        IBradixMenuRovingItem? last = GetEnabledItems().LastOrDefault();
         if (last is null)
             return;
 
@@ -300,7 +300,7 @@
         return SetOpenAsync(!CurrentOpen);
     }
 
-    private List<IBradixMenuItem> GetEnabledItems()
+    private List<IBradixMenuRovingItem> GetEnabledItems()
     {
         return _items.Snapshot()
             .Select(entry => entry.Item)
@@ -310,7 +310,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixMenuItem> enabledItems = GetEnabledItems();
+        List<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
 
         if (enabledItems.Count == 0)
         {

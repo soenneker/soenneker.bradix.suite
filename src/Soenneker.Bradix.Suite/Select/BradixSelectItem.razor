@@ -1,6 +1,6 @@
 @namespace Soenneker.Bradix
 @implements IAsyncDisposable
-@implements IBradixSelectItem
+@implements IBradixSelectCollectionItem
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
@@ -49,19 +49,19 @@
 
     internal string? TextId { get; private set; }
 
-    string IBradixSelectItem.Value => Value;
+    string IBradixSelectCollectionItem.Value => Value;
 
-    bool IBradixSelectItem.Disabled => Disabled;
+    bool IBradixSelectCollectionItem.Disabled => Disabled;
 
-    string IBradixSelectItem.TextValue => string.IsNullOrWhiteSpace(TextValue)
+    string IBradixSelectCollectionItem.TextValue => string.IsNullOrWhiteSpace(TextValue)
         ? _resolvedTextValue ?? string.Empty
         : TextValue;
 
-    ElementReference IBradixSelectItem.ItemElement => _element;
+    ElementReference IBradixSelectCollectionItem.ItemElement => _element;
 
-    ElementReference IBradixSelectItem.ItemTextElement => _itemTextElement;
+    ElementReference IBradixSelectCollectionItem.ItemTextElement => _itemTextElement;
 
-    bool IBradixSelectItem.HasItemTextElement => _hasItemTextElement;
+    bool IBradixSelectCollectionItem.HasItemTextElement => _hasItemTextElement;
 
     internal bool IsSelected => string.Equals(Select?.CurrentValue, Value, StringComparison.Ordinal);
 
@@ -135,9 +135,9 @@
         _dotNetReference?.Dispose();
     }
 
-    ValueTask IBradixSelectItem.FocusAsync() => Interop.FocusElementPreventScroll(_element);
+    ValueTask IBradixSelectCollectionItem.FocusAsync() => Interop.FocusElementPreventScroll(_element);
 
-    ValueTask IBradixSelectItem.ScrollIntoViewAsync() => Interop.ScrollElementIntoViewNearest(_element);
+    ValueTask IBradixSelectCollectionItem.ScrollIntoViewAsync() => Interop.ScrollElementIntoViewNearest(_element);
 
     internal async Task NotifyResolvedTextAsync(string? text)
     {

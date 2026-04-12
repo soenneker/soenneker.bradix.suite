@@ -1,6 +1,6 @@
 @namespace Soenneker.Bradix
 @implements IAsyncDisposable
-@implements IBradixMenubarTrigger
+@implements IBradixMenubarTriggerEntry
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
 @using Microsoft.JSInterop
@@ -36,11 +36,11 @@
     [Parameter]
     public bool Disabled { get; set; }
 
-    string IBradixMenubarTrigger.Value => MenubarMenu!.CurrentValue;
+    string IBradixMenubarTriggerEntry.Value => MenubarMenu!.CurrentValue;
 
-    string IBradixMenubarTrigger.TriggerId => MenubarMenu!.TriggerId;
+    string IBradixMenubarTriggerEntry.TriggerId => MenubarMenu!.TriggerId;
 
-    bool IBradixMenubarTrigger.Disabled => Disabled;
+    bool IBradixMenubarTriggerEntry.Disabled => Disabled;
 
     private bool IsOpen => MenubarMenu?.IsOpen == true;
 
@@ -88,7 +88,7 @@
         _dotNetReference?.Dispose();
     }
 
-    ValueTask IBradixMenubarTrigger.FocusAsync() => _button.FocusAsync();
+    ValueTask IBradixMenubarTriggerEntry.FocusAsync() => _button.FocusAsync();
 
     private Task HandleClickAsync(MouseEventArgs args)
     {

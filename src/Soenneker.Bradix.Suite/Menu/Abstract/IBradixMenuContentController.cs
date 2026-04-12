@@ -5,9 +5,9 @@ namespace Soenneker.Bradix;
 
 internal interface IBradixMenuContentController
 {
-    Task HandleItemKeyDownAsync(IBradixMenuItem item, KeyboardEventArgs args);
-    Task HandleTypeaheadKeyAsync(IBradixMenuItem item, string key);
-    Task HandlePointerMoveAsync(IBradixMenuItem item, string? pointerType);
+    Task HandleItemKeyDownAsync(IBradixMenuRovingItem item, KeyboardEventArgs args);
+    Task HandleTypeaheadKeyAsync(IBradixMenuRovingItem item, string key);
+    Task HandlePointerMoveAsync(IBradixMenuRovingItem item, string? pointerType);
     Task HandleItemLeaveAsync();
     void SetSubmenuPointerGrace(string? tabStopId, bool active);
 }

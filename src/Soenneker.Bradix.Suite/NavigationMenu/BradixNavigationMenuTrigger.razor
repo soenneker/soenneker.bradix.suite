@@ -206,7 +206,7 @@
         return Task.CompletedTask;
     }
 
-    private sealed class TriggerRegistration(string value, string triggerId, bool disabled, ElementReference triggerElement) : IBradixNavigationMenuTrigger
+    private sealed class TriggerRegistration(string value, string triggerId, bool disabled, ElementReference triggerElement) : IBradixNavigationMenuRegisteredTrigger
     {
         public string Value { get; } = value;
         public string TriggerId { get; } = triggerId;

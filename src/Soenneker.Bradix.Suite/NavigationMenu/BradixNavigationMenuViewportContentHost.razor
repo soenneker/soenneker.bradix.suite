@@ -99,7 +99,7 @@
 
         if (NavigationMenu is not null &&
             NavigationMenu.TryGetFocusProxy(Registration.Value, out ElementReference startProxy) &&
-            NavigationMenu.TryGetTrigger(Registration.Value, out IBradixNavigationMenuTrigger trigger))
+            NavigationMenu.TryGetTrigger(Registration.Value, out IBradixNavigationMenuRegisteredTrigger trigger))
         {
             if (_focusBridgeRegistered)
             {

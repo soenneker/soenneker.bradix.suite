@@ -1,6 +1,6 @@
 @namespace Soenneker.Bradix
 @implements IAsyncDisposable
-@implements IBradixMenuItem
+@implements IBradixMenuRovingItem
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
@@ -54,11 +54,11 @@
 
     public string? TabStopId { get; private set; }
 
-    bool IBradixMenuItem.IsDisabled => Disabled;
+    bool IBradixMenuRovingItem.IsDisabled => Disabled;
 
-    string IBradixMenuItem.TabStopId => TabStopId!;
+    string IBradixMenuRovingItem.TabStopId => TabStopId!;
 
-    string IBradixMenuItem.TextValue => string.IsNullOrWhiteSpace(TextValue)
+    string IBradixMenuRovingItem.TextValue => string.IsNullOrWhiteSpace(TextValue)
         ? _resolvedTextValue ?? string.Empty
         : TextValue;
 

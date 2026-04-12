@@ -180,19 +180,19 @@
         _dotNetReference?.Dispose();
     }
 
-    internal Task HandleItemKeyDownAsync(IBradixMenuItem item, KeyboardEventArgs args)
+    internal Task HandleItemKeyDownAsync(IBradixMenuRovingItem item, KeyboardEventArgs args)
     {
         return Menu is null
             ? Task.CompletedTask
             : Menu.HandleItemNavigationAsync(item, args.Key, Loop);
     }
 
-    internal Task HandleTypeaheadKeyAsync(IBradixMenuItem item, string key)
+    internal Task HandleTypeaheadKeyAsync(IBradixMenuRovingItem item, string key)
     {
         return Menu is null ? Task.CompletedTask : Menu.HandleTypeaheadAsync(item, key);
     }
 
-    internal Task HandlePointerMoveAsync(IBradixMenuItem item, string? pointerType)
+    internal Task HandlePointerMoveAsync(IBradixMenuRovingItem item, string? pointerType)
     {
         if (Menu is null || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
             return Task.CompletedTask;
@@ -514,13 +514,13 @@
         return ancestorIds?.Contains(contentId) == true;
     }
 
-    Task IBradixMenuContentController.HandleItemKeyDownAsync(IBradixMenuItem item, KeyboardEventArgs args)
+    Task IBradixMenuContentController.HandleItemKeyDownAsync(IBradixMenuRovingItem item, KeyboardEventArgs args)
         => HandleItemKeyDownAsync(item, args);
 
-    Task IBradixMenuContentController.HandleTypeaheadKeyAsync(IBradixMenuItem item, string key)
+    Task IBradixMenuContentController.HandleTypeaheadKeyAsync(IBradixMenuRovingItem item, string key)
         => HandleTypeaheadKeyAsync(item, key);
 
-    Task IBradixMenuContentController.HandlePointerMoveAsync(IBradixMenuItem item, string? pointerType)
+    Task IBradixMenuContentController.HandlePointerMoveAsync(IBradixMenuRovingItem item, string? pointerType)
         => HandlePointerMoveAsync(item, pointerType);
 
     Task IBradixMenuContentController.HandleItemLeaveAsync()
