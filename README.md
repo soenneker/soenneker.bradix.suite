@@ -21,7 +21,7 @@ It is **not** a theme, and it does **not** try to hide complexity behind magical
 
 ## Why Bradix
 
-Most Blazor UI libraries optimize for speed of demos. Bradix optimizes for **foundations**.
+Bradix optimizes for **foundations**.
 
 - **Composable APIs**: use trigger/content/item/viewport-style building blocks instead of giant all-in-one controls.
 - **Unstyled by default**: bring your own CSS, tokens, and brand system.
@@ -171,12 +171,6 @@ Many primitives follow a Radix-style structure:
 
 This is the right model when you care about long-term UI consistency and extensibility.
 
-## Requirements
-
-- **.NET 10**: the package currently targets `net10.0`
-- **Interactive Blazor rendering**: many primitives rely on browser interop for behavior
-- **Your own styling**: Bradix is a primitive suite, not a themed component library
-
 ## Quality Bar
 
 Bradix is backed by more than static samples:
@@ -186,29 +180,16 @@ Bradix is backed by more than static samples:
 - Playwright end-to-end coverage against a running demo app
 - CI packaging and verification workflows
 
-That matters for a foundational library. Consumers should be able to trust behavior, not just screenshots.
+Consumers should be able to trust behavior, not just screenshots.
 
 ## Is Bradix A Port Of Radix UI?
 
-No. Bradix is **Radix-inspired**, not an official Radix port and not a drop-in parity promise with the React packages.
+No. Bradix is **Radix-inspired**, not an official Radix port and not a perfect drop-in parity promise with the React packages.
 
 The goal is to bring the same philosophy to Blazor:
 
-- small composable primitives
+- small composable primitives (typically named the name as Radix)
 - strong behavioral foundations
 - accessibility-minded interaction patterns
 - design-system freedom
 
-## Demo
-
-Browse the primitives individually and see the expected composition patterns here:
-
-[https://soenneker.github.io/soenneker.bradix.suite](https://soenneker.github.io/soenneker.bradix.suite)
-
-## Contributing
-
-If you are building on Bradix and hit a gap, open an issue or a PR. Foundational libraries get better when real product pressure shapes them.
-
-## License
-
-MIT
