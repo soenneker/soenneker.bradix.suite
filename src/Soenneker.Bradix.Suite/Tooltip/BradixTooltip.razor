@@ -87,7 +87,7 @@
         return ValueTask.CompletedTask;
     }
 
-    internal async Task HandleTriggerEnterAsync()
+    internal async Task HandleTriggerEnter()
     {
         if ((Provider?.IsOpenDelayed).GetValueOrDefault(true))
         {
@@ -95,81 +95,81 @@
         }
         else
         {
-            await OpenNowAsync(false);
+            await OpenNow(false);
         }
     }
 
-    internal Task HandleTriggerLeaveAsync()
+    internal Task HandleTriggerLeave()
     {
         if (EffectiveDisableHoverableContent)
-            return CloseAsync();
+            return Close();
 
         CancelOpenDelay();
         return Task.CompletedTask;
     }
 
-    internal Task HandleContentEnterAsync()
+    internal Task HandleContentEnter()
     {
         return Task.CompletedTask;
     }
 
-    internal Task HandleContentLeaveAsync()
+    internal Task HandleContentLeave()
     {
         return Task.CompletedTask;
     }
 
-    internal Task HandleTriggerFocusAsync(bool pointerDown)
+    internal Task HandleTriggerFocus(bool pointerDown)
     {
-        return pointerDown ? Task.CompletedTask : OpenNowAsync(false);
+        return pointerDown ? Task.CompletedTask : OpenNow(false);
     }
 
-    internal Task HandleTriggerBlurAsync()
+    internal Task HandleTriggerBlur()
     {
-        return CloseAsync();
+        return Close();
     }
 
-    internal Task HandleTriggerClickAsync()
+    internal Task HandleTriggerClick()
     {
-        return CloseAsync();
+        return Close();
     }
 
-    internal async Task CloseFromProviderAsync()
+    internal async Task CloseFromProvider()
     {
-        await SetOpenAsync(false, false, false);
+        await SetOpen(false, false, false);
     }
 
-    internal async Task CloseAsync()
+    internal async Task Close()
     {
         CancelOpenDelay();
-        await SetOpenAsync(false, false, true);
+        await SetOpen(false, false, true);
     }
 
     private void StartOpenDelay()
     {
         CancelOpenDelay();
         _openDelayTokenSource = new CancellationTokenSource();
-        _ = OpenAfterDelayAsync(_openDelayTokenSource.Token);
+        _ = OpenAfterDelay(_openDelayTokenSource.Token);
     }
 
-    private async Task OpenAfterDelayAsync(CancellationToken cancellationToken)
+    private async Task OpenAfterDelay(CancellationToken cancellationToken)
     {
         try
         {
             await Task.Delay(EffectiveDelayDuration, cancellationToken);
-            await OpenNowAsync(true);
+            await OpenNow(true);
         }
         catch (TaskCanceledException)
         {
         }
     }
 
-    private async Task OpenNowAsync(bool delayed)
+    private async Task OpenNow(bool delayed)
     {
         CancelOpenDelay();
-        await SetOpenAsync(true, delayed, true);
+        await SetOpen(true, delayed, true);
     }
 
-    private async Task SetOpenAsync(bool open, bool delayed, bool notifyProvider)
+    private async Task SetOpen(bool open, bool delayed, bool notifyProvider)
     {
         if (CurrentOpen == open)
         {
@@ -180,7 +180,7 @@
         }
 
         if (open && notifyProvider && Provider is not null)
-            await Provider.NotifyOpenAsync(this);
+            await Provider.NotifyOpen(this);
 
         if (Open is null)
             _uncontrolledOpen = open;

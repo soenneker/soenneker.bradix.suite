@@ -59,8 +59,8 @@ public interface IBradixToggle
     ValueTask DisposeAsync();
 
     /// <summary>Called from script when delegated interaction wiring is ready.</summary>
-    Task HandleDelegatedInteractionReadyAsync();
+    Task HandleDelegatedInteractionReady();
 
     /// <summary>Called from script for delegated click handling.</summary>
-    Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _);
+    Task HandleDelegatedClick(BradixDelegatedMouseEvent _);
 }

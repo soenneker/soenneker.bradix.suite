@@ -57,7 +57,7 @@
         _initialized = true;
     }
 
-    internal async Task SetOpenAsync(bool open)
+    internal async Task SetOpen(bool open)
     {
         if (CurrentOpen == open)
             return;
@@ -74,9 +74,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    internal Task ToggleOpenAsync()
+    internal Task ToggleOpen()
     {
-        return SetOpenAsync(!CurrentOpen);
+        return SetOpen(!CurrentOpen);
     }
 
     internal void RegisterTrigger(ElementReference element, string? triggerId = null)
@@ -106,7 +106,7 @@
         return false;
     }
 
-    internal async Task FocusTriggerAsync()
+    internal async Task FocusTrigger()
     {
         if (!HasTrigger)
             return;

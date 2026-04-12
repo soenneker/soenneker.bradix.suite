@@ -18,7 +18,7 @@ export function registerTooltipTrigger(element, dotNetRef) {
   unregisterTooltipTrigger(element);
 
   const pointerUp = () => {
-    dotNetRef.invokeMethodAsync("HandleDocumentPointerUpAsync").catch(() => {});
+    dotNetRef.invokeMethodAsync("HandleDocumentPointerUp").catch(() => {});
   };
 
   document.addEventListener("pointerup", pointerUp);
@@ -54,14 +54,14 @@ export function registerTooltipContent(content, trigger, dotNetRef, contentId, h
       return;
     }
 
-    dotNetRef.invokeMethodAsync("HandleTooltipOpenFromOutsideAsync").catch(() => {});
+    dotNetRef.invokeMethodAsync("HandleTooltipOpenFromOutside").catch(() => {});
   };
 
   const scroll = (event) => {
     const target = event.target;
 
     if (target instanceof HTMLElement && target.contains(trigger)) {
-      dotNetRef.invokeMethodAsync("HandleTooltipTriggerScrollAsync").catch(() => {});
+      dotNetRef.invokeMethodAsync("HandleTooltipTriggerScroll").catch(() => {});
     }
   };
 
@@ -87,7 +87,7 @@ export function registerTooltipContent(content, trigger, dotNetRef, contentId, h
         state.pointerMove = null;
       }
 
-      dotNetRef.invokeMethodAsync("HandlePointerGraceAreaChangedAsync", false).catch(() => {});
+      dotNetRef.invokeMethodAsync("HandlePointerGraceAreaChanged", false).catch(() => {});
     };
 
     const createGraceArea = (event, hoverTarget) => {
@@ -103,7 +103,7 @@ export function registerTooltipContent(content, trigger, dotNetRef, contentId, h
       const hoverTargetPoints = getPointsFromRect(hoverTarget.getBoundingClientRect());
       state.pointerGraceArea = getHull([...paddedExitPoints, ...hoverTargetPoints]);
 
-      dotNetRef.invokeMethodAsync("HandlePointerGraceAreaChangedAsync", true).catch(() => {});
+      dotNetRef.invokeMethodAsync("HandlePointerGraceAreaChanged", true).catch(() => {});
 
       if (state.pointerMove) {
         document.removeEventListener("pointermove", state.pointerMove);
@@ -122,7 +122,7 @@ export function registerTooltipContent(content, trigger, dotNetRef, contentId, h
           removeGraceArea();
         } else if (isPointerOutsideGraceArea) {
           removeGraceArea();
-          dotNetRef.invokeMethodAsync("HandleTooltipGraceAreaExitAsync").catch(() => {});
+          dotNetRef.invokeMethodAsync("HandleTooltipGraceAreaExit").catch(() => {});
         }
       };
 

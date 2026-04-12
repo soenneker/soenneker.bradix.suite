@@ -52,8 +52,8 @@ public interface IBradixFocusScope
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler for mount autofocus.</summary>
-    Task<bool> HandleMountAutoFocusAsync();
+    Task<bool> HandleMountAutoFocus();
 
     /// <summary>Interop handler for unmount autofocus.</summary>
-    Task<bool> HandleUnmountAutoFocusAsync();
+    Task<bool> HandleUnmountAutoFocus();
 }

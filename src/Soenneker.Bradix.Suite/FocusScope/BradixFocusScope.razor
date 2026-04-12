@@ -75,7 +75,7 @@
         bool unmountAutoFocusPrevented = PreventUnmountAutoFocus;
 
         if (OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate)
-            unmountAutoFocusPrevented = await HandleUnmountAutoFocusCoreAsync(new BradixAutoFocusEventArgs()) || unmountAutoFocusPrevented;
+            unmountAutoFocusPrevented = await HandleUnmountAutoFocusCore(new BradixAutoFocusEventArgs()) || unmountAutoFocusPrevented;
 
         if (_registered)
             await Interop.UnregisterFocusScope(_element, unmountAutoFocusPrevented);
@@ -84,18 +84,18 @@
     }
 
     [JSInvokable]
-    public Task<bool> HandleMountAutoFocusAsync()
+    public Task<bool> HandleMountAutoFocus()
     {
-        return HandleMountAutoFocusCoreAsync(new BradixAutoFocusEventArgs());
+        return HandleMountAutoFocusCore(new BradixAutoFocusEventArgs());
     }
 
     [JSInvokable]
-    public Task<bool> HandleUnmountAutoFocusAsync()
+    public Task<bool> HandleUnmountAutoFocus()
     {
-        return HandleUnmountAutoFocusCoreAsync(new BradixAutoFocusEventArgs());
+        return HandleUnmountAutoFocusCore(new BradixAutoFocusEventArgs());
     }
 
-    private async Task<bool> HandleMountAutoFocusCoreAsync(BradixAutoFocusEventArgs args)
+    private async Task<bool> HandleMountAutoFocusCore(BradixAutoFocusEventArgs args)
     {
         if (OnMountAutoFocus.HasDelegate)
             await OnMountAutoFocus.InvokeAsync();
@@ -106,7 +106,7 @@
         return args.DefaultPrevented;
     }
 
-    private async Task<bool> HandleUnmountAutoFocusCoreAsync(BradixAutoFocusEventArgs args)
+    private async Task<bool> HandleUnmountAutoFocusCore(BradixAutoFocusEventArgs args)
     {
         if (OnUnmountAutoFocus.HasDelegate)
             await OnUnmountAutoFocus.InvokeAsync();

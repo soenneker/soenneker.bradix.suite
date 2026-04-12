@@ -39,7 +39,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
 
         Assert.Empty(cut.FindAll("[data-state='visible']"));
 
-        await root.Instance.HandleViewportMetricsChangedAsync(0, 0, 500, 500, 100, 100);
+        await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
 
         Assert.NotEmpty(cut.FindAll("[data-state='visible']"));
     }
@@ -61,10 +61,10 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         var cut = Render(CreateScrollArea(type: "hover"));
         var root = cut.FindComponent<BradixScrollArea>();
 
-        await root.Instance.HandleViewportMetricsChangedAsync(0, 0, 500, 500, 100, 100);
+        await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
         Assert.Empty(cut.FindAll("[data-state='visible']"));
 
-        await root.Instance.HandleHoverChangedAsync(true);
+        await root.Instance.HandleHoverChanged(true);
         Assert.NotEmpty(cut.FindAll("[data-state='visible']"));
     }
 
@@ -74,12 +74,12 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         var cut = Render(CreateScrollArea(type: "hover", scrollHideDelay: 10));
         var root = cut.FindComponent<BradixScrollArea>();
 
-        await root.Instance.HandleViewportMetricsChangedAsync(0, 0, 500, 500, 100, 100);
-        await root.Instance.HandleHoverChangedAsync(true);
+        await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
+        await root.Instance.HandleHoverChanged(true);
 
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-state='visible']")));
 
-        await root.Instance.HandleHoverChangedAsync(false);
+        await root.Instance.HandleHoverChanged(false);
         Assert.NotEmpty(cut.FindAll("[data-state='visible']"));
 
         await Task.Delay(40, Xunit.TestContext.Current.CancellationToken);
@@ -93,7 +93,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         var cut = Render(CreateScrollArea(type: "scroll", scrollHideDelay: 20));
         var root = cut.FindComponent<BradixScrollArea>();
 
-        await root.Instance.HandleViewportMetricsChangedAsync(0, 40, 500, 500, 100, 100);
+        await root.Instance.HandleViewportMetricsChanged(0, 40, 500, 500, 100, 100);
 
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-state='visible']")));
 
@@ -108,7 +108,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         var cut = Render(CreateScrollArea(type: "scroll", scrollHideDelay: 20));
         var root = cut.FindComponent<BradixScrollArea>();
 
-        await root.Instance.HandleViewportMetricsChangedAsync(0, 40, 500, 500, 100, 100);
+        await root.Instance.HandleViewportMetricsChanged(0, 40, 500, 500, 100, 100);
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-state='visible']")));
 
         cut.Find("[data-orientation='vertical']").TriggerEvent("onpointerenter", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
@@ -129,9 +129,9 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         var cut = Render(CreateScrollArea(type: "always", includeHorizontal: true, includeCorner: true));
         var root = cut.FindComponent<BradixScrollArea>();
 
-        await root.Instance.HandleViewportMetricsChangedAsync(0, 0, 500, 500, 100, 100);
-        await root.Instance.HandleScrollbarMetricsChangedAsync("horizontal", 100, 12, 0, 0);
-        await root.Instance.HandleScrollbarMetricsChangedAsync("vertical", 12, 100, 0, 0);
+        await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
+        await root.Instance.HandleScrollbarMetricsChanged("horizontal", 100, 12, 0, 0);
+        await root.Instance.HandleScrollbarMetricsChanged("vertical", 12, 100, 0, 0);
 
         Assert.Single(cut.FindAll(".corner"));
     }
@@ -151,7 +151,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         });
 
         var root = cut.FindComponent<BradixScrollArea>();
-        await root.Instance.HandleViewportMetricsChangedAsync(0, 0, 500, 500, 100, 100);
+        await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
 
         Assert.Equal("rtl", cut.Find(".root").GetAttribute("dir"));
     }

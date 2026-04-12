@@ -83,5 +83,5 @@ public interface IBradixOneTimePasswordField
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler when the associated form resets.</summary>
-    Task HandleFormResetAsync();
+    Task HandleFormReset();
 }

@@ -98,7 +98,7 @@
             Toolbar.UnregisterItem(this);
     }
 
-    public ValueTask FocusAsync() => _element.FocusAsync();
+    public ValueTask Focus() => _element.FocusAsync();
 
     private async Task HandleClick()
     {
@@ -106,9 +106,9 @@
             return;
 
         if (IsPressed)
-            await Group.DeactivateItemAsync(Value);
+            await Group.DeactivateItem(Value);
         else
-            await Group.ActivateItemAsync(Value);
+            await Group.ActivateItem(Value);
     }
 
     private Task HandleMouseDown(MouseEventArgs _)
@@ -132,11 +132,11 @@
         if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return Task.CompletedTask;
 
-        return IsDisabled ? Task.CompletedTask : Toolbar.HandleItemKeyDownAsync(this, args);
+        return IsDisabled ? Task.CompletedTask : Toolbar.HandleItemKeyDown(this, args);
     }
 
     [JSInvokable]
-    public Task HandleRovingFocusBridgeReadyAsync()
+    public Task HandleRovingFocusBridgeReady()
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;

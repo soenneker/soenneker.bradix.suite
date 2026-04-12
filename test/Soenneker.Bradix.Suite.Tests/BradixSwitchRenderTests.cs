@@ -90,7 +90,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
         var component = cut.FindComponent<BradixSwitch>();
 
         cut.Find("button").Click();
-        await component.Instance.HandleFormResetAsync();
+        await component.Instance.HandleFormReset();
 
         var button = cut.Find("button");
         Assert.Equal("true", button.GetAttribute("aria-checked"));

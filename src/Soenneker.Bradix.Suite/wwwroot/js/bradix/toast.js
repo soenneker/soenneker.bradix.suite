@@ -17,12 +17,12 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
   const hasToasts = () => viewport.childElementCount > 0;
   const invokePause = () => {
     if (hasToasts() && dotNetRef) {
-      dotNetRef.invokeMethodAsync("HandlePauseAsync");
+      dotNetRef.invokeMethodAsync("HandlePause");
     }
   };
   const invokeResume = () => {
     if (dotNetRef) {
-      dotNetRef.invokeMethodAsync("HandleResumeAsync");
+      dotNetRef.invokeMethodAsync("HandleResume");
     }
   };
   const getSortedCandidates = (backwards) => {

@@ -28,5 +28,5 @@ public interface IBradixTooltipTrigger
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler for document pointer up.</summary>
-    Task HandleDocumentPointerUpAsync();
+    Task HandleDocumentPointerUp();
 }

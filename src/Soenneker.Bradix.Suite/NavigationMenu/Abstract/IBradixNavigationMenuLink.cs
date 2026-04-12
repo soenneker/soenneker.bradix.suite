@@ -34,5 +34,5 @@ public interface IBradixNavigationMenuLink
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler when roving focus bridge is ready.</summary>
-    Task HandleRovingFocusBridgeReadyAsync();
+    Task HandleRovingFocusBridgeReady();
 }

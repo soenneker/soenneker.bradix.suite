@@ -63,7 +63,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         var cut = Render(CreateAlertDialog(defaultOpen: true));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
         Assert.Single(cut.FindAll("[role='alertdialog']"));
     }
@@ -132,7 +132,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         });
 
         var focusScope = cut.FindComponent<BradixFocusScope>();
-        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocusAsync());
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocus());
 
         Assert.True(prevented);
     }
@@ -144,7 +144,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         var focusScope = cut.FindComponent<BradixFocusScope>();
         int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
 
-        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocusAsync());
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocus());
 
         Assert.True(prevented);
         Assert.Equal(focusCountBefore + 1, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));

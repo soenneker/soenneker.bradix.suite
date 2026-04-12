@@ -17,7 +17,7 @@ export function registerLabelTextSelectionGuard(element, dotNetRef) {
     }
 
     if (dotNetRef) {
-      dotNetRef.invokeMethodAsync("HandleMouseDownFromJsAsync", createDelegatedEventSnapshot("mousedown", event)).catch(() => {});
+      dotNetRef.invokeMethodAsync("HandleMouseDownFromJs", createDelegatedEventSnapshot("mousedown", event)).catch(() => {});
     }
 
     if (!event.defaultPrevented && event.detail > 1) {

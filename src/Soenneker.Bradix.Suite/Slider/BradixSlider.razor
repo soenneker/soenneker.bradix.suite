@@ -165,12 +165,12 @@
         return BradixSliderMath.ConvertValueToPercentage(value, Min, Max);
     }
 
-    internal async Task FocusThumbAsync(int index)
+    internal async Task FocusThumb(int index)
     {
         if (index < 0 || index >= _thumbs.Count)
             return;
 
-        await _thumbs[index].FocusAsync();
+        await _thumbs[index].Focus();
     }
 
     internal void HandleThumbFocus(int index)
@@ -179,7 +179,7 @@
             CurrentThumbIndex = index;
     }
 
-    internal async Task HandleThumbKeyDownAsync(int index, KeyboardEventArgs args)
+    internal async Task HandleThumbKeyDown(int index, KeyboardEventArgs args)
     {
         if (Disabled || index < 0)
             return;
@@ -188,13 +188,13 @@
 
         if (args.Key == "Home")
         {
-            await UpdateValueAsync(Min, 0, commit: true);
+            await UpdateValue(Min, 0, commit: true);
             return;
         }
 
         if (args.Key == "End")
         {
-            await UpdateValueAsync(Max, CurrentValues.Count - 1, commit: true);
+            await UpdateValue(Max, CurrentValues.Count - 1, commit: true);
             return;
         }
 
@@ -205,11 +205,11 @@
         double multiplier = isSkipKey ? 10 : 1;
         int direction = IsBackKey(args.Key) ? -1 : 1;
         double currentValue = CurrentValues[index];
-        await UpdateValueAsync(currentValue + (Step * multiplier * direction), index, commit: true);
+        await UpdateValue(currentValue + (Step * multiplier * direction), index, commit: true);
     }
 
     [JSInvokable]
-    public async Task HandlePointerStartAsync(double xFraction, double yFraction, int thumbIndex)
+    public async Task HandlePointerStart(double xFraction, double yFraction, int thumbIndex)
     {
         if (Disabled)
             return;
@@ -219,28 +219,28 @@
         if (thumbIndex >= 0)
         {
             CurrentThumbIndex = thumbIndex;
-            await FocusThumbAsync(thumbIndex);
+            await FocusThumb(thumbIndex);
             return;
         }
 
         double nextValue = GetValueFromFractions(xFraction, yFraction);
         int closestIndex = BradixSliderMath.GetClosestValueIndex(CurrentValues, nextValue);
         CurrentThumbIndex = closestIndex;
-        await UpdateValueAsync(nextValue, closestIndex, commit: false);
+        await UpdateValue(nextValue, closestIndex, commit: false);
     }
 
     [JSInvokable]
-    public Task HandlePointerMoveAsync(double xFraction, double yFraction)
+    public Task HandlePointerMove(double xFraction, double yFraction)
     {
         if (Disabled)
             return Task.CompletedTask;
 
         double nextValue = GetValueFromFractions(xFraction, yFraction);
-        return UpdateValueAsync(nextValue, CurrentThumbIndex, commit: false);
+        return UpdateValue(nextValue, CurrentThumbIndex, commit: false);
     }
 
     [JSInvokable]
-    public async Task HandlePointerEndAsync()
+    public async Task HandlePointerEnd()
     {
         if (Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
             return;
@@ -253,12 +253,12 @@
     }
 
     [JSInvokable]
-    public Task HandlePointerCancelAsync()
+    public Task HandlePointerCancel()
     {
         return Task.CompletedTask;
     }
 
-    private async Task UpdateValueAsync(double value, int atIndex, bool commit)
+    private async Task UpdateValue(double value, int atIndex, bool commit)
     {
         if (atIndex < 0 || atIndex >= CurrentValues.Count)
             return;
@@ -294,7 +294,7 @@
             await OnValueCommit.InvokeAsync(result);
 
         await InvokeAsync(StateHasChanged);
-        await FocusThumbAsync(CurrentThumbIndex);
+        await FocusThumb(CurrentThumbIndex);
     }
 
     private double GetValueFromFractions(double xFraction, double yFraction)

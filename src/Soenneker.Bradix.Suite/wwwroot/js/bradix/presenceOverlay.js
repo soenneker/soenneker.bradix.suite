@@ -16,13 +16,13 @@ export function registerPresence(element, dotNetRef) {
 
   const handleAnimationStart = (event) => {
     if (event.target === element) {
-      dotNetRef.invokeMethodAsync("HandleAnimationStartAsync", event.animationName || "none", getComputedStyle(element).animationName || "none");
+      dotNetRef.invokeMethodAsync("HandleAnimationStart", event.animationName || "none", getComputedStyle(element).animationName || "none");
     }
   };
 
   const handleAnimationEnd = (event) => {
     if (event.target === element) {
-      dotNetRef.invokeMethodAsync("HandleAnimationEndAsync", event.animationName || "none", getComputedStyle(element).animationName || "none");
+      dotNetRef.invokeMethodAsync("HandleAnimationEnd", event.animationName || "none", getComputedStyle(element).animationName || "none");
     }
   };
 

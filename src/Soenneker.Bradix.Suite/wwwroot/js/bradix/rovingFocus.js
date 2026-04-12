@@ -84,7 +84,7 @@ export function registerRovingFocusNavigationKeys(element, dotNetRef) {
   rovingFocusHandlers.set(element, { keydown, mousedown });
 
   if (dotNetRef) {
-    dotNetRef.invokeMethodAsync("HandleRovingFocusBridgeReadyAsync").catch(() => {});
+    dotNetRef.invokeMethodAsync("HandleRovingFocusBridgeReady").catch(() => {});
   }
 }
 

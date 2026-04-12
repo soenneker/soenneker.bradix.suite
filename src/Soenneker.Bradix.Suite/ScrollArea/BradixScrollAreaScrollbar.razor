@@ -9,8 +9,8 @@
 {
     <CascadingValue Value="this">
         <div @ref="_scrollbar"
-             @onpointerenter="HandlePointerEnterAsync"
-             @onpointerleave="HandlePointerLeaveAsync"
+             @onpointerenter="HandlePointerEnter"
+             @onpointerleave="HandlePointerLeave"
              @attributes="ScrollbarAttributes">
             @ChildContent
         </div>
@@ -80,14 +80,14 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    private Task HandlePointerEnterAsync(PointerEventArgs _)
+    private Task HandlePointerEnter(PointerEventArgs _)
     {
-        return ScrollArea.HandleScrollbarPointerChangedAsync(Orientation, true);
+        return ScrollArea.HandleScrollbarPointerChanged(Orientation, true);
     }
 
-    private Task HandlePointerLeaveAsync(PointerEventArgs _)
+    private Task HandlePointerLeave(PointerEventArgs _)
     {
-        return ScrollArea.HandleScrollbarPointerChangedAsync(Orientation, false);
+        return ScrollArea.HandleScrollbarPointerChanged(Orientation, false);
     }
 
     private Dictionary<string, object> ScrollbarAttributes => BuildAttributes(

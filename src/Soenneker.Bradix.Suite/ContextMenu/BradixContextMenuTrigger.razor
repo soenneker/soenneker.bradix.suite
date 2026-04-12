@@ -4,12 +4,12 @@
 @implements IAsyncDisposable
 @inherits BradixComponentBase
 
-<span @oncontextmenu="HandleContextMenuAsync"
+<span @oncontextmenu="HandleContextMenu"
       @oncontextmenu:preventDefault="@(!Disabled)"
-      @onpointerdown="HandlePointerDownAsync"
-      @onpointermove="HandlePointerMoveAsync"
-      @onpointercancel="HandlePointerCancelAsync"
-      @onpointerup="HandlePointerUpAsync"
+      @onpointerdown="HandlePointerDown"
+      @onpointermove="HandlePointerMove"
+      @onpointercancel="HandlePointerCancel"
+      @onpointerup="HandlePointerUp"
       @attributes="TriggerAttributes">
     @ChildContent
 </span>
@@ -41,27 +41,27 @@
         return ValueTask.CompletedTask;
     }
 
-    private Task HandleContextMenuAsync(MouseEventArgs args)
+    private Task HandleContextMenu(MouseEventArgs args)
     {
         if (Disabled || ContextMenu is null)
             return Task.CompletedTask;
 
         ClearLongPress();
-        return ContextMenu.OpenAtPointAsync(args.ClientX, args.ClientY);
+        return ContextMenu.OpenAtPoint(args.ClientX, args.ClientY);
     }
 
-    private Task HandlePointerDownAsync(PointerEventArgs args)
+    private Task HandlePointerDown(PointerEventArgs args)
     {
         if (Disabled || ContextMenu is null || IsMousePointer(args))
             return Task.CompletedTask;
 
         ClearLongPress();
         _longPressCancellationTokenSource = new CancellationTokenSource();
-        _ = StartLongPressAsync(args.ClientX, args.ClientY, _longPressCancellationTokenSource.Token);
+        _ = StartLongPress(args.ClientX, args.ClientY, _longPressCancellationTokenSource.Token);
         return Task.CompletedTask;
     }
 
-    private Task HandlePointerMoveAsync(PointerEventArgs args)
+    private Task HandlePointerMove(PointerEventArgs args)
     {
         if (!IsMousePointer(args))
             ClearLongPress();
@@ -69,7 +69,7 @@
         return Task.CompletedTask;
     }
 
-    private Task HandlePointerCancelAsync(PointerEventArgs args)
+    private Task HandlePointerCancel(PointerEventArgs args)
     {
         if (!IsMousePointer(args))
             ClearLongPress();
@@ -77,7 +77,7 @@
         return Task.CompletedTask;
     }
 
-    private Task HandlePointerUpAsync(PointerEventArgs args)
+    private Task HandlePointerUp(PointerEventArgs args)
     {
         if (!IsMousePointer(args))
             ClearLongPress();
@@ -85,14 +85,14 @@
         return Task.CompletedTask;
     }
 
-    private async Task StartLongPressAsync(double x, double y, CancellationToken cancellationToken)
+    private async Task StartLongPress(double x, double y, CancellationToken cancellationToken)
     {
         try
         {
             await Task.Delay(_longPressDelayMs, cancellationToken);
 
             if (ContextMenu is not null)
-                await InvokeAsync(() => ContextMenu.OpenAtPointAsync(x, y));
+                await InvokeAsync(() => ContextMenu.OpenAtPoint(x, y));
         }
         catch (OperationCanceledException)
         {

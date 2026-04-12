@@ -29,7 +29,7 @@ public interface IBradixMenubar
     ValueTask DisposeAsync();
 
     /// <summary>Handles a document-level pointer down outside interaction from JavaScript interop.</summary>
-    Task HandleDocumentPointerDownOutsideAsync();
+    Task HandleDocumentPointerDownOutside();
 
     /// <summary>Gets or sets the element id.</summary>
     string? Id { get; set; }

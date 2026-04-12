@@ -14,11 +14,11 @@ export function registerScrollAreaRoot(element, dotNetRef) {
   unregisterScrollAreaRoot(element);
 
   const pointerenter = () => {
-    invokeDotNetSafe(dotNetRef, "HandleHoverChangedAsync", true);
+    invokeDotNetSafe(dotNetRef, "HandleHoverChanged", true);
   };
 
   const pointerleave = () => {
-    invokeDotNetSafe(dotNetRef, "HandleHoverChangedAsync", false);
+    invokeDotNetSafe(dotNetRef, "HandleHoverChanged", false);
   };
 
   element.addEventListener("pointerenter", pointerenter);
@@ -49,7 +49,7 @@ export function registerScrollAreaViewport(viewport, content, dotNetRef) {
     const contentElement = content || viewport.firstElementChild;
     invokeDotNetSafe(
       dotNetRef,
-      "HandleViewportMetricsChangedAsync",
+      "HandleViewportMetricsChanged",
       viewport.scrollLeft,
       viewport.scrollTop,
       contentElement ? contentElement.scrollWidth : viewport.scrollWidth,
@@ -121,7 +121,7 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
 
     invokeDotNetSafe(
       dotNetRef,
-      "HandleScrollbarMetricsChangedAsync",
+      "HandleScrollbarMetricsChanged",
       orientation,
       scrollbar.clientWidth,
       scrollbar.clientHeight,

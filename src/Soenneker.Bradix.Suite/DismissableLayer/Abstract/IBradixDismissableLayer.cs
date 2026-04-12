@@ -88,17 +88,17 @@ public interface IBradixDismissableLayer
     /// </summary>
     /// <param name="originalEvent">Optional original keyboard event payload.</param>
     /// <returns><c>true</c> if the layer was dismissed; otherwise <c>false</c>.</returns>
-    Task<bool> HandleEscapeKeyDownAsync(BradixDelegatedKeyboardEvent? originalEvent = null);
+    Task<bool> HandleEscapeKeyDown(BradixDelegatedKeyboardEvent? originalEvent = null);
 
     /// <summary>
     /// Handles a pointer down outside event forwarded from JavaScript.
     /// </summary>
     /// <param name="originalEvent">Optional original mouse event payload.</param>
-    Task HandlePointerDownOutsideAsync(BradixDelegatedMouseEvent? originalEvent = null);
+    Task HandlePointerDownOutside(BradixDelegatedMouseEvent? originalEvent = null);
 
     /// <summary>
     /// Handles a focus outside event forwarded from JavaScript.
     /// </summary>
     /// <param name="originalEvent">Optional original focus event payload.</param>
-    Task HandleFocusOutsideAsync(BradixDelegatedFocusEvent? originalEvent = null);
+    Task HandleFocusOutside(BradixDelegatedFocusEvent? originalEvent = null);
 }

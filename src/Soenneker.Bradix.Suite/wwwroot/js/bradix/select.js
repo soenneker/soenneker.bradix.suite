@@ -50,7 +50,7 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
   const notify = () => {
     const contentElement = content || viewport.firstElementChild;
     dotNetRef.invokeMethodAsync(
-      "HandleViewportMetricsChangedAsync",
+      "HandleViewportMetricsChanged",
       viewport.scrollTop,
       contentElement ? contentElement.scrollHeight : viewport.scrollHeight,
       viewport.offsetHeight
@@ -127,7 +127,7 @@ export function registerSelectContentPointerTracker(content, dotNetRef, pageX, p
     const suppressSelection = withinPointerTolerance && targetInsideContent;
     const shouldClose = !withinPointerTolerance && !!target && !targetInsideContent;
 
-    dotNetRef.invokeMethodAsync("HandleTriggerPointerGuardResultAsync", suppressSelection, shouldClose).catch(() => {});
+    dotNetRef.invokeMethodAsync("HandleTriggerPointerGuardResult", suppressSelection, shouldClose).catch(() => {});
     document.removeEventListener("pointermove", handlePointerMove);
     selectContentPointerTrackers.delete(content);
   };
@@ -156,7 +156,7 @@ export function registerSelectWindowDismiss(content, dotNetRef) {
   unregisterSelectWindowDismiss(content);
 
   const dismiss = () => {
-    dotNetRef.invokeMethodAsync("HandleWindowDismissAsync").catch(() => {});
+    dotNetRef.invokeMethodAsync("HandleWindowDismiss").catch(() => {});
   };
 
   window.addEventListener("blur", dismiss);

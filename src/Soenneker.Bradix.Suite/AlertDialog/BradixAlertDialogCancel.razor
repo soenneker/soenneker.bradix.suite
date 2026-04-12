@@ -3,7 +3,7 @@
                    AriaLabel="@((string?)null)"
                    Style="@Style"
                    AdditionalAttributes="@AdditionalAttributes"
-                   OnElementReferenceCaptured="@HandleElementCapturedAsync">
+                   OnElementReferenceCaptured="@HandleElementCaptured">
     @ChildContent
 </BradixDialogClose>
 
@@ -23,7 +23,7 @@
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    private Task HandleElementCapturedAsync(ElementReference element)
+    private Task HandleElementCaptured(ElementReference element)
     {
         Content?.RegisterCancelElement(element);
         return Task.CompletedTask;

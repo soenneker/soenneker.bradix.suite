@@ -98,14 +98,14 @@
     }
 
     [JSInvokable]
-    public Task HandlePauseAsync()
+    public Task HandlePause()
     {
-        return Provider?.PauseToastsAsync() ?? Task.CompletedTask;
+        return Provider?.PauseToasts() ?? Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleResumeAsync()
+    public Task HandleResume()
     {
-        return Provider?.ResumeToastsAsync() ?? Task.CompletedTask;
+        return Provider?.ResumeToasts() ?? Task.CompletedTask;
     }
 }

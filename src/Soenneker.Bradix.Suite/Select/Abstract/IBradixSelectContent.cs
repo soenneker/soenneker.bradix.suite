@@ -80,14 +80,14 @@ public interface IBradixSelectContent
     ValueTask DisposeAsync();
 
     /// <summary>Called from script when viewport scroll metrics change.</summary>
-    Task HandleViewportMetricsChangedAsync(double scrollTop, double scrollHeight, double viewportHeight);
+    Task HandleViewportMetricsChanged(double scrollTop, double scrollHeight, double viewportHeight);
 
     /// <summary>Called from script with pointer guard results from the trigger.</summary>
-    Task HandleTriggerPointerGuardResultAsync(bool suppressSelection, bool shouldClose);
+    Task HandleTriggerPointerGuardResult(bool suppressSelection, bool shouldClose);
 
     /// <summary>Called from script when a window-level dismiss should run.</summary>
-    Task HandleWindowDismissAsync();
+    Task HandleWindowDismiss();
 
     /// <summary>Called from script for delegated keyboard handling in the content.</summary>
-    Task HandleDelegatedContentKeyDownAsync(BradixDelegatedKeyboardEvent args);
+    Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args);
 }

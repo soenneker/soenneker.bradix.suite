@@ -139,7 +139,7 @@
         SetCurrentTabStop(null);
     }
 
-    internal async Task<bool> HandleItemNavigationAsync(IBradixMenuRovingItem item, string key, bool loop)
+    internal async Task<bool> HandleItemNavigation(IBradixMenuRovingItem item, string key, bool loop)
     {
         List<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
         int currentIndex = enabledItems.IndexOf(item);
@@ -152,12 +152,12 @@
 
         IBradixMenuRovingItem target = enabledItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
-        await target.FocusAsync();
+        await target.Focus();
         await InvokeAsync(StateHasChanged);
         return true;
     }
 
-    internal async Task HandleTypeaheadAsync(IBradixMenuRovingItem? currentItem, string key)
+    internal async Task HandleTypeahead(IBradixMenuRovingItem? currentItem, string key)
     {
         string search = _typeahead.Append(key);
         IReadOnlyList<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
@@ -168,7 +168,7 @@
             return;
 
         CurrentTabStopId = nextItem.TabStopId;
-        await nextItem.FocusAsync();
+        await nextItem.Focus();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -201,25 +201,25 @@
         return shouldFocusContentOnOpen;
     }
 
-    internal async Task FocusFirstItemAsync()
+    internal async Task FocusFirstItem()
     {
         IBradixMenuRovingItem? first = GetEnabledItems().FirstOrDefault();
         if (first is null)
             return;
 
         CurrentTabStopId = first.TabStopId;
-        await first.FocusAsync();
+        await first.Focus();
         await InvokeAsync(StateHasChanged);
     }
 
-    internal async Task FocusLastItemAsync()
+    internal async Task FocusLastItem()
     {
         IBradixMenuRovingItem? last = GetEnabledItems().LastOrDefault();
         if (last is null)
             return;
 
         CurrentTabStopId = last.TabStopId;
-        await last.FocusAsync();
+        await last.Focus();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -249,7 +249,7 @@
         HasContentElement = false;
     }
 
-    internal async Task FocusTriggerAsync()
+    internal async Task FocusTrigger()
     {
         if (!HasTrigger)
             return;
@@ -268,7 +268,7 @@
         _popper?.RegisterVirtualAnchor(x, y);
     }
 
-    internal async Task SetOpenAsync(bool open)
+    internal async Task SetOpen(bool open)
     {
         if (CurrentOpen == open)
             return;
@@ -295,9 +295,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    internal Task ToggleOpenAsync()
+    internal Task ToggleOpen()
     {
-        return SetOpenAsync(!CurrentOpen);
+        return SetOpen(!CurrentOpen);
     }
 
     private List<IBradixMenuRovingItem> GetEnabledItems()

@@ -80,15 +80,15 @@
         await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
         await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
         {
-            readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
+            readyMethod = nameof(HandleDelegatedInteractionReady),
             mousedown = new
             {
-                method = nameof(HandleDelegatedMouseDownAsync),
+                method = nameof(HandleDelegatedMouseDown),
                 filter = "primaryMousedown"
             },
             keydown = new
             {
-                method = nameof(HandleDelegatedKeyDownAsync),
+                method = nameof(HandleDelegatedKeyDown),
                 keys = new[] { "Enter", " ", "Spacebar" }
             }
         });
@@ -104,7 +104,7 @@
             Tabs.UnregisterTrigger(this);
     }
 
-    internal ValueTask FocusAsync()
+    internal ValueTask Focus()
     {
         return _element.FocusAsync();
     }
@@ -123,7 +123,7 @@
         // TODO: Match Radix non-primary/Ctrl+click mousedown preventDefault semantics via delegated JS
         // so the trigger does not steal focus on right/middle click or macOS Ctrl+click fallback paths.
         if (args.Button == 0 && !args.CtrlKey)
-            await Tabs.SetValueAsync(Value);
+            await Tabs.SetValue(Value);
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
@@ -142,11 +142,11 @@
 
         if (args.Key is " " or "Enter")
         {
-            await Tabs.SetValueAsync(Value);
+            await Tabs.SetValue(Value);
             return;
         }
 
-        await Tabs.HandleTriggerKeyDownAsync(this, List?.Loop ?? true, args);
+        await Tabs.HandleTriggerKeyDown(this, List?.Loop ?? true, args);
     }
 
     private async Task HandleFocus(FocusEventArgs args)
@@ -160,37 +160,37 @@
         Tabs.SetCurrentTabStop(TabStopId);
 
         if (!IsSelected && Tabs.IsAutomaticActivation)
-            await Tabs.SetValueAsync(Value);
+            await Tabs.SetValue(Value);
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
+    public Task HandleDelegatedInteractionReady()
     {
         _delegatedInteractionReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleDelegatedMouseDownAsync(BradixDelegatedMouseEvent _)
+    public Task HandleDelegatedMouseDown(BradixDelegatedMouseEvent _)
     {
-        return Disabled ? Task.CompletedTask : Tabs.SetValueAsync(Value);
+        return Disabled ? Task.CompletedTask : Tabs.SetValue(Value);
     }
 
     [JSInvokable]
-    public Task HandleRovingFocusBridgeReadyAsync()
+    public Task HandleRovingFocusBridgeReady()
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleDelegatedKeyDownAsync(BradixDelegatedKeyboardEvent args)
+    public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
     {
         if (Disabled)
             return Task.CompletedTask;
 
         return args.Key is " " or "Enter" or "Spacebar"
-            ? Tabs.SetValueAsync(Value)
+            ? Tabs.SetValue(Value)
             : Task.CompletedTask;
     }
 }

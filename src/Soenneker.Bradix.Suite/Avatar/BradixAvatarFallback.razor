@@ -58,10 +58,10 @@
 
         _canRender = false;
         _delayTokenSource = new CancellationTokenSource();
-        _ = EnableAfterDelayAsync(_delayTokenSource.Token);
+        _ = EnableAfterDelay(_delayTokenSource.Token);
     }
 
-    private async Task EnableAfterDelayAsync(CancellationToken cancellationToken)
+    private async Task EnableAfterDelay(CancellationToken cancellationToken)
     {
         try
         {

@@ -120,28 +120,28 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal async Task OpenMenuAsync(string value)
+    internal async Task OpenMenu(string value)
     {
-        await SetValueAsync(value);
+        await SetValue(value);
         SetCurrentTabStop(value);
     }
 
-    internal Task CloseMenuAsync()
+    internal Task CloseMenu()
     {
-        return SetValueAsync(null);
+        return SetValue(null);
     }
 
-    internal async Task ToggleMenuAsync(string value)
+    internal async Task ToggleMenu(string value)
     {
         string? nextValue = string.Equals(CurrentValue, value, StringComparison.Ordinal)
             ? null
             : value;
 
-        await SetValueAsync(nextValue);
+        await SetValue(nextValue);
         SetCurrentTabStop(value);
     }
 
-    internal async Task HandleTriggerKeyDownAsync(IBradixMenubarTriggerEntry trigger, KeyboardEventArgs args)
+    internal async Task HandleTriggerKeyDown(IBradixMenubarTriggerEntry trigger, KeyboardEventArgs args)
     {
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
@@ -157,15 +157,15 @@
 
         IBradixMenubarTriggerEntry target = focusableTriggers[targetIndex];
         CurrentTabStopId = target.Value;
-        await target.FocusAsync();
+        await target.Focus();
 
         if (HasOpenMenu)
-            await SetValueAsync(target.Value);
+            await SetValue(target.Value);
 
         await InvokeAsync(StateHasChanged);
     }
 
-    internal async Task MoveToAdjacentMenuAsync(string value, string key)
+    internal async Task MoveToAdjacentMenu(string value, string key)
     {
         List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
         List<string> candidateValues = focusableTriggers.Select(trigger => trigger.Value).ToList();
@@ -190,7 +190,7 @@
         if (string.IsNullOrWhiteSpace(nextValue))
             return;
 
-        await SetValueAsync(nextValue);
+        await SetValue(nextValue);
         SetCurrentTabStop(nextValue);
     }
 
@@ -219,7 +219,7 @@
         return false;
     }
 
-    private async Task SetValueAsync(string? value)
+    private async Task SetValue(string? value)
     {
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;
@@ -271,8 +271,8 @@
     }
 
     [JSInvokable]
-    public Task HandleDocumentPointerDownOutsideAsync()
+    public Task HandleDocumentPointerDownOutside()
     {
-        return HasOpenMenu ? CloseMenuAsync() : Task.CompletedTask;
+        return HasOpenMenu ? CloseMenu() : Task.CompletedTask;
     }
 }

@@ -106,7 +106,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
         int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
         var focusScope = cut.FindComponent<BradixFocusScope>();
 
-        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
         Assert.True(prevented);
         Assert.Equal(focusCountBefore, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
@@ -166,7 +166,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
         cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[role='menu']").Count));
 
         var layer = cut.FindComponents<BradixDismissableLayer>().Last();
-        bool prevented = await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDownAsync());
+        bool prevented = await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDown());
 
         Assert.False(prevented);
         Assert.Equal(2, cut.FindAll("[role='menu']").Count);
@@ -181,12 +181,12 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
 
         int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
             Button = 2
         }));
 
-        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
         Assert.True(prevented);
         Assert.Equal(focusCountBefore, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));

@@ -92,7 +92,7 @@ public sealed class BradixSliderRenderTests : BunitContext
         var cut = Render(CreateSlider(defaultValues: [20, 80]));
         var slider = cut.FindComponent<BradixSlider>();
 
-        await slider.Instance.HandlePointerStartAsync(0.75, 0.5, -1);
+        await slider.Instance.HandlePointerStart(0.75, 0.5, -1);
 
         var thumbs = cut.FindAll("[role='slider']");
         Assert.Equal("75", thumbs[1].GetAttribute("aria-valuenow"));
@@ -105,9 +105,9 @@ public sealed class BradixSliderRenderTests : BunitContext
         var cut = Render(CreateSlider(defaultValues: [20], onValueCommit: () => commitCount++));
         var slider = cut.FindComponent<BradixSlider>();
 
-        await slider.Instance.HandlePointerStartAsync(0.75, 0.5, -1);
-        await slider.Instance.HandlePointerMoveAsync(0.8, 0.5);
-        await slider.Instance.HandlePointerCancelAsync();
+        await slider.Instance.HandlePointerStart(0.75, 0.5, -1);
+        await slider.Instance.HandlePointerMove(0.8, 0.5);
+        await slider.Instance.HandlePointerCancel();
 
         Assert.Equal(0, commitCount);
         Assert.Equal("80", cut.Find("[role='slider']").GetAttribute("aria-valuenow"));

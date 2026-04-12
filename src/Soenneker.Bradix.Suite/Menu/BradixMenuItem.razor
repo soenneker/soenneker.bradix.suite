@@ -7,14 +7,14 @@
 @using Microsoft.JSInterop
 
 <div @ref="_element"
-     @onclick="HandleClickAsync"
-     @onfocus="HandleFocusAsync"
+     @onclick="HandleClick"
+     @onfocus="HandleFocus"
      @onblur="HandleBlur"
-     @onkeydown="HandleKeyDownAsync"
+     @onkeydown="HandleKeyDown"
      @onpointerdown="HandlePointerDown"
-     @onpointerup="HandlePointerUpAsync"
-     @onpointermove="HandlePointerMoveAsync"
-     @onpointerleave="HandlePointerLeaveAsync"
+     @onpointerup="HandlePointerUp"
+     @onpointermove="HandlePointerMove"
+     @onpointerleave="HandlePointerLeave"
      @attributes="ItemAttributes">
     @ChildContent
 </div>
@@ -112,9 +112,9 @@
         _dotNetReference?.Dispose();
     }
 
-    public ValueTask FocusAsync() => Interop.FocusElementPreventScroll(_element);
+    public ValueTask Focus() => Interop.FocusElementPreventScroll(_element);
 
-    private async Task HandleClickAsync()
+    private async Task HandleClick()
     {
         if (Disabled)
             return;
@@ -130,7 +130,7 @@
         Menu.ResetTypeahead();
 
         if (CloseOnSelect && !args.DefaultPrevented)
-            await Menu.RootMenu.SetOpenAsync(false);
+            await Menu.RootMenu.SetOpen(false);
     }
 
     private void HandlePointerDown(PointerEventArgs args)
@@ -141,7 +141,7 @@
         _isPointerDown = true;
     }
 
-    private async Task HandlePointerUpAsync(PointerEventArgs args)
+    private async Task HandlePointerUp(PointerEventArgs args)
     {
         if (Disabled || args.Button != 0)
             return;
@@ -150,7 +150,7 @@
         _isPointerDown = false;
 
         if (shouldSelectOnPointerUp)
-            await HandleClickAsync();
+            await HandleClick();
     }
 
     private Task HandleBlur(FocusEventArgs _)
@@ -159,7 +159,7 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleFocusAsync(FocusEventArgs _)
+    private Task HandleFocus(FocusEventArgs _)
     {
         if (Disabled)
             return Task.CompletedTask;
@@ -169,7 +169,7 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private async Task HandleKeyDown(KeyboardEventArgs args)
     {
         if (Disabled || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
@@ -179,36 +179,36 @@
             if (Menu.IsTypeaheadActive)
                 return;
 
-            await HandleClickAsync();
+            await HandleClick();
             return;
         }
 
         if (args.Key == "Enter")
         {
-            await HandleClickAsync();
+            await HandleClick();
             return;
         }
 
         if (args.Key.Length == 1)
         {
-            await Content.HandleTypeaheadKeyAsync(this, args.Key);
+            await Content.HandleTypeaheadKey(this, args.Key);
             return;
         }
 
-        await Content.HandleItemKeyDownAsync(this, args);
+        await Content.HandleItemKeyDown(this, args);
     }
 
-    private Task HandlePointerMoveAsync(PointerEventArgs args)
+    private Task HandlePointerMove(PointerEventArgs args)
     {
         return Disabled
-            ? Content.HandleItemLeaveAsync()
-            : Content.HandlePointerMoveAsync(this, args.PointerType);
+            ? Content.HandleItemLeave()
+            : Content.HandlePointerMove(this, args.PointerType);
     }
 
-    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    private Task HandlePointerLeave(PointerEventArgs args)
     {
         return string.Equals(args.PointerType, "mouse", StringComparison.Ordinal)
-            ? Content.HandleItemLeaveAsync()
+            ? Content.HandleItemLeave()
             : Task.CompletedTask;
     }
 }

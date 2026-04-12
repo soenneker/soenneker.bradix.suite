@@ -99,8 +99,8 @@ public interface IBradixMenuContent
     ValueTask DisposeAsync();
 
     /// <summary>Handles a delegated keydown event from JavaScript interop.</summary>
-    Task HandleDelegatedContentKeyDownAsync(BradixDelegatedKeyboardEvent args);
+    Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args);
 
     /// <summary>Handles a delegated focusout event from JavaScript interop.</summary>
-    Task HandleDelegatedContentFocusOutAsync(BradixDelegatedFocusEvent args);
+    Task HandleDelegatedContentFocusOut(BradixDelegatedFocusEvent args);
 }

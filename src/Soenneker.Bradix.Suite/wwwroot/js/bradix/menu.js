@@ -53,7 +53,7 @@ export function beginMenuSubmenuPointerGrace(trigger, content, clientX, clientY,
     }
 
     menuSubmenuGraceHandlers.delete(trigger);
-    dotNetRef.invokeMethodAsync("HandlePointerGraceChangedAsync", false).catch(() => {});
+    dotNetRef.invokeMethodAsync("HandlePointerGraceChanged", false).catch(() => {});
   };
 
   const pointerMove = (event) => {
@@ -82,7 +82,7 @@ export function beginMenuSubmenuPointerGrace(trigger, content, clientX, clientY,
 
   menuSubmenuGraceHandlers.set(trigger, { pointerMove, timeoutId });
   document.addEventListener("pointermove", pointerMove);
-  dotNetRef.invokeMethodAsync("HandlePointerGraceChangedAsync", true).catch(() => {});
+  dotNetRef.invokeMethodAsync("HandlePointerGraceChanged", true).catch(() => {});
   return true;
 }
 

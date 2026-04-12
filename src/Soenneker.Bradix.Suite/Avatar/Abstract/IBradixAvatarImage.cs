@@ -42,5 +42,5 @@ public interface IBradixAvatarImage
     /// Handles a loading status update emitted from JavaScript.
     /// </summary>
     /// <param name="status">The serialized loading status value.</param>
-    Task HandleImageLoadingStatusChangedAsync(string status);
+    Task HandleImageLoadingStatusChanged(string status);
 }

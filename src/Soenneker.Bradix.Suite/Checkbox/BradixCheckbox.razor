@@ -127,10 +127,10 @@
             await Interop.RegisterCheckboxRoot(_buttonElement, _dotNetReference, Form);
             await Interop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new
             {
-                readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
+                readyMethod = nameof(HandleDelegatedInteractionReady),
                 click = new
                 {
-                    method = nameof(HandleDelegatedClickAsync),
+                    method = nameof(HandleDelegatedClick),
                     currentTargetOnly = false
                 },
                 keydown = new
@@ -178,14 +178,14 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
+    public Task HandleDelegatedInteractionReady()
     {
         _delegatedInteractionReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleFormResetAsync()
+    public Task HandleFormReset()
     {
         if (Checked is not null)
             return Task.CompletedTask;
@@ -196,16 +196,16 @@
 
     private Task HandleClick()
     {
-        return Disabled || _delegatedInteractionReady ? Task.CompletedTask : SetCheckedAsync(GetNextState(CurrentChecked));
+        return Disabled || _delegatedInteractionReady ? Task.CompletedTask : SetChecked(GetNextState(CurrentChecked));
     }
 
     [JSInvokable]
-    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
     {
-        return Disabled ? Task.CompletedTask : SetCheckedAsync(GetNextState(CurrentChecked));
+        return Disabled ? Task.CompletedTask : SetChecked(GetNextState(CurrentChecked));
     }
 
-    private async Task SetCheckedAsync(BradixCheckboxCheckedState state)
+    private async Task SetChecked(BradixCheckboxCheckedState state)
     {
         if (Checked is null)
             _uncontrolledChecked = state;

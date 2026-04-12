@@ -5,7 +5,7 @@
 <BradixPresence Present="Present"
                 Tag="div"
                 AdditionalAttributes="@ContentAttributes"
-                OnExitComplete="@HandleExitCompleteAsync">
+                OnExitComplete="@HandleExitComplete">
     @if (ShouldRenderChildren)
     {
         @ChildContent
@@ -73,7 +73,7 @@
         return $"{animationStyle} {Style}";
     }
 
-    private async Task HandleExitCompleteAsync()
+    private async Task HandleExitComplete()
     {
         _isPresent = false;
         await InvokeAsync(StateHasChanged);

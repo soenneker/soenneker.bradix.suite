@@ -73,14 +73,14 @@ public interface IBradixSlider
     ValueTask DisposeAsync();
 
     /// <summary>Called from script when a pointer drag begins.</summary>
-    Task HandlePointerStartAsync(double xFraction, double yFraction, int thumbIndex);
+    Task HandlePointerStart(double xFraction, double yFraction, int thumbIndex);
 
     /// <summary>Called from script during a pointer drag.</summary>
-    Task HandlePointerMoveAsync(double xFraction, double yFraction);
+    Task HandlePointerMove(double xFraction, double yFraction);
 
     /// <summary>Called from script when a pointer drag ends.</summary>
-    Task HandlePointerEndAsync();
+    Task HandlePointerEnd();
 
     /// <summary>Called from script when a pointer gesture is cancelled.</summary>
-    Task HandlePointerCancelAsync();
+    Task HandlePointerCancel();
 }

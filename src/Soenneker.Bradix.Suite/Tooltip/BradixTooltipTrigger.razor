@@ -7,13 +7,13 @@
 
 <BradixPopperAnchor>
     <button @ref="_triggerElement"
-            @onclick="HandleClickAsync"
-            @onpointermove="HandlePointerMoveAsync"
-            @onpointerleave="HandlePointerLeaveAsync"
+            @onclick="HandleClick"
+            @onpointermove="HandlePointerMove"
+            @onpointerleave="HandlePointerLeave"
             @onpointerdown="HandlePointerDown"
             @onpointerup="HandlePointerUp"
-            @onfocus="HandleFocusAsync"
-            @onblur="HandleBlurAsync"
+            @onfocus="HandleFocus"
+            @onblur="HandleBlur"
             @attributes="TriggerAttributes">
         @ChildContent
     </button>
@@ -49,23 +49,23 @@
         _dotNetReference?.Dispose();
     }
 
-    private Task HandlePointerMoveAsync(PointerEventArgs args)
+    private Task HandlePointerMove(PointerEventArgs args)
     {
         if (args.PointerType == "touch" || Tooltip is null || _hasPointerMoveOpened || Tooltip.IsPointerInTransit)
             return Task.CompletedTask;
 
         _hasPointerMoveOpened = true;
-        return Tooltip.HandleTriggerEnterAsync();
+        return Tooltip.HandleTriggerEnter();
     }
 
-    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    private Task HandlePointerLeave(PointerEventArgs args)
     {
         _hasPointerMoveOpened = false;
 
         if (Tooltip is null)
             return Task.CompletedTask;
 
-        return Tooltip.HandleTriggerLeaveAsync();
+        return Tooltip.HandleTriggerLeave();
     }
 
     private void HandlePointerDown(PointerEventArgs args)
@@ -73,7 +73,7 @@
         _pointerDown = true;
 
         if (Tooltip is not null)
-            _ = Tooltip.CloseAsync();
+            _ = Tooltip.Close();
     }
 
     private void HandlePointerUp(PointerEventArgs args)
@@ -81,31 +81,31 @@
         _pointerDown = false;
     }
 
-    private Task HandleFocusAsync(FocusEventArgs _)
+    private Task HandleFocus(FocusEventArgs _)
     {
         return Tooltip is null
             ? Task.CompletedTask
-            : Tooltip.HandleTriggerFocusAsync(_pointerDown);
+            : Tooltip.HandleTriggerFocus(_pointerDown);
     }
 
-    private Task HandleBlurAsync(FocusEventArgs _)
+    private Task HandleBlur(FocusEventArgs _)
     {
         return Tooltip is null
             ? Task.CompletedTask
-            : Tooltip.HandleTriggerBlurAsync();
+            : Tooltip.HandleTriggerBlur();
     }
 
-    private Task HandleClickAsync()
+    private Task HandleClick()
     {
         _pointerDown = false;
 
         return Tooltip is null
             ? Task.CompletedTask
-            : Tooltip.HandleTriggerClickAsync();
+            : Tooltip.HandleTriggerClick();
     }
 
     [JSInvokable]
-    public Task HandleDocumentPointerUpAsync()
+    public Task HandleDocumentPointerUp()
     {
         _pointerDown = false;
         return Task.CompletedTask;

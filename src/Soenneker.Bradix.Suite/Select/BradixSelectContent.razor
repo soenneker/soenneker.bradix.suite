@@ -13,16 +13,16 @@
             <BradixFocusScope Trapped="@(Select?.CurrentOpen == true)"
                               PreventMountAutoFocus="true"
                               PreventUnmountAutoFocus="true"
-                              OnMountAutoFocusDetailed="@HandleOpenAutoFocusAsync"
-                              OnUnmountAutoFocusDetailed="@HandleCloseAutoFocusAsync">
+                              OnMountAutoFocusDetailed="@HandleOpenAutoFocus"
+                              OnUnmountAutoFocusDetailed="@HandleCloseAutoFocus">
                 <BradixDismissableLayer DisableOutsidePointerEvents="@ShouldDisableOutsidePointerEvents"
                                         DismissOnEscapeKeyDown="true"
                                         DismissOnPointerDownOutside="true"
                                         DismissOnFocusOutside="true"
-                                        OnDismiss="@HandleDismissAsync"
-                                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
-                                        OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
-                                        OnFocusOutsideDetailed="@HandleFocusOutsideAsync">
+                                        OnDismiss="@HandleDismiss"
+                                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
+                                        OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
+                                        OnFocusOutsideDetailed="@HandleFocusOutside">
                     @if (UseItemAlignedPosition)
                     {
                         <div @ref="_wrapperElement"
@@ -34,7 +34,7 @@
                                             Class="@Class"
                                             Style="@MergedStyle"
                                             AdditionalAttributes="@ContentAttributes"
-                                            OnElementReferenceCaptured="@HandleContentElementCapturedAsync">
+                                            OnElementReferenceCaptured="@HandleContentElementCaptured">
                                 <CascadingValue Value="this">
                                     @ChildContent
                                 </CascadingValue>
@@ -59,7 +59,7 @@
                                             Class="@Class"
                                             Style="@MergedStyle"
                                             AdditionalAttributes="@ContentAttributes"
-                                            OnElementReferenceCaptured="@HandleContentElementCapturedAsync">
+                                            OnElementReferenceCaptured="@HandleContentElementCaptured">
                                 <CascadingValue Value="this">
                                     @ChildContent
                                 </CascadingValue>
@@ -189,11 +189,11 @@ else
         if (Select?.CurrentOpen == true)
         {
             if (UseItemAlignedPosition)
-                await UpdateItemAlignedPositionAsync();
+                await UpdateItemAlignedPosition();
 
-            await EnsurePointerTrackerAsync();
-            await EnsureWindowDismissAsync();
-            await EnsureHideOthersAsync();
+            await EnsurePointerTracker();
+            await EnsureWindowDismiss();
+            await EnsureHideOthers();
         }
         else
         {
@@ -272,7 +272,7 @@ else
         _dotNetReference?.Dispose();
     }
 
-    internal async Task RegisterViewportAsync(ElementReference element)
+    internal async Task RegisterViewport(ElementReference element)
     {
         _viewportElement = element;
         _hasViewportElement = true;
@@ -287,12 +287,12 @@ else
         _viewportContentElement = element;
     }
 
-    internal Task FocusViewportAsync()
+    internal Task FocusViewport()
     {
-        return Select?.FocusSelectedOrFirstItemAsync() ?? Task.CompletedTask;
+        return Select?.FocusSelectedOrFirstItem() ?? Task.CompletedTask;
     }
 
-    internal async Task FocusContentAsync()
+    internal async Task FocusContent()
     {
         if (!_hasContentElement)
             return;
@@ -301,11 +301,11 @@ else
         await Interop.FocusElementPreventScroll(_contentElement);
     }
 
-    internal Task StartAutoScrollAsync(bool upward)
+    internal Task StartAutoScroll(bool upward)
     {
         StopAutoScroll();
         _autoScrollCts = new CancellationTokenSource();
-        return RunAutoScrollAsync(upward, _autoScrollCts.Token);
+        return RunAutoScroll(upward, _autoScrollCts.Token);
     }
 
     internal void StopAutoScroll()
@@ -315,18 +315,18 @@ else
         _autoScrollCts = null;
     }
 
-    internal async Task HandleScrollButtonMountedAsync()
+    internal async Task HandleScrollButtonMounted()
     {
         if (!UseItemAlignedPosition || !_shouldRepositionOnScrollButton)
             return;
 
         _shouldRepositionOnScrollButton = false;
-        await UpdateItemAlignedPositionAsync();
-        await FocusViewportAsync();
+        await UpdateItemAlignedPosition();
+        await FocusViewport();
     }
 
     [JSInvokable]
-    public Task HandleViewportMetricsChangedAsync(double scrollTop, double scrollHeight, double viewportHeight)
+    public Task HandleViewportMetricsChanged(double scrollTop, double scrollHeight, double viewportHeight)
     {
         _viewportScrollTop = scrollTop;
         _viewportScrollHeight = scrollHeight;
@@ -335,7 +335,7 @@ else
     }
 
     [JSInvokable]
-    public async Task HandleTriggerPointerGuardResultAsync(bool suppressSelection, bool shouldClose)
+    public async Task HandleTriggerPointerGuardResult(bool suppressSelection, bool shouldClose)
     {
         if (suppressSelection)
             Select?.SuppressNextMouseUpSelection();
@@ -343,26 +343,26 @@ else
         Select?.ClearTriggerPointerDownPosition();
 
         if (shouldClose && Select is not null)
-            await Select.SetOpenAsync(false);
+            await Select.SetOpen(false);
 
         _pointerTrackerRegistered = false;
     }
 
     [JSInvokable]
-    public async Task HandleWindowDismissAsync()
+    public async Task HandleWindowDismiss()
     {
         if (Select is not null && Select.CurrentOpen)
-            await Select.SetOpenAsync(false);
+            await Select.SetOpen(false);
     }
 
-    private Task HandleContentElementCapturedAsync(ElementReference element)
+    private Task HandleContentElementCaptured(ElementReference element)
     {
         _contentElement = element;
         _hasContentElement = true;
-        return EnsureDelegatedInteractionAsync();
+        return EnsureDelegatedInteraction();
     }
 
-    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
+    private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs args)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
@@ -371,7 +371,7 @@ else
             await OnEscapeKeyDownDetailed.InvokeAsync(args);
     }
 
-    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
+    private async Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
@@ -380,22 +380,22 @@ else
             await OnPointerDownOutsideDetailed.InvokeAsync(args);
     }
 
-    private Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
+    private Task HandleFocusOutside(BradixFocusOutsideEventArgs args)
     {
         args.PreventDefault();
         return Task.CompletedTask;
     }
 
-    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
+    private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
     {
         if (_didFocusOpenItem || Select is null || args.DefaultPrevented)
             return;
 
         _didFocusOpenItem = true;
-        await Select.FocusSelectedOrFirstItemAsync();
+        await Select.FocusSelectedOrFirstItem();
     }
 
-    private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
+    private async Task HandleCloseAutoFocus(BradixAutoFocusEventArgs args)
     {
         if (OnCloseAutoFocus.HasDelegate)
             await OnCloseAutoFocus.InvokeAsync();
@@ -406,17 +406,17 @@ else
         if (args.DefaultPrevented || Select is null)
             return;
 
-        await Select.FocusTriggerAsync();
+        await Select.FocusTrigger();
         args.PreventDefault();
     }
 
-    private Task HandleDismissAsync()
+    private Task HandleDismiss()
     {
-        return Select?.SetOpenAsync(false) ?? Task.CompletedTask;
+        return Select?.SetOpen(false) ?? Task.CompletedTask;
     }
 
     [JSInvokable]
-    public async Task HandleDelegatedContentKeyDownAsync(BradixDelegatedKeyboardEvent args)
+    public async Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args)
     {
         if (Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
@@ -426,15 +426,15 @@ else
 
         if (args.Key.Length == 1)
         {
-            await Select.HandleContentTypeaheadAsync(args.Key);
+            await Select.HandleContentTypeahead(args.Key);
             return;
         }
 
         if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
-            await Select.HandleContentNavigationAsync(args.Key);
+            await Select.HandleContentNavigation(args.Key);
     }
 
-    private async Task UpdateItemAlignedPositionAsync()
+    private async Task UpdateItemAlignedPosition()
     {
         if (Select is null || !UseItemAlignedPosition || !_hasContentElement || !_hasViewportElement || !Select.HasTrigger || !Select.HasValueNode)
             return;
@@ -460,7 +460,7 @@ else
         }
     }
 
-    private async Task RunAutoScrollAsync(bool upward, CancellationToken cancellationToken)
+    private async Task RunAutoScroll(bool upward, CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -483,7 +483,7 @@ else
         }
     }
 
-    private async Task EnsurePointerTrackerAsync()
+    private async Task EnsurePointerTracker()
     {
         if (Select is null || !_hasContentElement || _pointerTrackerRegistered || !Select.HasTriggerPointerDownPosition)
             return;
@@ -493,7 +493,7 @@ else
         _pointerTrackerRegistered = true;
     }
 
-    private async Task EnsureDelegatedInteractionAsync()
+    private async Task EnsureDelegatedInteraction()
     {
         if (!_hasContentElement || _delegatedInteractionRegistered)
             return;
@@ -503,7 +503,7 @@ else
         {
             keydown = new
             {
-                method = nameof(HandleDelegatedContentKeyDownAsync),
+                method = nameof(HandleDelegatedContentKeyDown),
                 currentTargetOnly = false,
                 preventDefaultKeys = new[] { "Tab", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown" }
             }
@@ -511,7 +511,7 @@ else
         _delegatedInteractionRegistered = true;
     }
 
-    private async Task EnsureWindowDismissAsync()
+    private async Task EnsureWindowDismiss()
     {
         if (!_hasContentElement || _windowDismissRegistered)
             return;
@@ -521,7 +521,7 @@ else
         _windowDismissRegistered = true;
     }
 
-    private async Task EnsureHideOthersAsync()
+    private async Task EnsureHideOthers()
     {
         if (!_hasContentElement || _hideOthersRegistered)
             return;

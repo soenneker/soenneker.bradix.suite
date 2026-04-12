@@ -8,8 +8,8 @@
 
 <CascadingValue Value="this">
     <form @ref="_formElement"
-          @onsubmit="HandleSubmitAsync"
-          @onreset="HandleResetAsync"
+          @onsubmit="HandleSubmit"
+          @onreset="HandleReset"
           @attributes="FormAttributes">
         @ChildContent
     </form>
@@ -121,7 +121,7 @@
         }
     }
 
-    internal async Task UpdateControlStateAsync(ElementReference element, string fieldName, BradixFormControlSnapshot snapshot)
+    internal async Task UpdateControlState(ElementReference element, string fieldName, BradixFormControlSnapshot snapshot)
     {
         long version = NextValidationVersion(fieldName);
         BradixFormValiditySnapshot validity = snapshot.Validity ?? new BradixFormValiditySnapshot();
@@ -148,7 +148,7 @@
 
         foreach (BradixFormCustomMatcherEntry entry in matcherEntries.Values)
         {
-            ValueTask<bool> task = entry.MatchAsync(snapshot.Value, snapshot.FormData);
+            ValueTask<bool> task = entry.Match(snapshot.Value, snapshot.FormData);
 
             if (task.IsCompletedSuccessfully)
             {
@@ -174,7 +174,7 @@
 
         foreach (BradixFormCustomMatcherEntry entry in asyncMatchers)
         {
-            asyncResults[entry.Id] = await entry.MatchAsync(snapshot.Value, snapshot.FormData);
+            asyncResults[entry.Id] = await entry.Match(snapshot.Value, snapshot.FormData);
 
             if (!IsLatestValidation(fieldName, version))
                 return;
@@ -219,13 +219,13 @@
         }
     }
 
-    private async Task HandleSubmitAsync()
+    private async Task HandleSubmit()
     {
         if (OnClearServerErrors.HasDelegate)
             await OnClearServerErrors.InvokeAsync();
     }
 
-    private async Task HandleResetAsync()
+    private async Task HandleReset()
     {
         await Interop.ClearFormCustomValidity(_formElement);
 
@@ -298,7 +298,7 @@
     }
 
     [JSInvokable]
-    public async Task HandleInvalidControlsAsync(string[] fieldNames)
+    public async Task HandleInvalidControls(string[] fieldNames)
     {
         foreach (string fieldName in fieldNames.Distinct(StringComparer.Ordinal))
         {
@@ -306,7 +306,7 @@
                 continue;
 
             BradixFormControlSnapshot snapshot = await Interop.GetFormControlState(element);
-            await UpdateControlStateAsync(element, fieldName, snapshot);
+            await UpdateControlState(element, fieldName, snapshot);
         }
     }
 }

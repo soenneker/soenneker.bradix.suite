@@ -35,7 +35,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
         var cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => _dismissed = true)));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await layer.Instance.HandlePointerDownOutsideAsync();
+        await layer.Instance.HandlePointerDownOutside();
 
         Assert.True(_dismissed);
     }
@@ -46,7 +46,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
         var cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => _dismissed = true), dismissOnEscapeKeyDown: false));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await layer.Instance.HandleEscapeKeyDownAsync();
+        await layer.Instance.HandleEscapeKeyDown();
 
         Assert.False(_dismissed);
     }
@@ -57,7 +57,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
         var cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => _dismissed = true)));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        bool shouldPreventDefault = await layer.Instance.HandleEscapeKeyDownAsync();
+        bool shouldPreventDefault = await layer.Instance.HandleEscapeKeyDown();
 
         Assert.True(_dismissed);
         Assert.True(shouldPreventDefault);
@@ -79,7 +79,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
         });
 
         var layer = cut.FindComponent<BradixDismissableLayer>();
-        bool shouldPreventDefault = await layer.Instance.HandleEscapeKeyDownAsync();
+        bool shouldPreventDefault = await layer.Instance.HandleEscapeKeyDown();
 
         Assert.False(_dismissed);
         Assert.False(shouldPreventDefault);
@@ -105,7 +105,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
         });
 
         var layer = cut.FindComponent<BradixDismissableLayer>();
-        await layer.Instance.HandleFocusOutsideAsync();
+        await layer.Instance.HandleFocusOutside();
 
         Assert.True(focusOutside);
         Assert.True(interactOutside);

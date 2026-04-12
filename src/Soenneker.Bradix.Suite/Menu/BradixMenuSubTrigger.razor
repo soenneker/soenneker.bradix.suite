@@ -9,12 +9,12 @@
 @using System.Threading
 
 <div @ref="_element"
-     @onclick="HandleClickAsync"
-     @onfocus="HandleFocusAsync"
+     @onclick="HandleClick"
+     @onfocus="HandleFocus"
      @onblur="HandleBlur"
-     @onkeydown="HandleKeyDownAsync"
-     @onpointermove="HandlePointerMoveAsync"
-     @onpointerleave="HandlePointerLeaveAsync"
+     @onkeydown="HandleKeyDown"
+     @onpointermove="HandlePointerMove"
+     @onpointerleave="HandlePointerLeave"
      @attributes="ItemAttributes">
     @ChildContent
 </div>
@@ -118,19 +118,19 @@
         _dotNetReference?.Dispose();
     }
 
-    public ValueTask FocusAsync() => Interop.FocusElementPreventScroll(_element);
+    public ValueTask Focus() => Interop.FocusElementPreventScroll(_element);
 
-    private async Task HandleClickAsync()
+    private async Task HandleClick()
     {
         if (Disabled)
             return;
 
         CancelOpenPointerMove();
-        await CancelPointerGraceAsync();
+        await CancelPointerGrace();
         SubMenu.SetFocusContentOnOpen(false);
         SubMenu.SetFocusFirstItemOnOpen(false);
         await Interop.FocusElementPreventScroll(_element);
-        await SubMenu.SetOpenAsync(true);
+        await SubMenu.SetOpen(true);
     }
 
     private Task HandleBlur(FocusEventArgs _)
@@ -139,7 +139,7 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleFocusAsync(FocusEventArgs _)
+    private Task HandleFocus(FocusEventArgs _)
     {
         if (Disabled)
             return Task.CompletedTask;
@@ -149,7 +149,7 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private async Task HandleKeyDown(KeyboardEventArgs args)
     {
         if (Disabled || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
@@ -164,53 +164,53 @@
         if (isOpenKey)
         {
             CancelOpenPointerMove();
-            await CancelPointerGraceAsync();
+            await CancelPointerGrace();
             SubMenu.SetFocusContentOnOpen(true);
             SubMenu.SetFocusFirstItemOnOpen(true);
-            await SubMenu.SetOpenAsync(true);
+            await SubMenu.SetOpen(true);
             return;
         }
 
         if (args.Key.Length == 1)
         {
-            await ParentContent.HandleTypeaheadKeyAsync(this, args.Key);
+            await ParentContent.HandleTypeaheadKey(this, args.Key);
             return;
         }
 
-        await ParentContent.HandleItemKeyDownAsync(this, args);
+        await ParentContent.HandleItemKeyDown(this, args);
     }
 
-    private async Task HandlePointerMoveAsync(PointerEventArgs args)
+    private async Task HandlePointerMove(PointerEventArgs args)
     {
         if (Disabled)
         {
             if (!_pointerGraceActive)
-                await ParentContent.HandleItemLeaveAsync();
+                await ParentContent.HandleItemLeave();
             return;
         }
 
-        await CancelPointerGraceAsync();
-        await ParentContent.HandlePointerMoveAsync(this, args.PointerType);
+        await CancelPointerGrace();
+        await ParentContent.HandlePointerMove(this, args.PointerType);
 
         if (!SubMenu.CurrentOpen)
         {
             CancelOpenPointerMove();
             _openPointerMoveCts = new CancellationTokenSource();
-            _ = OpenFromPointerMoveAsync(_openPointerMoveCts.Token);
+            _ = OpenFromPointerMove(_openPointerMoveCts.Token);
         }
     }
 
-    private async Task HandlePointerLeaveAsync(PointerEventArgs args)
+    private async Task HandlePointerLeave(PointerEventArgs args)
     {
         CancelOpenPointerMove();
 
-        if (string.Equals(args.PointerType, "mouse", StringComparison.Ordinal) && await TryBeginPointerGraceAsync(args))
+        if (string.Equals(args.PointerType, "mouse", StringComparison.Ordinal) && await TryBeginPointerGrace(args))
             return;
 
-        await ParentContent.HandleItemLeaveAsync();
+        await ParentContent.HandleItemLeave();
     }
 
-    private async Task OpenFromPointerMoveAsync(CancellationToken cancellationToken)
+    private async Task OpenFromPointerMove(CancellationToken cancellationToken)
     {
         try
         {
@@ -221,7 +221,7 @@
 
             SubMenu.SetFocusContentOnOpen(false);
             SubMenu.SetFocusFirstItemOnOpen(false);
-            await SubMenu.SetOpenAsync(true);
+            await SubMenu.SetOpen(true);
         }
         catch (TaskCanceledException)
         {
@@ -236,14 +236,14 @@
     }
 
     [JSInvokable]
-    public Task HandlePointerGraceChangedAsync(bool active)
+    public Task HandlePointerGraceChanged(bool active)
     {
         _pointerGraceActive = active;
         ParentContent.SetSubmenuPointerGrace(TabStopId, active);
         return Task.CompletedTask;
     }
 
-    private async Task<bool> TryBeginPointerGraceAsync(PointerEventArgs args)
+    private async Task<bool> TryBeginPointerGrace(PointerEventArgs args)
     {
         if (!SubMenu.CurrentOpen || !SubMenu.HasContentElement || _dotNetReference is null)
             return false;
@@ -269,7 +269,7 @@
         return started;
     }
 
-    private async Task CancelPointerGraceAsync()
+    private async Task CancelPointerGrace()
     {
         if (!_pointerGraceActive)
             return;

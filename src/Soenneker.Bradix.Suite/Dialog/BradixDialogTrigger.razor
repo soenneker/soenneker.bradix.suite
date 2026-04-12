@@ -6,7 +6,7 @@
 @inject IBradixSuiteInterop Interop
 
 <button @ref="_button"
-        @onclick="HandleClickAsync"
+        @onclick="HandleClick"
         @attributes="ButtonAttributes">
     @ChildContent
 </button>
@@ -42,10 +42,10 @@
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
-                readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
+                readyMethod = nameof(HandleDelegatedInteractionReady),
                 click = new
                 {
-                    method = nameof(HandleDelegatedClickAsync),
+                    method = nameof(HandleDelegatedClick),
                     currentTargetOnly = false
                 }
             });
@@ -54,11 +54,11 @@
         return;
     }
 
-    private Task HandleClickAsync()
+    private Task HandleClick()
     {
         return Disabled || Dialog is null || _delegatedInteractionReady
             ? Task.CompletedTask
-            : Dialog.ToggleOpenAsync();
+            : Dialog.ToggleOpen();
     }
 
     public async ValueTask DisposeAsync()
@@ -68,15 +68,15 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
+    public Task HandleDelegatedInteractionReady()
     {
         _delegatedInteractionReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
     {
-        return Disabled || Dialog is null ? Task.CompletedTask : Dialog.ToggleOpenAsync();
+        return Disabled || Dialog is null ? Task.CompletedTask : Dialog.ToggleOpen();
     }
 }

@@ -7,8 +7,8 @@
 <BradixPresence Present="Present"
                 Tag="div"
                 AdditionalAttributes="@ContentAttributes"
-                OnElementReferenceCaptured="@HandleElementCapturedAsync"
-                OnExitComplete="@HandleExitCompleteAsync">
+                OnElementReferenceCaptured="@HandleElementCaptured"
+                OnExitComplete="@HandleExitComplete">
     @if (ShouldRenderChildren)
     {
         @ChildContent
@@ -99,7 +99,7 @@
             await Interop.UnobserveCollapsibleContent(_element);
     }
 
-    private Task HandleElementCapturedAsync(ElementReference element)
+    private Task HandleElementCaptured(ElementReference element)
     {
         _element = element;
         _hasElement = true;
@@ -107,7 +107,7 @@
         return Task.CompletedTask;
     }
 
-    private async Task HandleExitCompleteAsync()
+    private async Task HandleExitComplete()
     {
         if (_observing)
         {

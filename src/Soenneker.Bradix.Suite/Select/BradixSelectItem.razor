@@ -8,14 +8,14 @@
 
 <CascadingValue Value="this">
     <div @ref="_element"
-         @onclick="HandleClickAsync"
-         @onfocus="HandleFocusAsync"
-         @onblur="HandleBlurAsync"
-         @onkeydown="HandleKeyDownAsync"
-         @onpointerdown="HandlePointerDownAsync"
-         @onpointerup="HandlePointerUpAsync"
-         @onpointermove="HandlePointerMoveAsync"
-         @onpointerleave="HandlePointerLeaveAsync"
+         @onclick="HandleClick"
+         @onfocus="HandleFocus"
+         @onblur="HandleBlur"
+         @onkeydown="HandleKeyDown"
+         @onpointerdown="HandlePointerDown"
+         @onpointerup="HandlePointerUp"
+         @onpointermove="HandlePointerMove"
+         @onpointerleave="HandlePointerLeave"
          @attributes="ItemAttributes">
         @ChildContent
     </div>
@@ -119,7 +119,7 @@
                 _resolvedTextValue = textContent;
 
                 if (Select is not null)
-                    await Select.NotifyItemTextChangedAsync();
+                    await Select.NotifyItemTextChanged();
             }
         }
     }
@@ -135,17 +135,17 @@
         _dotNetReference?.Dispose();
     }
 
-    ValueTask IBradixSelectCollectionItem.FocusAsync() => Interop.FocusElementPreventScroll(_element);
+    ValueTask IBradixSelectCollectionItem.Focus() => Interop.FocusElementPreventScroll(_element);
 
-    ValueTask IBradixSelectCollectionItem.ScrollIntoViewAsync() => Interop.ScrollElementIntoViewNearest(_element);
+    ValueTask IBradixSelectCollectionItem.ScrollIntoView() => Interop.ScrollElementIntoViewNearest(_element);
 
-    internal async Task NotifyResolvedTextAsync(string? text)
+    internal async Task NotifyResolvedText(string? text)
     {
         if (string.IsNullOrWhiteSpace(TextValue))
             _resolvedTextValue = text;
 
         if (Select is not null)
-            await Select.NotifyItemTextChangedAsync();
+            await Select.NotifyItemTextChanged();
     }
 
     internal void RegisterTextElement(ElementReference element)
@@ -154,17 +154,17 @@
         _hasItemTextElement = true;
     }
 
-    private async Task HandleClickAsync(MouseEventArgs _)
+    private async Task HandleClick(MouseEventArgs _)
     {
         if (Disabled || Select is null || _pointerType == "mouse")
             return;
 
-        await Select.SetValueAsync(Value);
-        await Select.SetOpenAsync(false);
-        await Select.FocusTriggerAsync();
+        await Select.SetValue(Value);
+        await Select.SetOpen(false);
+        await Select.FocusTrigger();
     }
 
-    private Task HandleFocusAsync(FocusEventArgs _)
+    private Task HandleFocus(FocusEventArgs _)
     {
         if (Disabled || Select is null)
             return Task.CompletedTask;
@@ -174,13 +174,13 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleBlurAsync(FocusEventArgs _)
+    private Task HandleBlur(FocusEventArgs _)
     {
         _isFocused = false;
         return InvokeAsync(StateHasChanged);
     }
 
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private async Task HandleKeyDown(KeyboardEventArgs args)
     {
         if (Disabled || Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
@@ -192,21 +192,21 @@
 
         if (args.Key is " " or "Spacebar" or "Enter")
         {
-            await Select.SetValueAsync(Value);
-            await Select.SetOpenAsync(false);
-            await Select.FocusTriggerAsync();
+            await Select.SetValue(Value);
+            await Select.SetOpen(false);
+            await Select.FocusTrigger();
             return;
         }
 
     }
 
-    private Task HandlePointerDownAsync(PointerEventArgs args)
+    private Task HandlePointerDown(PointerEventArgs args)
     {
         _pointerType = args.PointerType ?? "mouse";
         return Task.CompletedTask;
     }
 
-    private async Task HandlePointerUpAsync(PointerEventArgs _)
+    private async Task HandlePointerUp(PointerEventArgs _)
     {
         if (Disabled || Select is null || _pointerType != "mouse")
             return;
@@ -214,19 +214,19 @@
         if (Select.TryConsumeSuppressedMouseUpSelection())
             return;
 
-        await Select.SetValueAsync(Value);
-        await Select.SetOpenAsync(false);
-        await Select.FocusTriggerAsync();
+        await Select.SetValue(Value);
+        await Select.SetOpen(false);
+        await Select.FocusTrigger();
     }
 
-    private async Task HandlePointerMoveAsync(PointerEventArgs args)
+    private async Task HandlePointerMove(PointerEventArgs args)
     {
         _pointerType = args.PointerType ?? _pointerType;
 
         if (Disabled || Select is null || !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
         {
             if (Disabled)
-                await (Content?.FocusContentAsync() ?? Task.CompletedTask);
+                await (Content?.FocusContent() ?? Task.CompletedTask);
 
             return;
         }
@@ -235,11 +235,11 @@
         await Interop.FocusElementPreventScroll(_element);
     }
 
-    private async Task HandlePointerLeaveAsync(PointerEventArgs _)
+    private async Task HandlePointerLeave(PointerEventArgs _)
     {
         if (Content is null || !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
             return;
 
-        await Content.FocusContentAsync();
+        await Content.FocusContent();
     }
 }

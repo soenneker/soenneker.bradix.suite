@@ -6,12 +6,12 @@
 @inject IBradixSuiteInterop Interop
 
 <button @ref="_button"
-        @onpointerenter="HandlePointerEnterAsync"
-        @onpointermove="HandlePointerMoveAsync"
-        @onpointerleave="HandlePointerLeaveAsync"
-        @onclick="HandleClickAsync"
-        @onfocus="HandleFocusAsync"
-        @onkeydown="HandleKeyDownAsync"
+        @onpointerenter="HandlePointerEnter"
+        @onpointermove="HandlePointerMove"
+        @onpointerleave="HandlePointerLeave"
+        @onclick="HandleClick"
+        @onfocus="HandleFocus"
+        @onkeydown="HandleKeyDown"
         @attributes="TriggerAttributes">
     @ChildContent
 </button>
@@ -118,7 +118,7 @@
             NavigationMenu?.UnregisterTrigger(_registration);
     }
 
-    private Task HandlePointerEnterAsync(PointerEventArgs _)
+    private Task HandlePointerEnter(PointerEventArgs _)
     {
         _wasClickClose = false;
 
@@ -128,7 +128,7 @@
         return Task.CompletedTask;
     }
 
-    private async Task HandlePointerMoveAsync(PointerEventArgs args)
+    private async Task HandlePointerMove(PointerEventArgs args)
     {
         if (args.PointerType == "touch" ||
             Disabled ||
@@ -139,30 +139,30 @@
             _hasPointerMoveOpened)
             return;
 
-        await NavigationMenu.HandleTriggerPointerMoveAsync(Item.ResolvedValue);
+        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
         _hasPointerMoveOpened = true;
     }
 
-    private async Task HandlePointerLeaveAsync(PointerEventArgs args)
+    private async Task HandlePointerLeave(PointerEventArgs args)
     {
         if (args.PointerType == "touch" || Disabled || NavigationMenu is null)
             return;
 
         _hasPointerMoveOpened = false;
-        await NavigationMenu.HandleTriggerPointerLeaveAsync();
+        await NavigationMenu.HandleTriggerPointerLeave();
     }
 
-    private async Task HandleClickAsync()
+    private async Task HandleClick()
     {
         if (Disabled || NavigationMenu is null || Item is null)
             return;
 
         bool wasOpen = IsOpen;
-        await NavigationMenu.ToggleItemAsync(Item.ResolvedValue);
+        await NavigationMenu.ToggleItem(Item.ResolvedValue);
         _wasClickClose = wasOpen;
     }
 
-    private Task HandleFocusAsync(FocusEventArgs _)
+    private Task HandleFocus(FocusEventArgs _)
     {
         if (NavigationMenu is not null && Item is not null)
             NavigationMenu.SetCurrentTabStop(Item.ResolvedValue);
@@ -170,7 +170,7 @@
         return Task.CompletedTask;
     }
 
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private async Task HandleKeyDown(KeyboardEventArgs args)
     {
         if (Disabled || NavigationMenu is null || Item is null)
             return;
@@ -180,7 +180,7 @@
 
         if (IsOpen && string.Equals(args.Key, entryKey, StringComparison.Ordinal))
         {
-            await NavigationMenu.FocusContentAsync(Item.ResolvedValue);
+            await NavigationMenu.FocusContent(Item.ResolvedValue);
             return;
         }
 
@@ -190,17 +190,17 @@
                 return;
 
             if (_registration is not null)
-                await NavigationMenu.HandleTriggerNavigationAsync(_registration, args);
+                await NavigationMenu.HandleTriggerNavigation(_registration, args);
 
             return;
         }
 
         if (args.Key is "Enter" or " " or "Spacebar")
-            await NavigationMenu.ToggleItemAsync(Item.ResolvedValue);
+            await NavigationMenu.ToggleItem(Item.ResolvedValue);
     }
 
     [JSInvokable]
-    public Task HandleRovingFocusBridgeReadyAsync()
+    public Task HandleRovingFocusBridgeReady()
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;
@@ -213,7 +213,7 @@
         public bool Disabled { get; } = disabled;
         public ElementReference TriggerElement { get; } = triggerElement;
 
-        public ValueTask FocusAsync()
+        public ValueTask Focus()
         {
             return TriggerElement.FocusAsync();
         }

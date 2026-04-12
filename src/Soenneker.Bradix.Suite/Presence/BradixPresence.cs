@@ -99,7 +99,7 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
                 }
                 else
                 {
-                    await CompleteUnmountAsync();
+                    await CompleteUnmount();
                 }
             }
         }
@@ -124,7 +124,7 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
         builder.AddMultipleAttributes(1, BuildRenderAttributes());
         if (OnKeyDown.HasDelegate)
         {
-            builder.AddAttribute(2, "onkeydown", EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDownAsync));
+            builder.AddAttribute(2, "onkeydown", EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDown));
             if (PreventKeyDownDefault)
                 builder.AddEventPreventDefaultAttribute(3, "onkeydown", true);
         }
@@ -143,14 +143,14 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
     }
 
     [JSInvokable]
-    public Task HandleAnimationStartAsync(string animationName, string? currentAnimationName = null)
+    public Task HandleAnimationStart(string animationName, string? currentAnimationName = null)
     {
         _previousAnimationName = NormalizeAnimationName(currentAnimationName, animationName);
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public async Task HandleAnimationEndAsync(string animationName, string? currentAnimationName = null)
+    public async Task HandleAnimationEnd(string animationName, string? currentAnimationName = null)
     {
         string normalizedEventAnimation = NormalizeAnimationName(animationName);
         string activeAnimationName = NormalizeAnimationName(currentAnimationName);
@@ -172,10 +172,10 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
         _forceExitAnimationFillModeForwards = true;
         await InvokeAsync(StateHasChanged);
         await Task.Yield();
-        await CompleteUnmountAsync();
+        await CompleteUnmount();
     }
 
-    private async Task CompleteUnmountAsync()
+    private async Task CompleteUnmount()
     {
         _exitSuspended = false;
 
@@ -209,7 +209,7 @@ public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
         return attributes;
     }
 
-    private Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private Task HandleKeyDown(KeyboardEventArgs args)
     {
         return OnKeyDown.HasDelegate ? OnKeyDown.InvokeAsync(args) : Task.CompletedTask;
     }

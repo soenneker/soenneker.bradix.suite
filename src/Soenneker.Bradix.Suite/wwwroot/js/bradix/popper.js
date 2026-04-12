@@ -169,7 +169,7 @@ function updateRegisteredPopperContent(content) {
 
   handlers.lastPosition = nextPosition;
   handlers.dotNetRef.invokeMethodAsync(
-    "HandlePositionChangedAsync",
+    "HandlePositionChanged",
     nextPosition.placedSide,
     nextPosition.placedAlign,
     nextPosition.left,

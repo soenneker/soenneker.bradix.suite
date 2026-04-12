@@ -2,7 +2,7 @@
 
 @inherits BradixComponentBase
 
-<button @onclick="HandleClickAsync"
+<button @onclick="HandleClick"
         @attributes="ButtonAttributes">
     @ChildContent
 </button>
@@ -26,8 +26,8 @@
             throw new InvalidOperationException("BradixToastAction requires a non-empty AltText.");
     }
 
-    private Task HandleClickAsync()
+    private Task HandleClick()
     {
-        return Toast?.TriggerCloseAsync() ?? Task.CompletedTask;
+        return Toast?.TriggerClose() ?? Task.CompletedTask;
     }
 }

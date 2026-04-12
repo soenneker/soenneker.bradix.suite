@@ -48,7 +48,7 @@ export function registerHoverCardSelectionContainment(content, dotNetRef) {
 
     setTimeout(() => {
       const hasSelection = (document.getSelection()?.toString() || "") !== "";
-      dotNetRef.invokeMethodAsync("HandleDocumentPointerUpAsync", hasSelection);
+      dotNetRef.invokeMethodAsync("HandleDocumentPointerUp", hasSelection);
     });
   };
 
@@ -101,7 +101,7 @@ export function registerAvatarImageLoadingStatus(src, crossOrigin, referrerPolic
   const image = new window.Image();
   const notifyStatus = (status) => {
     setTimeout(() => {
-      dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChangedAsync", status).catch(() => {});
+      dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChanged", status).catch(() => {});
     }, 0);
   };
   const handleLoad = () => {

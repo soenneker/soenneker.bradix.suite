@@ -157,7 +157,7 @@
         return ValueTask.CompletedTask;
     }
 
-    internal ValueTask FocusAsync() => _element.FocusAsync();
+    internal ValueTask Focus() => _element.FocusAsync();
 
     private Task HandleFocus(FocusEventArgs _)
     {
@@ -167,6 +167,6 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
-        return Slider.HandleThumbKeyDownAsync(Index, args);
+        return Slider.HandleThumbKeyDown(Index, args);
     }
 }

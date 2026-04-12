@@ -97,7 +97,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect());
         var trigger = cut.FindComponent<BradixSelectTrigger>();
 
-        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
             Button = 0,
             PageX = 12,
@@ -118,7 +118,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect());
         var trigger = cut.FindComponent<BradixSelectTrigger>();
 
-        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
             Button = 0,
             PageX = 12,
@@ -139,7 +139,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect());
         var trigger = cut.FindComponent<BradixSelectTrigger>();
 
-        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
             Button = 0,
             PageX = 12,
@@ -192,7 +192,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var content = cut.FindComponent<BradixSelectContent>();
 
         var items = cut.FindAll("[role='option']");
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "l"
         }));
@@ -212,7 +212,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         var content = cut.FindComponent<BradixSelectContent>();
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "PageDown"
         }));
@@ -225,7 +225,7 @@ public sealed class BradixSelectRenderTests : BunitContext
             Assert.Equal("0", items[2].GetAttribute("tabindex"));
         });
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "PageUp"
         }));
@@ -247,7 +247,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         var content = cut.FindComponent<BradixSelectContent>();
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "s"
         }));
@@ -299,7 +299,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect(defaultOpen: true, includeScrollButtons: true));
         var content = cut.FindComponent<BradixSelectContent>().Instance;
 
-        await content.HandleViewportMetricsChangedAsync(0, 400, 120);
+        await content.HandleViewportMetricsChanged(0, 400, 120);
 
         cut.WaitForAssertion(() =>
         {
@@ -307,7 +307,7 @@ public sealed class BradixSelectRenderTests : BunitContext
             Assert.Single(cut.FindAll("[data-radix-select-scroll-down-button]"));
         });
 
-        await content.HandleViewportMetricsChangedAsync(40, 400, 120);
+        await content.HandleViewportMetricsChanged(40, 400, 120);
 
         cut.WaitForAssertion(() =>
         {
@@ -322,7 +322,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         var content = cut.FindComponent<BradixSelectContent>().Instance;
 
-        await content.HandleTriggerPointerGuardResultAsync(suppressSelection: true, shouldClose: false);
+        await content.HandleTriggerPointerGuardResult(suppressSelection: true, shouldClose: false);
 
         cut.FindAll("[role='option']").First(item => item.TextContent.Contains("Lime"))
             .TriggerEvent("onpointerup", new PointerEventArgs { PointerType = "mouse" });
@@ -340,7 +340,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         var content = cut.FindComponent<BradixSelectContent>().Instance;
 
-        await content.HandleTriggerPointerGuardResultAsync(suppressSelection: false, shouldClose: true);
+        await content.HandleTriggerPointerGuardResult(suppressSelection: false, shouldClose: true);
 
         cut.WaitForAssertion(() =>
         {
@@ -354,7 +354,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         var content = cut.FindComponent<BradixSelectContent>().Instance;
 
-        await content.HandleWindowDismissAsync();
+        await content.HandleWindowDismiss();
 
         cut.WaitForAssertion(() =>
         {
@@ -368,7 +368,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var cut = Render(CreateSelect(defaultValue: "orange"));
         var trigger = cut.FindComponent<BradixSelectTrigger>();
 
-        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
             Button = 0,
             PageX = 12,
@@ -382,7 +382,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         });
 
         var content = cut.FindComponent<BradixSelectContent>().Instance;
-        await cut.InvokeAsync(() => content.HandleWindowDismissAsync());
+        await cut.InvokeAsync(() => content.HandleWindowDismiss());
 
         cut.WaitForAssertion(() =>
         {
@@ -390,7 +390,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         });
 
         trigger = cut.FindComponent<BradixSelectTrigger>();
-        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDownAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
             Button = 0,
             PageX = 48,
@@ -440,7 +440,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         });
 
         var focusScope = cut.FindComponent<BradixFocusScope>();
-        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
         Assert.True(prevented);
     }

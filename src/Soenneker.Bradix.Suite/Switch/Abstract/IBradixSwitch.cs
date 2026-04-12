@@ -55,11 +55,11 @@ public interface IBradixSwitch
     ValueTask DisposeAsync();
 
     /// <summary>Called from script when delegated interaction wiring is ready.</summary>
-    Task HandleDelegatedInteractionReadyAsync();
+    Task HandleDelegatedInteractionReady();
 
     /// <summary>Called from script when the owning form is reset.</summary>
-    Task HandleFormResetAsync();
+    Task HandleFormReset();
 
     /// <summary>Called from script for delegated click handling.</summary>
-    Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _);
+    Task HandleDelegatedClick(BradixDelegatedMouseEvent _);
 }

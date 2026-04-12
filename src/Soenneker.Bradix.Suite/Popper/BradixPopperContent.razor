@@ -146,7 +146,7 @@
     }
 
     [JSInvokable]
-    public async Task HandlePositionChangedAsync(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth, double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY)
+    public async Task HandlePositionChanged(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth, double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY)
     {
         bool unchanged = _left == left
             && _top == top

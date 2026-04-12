@@ -95,11 +95,11 @@
         return values.Contains(value);
     }
 
-    internal async Task OpenItemAsync(string value)
+    internal async Task OpenItem(string value)
     {
         if (IsSingle)
         {
-            await SetSingleValueAsync(value);
+            await SetSingleValue(value);
             return;
         }
 
@@ -110,18 +110,18 @@
         if (!next.Contains(value, StringComparer.Ordinal))
         {
             next.Add(value);
-            await SetMultipleValuesAsync(next);
+            await SetMultipleValues(next);
         }
     }
 
-    internal async Task CloseItemAsync(string value)
+    internal async Task CloseItem(string value)
     {
         if (IsSingle)
         {
             if (!IsCollapsible)
                 return;
 
-            await SetSingleValueAsync(null);
+            await SetSingleValue(null);
             return;
         }
 
@@ -130,7 +130,7 @@
             : [.. _uncontrolledValues];
 
         if (next.RemoveAll(item => string.Equals(item, value, StringComparison.Ordinal)) > 0)
-            await SetMultipleValuesAsync(next);
+            await SetMultipleValues(next);
     }
 
     internal void RegisterTrigger(BradixAccordionTrigger trigger)
@@ -146,7 +146,7 @@
         _triggers.Remove(trigger);
     }
 
-    internal async Task HandleTriggerKeyDownAsync(BradixAccordionTrigger trigger, KeyboardEventArgs args)
+    internal async Task HandleTriggerKeyDown(BradixAccordionTrigger trigger, KeyboardEventArgs args)
     {
         List<BradixAccordionTrigger> enabledTriggers = _triggers
             .Where(item => !item.IsDisabled)
@@ -190,10 +190,10 @@
                 return;
         }
 
-        await enabledTriggers[nextIndex].FocusAsync();
+        await enabledTriggers[nextIndex].Focus();
     }
 
-    private async Task SetSingleValueAsync(string? value)
+    private async Task SetSingleValue(string? value)
     {
         if (string.Equals(Value ?? _uncontrolledValue, value, StringComparison.Ordinal))
             return;
@@ -210,7 +210,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task SetMultipleValuesAsync(List<string> next)
+    private async Task SetMultipleValues(List<string> next)
     {
         IReadOnlyCollection<string> ordered = next.ToArray();
 

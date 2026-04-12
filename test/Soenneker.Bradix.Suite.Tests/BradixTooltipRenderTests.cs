@@ -92,7 +92,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
         var cut = Render(CreateTooltip(defaultOpen: true));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
         Assert.Empty(cut.FindAll("[role='tooltip']"));
     }
@@ -103,7 +103,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
         var cut = Render(CreateTooltip(defaultOpen: true, onPointerDownOutsideDetailed: args => args.PreventDefault()));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
         cut.WaitForAssertion(() =>
         {

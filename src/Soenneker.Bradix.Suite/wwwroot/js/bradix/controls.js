@@ -135,11 +135,11 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     const thumbIndex = thumb ? sliderThumbs.indexOf(thumb) : -1;
     const fractions = getFractions(event);
 
-    dotNetRef.invokeMethodAsync("HandlePointerStartAsync", fractions.x, fractions.y, thumbIndex);
+    dotNetRef.invokeMethodAsync("HandlePointerStart", fractions.x, fractions.y, thumbIndex);
 
     const pointermove = (moveEvent) => {
       const moveFractions = getFractions(moveEvent);
-      dotNetRef.invokeMethodAsync("HandlePointerMoveAsync", moveFractions.x, moveFractions.y);
+      dotNetRef.invokeMethodAsync("HandlePointerMove", moveFractions.x, moveFractions.y);
     };
 
     const pointerup = () => {
@@ -155,7 +155,7 @@ export function registerSliderPointerBridge(element, dotNetRef) {
         } catch {
         }
       }
-      dotNetRef.invokeMethodAsync("HandlePointerEndAsync");
+      dotNetRef.invokeMethodAsync("HandlePointerEnd");
     };
 
     const pointercancel = () => {
@@ -171,7 +171,7 @@ export function registerSliderPointerBridge(element, dotNetRef) {
         } catch {
         }
       }
-      dotNetRef.invokeMethodAsync("HandlePointerCancelAsync");
+      dotNetRef.invokeMethodAsync("HandlePointerCancel");
     };
 
     document.addEventListener("pointermove", pointermove);
@@ -281,7 +281,7 @@ export function registerOneTimePasswordInput(element, dotNetRef) {
     }
 
     event.preventDefault();
-    dotNetRef.invokeMethodAsync("HandlePasteAsync", event.clipboardData?.getData("Text") || "");
+    dotNetRef.invokeMethodAsync("HandlePaste", event.clipboardData?.getData("Text") || "");
   };
 
   element.addEventListener("paste", paste);

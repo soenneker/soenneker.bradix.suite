@@ -106,9 +106,9 @@
             Group.UnregisterItem(this);
     }
 
-    internal ValueTask FocusAsync()
+    internal ValueTask Focus()
     {
-        return _toggle?.FocusAsync() ?? ValueTask.CompletedTask;
+        return _toggle?.Focus() ?? ValueTask.CompletedTask;
     }
 
     private Task HandleMouseDown(MouseEventArgs _)
@@ -129,13 +129,13 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
-        return Group.HandleItemKeyDownAsync(this, args);
+        return Group.HandleItemKeyDown(this, args);
     }
 
     private Task HandlePressedChange(bool pressed)
     {
         return pressed
-            ? Group.ActivateItemAsync(Value)
-            : Group.DeactivateItemAsync(Value);
+            ? Group.ActivateItem(Value)
+            : Group.DeactivateItem(Value);
     }
 }

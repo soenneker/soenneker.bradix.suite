@@ -45,7 +45,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
         var cut = RenderOtpField();
         var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
 
-        await cut.InvokeAsync(() => input.Instance.HandlePasteAsync("1234"));
+        await cut.InvokeAsync(() => input.Instance.HandlePaste("1234"));
 
         Assert.Equal("1234", cut.Find("input[type='hidden']").GetAttribute("value"));
         Assert.Equal("4", cut.Find("input[data-index='3']").GetAttribute("value"));
@@ -56,7 +56,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     {
         var cut = RenderOtpField();
         var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
-        await cut.InvokeAsync(() => input.Instance.HandlePasteAsync("1234"));
+        await cut.InvokeAsync(() => input.Instance.HandlePaste("1234"));
 
         cut.Find("input[data-index='1']").KeyDown("Backspace");
 
@@ -84,7 +84,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
         var cut = RenderOtpField(autoSubmit: true, onAutoSubmit: value => submitted = value);
         var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
 
-        await cut.InvokeAsync(() => input.Instance.HandlePasteAsync("1234"));
+        await cut.InvokeAsync(() => input.Instance.HandlePaste("1234"));
 
         Assert.Equal("1234", submitted);
         Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "requestFormSubmit");
@@ -97,8 +97,8 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
         var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
         var root = cut.FindComponent<BradixOneTimePasswordField>();
 
-        await cut.InvokeAsync(() => input.Instance.HandlePasteAsync("1234"));
-        await cut.InvokeAsync(() => root.Instance.HandleFormResetAsync());
+        await cut.InvokeAsync(() => input.Instance.HandlePaste("1234"));
+        await cut.InvokeAsync(() => root.Instance.HandleFormReset());
 
         cut.WaitForAssertion(() =>
         {
@@ -145,7 +145,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
         Assert.Equal("0", cut.Find("input[data-index='0']").GetAttribute("tabindex"));
         Assert.Equal("-1", cut.Find("input[data-index='1']").GetAttribute("tabindex"));
 
-        await cut.InvokeAsync(() => input.Instance.HandlePasteAsync("12"));
+        await cut.InvokeAsync(() => input.Instance.HandlePaste("12"));
 
         cut.WaitForAssertion(() =>
         {

@@ -13,7 +13,7 @@
                     Class="@Class"
                     Style="@ComputedStyle"
                     AdditionalAttributes="@ViewportAttributes"
-                    OnElementReferenceCaptured="@HandleViewportCapturedAsync">
+                    OnElementReferenceCaptured="@HandleViewportCaptured">
         @if (Registrations.Count > 0)
         {
             @foreach (BradixNavigationMenuViewportRegistration registration in Registrations)
@@ -25,8 +25,8 @@
                                                         IsOpen="@(NavigationMenu?.HasOpenItem == true && string.Equals(NavigationMenu.CurrentValue, registration.Value, StringComparison.Ordinal))"
                                                         Motion="@ResolveMotion(registration.Value)"
                                                         OnContentElementCaptured="@CreateContentCapturedCallback(registration.Value)"
-                                                        OnPointerEnterContent="@HandleContentEnterAsync"
-                                                        OnPointerLeaveContent="@HandleContentLeaveAsync" />
+                                                        OnPointerEnterContent="@HandleContentEnter"
+                                                        OnPointerLeaveContent="@HandleContentLeave" />
             }
         }
     </BradixPresence>
@@ -144,14 +144,14 @@
         _dotNetReference?.Dispose();
     }
 
-    private Task HandleViewportCapturedAsync(ElementReference element)
+    private Task HandleViewportCaptured(ElementReference element)
     {
         _viewportElement = element;
         _hasViewportElement = true;
         return Task.CompletedTask;
     }
 
-    private Task HandleContentCapturedAsync(string value, ElementReference element)
+    private Task HandleContentCaptured(string value, ElementReference element)
     {
         if (string.Equals(value, ActiveViewportValue, StringComparison.Ordinal))
         {
@@ -164,21 +164,21 @@
 
     private EventCallback<ElementReference> CreateContentCapturedCallback(string value)
     {
-        return EventCallback.Factory.Create<ElementReference>(this, element => HandleContentCapturedAsync(value, element));
+        return EventCallback.Factory.Create<ElementReference>(this, element => HandleContentCaptured(value, element));
     }
 
-    private Task HandleContentEnterAsync()
+    private Task HandleContentEnter()
     {
-        return NavigationMenu?.HandleContentPointerEnterAsync() ?? Task.CompletedTask;
+        return NavigationMenu?.HandleContentPointerEnter() ?? Task.CompletedTask;
     }
 
-    private Task HandleContentLeaveAsync()
+    private Task HandleContentLeave()
     {
-        return NavigationMenu?.HandleContentPointerLeaveAsync() ?? Task.CompletedTask;
+        return NavigationMenu?.HandleContentPointerLeave() ?? Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleViewportSizeChangedAsync(double width, double height)
+    public Task HandleViewportSizeChanged(double width, double height)
     {
         if (Math.Abs((_width ?? -1) - width) < 0.1 &&
             Math.Abs((_height ?? -1) - height) < 0.1)

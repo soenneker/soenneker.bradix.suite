@@ -104,7 +104,7 @@ public sealed class BradixDialogRenderTests : BunitContext
         var cut = Render(CreateDialog(defaultOpen: true));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
         Assert.Equal("false", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
     }
@@ -117,7 +117,7 @@ public sealed class BradixDialogRenderTests : BunitContext
         var trigger = cut.Find("button[aria-haspopup='dialog']");
         string triggerId = Assert.IsType<string>(trigger.Id);
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
             AncestorIds = [triggerId]
         }));
@@ -147,7 +147,7 @@ public sealed class BradixDialogRenderTests : BunitContext
         });
 
         var layer = cut.FindComponent<BradixDismissableLayer>();
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
         Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
     }
@@ -164,7 +164,7 @@ public sealed class BradixDialogRenderTests : BunitContext
         Assert.Single(cut.FindAll("[role='dialog']"));
 
         var presence = cut.FindComponent<BradixPresence>();
-        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("fade-out"));
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-out"));
 
         Assert.Empty(cut.FindAll("[role='dialog']"));
     }

@@ -17,5 +17,5 @@ internal interface IBradixMenuRovingItem
     string TextValue { get; }
 
     /// <summary>Moves keyboard focus to this item without scrolling the page.</summary>
-    ValueTask FocusAsync();
+    ValueTask Focus();
 }

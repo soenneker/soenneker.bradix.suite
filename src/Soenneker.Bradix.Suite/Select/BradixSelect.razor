@@ -13,7 +13,7 @@
 @if (ShouldRenderBubbleSelect)
 {
     <select @ref="_bubbleSelectElement"
-            @onchange="HandleNativeChangeAsync"
+            @onchange="HandleNativeChange"
             @attributes="BubbleSelectAttributes">
         @if (string.IsNullOrWhiteSpace(CurrentValue))
         {
@@ -192,7 +192,7 @@
         if (ShouldRenderBubbleSelect)
         {
             RegisterBubbleSelect(_bubbleSelectElement);
-            await SyncBubbleSelectValueAsync();
+            await SyncBubbleSelectValue();
         }
         else
         {
@@ -251,12 +251,12 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal Task FocusTriggerAsync()
+    internal Task FocusTrigger()
     {
         return HasTrigger ? Interop.FocusElementPreventScroll(TriggerElement).AsTask() : Task.CompletedTask;
     }
 
-    internal async Task SetValueAsync(string? value)
+    internal async Task SetValue(string? value)
     {
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;
@@ -275,7 +275,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    internal async Task SetOpenAsync(bool open)
+    internal async Task SetOpen(bool open)
     {
         if (CurrentOpen == open)
             return;
@@ -299,12 +299,12 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    internal Task ToggleOpenAsync()
+    internal Task ToggleOpen()
     {
-        return SetOpenAsync(!CurrentOpen);
+        return SetOpen(!CurrentOpen);
     }
 
-    internal Task OpenFromTriggerAsync(double? pageX = null, double? pageY = null)
+    internal Task OpenFromTrigger(double? pageX = null, double? pageY = null)
     {
         _typeahead.Reset();
 
@@ -313,7 +313,7 @@
         else
             _triggerPointerDownPosition = null;
 
-        return SetOpenAsync(true);
+        return SetOpen(true);
     }
 
     internal void ClearTriggerPointerDownPosition()
@@ -335,37 +335,37 @@
         return string.Equals(CurrentFocusedItemValue, item.Value, StringComparison.Ordinal);
     }
 
-    internal async Task FocusSelectedOrFirstItemAsync()
+    internal async Task FocusSelectedOrFirstItem()
     {
         IBradixSelectCollectionItem? target = GetSelectedOrFirstEnabledItem();
 
         if (target is null)
             return;
 
-        await FocusItemAsync(target);
+        await FocusItem(target);
     }
 
-    internal async Task FocusFirstItemAsync()
+    internal async Task FocusFirstItem()
     {
         IBradixSelectCollectionItem? first = GetEnabledItems().FirstOrDefault();
 
         if (first is null)
             return;
 
-        await FocusItemAsync(first);
+        await FocusItem(first);
     }
 
-    internal async Task FocusLastItemAsync()
+    internal async Task FocusLastItem()
     {
         IBradixSelectCollectionItem? last = GetEnabledItems().LastOrDefault();
 
         if (last is null)
             return;
 
-        await FocusItemAsync(last);
+        await FocusItem(last);
     }
 
-    internal async Task HandleTriggerTypeaheadAsync(string key)
+    internal async Task HandleTriggerTypeahead(string key)
     {
         string search = _typeahead.Append(key);
         List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
@@ -375,10 +375,10 @@
         if (nextItem is null)
             return;
 
-        await SetValueAsync(nextItem.Value);
+        await SetValue(nextItem.Value);
     }
 
-    internal async Task HandleContentTypeaheadAsync(string key)
+    internal async Task HandleContentTypeahead(string key)
     {
         string search = _typeahead.Append(key);
         List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
@@ -388,20 +388,20 @@
         if (nextItem is null)
             return;
 
-        await FocusItemAsync(nextItem);
+        await FocusItem(nextItem);
     }
 
-    internal async Task HandleContentNavigationAsync(string key)
+    internal async Task HandleContentNavigation(string key)
     {
         switch (key)
         {
             case "Home":
             case "PageUp":
-                await FocusFirstItemAsync();
+                await FocusFirstItem();
                 return;
             case "End":
             case "PageDown":
-                await FocusLastItemAsync();
+                await FocusLastItem();
                 return;
         }
 
@@ -421,10 +421,10 @@
             return;
 
         IBradixSelectCollectionItem target = enabledItems[targetIndex];
-        await FocusItemAsync(target);
+        await FocusItem(target);
     }
 
-    internal Task NotifyItemTextChangedAsync()
+    internal Task NotifyItemTextChanged()
     {
         UpdateCurrentText();
 
@@ -470,11 +470,11 @@
         _suppressNextMouseUpSelection = true;
     }
 
-    private async Task FocusItemAsync(IBradixSelectCollectionItem item)
+    private async Task FocusItem(IBradixSelectCollectionItem item)
     {
         CurrentFocusedItemValue = item.Value;
-        await item.ScrollIntoViewAsync();
-        await item.FocusAsync();
+        await item.ScrollIntoView();
+        await item.Focus();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -501,10 +501,10 @@
             .FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
     }
 
-    private Task HandleNativeChangeAsync(ChangeEventArgs args)
+    private Task HandleNativeChange(ChangeEventArgs args)
     {
         string? value = args.Value?.ToString();
-        return SetValueAsync(string.IsNullOrEmpty(value) ? null : value);
+        return SetValue(string.IsNullOrEmpty(value) ? null : value);
     }
 
     private void QueueRefresh()
@@ -529,7 +529,7 @@
             .ToList();
     }
 
-    private async Task SyncBubbleSelectValueAsync()
+    private async Task SyncBubbleSelectValue()
     {
         if (!_hasBubbleSelectElement)
             return;

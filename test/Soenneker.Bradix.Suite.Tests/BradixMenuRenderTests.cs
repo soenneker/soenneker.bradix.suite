@@ -105,7 +105,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var content = cut.FindComponent<BradixMenuContent>();
         string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "b",
             TargetId = contentId
@@ -117,13 +117,13 @@ public sealed class BradixMenuRenderTests : BunitContext
             Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
         });
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOutAsync(new BradixDelegatedFocusEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOut(new BradixDelegatedFocusEvent
         {
             TargetId = contentId,
             RelatedTargetId = "outside-target"
         }));
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "a",
             TargetId = contentId
@@ -143,7 +143,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var content = cut.FindComponent<BradixMenuContent>();
         string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "End",
             TargetId = contentId
@@ -155,7 +155,7 @@ public sealed class BradixMenuRenderTests : BunitContext
             Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
         });
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "Home",
             TargetId = contentId
@@ -175,7 +175,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var content = cut.FindComponent<BradixMenuContent>();
         string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "b",
             TargetId = contentId
@@ -303,7 +303,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[role='menu']").Count));
 
         var layer = cut.FindComponents<BradixDismissableLayer>().Last();
-        await cut.InvokeAsync(() => layer.Instance.HandleFocusOutsideAsync(new BradixDelegatedFocusEvent
+        await cut.InvokeAsync(() => layer.Instance.HandleFocusOutside(new BradixDelegatedFocusEvent
         {
             TargetId = "outside-target"
         }));
@@ -325,7 +325,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var submenuContent = cut.FindComponents<BradixMenuContent>().Last();
         string submenuContentId = Assert.IsType<string>(cut.FindAll("[role='menu']").Last().Id);
 
-        await cut.InvokeAsync(() => submenuContent.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => submenuContent.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "x",
             TargetId = submenuContentId
@@ -352,7 +352,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var cut = Render(CreateMenu(open: true));
         int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
         var focusScope = cut.FindComponent<BradixFocusScope>();
-        await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocusAsync());
+        await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocus());
 
         cut.WaitForAssertion(() =>
         {
@@ -429,7 +429,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         trigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
         var focusScope = cut.FindComponents<BradixFocusScope>().Last();
-        await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocusAsync());
+        await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocus());
 
         cut.WaitForAssertion(() =>
         {
@@ -462,7 +462,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var content = cut.FindComponent<BradixMenuContent>();
         string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "s",
             TargetId = contentId
@@ -528,7 +528,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         cut.WaitForAssertion(() => Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")));
 
         subTriggerElement.TriggerEvent("onpointerleave", new PointerEventArgs { PointerType = "mouse", ClientX = 10, ClientY = 10 });
-        await cut.InvokeAsync(() => subTrigger.Instance.HandlePointerGraceChangedAsync(false));
+        await cut.InvokeAsync(() => subTrigger.Instance.HandlePointerGraceChanged(false));
 
         alphaItem.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
 
@@ -551,7 +551,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var submenuContent = cut.FindComponents<BradixMenuContent>().Last();
         string targetId = Assert.IsType<string>(cut.FindAll("[role='menu']").Last().Id);
 
-        await cut.InvokeAsync(() => submenuContent.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => submenuContent.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "ArrowLeft",
             TargetId = targetId

@@ -73,7 +73,7 @@
 
         _loadingStatus = BradixAvatarImageLoadingStatus.Idle;
         if (Avatar is not null)
-            await Avatar.SetImageLoadingStatusAsync(BradixAvatarImageLoadingStatus.Idle);
+            await Avatar.SetImageLoadingStatus(BradixAvatarImageLoadingStatus.Idle);
 
         _pendingRegistration = false;
         _lastSrc = Src;
@@ -93,7 +93,7 @@
     }
 
     [JSInvokable]
-    public async Task HandleImageLoadingStatusChangedAsync(string status)
+    public async Task HandleImageLoadingStatusChanged(string status)
     {
         BradixAvatarImageLoadingStatus resolvedStatus = status switch
         {
@@ -112,6 +112,6 @@
             await OnLoadingStatusChange.InvokeAsync(resolvedStatus);
 
         if (Avatar is not null)
-            await Avatar.SetImageLoadingStatusAsync(resolvedStatus);
+            await Avatar.SetImageLoadingStatus(resolvedStatus);
     }
 }

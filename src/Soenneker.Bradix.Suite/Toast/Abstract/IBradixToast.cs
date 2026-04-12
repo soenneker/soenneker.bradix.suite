@@ -73,5 +73,5 @@ public interface IBradixToast
     ValueTask DisposeAsync();
 
     /// <summary>Called from script for delegated escape key handling.</summary>
-    Task HandleDelegatedKeyDownAsync(BradixDelegatedKeyboardEvent args);
+    Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args);
 }

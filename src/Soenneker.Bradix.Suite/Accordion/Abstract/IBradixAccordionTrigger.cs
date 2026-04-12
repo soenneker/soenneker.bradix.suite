@@ -27,11 +27,11 @@ public interface IBradixAccordionTrigger
     /// <summary>
     /// Called when delegated keyboard handling is ready on the host element.
     /// </summary>
-    Task HandleDelegatedInteractionReadyAsync();
+    Task HandleDelegatedInteractionReady();
 
     /// <summary>
     /// Handles a delegated keydown event forwarded from JavaScript.
     /// </summary>
     /// <param name="args">The delegated keyboard event payload.</param>
-    Task HandleDelegatedKeyDownAsync(BradixDelegatedKeyboardEvent args);
+    Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args);
 }

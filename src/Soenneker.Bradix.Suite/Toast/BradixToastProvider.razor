@@ -74,7 +74,7 @@
             _ = InvokeAsync(StateHasChanged);
     }
 
-    internal async Task PauseToastsAsync()
+    internal async Task PauseToasts()
     {
         if (IsClosePaused)
             return;
@@ -83,11 +83,11 @@
 
         foreach (BradixToast toast in _toasts.ToArray())
         {
-            await toast.PauseAsync();
+            await toast.Pause();
         }
     }
 
-    internal async Task ResumeToastsAsync()
+    internal async Task ResumeToasts()
     {
         if (!IsClosePaused)
             return;
@@ -96,7 +96,7 @@
 
         foreach (BradixToast toast in _toasts.ToArray())
         {
-            await toast.ResumeAsync();
+            await toast.Resume();
         }
     }
 }

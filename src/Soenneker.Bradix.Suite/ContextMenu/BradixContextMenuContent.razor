@@ -14,14 +14,14 @@
                    AdditionalAttributes="@AdditionalAttributes"
                    OnOpenAutoFocus="@OnOpenAutoFocus"
                    OnOpenAutoFocusDetailed="@OnOpenAutoFocusDetailed"
-                   OnCloseAutoFocusDetailed="@HandleCloseAutoFocusAsync"
+                   OnCloseAutoFocusDetailed="@HandleCloseAutoFocus"
                    OnEscapeKeyDown="@OnEscapeKeyDown"
                    OnEscapeKeyDownDetailed="@OnEscapeKeyDownDetailed"
                    OnPointerDownOutside="@OnPointerDownOutside"
                    OnPointerDownOutsideDetailed="@OnPointerDownOutsideDetailed"
                    OnFocusOutside="@OnFocusOutside"
                    OnFocusOutsideDetailed="@OnFocusOutsideDetailed"
-                   OnInteractOutsideDetailed="@HandleInteractOutsideAsync"
+                   OnInteractOutsideDetailed="@HandleInteractOutside"
                    OnPlaced="@OnPlaced">
     @ChildContent
 </BradixMenuContent>
@@ -124,7 +124,7 @@
         }
     }
 
-    private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
+    private async Task HandleCloseAutoFocus(BradixAutoFocusEventArgs args)
     {
         if (OnCloseAutoFocus.HasDelegate)
             await OnCloseAutoFocus.InvokeAsync();
@@ -138,7 +138,7 @@
         _hasInteractedOutside = false;
     }
 
-    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
+    private async Task HandleInteractOutside(BradixInteractOutsideEventArgs args)
     {
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();

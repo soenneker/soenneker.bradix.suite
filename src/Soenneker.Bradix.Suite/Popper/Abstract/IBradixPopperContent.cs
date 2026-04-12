@@ -55,6 +55,6 @@ public interface IBradixPopperContent
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler when popper geometry updates.</summary>
-    Task HandlePositionChangedAsync(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth,
+    Task HandlePositionChanged(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth,
         double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY);
 }

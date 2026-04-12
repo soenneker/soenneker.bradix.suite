@@ -29,7 +29,7 @@ export function registerCheckboxRoot(element, dotNetRef, formId = null) {
 
   if (form && dotNetRef) {
     reset = () => {
-      dotNetRef.invokeMethodAsync("HandleFormResetAsync");
+      dotNetRef.invokeMethodAsync("HandleFormReset");
     };
 
     form.addEventListener("reset", reset);
@@ -79,7 +79,7 @@ export function registerFormRoot(element, dotNetRef) {
         .map((candidate) => candidate.getAttribute("name") || candidate.getAttribute("id") || "")
         .filter((value) => value);
 
-      dotNetRef.invokeMethodAsync("HandleInvalidControlsAsync", invalidControlNames);
+      dotNetRef.invokeMethodAsync("HandleInvalidControls", invalidControlNames);
     }
   };
 
@@ -171,7 +171,7 @@ export function registerAssociatedFormReset(element, dotNetRef, formId = null) {
   }
 
   const reset = () => {
-    dotNetRef.invokeMethodAsync("HandleFormResetAsync");
+    dotNetRef.invokeMethodAsync("HandleFormReset");
   };
 
   form.addEventListener("reset", reset);

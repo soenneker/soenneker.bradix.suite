@@ -31,5 +31,5 @@ public interface IBradixSelectTrigger
     ValueTask DisposeAsync();
 
     /// <summary>Called from script for delegated primary pointer down handling.</summary>
-    Task HandleDelegatedPointerDownAsync(BradixDelegatedMouseEvent args);
+    Task HandleDelegatedPointerDown(BradixDelegatedMouseEvent args);
 }

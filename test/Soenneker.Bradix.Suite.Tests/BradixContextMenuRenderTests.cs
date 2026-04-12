@@ -133,8 +133,8 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         var dismissableLayer = cut.FindComponent<BradixDismissableLayer>();
         var focusScope = cut.FindComponent<BradixFocusScope>();
 
-        await cut.InvokeAsync(() => dismissableLayer.Instance.HandlePointerDownOutsideAsync());
-        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+        await cut.InvokeAsync(() => dismissableLayer.Instance.HandlePointerDownOutside());
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
         Assert.True(prevented);
     }
@@ -174,7 +174,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         cut.Find("[data-state='closed']").TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
 
         var focusScope = cut.FindComponent<BradixFocusScope>();
-        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocusAsync());
+        bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
         Assert.True(prevented);
     }

@@ -55,7 +55,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        await cut.FindComponent<BradixLabel>().Instance.HandleMouseDownFromJsAsync(new BradixDelegatedMouseEvent
+        await cut.FindComponent<BradixLabel>().Instance.HandleMouseDownFromJs(new BradixDelegatedMouseEvent
         {
             Button = 0,
             Detail = 2,

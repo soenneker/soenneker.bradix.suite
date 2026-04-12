@@ -17,12 +17,12 @@
                        AdditionalAttributes="@ContentAttributes"
                        OnOpenAutoFocus="@OnOpenAutoFocus"
                        OnOpenAutoFocusDetailed="@OnOpenAutoFocusDetailed"
-                       OnEscapeKeyDownDetailed="HandleEscapeKeyDownAsync"
-                       OnContentKeyDown="HandleContentKeyDownAsync"
-                       OnCloseAutoFocusDetailed="HandleCloseAutoFocusAsync"
+                       OnEscapeKeyDownDetailed="HandleEscapeKeyDown"
+                       OnContentKeyDown="HandleContentKeyDown"
+                       OnCloseAutoFocusDetailed="HandleCloseAutoFocus"
                        OnPointerDownOutside="OnPointerDownOutside"
                        OnPointerDownOutsideDetailed="OnPointerDownOutsideDetailed"
-                       OnFocusOutsideDetailed="HandleFocusOutsideAsync"
+                       OnFocusOutsideDetailed="HandleFocusOutside"
                        OnInteractOutside="OnInteractOutside"
                        OnInteractOutsideDetailed="OnInteractOutsideDetailed"
                        OnPlaced="OnPlaced">
@@ -130,13 +130,13 @@
         }
     }
 
-    private Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
+    private Task HandleCloseAutoFocus(BradixAutoFocusEventArgs args)
     {
         args.PreventDefault();
         return Task.CompletedTask;
     }
 
-    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
+    private async Task HandleFocusOutside(BradixFocusOutsideEventArgs args)
     {
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
@@ -149,14 +149,14 @@
 
         if (!string.Equals(args.OriginalEvent.TargetId, Sub.TriggerId, StringComparison.Ordinal))
         {
-            await SubMenu.SetOpenAsync(false);
+            await SubMenu.SetOpen(false);
             return;
         }
 
         args.PreventDefault();
     }
 
-    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
+    private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs args)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
@@ -168,10 +168,10 @@
             return;
 
         args.PreventDefault();
-        await RootMenu.SetOpenAsync(false);
+        await RootMenu.SetOpen(false);
     }
 
-    private async Task HandleContentKeyDownAsync(KeyboardEventArgs args)
+    private async Task HandleContentKeyDown(KeyboardEventArgs args)
     {
         if (OnContentKeyDown.HasDelegate)
             await OnContentKeyDown.InvokeAsync(args);
@@ -183,7 +183,7 @@
         if (!isCloseKey)
             return;
 
-        await SubMenu.SetOpenAsync(false);
-        await SubMenu.FocusTriggerAsync();
+        await SubMenu.SetOpen(false);
+        await SubMenu.FocusTrigger();
     }
 }

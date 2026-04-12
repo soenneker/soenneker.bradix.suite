@@ -35,5 +35,5 @@ public interface IBradixLabel
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler for delegated mouse down events.</summary>
-    Task HandleMouseDownFromJsAsync(BradixDelegatedMouseEvent args);
+    Task HandleMouseDownFromJs(BradixDelegatedMouseEvent args);
 }

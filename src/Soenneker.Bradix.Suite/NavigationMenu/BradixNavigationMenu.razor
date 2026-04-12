@@ -271,7 +271,7 @@
             _focusGroups.Remove(groupId);
     }
 
-    internal async Task HandleFocusGroupItemKeyDownAsync(string groupId, IBradixNavigationMenuFocusGroupItem item, KeyboardEventArgs args)
+    internal async Task HandleFocusGroupItemKeyDown(string groupId, IBradixNavigationMenuFocusGroupItem item, KeyboardEventArgs args)
     {
         if (args.CtrlKey || args.AltKey || args.MetaKey)
             return;
@@ -292,7 +292,7 @@
         };
 
         if (target is not null)
-            await target.FocusAsync();
+            await target.Focus();
     }
 
     internal void RegisterViewport(string viewportId)
@@ -409,11 +409,11 @@
         return values;
     }
 
-    internal async Task HandleTriggerPointerMoveAsync(string value)
+    internal async Task HandleTriggerPointerMove(string value)
     {
         if (!IsRootMenu)
         {
-            await OpenValueAsync(value);
+            await OpenValue(value);
             return;
         }
 
@@ -423,14 +423,14 @@
         {
             CancelOpenDelay();
             _openDelayTokenSource = new CancellationTokenSource();
-            _ = OpenAfterDelayAsync(value, _openDelayTokenSource.Token);
+            _ = OpenAfterDelay(value, _openDelayTokenSource.Token);
             return;
         }
 
-        await OpenValueAsync(value);
+        await OpenValue(value);
     }
 
-    internal Task HandleTriggerPointerLeaveAsync()
+    internal Task HandleTriggerPointerLeave()
     {
         if (!IsRootMenu)
             return Task.CompletedTask;
@@ -440,13 +440,13 @@
         return Task.CompletedTask;
     }
 
-    internal Task HandleContentPointerEnterAsync()
+    internal Task HandleContentPointerEnter()
     {
         CancelCloseDelay();
         return Task.CompletedTask;
     }
 
-    internal Task HandleContentPointerLeaveAsync()
+    internal Task HandleContentPointerLeave()
     {
         if (!IsRootMenu)
             return Task.CompletedTask;
@@ -455,7 +455,7 @@
         return Task.CompletedTask;
     }
 
-    internal async Task ToggleItemAsync(string value)
+    internal async Task ToggleItem(string value)
     {
         CancelOpenDelay();
         CancelCloseDelay();
@@ -466,28 +466,28 @@
                 ? string.Empty
                 : value;
 
-        await SetValueAsync(nextValue);
+        await SetValue(nextValue);
         SetCurrentTabStop(value);
     }
 
-    internal async Task DismissAsync(string? focusTriggerValue = null)
+    internal async Task Dismiss(string? focusTriggerValue = null)
     {
         CancelOpenDelay();
         CancelCloseDelay();
-        await SetValueAsync(string.Empty);
+        await SetValue(string.Empty);
 
         if (!string.IsNullOrWhiteSpace(focusTriggerValue))
-            await FocusTriggerAsync(focusTriggerValue);
+            await FocusTrigger(focusTriggerValue);
     }
 
-    internal async Task FocusTriggerAsync(string value)
+    internal async Task FocusTrigger(string value)
     {
         IBradixNavigationMenuRegisteredTrigger? trigger = GetFocusableTriggers().FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.Ordinal));
         if (trigger is not null)
-            await trigger.FocusAsync();
+            await trigger.Focus();
     }
 
-    internal async Task FocusContentAsync(string value)
+    internal async Task FocusContent(string value)
     {
         if (_contentElements.TryGetValue(value, out ElementReference element))
             await element.FocusAsync();
@@ -519,7 +519,7 @@
             _escapeClosedValues.Remove(value);
     }
 
-    internal async Task HandleTriggerNavigationAsync(IBradixNavigationMenuRegisteredTrigger trigger, KeyboardEventArgs args)
+    internal async Task HandleTriggerNavigation(IBradixNavigationMenuRegisteredTrigger trigger, KeyboardEventArgs args)
     {
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
@@ -544,25 +544,25 @@
 
         IBradixNavigationMenuRegisteredTrigger target = focusableTriggers[targetIndex];
         CurrentTabStopValue = target.Value;
-        await target.FocusAsync();
+        await target.Focus();
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OpenAfterDelayAsync(string value, CancellationToken cancellationToken)
+    private async Task OpenAfterDelay(string value, CancellationToken cancellationToken)
     {
         try
         {
             await Task.Delay(DelayDuration, cancellationToken);
-            await OpenValueAsync(value);
+            await OpenValue(value);
         }
         catch (TaskCanceledException)
         {
         }
     }
 
-    private async Task OpenValueAsync(string value)
+    private async Task OpenValue(string value)
     {
-        await SetValueAsync(value);
+        await SetValue(value);
         SetCurrentTabStop(value);
     }
 
@@ -570,22 +570,22 @@
     {
         CancelCloseDelay();
         _closeDelayTokenSource = new CancellationTokenSource();
-        _ = CloseAfterDelayAsync(_closeDelayTokenSource.Token);
+        _ = CloseAfterDelay(_closeDelayTokenSource.Token);
     }
 
-    private async Task CloseAfterDelayAsync(CancellationToken cancellationToken)
+    private async Task CloseAfterDelay(CancellationToken cancellationToken)
     {
         try
         {
             await Task.Delay(150, cancellationToken);
-            await SetValueAsync(string.Empty);
+            await SetValue(string.Empty);
         }
         catch (TaskCanceledException)
         {
         }
     }
 
-    private async Task SetValueAsync(string? value)
+    private async Task SetValue(string? value)
     {
         string nextValue = value ?? string.Empty;
 
@@ -664,10 +664,10 @@
     {
         CancelSkipDelay();
         _skipDelayTokenSource = new CancellationTokenSource();
-        _ = ResetOpenDelayAsync(_skipDelayTokenSource.Token);
+        _ = ResetOpenDelay(_skipDelayTokenSource.Token);
     }
 
-    private async Task ResetOpenDelayAsync(CancellationToken cancellationToken)
+    private async Task ResetOpenDelay(CancellationToken cancellationToken)
     {
         try
         {

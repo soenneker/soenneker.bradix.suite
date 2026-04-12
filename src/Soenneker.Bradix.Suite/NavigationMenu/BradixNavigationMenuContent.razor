@@ -16,13 +16,13 @@
                                 DismissOnEscapeKeyDown="false"
                                 DismissOnPointerDownOutside="false"
                                 DismissOnFocusOutside="false"
-                                OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
-                                OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
-                                OnFocusOutsideDetailed="@HandleFocusOutsideAsync">
+                                OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
+                                OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
+                                OnFocusOutsideDetailed="@HandleFocusOutside">
             <div @ref="_contentElement"
                  tabindex="-1"
-                 @onpointerenter="HandlePointerEnterAsync"
-                 @onpointerleave="HandlePointerLeaveAsync">
+                 @onpointerenter="HandlePointerEnter"
+                 @onpointerleave="HandlePointerLeave">
                 <CascadingValue Name="BradixNavigationMenuFocusGroupId" Value="@(Item?.ResolvedValue)">
                     @ChildContent
                 </CascadingValue>
@@ -135,16 +135,16 @@
             NavigationMenu?.UnregisterViewportContent(Item.ResolvedValue);
     }
 
-    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
+    private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs _)
     {
         if (NavigationMenu is not null && Item is not null)
         {
             NavigationMenu.MarkEscapeClosed(Item.ResolvedValue);
-            await NavigationMenu.DismissAsync(Item.ResolvedValue);
+            await NavigationMenu.Dismiss(Item.ResolvedValue);
         }
     }
 
-    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
+    private async Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)
     {
         if (NavigationMenu is null)
             return;
@@ -157,10 +157,10 @@
             return;
         }
 
-        await NavigationMenu.DismissAsync(args.OriginalEvent.ActiveElementInsideLayer && Item is not null ? Item.ResolvedValue : null);
+        await NavigationMenu.Dismiss(args.OriginalEvent.ActiveElementInsideLayer && Item is not null ? Item.ResolvedValue : null);
     }
 
-    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
+    private async Task HandleFocusOutside(BradixFocusOutsideEventArgs args)
     {
         if (NavigationMenu is null)
             return;
@@ -171,22 +171,22 @@
             return;
         }
 
-        await NavigationMenu.DismissAsync(Item?.ResolvedValue);
+        await NavigationMenu.Dismiss(Item?.ResolvedValue);
     }
 
-    private Task HandlePointerEnterAsync(PointerEventArgs args)
+    private Task HandlePointerEnter(PointerEventArgs args)
     {
         if (args.PointerType == "touch")
             return Task.CompletedTask;
 
-        return NavigationMenu?.HandleContentPointerEnterAsync() ?? Task.CompletedTask;
+        return NavigationMenu?.HandleContentPointerEnter() ?? Task.CompletedTask;
     }
 
-    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    private Task HandlePointerLeave(PointerEventArgs args)
     {
         if (args.PointerType == "touch")
             return Task.CompletedTask;
 
-        return NavigationMenu?.HandleContentPointerLeaveAsync() ?? Task.CompletedTask;
+        return NavigationMenu?.HandleContentPointerLeave() ?? Task.CompletedTask;
     }
 }

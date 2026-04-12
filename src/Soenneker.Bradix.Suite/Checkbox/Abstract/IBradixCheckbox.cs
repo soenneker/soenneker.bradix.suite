@@ -61,16 +61,16 @@ public interface IBradixCheckbox
     /// <summary>
     /// Called when delegated interaction handling is ready on the root button.
     /// </summary>
-    Task HandleDelegatedInteractionReadyAsync();
+    Task HandleDelegatedInteractionReady();
 
     /// <summary>
     /// Resets the checkbox to its initial unchecked state when the owning form resets.
     /// </summary>
-    Task HandleFormResetAsync();
+    Task HandleFormReset();
 
     /// <summary>
     /// Handles a delegated click routed from JavaScript.
     /// </summary>
     /// <param name="mouseEvent">The delegated mouse event payload.</param>
-    Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent mouseEvent);
+    Task HandleDelegatedClick(BradixDelegatedMouseEvent mouseEvent);
 }

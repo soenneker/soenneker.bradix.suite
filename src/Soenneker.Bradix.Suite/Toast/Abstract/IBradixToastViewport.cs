@@ -34,8 +34,8 @@ public interface IBradixToastViewport
     ValueTask DisposeAsync();
 
     /// <summary>Called from script when the pause hotkey chord is pressed.</summary>
-    Task HandlePauseAsync();
+    Task HandlePause();
 
     /// <summary>Called from script when the resume hotkey chord is pressed.</summary>
-    Task HandleResumeAsync();
+    Task HandleResume();
 }

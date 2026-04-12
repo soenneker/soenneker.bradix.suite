@@ -3,10 +3,10 @@
 @inherits BradixComponentBase
 
 <BradixPopperAnchor>
-    <button @onpointerenter="HandlePointerEnterAsync"
-            @onpointerleave="HandlePointerLeaveAsync"
-            @onfocus="HandleFocusAsync"
-            @onblur="HandleBlurAsync"
+    <button @onpointerenter="HandlePointerEnter"
+            @onpointerleave="HandlePointerLeave"
+            @onfocus="HandleFocus"
+            @onblur="HandleBlur"
             @ontouchstart:preventDefault="true"
             @attributes="TriggerAttributes">
         @ChildContent
@@ -21,29 +21,29 @@
         ("type", "button"),
         ("data-state", HoverCard?.CurrentOpen == true ? "open" : "closed"));
 
-    private Task HandlePointerEnterAsync(PointerEventArgs args)
+    private Task HandlePointerEnter(PointerEventArgs args)
     {
         if (args.PointerType == "touch")
             return Task.CompletedTask;
 
-        return HoverCard?.HandleTriggerEnterAsync() ?? Task.CompletedTask;
+        return HoverCard?.HandleTriggerEnter() ?? Task.CompletedTask;
     }
 
-    private Task HandlePointerLeaveAsync(PointerEventArgs args)
+    private Task HandlePointerLeave(PointerEventArgs args)
     {
         if (args.PointerType == "touch")
             return Task.CompletedTask;
 
-        return HoverCard?.HandleTriggerLeaveAsync() ?? Task.CompletedTask;
+        return HoverCard?.HandleTriggerLeave() ?? Task.CompletedTask;
     }
 
-    private Task HandleFocusAsync(FocusEventArgs _)
+    private Task HandleFocus(FocusEventArgs _)
     {
-        return HoverCard?.HandleTriggerFocusAsync() ?? Task.CompletedTask;
+        return HoverCard?.HandleTriggerFocus() ?? Task.CompletedTask;
     }
 
-    private Task HandleBlurAsync(FocusEventArgs _)
+    private Task HandleBlur(FocusEventArgs _)
     {
-        return HoverCard?.HandleTriggerBlurAsync() ?? Task.CompletedTask;
+        return HoverCard?.HandleTriggerBlur() ?? Task.CompletedTask;
     }
 }

@@ -9,9 +9,9 @@
                          Role="alertdialog"
                          CloseOnPointerDownOutside="false"
                          CloseOnFocusOutside="false"
-                         OnOpenAutoFocusDetailed="@HandleOpenAutoFocusAsync"
-                         OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
-                         OnInteractOutsideDetailed="@HandleInteractOutsideAsync"
+                         OnOpenAutoFocusDetailed="@HandleOpenAutoFocus"
+                         OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
+                         OnInteractOutsideDetailed="@HandleInteractOutside"
                          OnCloseAutoFocus="OnCloseAutoFocus"
                          OnCloseAutoFocusDetailed="@OnCloseAutoFocusDetailed"
                          OnEscapeKeyDown="OnEscapeKeyDown"
@@ -74,7 +74,7 @@
         _hasCancelElement = true;
     }
 
-    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
+    private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
     {
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
@@ -95,13 +95,13 @@
         }
     }
 
-    private static Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
+    private static Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)
     {
         args.PreventDefault();
         return Task.CompletedTask;
     }
 
-    private static Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
+    private static Task HandleInteractOutside(BradixInteractOutsideEventArgs args)
     {
         args.PreventDefault();
         return Task.CompletedTask;

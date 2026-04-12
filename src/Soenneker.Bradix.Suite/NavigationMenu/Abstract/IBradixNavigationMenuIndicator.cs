@@ -31,5 +31,5 @@ public interface IBradixNavigationMenuIndicator
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler when indicator size/position updates.</summary>
-    Task HandleIndicatorPositionChangedAsync(double size, double offset);
+    Task HandleIndicatorPositionChanged(double size, double offset);
 }

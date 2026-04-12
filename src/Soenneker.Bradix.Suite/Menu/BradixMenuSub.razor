@@ -5,8 +5,8 @@
 
 <BradixMenu Open="@Open"
             DefaultOpen="DefaultOpen"
-            OpenChanged="HandleOpenChangedAsync"
-            OnOpenChange="HandleOpenChangeAsync"
+            OpenChanged="HandleOpenChanged"
+            OnOpenChange="HandleOpenChange"
             Dir="@ParentMenu?.ResolvedDirection"
             Modal="false">
     <CascadingValue Value="this">
@@ -43,12 +43,12 @@
         BaseId ??= IdGenerator.New("bradix-menu-sub");
     }
 
-    private Task HandleOpenChangedAsync(bool open)
+    private Task HandleOpenChanged(bool open)
     {
         return OpenChanged.HasDelegate ? OpenChanged.InvokeAsync(open) : Task.CompletedTask;
     }
 
-    private Task HandleOpenChangeAsync(bool open)
+    private Task HandleOpenChange(bool open)
     {
         return OnOpenChange.HasDelegate ? OnOpenChange.InvokeAsync(open) : Task.CompletedTask;
     }

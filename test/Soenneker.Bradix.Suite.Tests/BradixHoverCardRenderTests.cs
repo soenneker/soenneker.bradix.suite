@@ -58,7 +58,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         var cut = Render(CreateHoverCard(defaultOpen: true));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
         cut.WaitForAssertion(() =>
         {
@@ -73,7 +73,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         var cut = Render(CreateHoverCard(defaultOpen: true, onInteractOutsideDetailed: args => args.PreventDefault()));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
         cut.WaitForAssertion(() =>
         {
@@ -88,7 +88,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         var content = cut.FindComponent<BradixHoverCardContent>().Instance;
 
         cut.Find("[data-state='open'] > div").TriggerEvent("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
-        await content.HandleDocumentPointerUpAsync(true);
+        await content.HandleDocumentPointerUp(true);
 
         cut.Find("[data-state='open'] > div").TriggerEvent("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
 
@@ -104,7 +104,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         var cut = Render(CreateHoverCard(defaultOpen: true));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandleFocusOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandleFocusOutside());
 
         Assert.Contains("Hover card body", cut.Markup);
     }

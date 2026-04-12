@@ -34,5 +34,5 @@ public interface IBradixOneTimePasswordFieldInput
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler for paste events from script.</summary>
-    Task HandlePasteAsync(string value);
+    Task HandlePaste(string value);
 }

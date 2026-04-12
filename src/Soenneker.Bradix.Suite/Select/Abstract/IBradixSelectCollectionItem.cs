@@ -20,7 +20,7 @@ internal interface IBradixSelectCollectionItem
 
     bool HasItemTextElement { get; }
 
-    ValueTask ScrollIntoViewAsync();
+    ValueTask ScrollIntoView();
 
-    ValueTask FocusAsync();
+    ValueTask Focus();
 }

@@ -35,8 +35,8 @@
                         Class="@Class"
                         Style="@ResolvedStyle"
                         AdditionalAttributes="@ToastAttributes"
-                        OnElementReferenceCaptured="HandleElementReferenceCapturedAsync"
-                        OnExitComplete="HandleExitCompleteAsync">
+                        OnElementReferenceCaptured="HandleElementReferenceCaptured"
+                        OnExitComplete="HandleExitComplete">
             @ChildContent
         </BradixPresence>
     </CascadingValue>
@@ -163,10 +163,10 @@
             if (!string.IsNullOrWhiteSpace(_swipeState))
                 attributes["data-swipe"] = _swipeState;
 
-            attributes["onpointerdown"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDownAsync);
-            attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMoveAsync);
-            attributes["onpointerup"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUpAsync);
-            attributes["onpointercancel"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerCancelAsync);
+            attributes["onpointerdown"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDown);
+            attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove);
+            attributes["onpointerup"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUp);
+            attributes["onpointercancel"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerCancel);
 
             return attributes;
         }
@@ -225,7 +225,7 @@
             _announceDismissScheduled = true;
             CancelAnnouncementTimer();
             _announceCts = new CancellationTokenSource();
-            _ = CompleteAnnouncementAsync(_announceCts.Token);
+            _ = CompleteAnnouncement(_announceCts.Token);
         }
     }
 
@@ -246,7 +246,7 @@
         _dotNetReference?.Dispose();
     }
 
-    internal Task PauseAsync()
+    internal Task Pause()
     {
         if (!CurrentOpen || _timerPaused || ResolvedDuration == int.MaxValue)
             return Task.CompletedTask;
@@ -264,7 +264,7 @@
         return OnPause.HasDelegate ? OnPause.InvokeAsync() : Task.CompletedTask;
     }
 
-    internal Task ResumeAsync()
+    internal Task Resume()
     {
         if (!CurrentOpen || !_timerPaused)
             return Task.CompletedTask;
@@ -274,18 +274,18 @@
         return OnResume.HasDelegate ? OnResume.InvokeAsync() : Task.CompletedTask;
     }
 
-    internal async Task CloseAsync()
+    internal async Task Close()
     {
         bool wasFocused = await Interop.IsToastFocused(_toastElement);
-        await SetOpenAsync(false);
+        await SetOpen(false);
 
         if (wasFocused && Provider?.HasViewport == true)
             await Interop.FocusElementById(Provider.ViewportId);
     }
 
-    internal Task TriggerCloseAsync() => CloseAsync();
+    internal Task TriggerClose() => Close();
 
-    private async Task HandleElementReferenceCapturedAsync(ElementReference element)
+    private async Task HandleElementReferenceCaptured(ElementReference element)
     {
         _toastElement = element;
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
@@ -302,7 +302,7 @@
             {
                 keydown = new
                 {
-                    method = nameof(HandleDelegatedKeyDownAsync),
+                    method = nameof(HandleDelegatedKeyDown),
                     keys = new[] { "Escape" }
                 }
             });
@@ -315,13 +315,13 @@
             _registered = true;
         }
 
-        await UpdateAnnounceTextAsync();
+        await UpdateAnnounceText();
 
         if (CurrentOpen && !(Provider?.IsClosePaused ?? false))
             StartCloseTimer();
     }
 
-    private async Task HandleExitCompleteAsync()
+    private async Task HandleExitComplete()
     {
         CancelCloseTimer();
 
@@ -344,7 +344,7 @@
         }
     }
 
-    private async Task SetOpenAsync(bool open)
+    private async Task SetOpen(bool open)
     {
         if (CurrentOpen == open)
             return;
@@ -389,15 +389,15 @@
         CancellationToken token = _closeTimerCts.Token;
         _timerStartedUtc = DateTime.UtcNow;
 
-        _ = RunCloseTimerAsync(_remainingDuration, token);
+        _ = RunCloseTimer(_remainingDuration, token);
     }
 
-    private async Task RunCloseTimerAsync(double duration, CancellationToken cancellationToken)
+    private async Task RunCloseTimer(double duration, CancellationToken cancellationToken)
     {
         try
         {
             await Task.Delay(TimeSpan.FromMilliseconds(duration), cancellationToken);
-            await InvokeAsync(CloseAsync);
+            await InvokeAsync(Close);
         }
         catch (OperationCanceledException)
         {
@@ -415,7 +415,7 @@
     }
 
     [JSInvokable]
-    public async Task HandleDelegatedKeyDownAsync(BradixDelegatedKeyboardEvent args)
+    public async Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
     {
         if (!string.Equals(args.Key, "Escape", StringComparison.Ordinal))
             return;
@@ -429,10 +429,10 @@
             await OnEscapeKeyDownDetailed.InvokeAsync(eventArgs);
 
         if (!eventArgs.DefaultPrevented)
-            await CloseAsync();
+            await Close();
     }
 
-    private Task HandlePointerDownAsync(PointerEventArgs args)
+    private Task HandlePointerDown(PointerEventArgs args)
     {
         if (args.Button != 0)
             return Task.CompletedTask;
@@ -445,10 +445,10 @@
         _swipeMoveY = 0;
         _swipeEndX = 0;
         _swipeEndY = 0;
-        return TryCapturePointerAsync(args.PointerId);
+        return TryCapturePointer(args.PointerId);
     }
 
-    private async Task HandlePointerMoveAsync(PointerEventArgs args)
+    private async Task HandlePointerMove(PointerEventArgs args)
     {
         if (_pointerStartX is null || _pointerStartY is null || Provider is null)
             return;
@@ -489,9 +489,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task HandlePointerUpAsync(PointerEventArgs _)
+    private async Task HandlePointerUp(PointerEventArgs _)
     {
-        await TryReleasePointerAsync();
+        await TryReleasePointer();
 
         if (Provider is null || string.IsNullOrWhiteSpace(_swipeState))
         {
@@ -517,7 +517,7 @@
                 await OnSwipeEnd.InvokeAsync(args);
 
             await Interop.SuppressNextClick(_toastElement);
-            await CloseAsync();
+            await Close();
         }
         else
         {
@@ -537,9 +537,9 @@
         ResetSwipeTracking(clearState: false);
     }
 
-    private async Task HandlePointerCancelAsync(PointerEventArgs _)
+    private async Task HandlePointerCancel(PointerEventArgs _)
     {
-        await TryReleasePointerAsync();
+        await TryReleasePointer();
 
         if (string.IsNullOrWhiteSpace(_swipeState))
         {
@@ -576,14 +576,14 @@
             _swipeState = null;
     }
 
-    private Task TryCapturePointerAsync(long pointerId)
+    private Task TryCapturePointer(long pointerId)
     {
         return pointerId > 0
             ? Interop.CapturePointer(_toastElement, pointerId).AsTask()
             : Task.CompletedTask;
     }
 
-    private async Task TryReleasePointerAsync()
+    private async Task TryReleasePointer()
     {
         if (_activePointerId is null || _activePointerId.Value <= 0)
             return;
@@ -616,7 +616,7 @@
             : Math.Max(0, delta);
     }
 
-    private async Task UpdateAnnounceTextAsync()
+    private async Task UpdateAnnounceText()
     {
         if (!CurrentOpen)
             return;
@@ -642,7 +642,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task CompleteAnnouncementAsync(CancellationToken cancellationToken)
+    private async Task CompleteAnnouncement(CancellationToken cancellationToken)
     {
         try
         {

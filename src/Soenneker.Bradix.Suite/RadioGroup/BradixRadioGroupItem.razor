@@ -150,14 +150,14 @@
             Group.UnregisterItem(this);
     }
 
-    internal ValueTask FocusAsync()
+    internal ValueTask Focus()
     {
         return _element.FocusAsync();
     }
 
     private Task HandleClick()
     {
-        return IsDisabled ? Task.CompletedTask : Group.SelectValueAsync(Value);
+        return IsDisabled ? Task.CompletedTask : Group.SelectValue(Value);
     }
 
     private async Task HandleFocus(FocusEventArgs _)
@@ -168,7 +168,7 @@
         Group.SetCurrentTabStop(TabStopId);
 
         if (!IsChecked && Group.TryConsumeSelectOnFocus())
-            await Group.SelectValueAsync(Value);
+            await Group.SelectValue(Value);
     }
 
     private Task HandleKeyDown(KeyboardEventArgs args)
@@ -178,11 +178,11 @@
 
         return IsDisabled
             ? Task.CompletedTask
-            : Group.HandleItemKeyDownAsync(this, args);
+            : Group.HandleItemKeyDown(this, args);
     }
 
     [JSInvokable]
-    public Task HandleRovingFocusBridgeReadyAsync()
+    public Task HandleRovingFocusBridgeReady()
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;

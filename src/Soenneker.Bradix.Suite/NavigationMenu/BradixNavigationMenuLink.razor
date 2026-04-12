@@ -7,8 +7,8 @@
 @inject IBradixSuiteInterop Interop
 
 <a @ref="_element"
-   @onclick="HandleClickAsync"
-   @onkeydown="HandleKeyDownAsync"
+   @onclick="HandleClick"
+   @onkeydown="HandleKeyDown"
    @attributes="LinkAttributes">
     @ChildContent
 </a>
@@ -64,18 +64,18 @@
             NavigationMenu.UnregisterFocusGroupItem(FocusGroupId, this);
     }
 
-    ValueTask IBradixNavigationMenuFocusGroupItem.FocusAsync() => _element.FocusAsync();
+    ValueTask IBradixNavigationMenuFocusGroupItem.Focus() => _element.FocusAsync();
 
-    private async Task HandleClickAsync(MouseEventArgs args)
+    private async Task HandleClick(MouseEventArgs args)
     {
         if (OnSelect.HasDelegate)
             await OnSelect.InvokeAsync();
 
         if (!args.MetaKey && NavigationMenu?.IsRootMenu == true)
-            await NavigationMenu.DismissAsync();
+            await NavigationMenu.Dismiss();
     }
 
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private async Task HandleKeyDown(KeyboardEventArgs args)
     {
         if (NavigationMenu is null || string.IsNullOrWhiteSpace(FocusGroupId))
             return;
@@ -83,11 +83,11 @@
         if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 
-        await NavigationMenu.HandleFocusGroupItemKeyDownAsync(FocusGroupId, this, args);
+        await NavigationMenu.HandleFocusGroupItemKeyDown(FocusGroupId, this, args);
     }
 
     [JSInvokable]
-    public Task HandleRovingFocusBridgeReadyAsync()
+    public Task HandleRovingFocusBridgeReady()
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;

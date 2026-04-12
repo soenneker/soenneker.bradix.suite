@@ -79,5 +79,5 @@ public interface IBradixHoverCardContent
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler when the document receives pointer up after selection.</summary>
-    Task HandleDocumentPointerUpAsync(bool hasSelection);
+    Task HandleDocumentPointerUp(bool hasSelection);
 }

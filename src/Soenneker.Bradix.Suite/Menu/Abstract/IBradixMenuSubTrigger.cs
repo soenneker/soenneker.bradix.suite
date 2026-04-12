@@ -20,7 +20,7 @@ public interface IBradixMenuSubTrigger
     ValueTask DisposeAsync();
 
     /// <summary>Moves keyboard focus to this trigger without scrolling the page.</summary>
-    ValueTask FocusAsync();
+    ValueTask Focus();
 
     /// <summary>Gets or sets the element id.</summary>
     string? Id { get; set; }

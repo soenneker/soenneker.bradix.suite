@@ -11,9 +11,9 @@
                             DismissOnEscapeKeyDown="false"
                             DismissOnPointerDownOutside="false"
                             DismissOnFocusOutside="false"
-                            OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
-                            OnFocusOutsideDetailed="@HandleFocusOutsideAsync"
-                            OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync">
+                            OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
+                            OnFocusOutsideDetailed="@HandleFocusOutside"
+                            OnPointerDownOutsideDetailed="@HandlePointerDownOutside">
         <BradixPopperContent Side="@Side"
                              SideOffset="SideOffset"
                              Align="@Align"
@@ -29,8 +29,8 @@
                             Style="@Style"
                             AdditionalAttributes="@TooltipAttributes">
                 <div @ref="_contentElement"
-                     @onpointerenter="HandlePointerEnterAsync"
-                     @onpointerleave="HandlePointerLeaveAsync">
+                     @onpointerenter="HandlePointerEnter"
+                     @onpointerleave="HandlePointerLeave">
                     @ChildContent
                 </div>
                 <BradixVisuallyHidden Id="@Tooltip?.ContentId"
@@ -175,7 +175,7 @@
         _dotNetReference?.Dispose();
     }
 
-    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs args)
+    private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs args)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
@@ -184,10 +184,10 @@
             await OnEscapeKeyDownDetailed.InvokeAsync(args);
 
         if (!args.DefaultPrevented && Tooltip is not null)
-            await Tooltip.CloseAsync();
+            await Tooltip.Close();
     }
 
-    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs args)
+    private async Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
@@ -196,51 +196,51 @@
             await OnPointerDownOutsideDetailed.InvokeAsync(args);
 
         if (!args.DefaultPrevented && Tooltip is not null)
-            await Tooltip.CloseAsync();
+            await Tooltip.Close();
     }
 
-    private static Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
+    private static Task HandleFocusOutside(BradixFocusOutsideEventArgs args)
     {
         args.PreventDefault();
         return Task.CompletedTask;
     }
 
-    private Task HandlePointerEnterAsync(PointerEventArgs _)
+    private Task HandlePointerEnter(PointerEventArgs _)
     {
         if (Tooltip?.EffectiveDisableHoverableContent == true)
             return Task.CompletedTask;
 
-        return Tooltip?.HandleContentEnterAsync() ?? Task.CompletedTask;
+        return Tooltip?.HandleContentEnter() ?? Task.CompletedTask;
     }
 
-    private Task HandlePointerLeaveAsync(PointerEventArgs _)
+    private Task HandlePointerLeave(PointerEventArgs _)
     {
         if (Tooltip?.EffectiveDisableHoverableContent == true)
             return Task.CompletedTask;
 
-        return Tooltip?.HandleContentLeaveAsync() ?? Task.CompletedTask;
+        return Tooltip?.HandleContentLeave() ?? Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleTooltipOpenFromOutsideAsync()
+    public Task HandleTooltipOpenFromOutside()
     {
-        return Tooltip?.CloseAsync() ?? Task.CompletedTask;
+        return Tooltip?.Close() ?? Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleTooltipTriggerScrollAsync()
+    public Task HandleTooltipTriggerScroll()
     {
-        return Tooltip?.CloseAsync() ?? Task.CompletedTask;
+        return Tooltip?.Close() ?? Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleTooltipGraceAreaExitAsync()
+    public Task HandleTooltipGraceAreaExit()
     {
-        return Tooltip?.CloseAsync() ?? Task.CompletedTask;
+        return Tooltip?.Close() ?? Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandlePointerGraceAreaChangedAsync(bool inTransit)
+    public Task HandlePointerGraceAreaChanged(bool inTransit)
     {
         Tooltip?.SetPointerInTransit(inTransit);
         return Task.CompletedTask;

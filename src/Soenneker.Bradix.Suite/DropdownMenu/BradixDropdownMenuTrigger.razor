@@ -8,9 +8,9 @@
 <BradixDismissableLayerBranch>
     <BradixMenuAnchor>
         <button @ref="_button"
-                @onpointerdown="HandlePointerDownAsync"
+                @onpointerdown="HandlePointerDown"
                 @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
-                @onkeydown="HandleKeyDownAsync"
+                @onkeydown="HandleKeyDown"
                 @attributes="ButtonAttributes">
             @ChildContent
         </button>
@@ -71,15 +71,15 @@
         _dotNetReference?.Dispose();
     }
 
-    private Task HandlePointerDownAsync(PointerEventArgs args)
+    private Task HandlePointerDown(PointerEventArgs args)
     {
         Menu?.SetFocusFirstItemOnOpen(false);
         return Disabled || DropdownMenu is null || args.Button != 0 || args.CtrlKey
             ? Task.CompletedTask
-            : DropdownMenu.ToggleOpenAsync();
+            : DropdownMenu.ToggleOpen();
     }
 
-    private Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private Task HandleKeyDown(KeyboardEventArgs args)
     {
         if (Disabled || DropdownMenu is null)
             return Task.CompletedTask;
@@ -89,10 +89,10 @@
 
         return args.Key switch
         {
-            "Enter" => DropdownMenu.ToggleOpenAsync(),
-            " " => DropdownMenu.ToggleOpenAsync(),
-            "Spacebar" => DropdownMenu.ToggleOpenAsync(),
-            "ArrowDown" => DropdownMenu.SetOpenAsync(true),
+            "Enter" => DropdownMenu.ToggleOpen(),
+            " " => DropdownMenu.ToggleOpen(),
+            "Spacebar" => DropdownMenu.ToggleOpen(),
+            "ArrowDown" => DropdownMenu.SetOpen(true),
             _ => Task.CompletedTask
         };
     }

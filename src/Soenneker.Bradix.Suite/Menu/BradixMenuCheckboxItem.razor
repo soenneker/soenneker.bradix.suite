@@ -10,8 +10,8 @@
                     Role="menuitemcheckbox"
                     Disabled="Disabled"
                     CloseOnSelect="CloseOnSelect"
-                    OnSelect="HandleSelectAsync"
-                    OnSelectDetailed="@HandleSelectDetailedAsync"
+                    OnSelect="HandleSelect"
+                    OnSelectDetailed="@HandleSelectDetailed"
                     AdditionalAttributes="@ItemAttributes">
         @ChildContent
     </BradixMenuItem>
@@ -84,7 +84,7 @@
         _initialized = true;
     }
 
-    private async Task HandleSelectAsync()
+    private async Task HandleSelect()
     {
         if (OnSelect.HasDelegate)
             await OnSelect.InvokeAsync();
@@ -103,7 +103,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleSelectDetailedAsync(BradixMenuItemSelectEventArgs args)
+    private Task HandleSelectDetailed(BradixMenuItemSelectEventArgs args)
     {
         return OnSelectDetailed.HasDelegate
             ? OnSelectDetailed.InvokeAsync(args)

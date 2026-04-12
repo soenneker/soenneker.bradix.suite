@@ -103,7 +103,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         var content = FindOpenContent(cut);
         string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "ArrowRight",
             ClosestMenubarContentId = currentContentId
@@ -127,7 +127,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         var content = FindOpenContent(cut);
         string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "s",
             TargetId = currentContentId
@@ -148,7 +148,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         var content = FindOpenContent(cut);
         string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "ArrowRight",
             ClosestMenubarContentId = currentContentId
@@ -164,7 +164,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
         var content = FindOpenContent(cut);
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "ArrowRight",
             IsMenubarSubTrigger = true
@@ -192,7 +192,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
             Assert.Equal("0", items[1].GetAttribute("tabindex"));
         });
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOutAsync(new BradixDelegatedFocusEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOut(new BradixDelegatedFocusEvent
         {
             TargetId = currentContentId,
             RelatedTargetId = "outside-target"
@@ -222,7 +222,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         var content = FindOpenContent(cut);
         string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
 
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "ArrowRight",
             ClosestMenubarContentId = currentContentId
@@ -293,7 +293,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         cut.Find("button[role='menuitem']").KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        bool prevented = await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDownAsync());
+        bool prevented = await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDown());
 
         Assert.False(prevented);
         Assert.Single(cut.FindAll("[role='menu']"));

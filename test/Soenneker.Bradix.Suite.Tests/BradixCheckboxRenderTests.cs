@@ -98,7 +98,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
         var checkbox = cut.FindComponent<BradixCheckbox>();
 
         cut.Find("button").Click();
-        await checkbox.Instance.HandleFormResetAsync();
+        await checkbox.Instance.HandleFormReset();
 
         var button = cut.Find("button");
         Assert.Equal("mixed", button.GetAttribute("aria-checked"));

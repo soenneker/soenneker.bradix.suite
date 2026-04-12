@@ -44,14 +44,14 @@ public interface IBradixTabsTrigger
     ValueTask DisposeAsync();
 
     /// <summary>Called from script when delegated interaction wiring is ready.</summary>
-    Task HandleDelegatedInteractionReadyAsync();
+    Task HandleDelegatedInteractionReady();
 
     /// <summary>Called from script for delegated mouse down handling.</summary>
-    Task HandleDelegatedMouseDownAsync(BradixDelegatedMouseEvent _);
+    Task HandleDelegatedMouseDown(BradixDelegatedMouseEvent _);
 
     /// <summary>Called from script when the roving-focus bridge is ready.</summary>
-    Task HandleRovingFocusBridgeReadyAsync();
+    Task HandleRovingFocusBridgeReady();
 
     /// <summary>Called from script for delegated key handling.</summary>
-    Task HandleDelegatedKeyDownAsync(BradixDelegatedKeyboardEvent args);
+    Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args);
 }

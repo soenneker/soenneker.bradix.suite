@@ -9,7 +9,7 @@
     @if (Popover?.HasCustomAnchor == true)
     {
         <button @ref="_button"
-                @onclick="HandleClickAsync"
+                @onclick="HandleClick"
                 @attributes="ButtonAttributes">
             @ChildContent
         </button>
@@ -18,7 +18,7 @@
     {
         <BradixPopperAnchor>
             <button @ref="_button"
-                    @onclick="HandleClickAsync"
+                    @onclick="HandleClick"
                     @attributes="ButtonAttributes">
                 @ChildContent
             </button>
@@ -57,10 +57,10 @@
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
-                readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
+                readyMethod = nameof(HandleDelegatedInteractionReady),
                 click = new
                 {
-                    method = nameof(HandleDelegatedClickAsync),
+                    method = nameof(HandleDelegatedClick),
                     currentTargetOnly = false
                 }
             });
@@ -69,11 +69,11 @@
         return;
     }
 
-    private Task HandleClickAsync()
+    private Task HandleClick()
     {
         return Disabled || Popover is null || _delegatedInteractionReady
             ? Task.CompletedTask
-            : Popover.ToggleOpenAsync();
+            : Popover.ToggleOpen();
     }
 
     public async ValueTask DisposeAsync()
@@ -83,15 +83,15 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
+    public Task HandleDelegatedInteractionReady()
     {
         _delegatedInteractionReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
     {
-        return Disabled || Popover is null ? Task.CompletedTask : Popover.ToggleOpenAsync();
+        return Disabled || Popover is null ? Task.CompletedTask : Popover.ToggleOpen();
     }
 }

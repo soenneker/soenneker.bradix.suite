@@ -91,7 +91,7 @@
     }
 
     [JSInvokable]
-    public async Task<bool> HandleEscapeKeyDownAsync(BradixDelegatedKeyboardEvent? originalEvent = null)
+    public async Task<bool> HandleEscapeKeyDown(BradixDelegatedKeyboardEvent? originalEvent = null)
     {
         var args = new BradixEscapeKeyDownEventArgs(originalEvent ?? new BradixDelegatedKeyboardEvent());
 
@@ -110,7 +110,7 @@
     }
 
     [JSInvokable]
-    public async Task HandlePointerDownOutsideAsync(BradixDelegatedMouseEvent? originalEvent = null)
+    public async Task HandlePointerDownOutside(BradixDelegatedMouseEvent? originalEvent = null)
     {
         var pointerArgs = new BradixPointerDownOutsideEventArgs(originalEvent ?? new BradixDelegatedMouseEvent());
 
@@ -136,7 +136,7 @@
     }
 
     [JSInvokable]
-    public async Task HandleFocusOutsideAsync(BradixDelegatedFocusEvent? originalEvent = null)
+    public async Task HandleFocusOutside(BradixDelegatedFocusEvent? originalEvent = null)
     {
         var focusArgs = new BradixFocusOutsideEventArgs(originalEvent ?? new BradixDelegatedFocusEvent());
 

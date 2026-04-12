@@ -6,7 +6,7 @@
 @inject IBradixSuiteInterop Interop
 
 <button @ref="_button"
-        @onclick="HandleClickAsync"
+        @onclick="HandleClick"
         @attributes="ButtonAttributes">
     @ChildContent
 </button>
@@ -30,20 +30,20 @@
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
         {
-            readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
+            readyMethod = nameof(HandleDelegatedInteractionReady),
             click = new
             {
-                method = nameof(HandleDelegatedClickAsync),
+                method = nameof(HandleDelegatedClick),
                 currentTargetOnly = false
             }
         });
     }
 
-    private Task HandleClickAsync()
+    private Task HandleClick()
     {
         return Popover is null || _delegatedInteractionReady
             ? Task.CompletedTask
-            : Popover.SetOpenAsync(false);
+            : Popover.SetOpen(false);
     }
 
     public async ValueTask DisposeAsync()
@@ -53,15 +53,15 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
+    public Task HandleDelegatedInteractionReady()
     {
         _delegatedInteractionReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
     {
-        return Popover is null ? Task.CompletedTask : Popover.SetOpenAsync(false);
+        return Popover is null ? Task.CompletedTask : Popover.SetOpen(false);
     }
 }

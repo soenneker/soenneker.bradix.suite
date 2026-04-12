@@ -52,7 +52,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
 
         Assert.Contains("Content", cut.Markup);
 
-        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("fade-out"));
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-out"));
 
         cut.WaitForAssertion(() => Assert.DoesNotContain("Content", cut.Markup));
     }
@@ -80,7 +80,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
             [nameof(BradixPresence.Present)] = false
         })));
 
-        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("fade-out"));
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-out"));
 
         cut.WaitForAssertion(() => Assert.Equal(1, exitCompleteCount));
     }
@@ -96,11 +96,11 @@ public sealed class BradixPresenceRenderTests : BunitContext
             [nameof(BradixPresence.Present)] = false
         })));
 
-        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("fade-in", "fade-out"));
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-in", "fade-out"));
 
         Assert.Contains("Content", cut.Markup);
 
-        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("fade-out", "fade-out"));
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-out", "fade-out"));
 
         cut.WaitForAssertion(() => Assert.DoesNotContain("Content", cut.Markup));
     }

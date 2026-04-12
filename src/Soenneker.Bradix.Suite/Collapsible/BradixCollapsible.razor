@@ -50,12 +50,12 @@
         _initialized = true;
     }
 
-    internal Task ToggleAsync()
+    internal Task Toggle()
     {
-        return SetOpenAsync(!IsOpen);
+        return SetOpen(!IsOpen);
     }
 
-    internal async Task SetOpenAsync(bool open)
+    internal async Task SetOpen(bool open)
     {
         if (Disabled || open == IsOpen)
             return;

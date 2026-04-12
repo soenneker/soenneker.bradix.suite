@@ -60,10 +60,10 @@
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_trigger.Element, _dotNetReference, new
             {
-                readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
+                readyMethod = nameof(HandleDelegatedInteractionReady),
                 keydown = new
                 {
-                    method = nameof(HandleDelegatedKeyDownAsync),
+                    method = nameof(HandleDelegatedKeyDown),
                     keys = new[] { "Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight" },
                     preventDefault = true
                 }
@@ -84,9 +84,9 @@
         _dotNetReference?.Dispose();
     }
 
-    internal ValueTask FocusAsync()
+    internal ValueTask Focus()
     {
-        return _trigger?.FocusAsync() ?? ValueTask.CompletedTask;
+        return _trigger?.Focus() ?? ValueTask.CompletedTask;
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
@@ -97,20 +97,20 @@
         if (_delegatedInteractionReady)
             return;
 
-        await Accordion.HandleTriggerKeyDownAsync(this, args);
+        await Accordion.HandleTriggerKeyDown(this, args);
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
+    public Task HandleDelegatedInteractionReady()
     {
         _delegatedInteractionReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleDelegatedKeyDownAsync(BradixDelegatedKeyboardEvent args)
+    public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
     {
-        return Accordion.HandleTriggerKeyDownAsync(this, new KeyboardEventArgs
+        return Accordion.HandleTriggerKeyDown(this, new KeyboardEventArgs
         {
             Key = args.Key,
             Code = args.Code,

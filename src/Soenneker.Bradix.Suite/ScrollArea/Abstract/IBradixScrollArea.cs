@@ -37,11 +37,11 @@ public interface IBradixScrollArea
     ValueTask DisposeAsync();
 
     /// <summary>Called from script when hover state over the root changes.</summary>
-    Task HandleHoverChangedAsync(bool hovering);
+    Task HandleHoverChanged(bool hovering);
 
     /// <summary>Called from script when viewport scroll metrics change.</summary>
-    Task HandleViewportMetricsChangedAsync(double scrollLeft, double scrollTop, double scrollWidth, double scrollHeight, double viewportWidth, double viewportHeight);
+    Task HandleViewportMetricsChanged(double scrollLeft, double scrollTop, double scrollWidth, double scrollHeight, double viewportWidth, double viewportHeight);
 
     /// <summary>Called from script when scrollbar element metrics change.</summary>
-    Task HandleScrollbarMetricsChangedAsync(string orientation, double clientWidth, double clientHeight, double paddingStart, double paddingEnd);
+    Task HandleScrollbarMetricsChanged(string orientation, double clientWidth, double clientHeight, double paddingStart, double paddingEnd);
 }

@@ -4,5 +4,5 @@ namespace Soenneker.Bradix;
 
 internal interface IBradixNavigationMenuFocusGroupItem
 {
-    ValueTask FocusAsync();
+    ValueTask Focus();
 }

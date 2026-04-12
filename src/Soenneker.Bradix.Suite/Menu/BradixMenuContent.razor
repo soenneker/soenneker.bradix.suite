@@ -180,19 +180,19 @@
         _dotNetReference?.Dispose();
     }
 
-    internal Task HandleItemKeyDownAsync(IBradixMenuRovingItem item, KeyboardEventArgs args)
+    internal Task HandleItemKeyDown(IBradixMenuRovingItem item, KeyboardEventArgs args)
     {
         return Menu is null
             ? Task.CompletedTask
-            : Menu.HandleItemNavigationAsync(item, args.Key, Loop);
+            : Menu.HandleItemNavigation(item, args.Key, Loop);
     }
 
-    internal Task HandleTypeaheadKeyAsync(IBradixMenuRovingItem item, string key)
+    internal Task HandleTypeaheadKey(IBradixMenuRovingItem item, string key)
     {
-        return Menu is null ? Task.CompletedTask : Menu.HandleTypeaheadAsync(item, key);
+        return Menu is null ? Task.CompletedTask : Menu.HandleTypeahead(item, key);
     }
 
-    internal Task HandlePointerMoveAsync(IBradixMenuRovingItem item, string? pointerType)
+    internal Task HandlePointerMove(IBradixMenuRovingItem item, string? pointerType)
     {
         if (Menu is null || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
             return Task.CompletedTask;
@@ -201,10 +201,10 @@
             return Task.CompletedTask;
 
         Menu.SetCurrentTabStop(item.TabStopId);
-        return item.FocusAsync().AsTask();
+        return item.Focus().AsTask();
     }
 
-    internal Task HandleItemLeaveAsync()
+    internal Task HandleItemLeave()
     {
         if (_submenuPointerGraceItems.Count > 0)
             return Task.CompletedTask;
@@ -224,7 +224,7 @@
             _submenuPointerGraceItems.Remove(tabStopId);
     }
 
-    private async Task HandleOpenAutoFocusAsync(BradixAutoFocusEventArgs args)
+    private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
     {
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
@@ -244,10 +244,10 @@
             return;
         }
 
-        await ApplyOpenAutoFocusAsync();
+        await ApplyOpenAutoFocus();
     }
 
-    private async Task HandleCloseAutoFocusAsync(BradixAutoFocusEventArgs args)
+    private async Task HandleCloseAutoFocus(BradixAutoFocusEventArgs args)
     {
         if (OnCloseAutoFocus.HasDelegate)
             await OnCloseAutoFocus.InvokeAsync();
@@ -257,7 +257,7 @@
 
         if (!args.DefaultPrevented && Menu is not null && (Menu.Modal || !_hasInteractedOutside))
         {
-            await Menu.FocusTriggerAsync();
+            await Menu.FocusTrigger();
             args.PreventDefault();
         }
 
@@ -265,7 +265,7 @@
         _hasPointerDownOutside = false;
     }
 
-    private async Task HandleEscapeKeyDownAsync(BradixEscapeKeyDownEventArgs _)
+    private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs _)
     {
         if (OnEscapeKeyDown.HasDelegate)
             await OnEscapeKeyDown.InvokeAsync();
@@ -275,7 +275,7 @@
     }
 
     [JSInvokable]
-    public async Task HandleDelegatedContentKeyDownAsync(BradixDelegatedKeyboardEvent args)
+    public async Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args)
     {
         if (OnContentKeyDown.HasDelegate)
             await OnContentKeyDown.InvokeAsync(CreateKeyboardEventArgs(args));
@@ -290,7 +290,7 @@
 
         if (isContentTarget && args.Key.Length == 1)
         {
-            await Menu.HandleTypeaheadAsync(null, args.Key);
+            await Menu.HandleTypeahead(null, args.Key);
             return;
         }
 
@@ -301,17 +301,17 @@
         {
             case "PageUp":
             case "Home":
-                await Menu.FocusFirstItemAsync();
+                await Menu.FocusFirstItem();
                 return;
             case "PageDown":
             case "End":
-                await Menu.FocusLastItemAsync();
+                await Menu.FocusLastItem();
                 return;
         }
     }
 
     [JSInvokable]
-    public Task HandleDelegatedContentFocusOutAsync(BradixDelegatedFocusEvent args)
+    public Task HandleDelegatedContentFocusOut(BradixDelegatedFocusEvent args)
     {
         if (Menu is null || !IsWithinContent(args.TargetId, args.AncestorIds))
             return Task.CompletedTask;
@@ -322,7 +322,7 @@
         return Task.CompletedTask;
     }
 
-    private async Task HandlePointerDownOutsideAsync(BradixPointerDownOutsideEventArgs _)
+    private async Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs _)
     {
         if (OnPointerDownOutside.HasDelegate)
             await OnPointerDownOutside.InvokeAsync();
@@ -331,7 +331,7 @@
             await OnPointerDownOutsideDetailed.InvokeAsync(_);
     }
 
-    private async Task HandleFocusOutsideAsync(BradixFocusOutsideEventArgs args)
+    private async Task HandleFocusOutside(BradixFocusOutsideEventArgs args)
     {
         if (OnFocusOutside.HasDelegate)
             await OnFocusOutside.InvokeAsync();
@@ -346,7 +346,7 @@
         }
     }
 
-    private async Task HandleInteractOutsideAsync(BradixInteractOutsideEventArgs args)
+    private async Task HandleInteractOutside(BradixInteractOutsideEventArgs args)
     {
         if (OnInteractOutside.HasDelegate)
             await OnInteractOutside.InvokeAsync();
@@ -366,15 +366,15 @@
             args.PreventDefault();
     }
 
-    private Task HandleDismissAsync()
+    private Task HandleDismiss()
     {
-        return Menu?.SetOpenAsync(false) ?? Task.CompletedTask;
+        return Menu?.SetOpen(false) ?? Task.CompletedTask;
     }
 
-    private Task HandleExitCompleteAsync()
+    private Task HandleExitComplete()
     {
         _isExiting = false;
-        return CleanupAfterExitAsync();
+        return CleanupAfterExit();
     }
 
     private RenderFragment RenderContentTree() => @<CascadingValue Value="this">
@@ -382,18 +382,18 @@
             <BradixFocusScope Trapped="ShouldTrapFocus"
                               PreventMountAutoFocus="true"
                               PreventUnmountAutoFocus="true"
-                              OnMountAutoFocusDetailed="HandleOpenAutoFocusAsync"
-                              OnUnmountAutoFocusDetailed="HandleCloseAutoFocusAsync">
+                              OnMountAutoFocusDetailed="HandleOpenAutoFocus"
+                              OnUnmountAutoFocusDetailed="HandleCloseAutoFocus">
                 <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
                                         DismissOnEscapeKeyDown="true"
                                         DismissOnPointerDownOutside="true"
                                         DismissOnFocusOutside="true"
-                                        OnDismiss="@HandleDismissAsync"
-                                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDownAsync"
-                                        OnPointerDownOutsideDetailed="@HandlePointerDownOutsideAsync"
-                                        OnFocusOutsideDetailed="@HandleFocusOutsideAsync"
-                                        OnInteractOutsideDetailed="@HandleInteractOutsideAsync"
-                                        OnElementReferenceCaptured="@HandleElementReferenceCapturedAsync">
+                                        OnDismiss="@HandleDismiss"
+                                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
+                                        OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
+                                        OnFocusOutsideDetailed="@HandleFocusOutside"
+                                        OnInteractOutsideDetailed="@HandleInteractOutside"
+                                        OnElementReferenceCaptured="@HandleElementReferenceCaptured">
                     <BradixPopperContent Side="@Side"
                                          SideOffset="SideOffset"
                                          Align="@Align"
@@ -410,8 +410,8 @@
                                         Class="@Class"
                                         Style="@MergedContentStyle"
                                         AdditionalAttributes="@PresenceAttributes"
-                                        OnElementReferenceCaptured="@HandleContentElementCapturedAsync"
-                                        OnExitComplete="@HandleExitCompleteAsync">
+                                        OnElementReferenceCaptured="@HandleContentElementCaptured"
+                                        OnExitComplete="@HandleExitComplete">
                             @ChildContent
                         </BradixPresence>
                     </BradixPopperContent>
@@ -420,7 +420,7 @@
         </BradixFocusGuards>
     </CascadingValue>;
 
-    private async Task HandleElementReferenceCapturedAsync(ElementReference element)
+    private async Task HandleElementReferenceCaptured(ElementReference element)
     {
         _layerElement = element;
 
@@ -431,10 +431,10 @@
         }
     }
 
-    private Task HandleContentElementCapturedAsync(ElementReference element)
-        => HandleContentElementCapturedInternalAsync(element);
+    private Task HandleContentElementCaptured(ElementReference element)
+        => HandleContentElementCapturedInternal(element);
 
-    private async Task CleanupAfterExitAsync()
+    private async Task CleanupAfterExit()
     {
         _isExiting = false;
         _contentElementCaptured = false;
@@ -454,7 +454,7 @@
         }
     }
 
-    private async Task ApplyOpenAutoFocusAsync()
+    private async Task ApplyOpenAutoFocus()
     {
         if (Menu is null)
             return;
@@ -468,10 +468,10 @@
             await Interop.FocusElementPreventScroll(_contentElement);
 
         if (shouldFocusFirstItem)
-            await Menu.FocusFirstItemAsync();
+            await Menu.FocusFirstItem();
     }
 
-    private async Task HandleContentElementCapturedInternalAsync(ElementReference element)
+    private async Task HandleContentElementCapturedInternal(ElementReference element)
     {
         _contentElement = element;
         _contentElementCaptured = true;
@@ -484,12 +484,12 @@
             {
                 focusout = new
                 {
-                    method = nameof(HandleDelegatedContentFocusOutAsync),
+                    method = nameof(HandleDelegatedContentFocusOut),
                     currentTargetOnly = false
                 },
                 keydown = new
                 {
-                    method = nameof(HandleDelegatedContentKeyDownAsync),
+                    method = nameof(HandleDelegatedContentKeyDown),
                     currentTargetOnly = false,
                     preventDefaultKeys = new[] { "Tab", "Home", "End", "PageUp", "PageDown" }
                 }
@@ -498,7 +498,7 @@
         }
 
         if (_pendingOpenAutoFocus && Menu?.CurrentOpen == true)
-            await ApplyOpenAutoFocusAsync();
+            await ApplyOpenAutoFocus();
     }
 
     private bool IsWithinContent(string? targetId, IReadOnlyList<string>? ancestorIds)
@@ -514,17 +514,17 @@
         return ancestorIds?.Contains(contentId) == true;
     }
 
-    Task IBradixMenuContentController.HandleItemKeyDownAsync(IBradixMenuRovingItem item, KeyboardEventArgs args)
-        => HandleItemKeyDownAsync(item, args);
+    Task IBradixMenuContentController.HandleItemKeyDown(IBradixMenuRovingItem item, KeyboardEventArgs args)
+        => HandleItemKeyDown(item, args);
 
-    Task IBradixMenuContentController.HandleTypeaheadKeyAsync(IBradixMenuRovingItem item, string key)
-        => HandleTypeaheadKeyAsync(item, key);
+    Task IBradixMenuContentController.HandleTypeaheadKey(IBradixMenuRovingItem item, string key)
+        => HandleTypeaheadKey(item, key);
 
-    Task IBradixMenuContentController.HandlePointerMoveAsync(IBradixMenuRovingItem item, string? pointerType)
-        => HandlePointerMoveAsync(item, pointerType);
+    Task IBradixMenuContentController.HandlePointerMove(IBradixMenuRovingItem item, string? pointerType)
+        => HandlePointerMove(item, pointerType);
 
-    Task IBradixMenuContentController.HandleItemLeaveAsync()
-        => HandleItemLeaveAsync();
+    Task IBradixMenuContentController.HandleItemLeave()
+        => HandleItemLeave();
 
     void IBradixMenuContentController.SetSubmenuPointerGrace(string? tabStopId, bool active)
         => SetSubmenuPointerGrace(tabStopId, active);

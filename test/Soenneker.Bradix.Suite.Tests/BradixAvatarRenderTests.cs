@@ -37,7 +37,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
         var cut = Render(CreateAvatar(delayMs: null));
         var image = cut.FindComponent<BradixAvatarImage>().Instance;
 
-        await image.HandleImageLoadingStatusChangedAsync("loaded");
+        await image.HandleImageLoadingStatusChanged("loaded");
 
         cut.WaitForAssertion(() =>
         {
@@ -66,7 +66,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
         });
         var image = cut.FindComponent<BradixAvatarImage>().Instance;
 
-        await image.HandleImageLoadingStatusChangedAsync("loaded");
+        await image.HandleImageLoadingStatusChanged("loaded");
 
         cut.WaitForAssertion(() =>
         {
@@ -95,7 +95,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
         var cut = Render(CreateAvatar(delayMs: null));
         var image = cut.FindComponent<BradixAvatarImage>().Instance;
 
-        await image.HandleImageLoadingStatusChangedAsync("error");
+        await image.HandleImageLoadingStatusChanged("error");
 
         cut.WaitForAssertion(() =>
         {

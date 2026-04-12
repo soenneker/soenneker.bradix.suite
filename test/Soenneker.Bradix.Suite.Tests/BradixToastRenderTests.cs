@@ -65,7 +65,7 @@ public sealed class BradixToastRenderTests : BunitContext
         Assert.Single(cut.FindAll("li[data-radix-toast-root]"));
 
         var presence = cut.FindComponent<BradixPresence>();
-        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("toast-out"));
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("toast-out"));
 
         Assert.Empty(cut.FindAll("li[data-radix-toast-root]"));
     }
@@ -79,8 +79,8 @@ public sealed class BradixToastRenderTests : BunitContext
         var cut = RenderToast(onPause: () => pauseCount++, onResume: () => resumeCount++);
         var viewport = cut.FindComponent<BradixToastViewport>();
 
-        await cut.InvokeAsync(() => viewport.Instance.HandlePauseAsync());
-        await cut.InvokeAsync(() => viewport.Instance.HandleResumeAsync());
+        await cut.InvokeAsync(() => viewport.Instance.HandlePause());
+        await cut.InvokeAsync(() => viewport.Instance.HandleResume());
 
         Assert.Equal(1, pauseCount);
         Assert.Equal(1, resumeCount);
@@ -203,7 +203,7 @@ public sealed class BradixToastRenderTests : BunitContext
         var cut = RenderToast();
         var toast = cut.FindComponent<BradixToast>();
 
-        await cut.InvokeAsync(() => toast.Instance.HandleDelegatedKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => toast.Instance.HandleDelegatedKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "Escape"
         }));
@@ -220,7 +220,7 @@ public sealed class BradixToastRenderTests : BunitContext
         var cut = RenderToast(onEscapeKeyDownDetailed: args => args.PreventDefault());
         var toast = cut.FindComponent<BradixToast>();
 
-        await cut.InvokeAsync(() => toast.Instance.HandleDelegatedKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => toast.Instance.HandleDelegatedKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "Escape"
         }));

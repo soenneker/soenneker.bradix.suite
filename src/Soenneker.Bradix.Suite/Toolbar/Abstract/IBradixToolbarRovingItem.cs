@@ -11,5 +11,5 @@ internal interface IBradixToolbarRovingItem
 
     bool IsDisabled { get; }
 
-    ValueTask FocusAsync();
+    ValueTask Focus();
 }

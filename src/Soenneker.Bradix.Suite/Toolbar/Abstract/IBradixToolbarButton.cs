@@ -34,8 +34,8 @@ public interface IBradixToolbarButton
     ValueTask DisposeAsync();
 
     /// <summary>Moves focus to the toolbar button.</summary>
-    ValueTask FocusAsync();
+    ValueTask Focus();
 
     /// <summary>Called from script when the roving-focus bridge is ready.</summary>
-    Task HandleRovingFocusBridgeReadyAsync();
+    Task HandleRovingFocusBridgeReady();
 }

@@ -31,8 +31,8 @@ public interface IBradixPopoverTrigger
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler when delegated interaction is ready.</summary>
-    Task HandleDelegatedInteractionReadyAsync();
+    Task HandleDelegatedInteractionReady();
 
     /// <summary>Interop handler for delegated click events.</summary>
-    Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent args);
+    Task HandleDelegatedClick(BradixDelegatedMouseEvent args);
 }

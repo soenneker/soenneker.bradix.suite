@@ -15,7 +15,7 @@ export function registerNavigationMenuIndicator(indicator, activeTrigger, track,
     const isHorizontal = orientation !== "vertical";
     const size = isHorizontal ? activeTrigger.offsetWidth : activeTrigger.offsetHeight;
     const offset = isHorizontal ? activeTrigger.offsetLeft : activeTrigger.offsetTop;
-    dotNetRef.invokeMethodAsync("HandleIndicatorPositionChangedAsync", size, offset);
+    dotNetRef.invokeMethodAsync("HandleIndicatorPositionChanged", size, offset);
   };
 
   const triggerResizeObserver = new ResizeObserver(notify);
@@ -164,7 +164,7 @@ export function registerNavigationMenuViewport(viewport, content, dotNetRef) {
   unregisterNavigationMenuViewport(viewport);
 
   const notify = () => {
-    dotNetRef.invokeMethodAsync("HandleViewportSizeChangedAsync", content.offsetWidth || 0, content.offsetHeight || 0);
+    dotNetRef.invokeMethodAsync("HandleViewportSizeChanged", content.offsetWidth || 0, content.offsetHeight || 0);
   };
 
   const contentResizeObserver = new ResizeObserver(notify);

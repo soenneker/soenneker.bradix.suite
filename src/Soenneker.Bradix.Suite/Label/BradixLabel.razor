@@ -39,7 +39,7 @@
     }
 
     [JSInvokable]
-    public Task HandleMouseDownFromJsAsync(BradixDelegatedMouseEvent args)
+    public Task HandleMouseDownFromJs(BradixDelegatedMouseEvent args)
     {
         return OnMouseDown.HasDelegate
             ? OnMouseDown.InvokeAsync(new MouseEventArgs

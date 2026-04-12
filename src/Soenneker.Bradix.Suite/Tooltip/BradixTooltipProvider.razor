@@ -26,13 +26,13 @@
 
     internal bool IsPointerInTransit { get; private set; }
 
-    internal async Task NotifyOpenAsync(BradixTooltip tooltip)
+    internal async Task NotifyOpen(BradixTooltip tooltip)
     {
         CancelSkipDelayTimer();
         IsOpenDelayed = false;
 
         if (_openTooltip is not null && _openTooltip != tooltip)
-            await _openTooltip.CloseFromProviderAsync();
+            await _openTooltip.CloseFromProvider();
 
         _openTooltip = tooltip;
     }
@@ -61,10 +61,10 @@
     {
         CancelSkipDelayTimer();
         _skipDelayTokenSource = new CancellationTokenSource();
-        _ = ResetDelayedOpenAsync(_skipDelayTokenSource.Token);
+        _ = ResetDelayedOpen(_skipDelayTokenSource.Token);
     }
 
-    private async Task ResetDelayedOpenAsync(CancellationToken cancellationToken)
+    private async Task ResetDelayedOpen(CancellationToken cancellationToken)
     {
         try
         {

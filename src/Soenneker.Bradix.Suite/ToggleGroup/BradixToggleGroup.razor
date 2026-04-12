@@ -139,11 +139,11 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal async Task ActivateItemAsync(string value)
+    internal async Task ActivateItem(string value)
     {
         if (IsSingle)
         {
-            await SetSingleValueAsync(value);
+            await SetSingleValue(value);
             return;
         }
 
@@ -153,14 +153,14 @@
             return;
 
         next.Add(value);
-        await SetMultipleValuesAsync(next);
+        await SetMultipleValues(next);
     }
 
-    internal async Task DeactivateItemAsync(string value)
+    internal async Task DeactivateItem(string value)
     {
         if (IsSingle)
         {
-            await SetSingleValueAsync(string.Empty);
+            await SetSingleValue(string.Empty);
             return;
         }
 
@@ -169,10 +169,10 @@
         if (!next.Remove(value))
             return;
 
-        await SetMultipleValuesAsync(next);
+        await SetMultipleValues(next);
     }
 
-    internal async Task HandleItemKeyDownAsync(BradixToggleGroupItem item, KeyboardEventArgs args)
+    internal async Task HandleItemKeyDown(BradixToggleGroupItem item, KeyboardEventArgs args)
     {
         if (!RovingFocus || args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
@@ -200,7 +200,7 @@
 
         BradixToggleGroupItem target = focusableItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
-        await target.FocusAsync();
+        await target.Focus();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -223,7 +223,7 @@
         CurrentTabStopId = activeItem?.TabStopId ?? focusableItems[0].TabStopId;
     }
 
-    private async Task SetSingleValueAsync(string? value)
+    private async Task SetSingleValue(string? value)
     {
         string normalizedValue = NormalizeSingleValue(value);
 
@@ -243,7 +243,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task SetMultipleValuesAsync(IReadOnlyCollection<string> values)
+    private async Task SetMultipleValues(IReadOnlyCollection<string> values)
     {
         List<string> next = values.Distinct(StringComparer.Ordinal).ToList();
 

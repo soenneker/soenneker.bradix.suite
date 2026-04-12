@@ -10,8 +10,8 @@
                     Role="menuitemradio"
                     Disabled="IsDisabled"
                     CloseOnSelect="CloseOnSelect"
-                    OnSelect="HandleSelectAsync"
-                    OnSelectDetailed="@HandleSelectDetailedAsync"
+                    OnSelect="HandleSelect"
+                    OnSelectDetailed="@HandleSelectDetailed"
                     AdditionalAttributes="@ItemAttributes">
         @ChildContent
     </BradixMenuItem>
@@ -64,15 +64,15 @@
         }
     }
 
-    private async Task HandleSelectAsync()
+    private async Task HandleSelect()
     {
         if (OnSelect.HasDelegate)
             await OnSelect.InvokeAsync();
 
-        await Group.SetValueAsync(Value);
+        await Group.SetValue(Value);
     }
 
-    private Task HandleSelectDetailedAsync(BradixMenuItemSelectEventArgs args)
+    private Task HandleSelectDetailed(BradixMenuItemSelectEventArgs args)
     {
         return OnSelectDetailed.HasDelegate
             ? OnSelectDetailed.InvokeAsync(args)

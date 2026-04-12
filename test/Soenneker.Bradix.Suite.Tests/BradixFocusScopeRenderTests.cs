@@ -37,7 +37,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
         var cut = Render(CreateFocusScope(EventCallback.Factory.Create(this, () => _mounted = true)));
         var scope = cut.FindComponent<BradixFocusScope>();
 
-        await scope.Instance.HandleMountAutoFocusAsync();
+        await scope.Instance.HandleMountAutoFocus();
 
         Assert.True(_mounted);
     }
@@ -48,7 +48,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
         var cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => _unmounted = true)));
         var scope = cut.FindComponent<BradixFocusScope>();
 
-        await scope.Instance.HandleUnmountAutoFocusAsync();
+        await scope.Instance.HandleUnmountAutoFocus();
 
         Assert.True(_unmounted);
     }

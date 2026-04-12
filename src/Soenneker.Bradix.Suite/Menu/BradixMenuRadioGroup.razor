@@ -36,7 +36,7 @@
     {
         CurrentValue = CurrentValue,
         Disabled = Disabled,
-        SetValueAsync = SetValueAsync
+        SetValue = SetValue
     };
 
     protected override void OnParametersSet()
@@ -48,7 +48,7 @@
         _initialized = true;
     }
 
-    private async Task SetValueAsync(string value)
+    private async Task SetValue(string value)
     {
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;

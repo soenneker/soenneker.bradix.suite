@@ -68,7 +68,7 @@ public sealed class BradixPopperRenderTests : BunitContext
         });
 
         var content = cut.FindComponent<BradixPopperContent>();
-        await content.Instance.HandlePositionChangedAsync("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
+        await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
 
         Assert.Contains("data-side=\"top\"", cut.Markup);
         Assert.Contains("data-align=\"start\"", cut.Markup);
@@ -107,10 +107,10 @@ public sealed class BradixPopperRenderTests : BunitContext
         });
 
         var content = cut.FindComponent<BradixPopperContent>();
-        await content.Instance.HandlePositionChangedAsync("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
+        await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
         string markup = cut.Markup;
 
-        await content.Instance.HandlePositionChangedAsync("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
+        await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
 
         Assert.Equal(markup, cut.Markup);
         Assert.Equal(1, placedCount);

@@ -70,14 +70,14 @@ public interface IBradixTooltipContent
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler when another tooltip requests exclusive open.</summary>
-    Task HandleTooltipOpenFromOutsideAsync();
+    Task HandleTooltipOpenFromOutside();
 
     /// <summary>Interop handler when the trigger scrolls.</summary>
-    Task HandleTooltipTriggerScrollAsync();
+    Task HandleTooltipTriggerScroll();
 
     /// <summary>Interop handler when the pointer leaves the grace area.</summary>
-    Task HandleTooltipGraceAreaExitAsync();
+    Task HandleTooltipGraceAreaExit();
 
     /// <summary>Interop handler when pointer grace transit state changes.</summary>
-    Task HandlePointerGraceAreaChangedAsync(bool inTransit);
+    Task HandlePointerGraceAreaChanged(bool inTransit);
 }

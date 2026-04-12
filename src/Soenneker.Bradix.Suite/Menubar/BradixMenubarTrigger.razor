@@ -7,11 +7,11 @@
 
 <BradixMenuAnchor>
     <button @ref="_button"
-            @onclick="HandleClickAsync"
-            @onpointerenter="HandlePointerEnterAsync"
-            @onkeydown="HandleKeyDownAsync"
-            @onfocus="HandleFocusAsync"
-            @onblur="HandleBlurAsync"
+            @onclick="HandleClick"
+            @onpointerenter="HandlePointerEnter"
+            @onkeydown="HandleKeyDown"
+            @onfocus="HandleFocus"
+            @onblur="HandleBlur"
             @attributes="TriggerAttributes">
         @ChildContent
     </button>
@@ -88,27 +88,27 @@
         _dotNetReference?.Dispose();
     }
 
-    ValueTask IBradixMenubarTriggerEntry.FocusAsync() => _button.FocusAsync();
+    ValueTask IBradixMenubarTriggerEntry.Focus() => _button.FocusAsync();
 
-    private Task HandleClickAsync(MouseEventArgs args)
+    private Task HandleClick(MouseEventArgs args)
     {
         if (Disabled || Menubar is null || MenubarMenu is null || args.Button != 0 || args.CtrlKey)
             return Task.CompletedTask;
 
         MenubarMenu.ResetKeyboardTriggerOpen();
-        return Menubar.OpenMenuAsync(MenubarMenu.CurrentValue);
+        return Menubar.OpenMenu(MenubarMenu.CurrentValue);
     }
 
-    private async Task HandlePointerEnterAsync(PointerEventArgs _)
+    private async Task HandlePointerEnter(PointerEventArgs _)
     {
         if (Disabled || Menubar is null || MenubarMenu is null || !Menubar.HasOpenMenu || IsOpen)
             return;
 
-        await Menubar.OpenMenuAsync(MenubarMenu.CurrentValue);
+        await Menubar.OpenMenu(MenubarMenu.CurrentValue);
         await _button.FocusAsync();
     }
 
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private async Task HandleKeyDown(KeyboardEventArgs args)
     {
         if (Disabled || Menubar is null || MenubarMenu is null)
             return;
@@ -116,21 +116,21 @@
         if (args.Key is "Enter" or " " or "Spacebar")
         {
             MenubarMenu.MarkKeyboardTriggerOpen();
-            await Menubar.ToggleMenuAsync(MenubarMenu.CurrentValue);
+            await Menubar.ToggleMenu(MenubarMenu.CurrentValue);
             return;
         }
 
         if (args.Key == "ArrowDown")
         {
             MenubarMenu.MarkKeyboardTriggerOpen();
-            await Menubar.OpenMenuAsync(MenubarMenu.CurrentValue);
+            await Menubar.OpenMenu(MenubarMenu.CurrentValue);
             return;
         }
 
-        await Menubar.HandleTriggerKeyDownAsync(this, args);
+        await Menubar.HandleTriggerKeyDown(this, args);
     }
 
-    private Task HandleFocusAsync(FocusEventArgs _)
+    private Task HandleFocus(FocusEventArgs _)
     {
         if (Disabled || MenubarMenu is null || Menubar is null)
             return Task.CompletedTask;
@@ -140,7 +140,7 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleBlurAsync(FocusEventArgs _)
+    private Task HandleBlur(FocusEventArgs _)
     {
         _isFocused = false;
         return InvokeAsync(StateHasChanged);

@@ -76,7 +76,7 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal async Task HandleItemKeyDownAsync(IBradixToolbarRovingItem item, KeyboardEventArgs args)
+    internal async Task HandleItemKeyDown(IBradixToolbarRovingItem item, KeyboardEventArgs args)
     {
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
@@ -104,7 +104,7 @@
 
         IBradixToolbarRovingItem target = focusableItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
-        await target.FocusAsync();
+        await target.Focus();
         await InvokeAsync(StateHasChanged);
     }
 

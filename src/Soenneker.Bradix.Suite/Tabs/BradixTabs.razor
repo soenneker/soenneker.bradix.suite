@@ -108,7 +108,7 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal async Task HandleTriggerKeyDownAsync(BradixTabsTrigger trigger, bool loop, KeyboardEventArgs args)
+    internal async Task HandleTriggerKeyDown(BradixTabsTrigger trigger, bool loop, KeyboardEventArgs args)
     {
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
@@ -136,11 +136,11 @@
 
         BradixTabsTrigger target = focusableTriggers[targetIndex];
         CurrentTabStopId = target.TabStopId;
-        await target.FocusAsync();
+        await target.Focus();
         await InvokeAsync(StateHasChanged);
     }
 
-    internal async Task SetValueAsync(string value)
+    internal async Task SetValue(string value)
     {
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;

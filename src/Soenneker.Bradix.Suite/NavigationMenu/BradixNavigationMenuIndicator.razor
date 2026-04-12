@@ -13,7 +13,7 @@
                     Class="@Class"
                     Style="@ComputedStyle"
                     AdditionalAttributes="@IndicatorAttributes"
-                    OnElementReferenceCaptured="@HandleElementCapturedAsync">
+                    OnElementReferenceCaptured="@HandleElementCaptured">
         @ChildContent
     </BradixPresence>
 }
@@ -114,7 +114,7 @@
         _dotNetReference?.Dispose();
     }
 
-    private Task HandleElementCapturedAsync(ElementReference element)
+    private Task HandleElementCaptured(ElementReference element)
     {
         _element = element;
         _hasElement = true;
@@ -122,7 +122,7 @@
     }
 
     [JSInvokable]
-    public Task HandleIndicatorPositionChangedAsync(double size, double offset)
+    public Task HandleIndicatorPositionChanged(double size, double offset)
     {
         if (Math.Abs((_size ?? -1) - size) < 0.1 &&
             Math.Abs((_offset ?? -1) - offset) < 0.1)

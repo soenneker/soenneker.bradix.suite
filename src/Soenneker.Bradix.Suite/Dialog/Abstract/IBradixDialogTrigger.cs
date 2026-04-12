@@ -21,11 +21,11 @@ public interface IBradixDialogTrigger
     /// <summary>
     /// Called when delegated interaction handling is ready on the trigger.
     /// </summary>
-    Task HandleDelegatedInteractionReadyAsync();
+    Task HandleDelegatedInteractionReady();
 
     /// <summary>
     /// Handles a delegated click routed from JavaScript.
     /// </summary>
     /// <param name="mouseEvent">The delegated mouse event payload.</param>
-    Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent mouseEvent);
+    Task HandleDelegatedClick(BradixDelegatedMouseEvent mouseEvent);
 }

@@ -85,12 +85,12 @@ public sealed class BradixSlot : BradixComponentBase
     {
         return EventCallback.Factory.Create<TArgument>(this, async (TArgument args) =>
         {
-            await InvokeHandlerAsync(childValue, args);
-            await InvokeHandlerAsync(slotValue, args);
+            await InvokeHandler(childValue, args);
+            await InvokeHandler(slotValue, args);
         });
     }
 
-    private static async Task InvokeHandlerAsync(object handler, object? argument)
+    private static async Task InvokeHandler(object handler, object? argument)
     {
         switch (handler)
         {

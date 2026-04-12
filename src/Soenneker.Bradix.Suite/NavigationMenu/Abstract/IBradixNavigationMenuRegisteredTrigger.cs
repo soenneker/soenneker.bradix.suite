@@ -21,5 +21,5 @@ internal interface IBradixNavigationMenuRegisteredTrigger
     ElementReference TriggerElement { get; }
 
     /// <summary>Moves focus to the trigger element.</summary>
-    ValueTask FocusAsync();
+    ValueTask Focus();
 }

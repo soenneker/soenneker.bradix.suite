@@ -53,7 +53,7 @@
     private Task HandleOpenChange(bool open)
     {
         return open
-            ? Accordion.OpenItemAsync(Value)
-            : Accordion.CloseItemAsync(Value);
+            ? Accordion.OpenItem(Value)
+            : Accordion.CloseItem(Value);
     }
 }

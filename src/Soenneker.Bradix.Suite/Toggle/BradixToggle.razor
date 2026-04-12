@@ -78,10 +78,10 @@
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
         {
-            readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
+            readyMethod = nameof(HandleDelegatedInteractionReady),
             click = new
             {
-                method = nameof(HandleDelegatedClickAsync),
+                method = nameof(HandleDelegatedClick),
                 currentTargetOnly = false
             }
         });
@@ -93,7 +93,7 @@
         _dotNetReference?.Dispose();
     }
 
-    internal ValueTask FocusAsync()
+    internal ValueTask Focus()
     {
         return _element.FocusAsync();
     }
@@ -106,7 +106,7 @@
         if (_delegatedInteractionReady || Disabled)
             return;
 
-        await SetPressedAsync(!IsPressed);
+        await SetPressed(!IsPressed);
     }
 
     private Task HandleMouseDown(MouseEventArgs args)
@@ -130,7 +130,7 @@
             : Task.CompletedTask;
     }
 
-    private async Task SetPressedAsync(bool pressed)
+    private async Task SetPressed(bool pressed)
     {
         if (Pressed is null)
             _uncontrolledPressed = pressed;
@@ -145,15 +145,15 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
+    public Task HandleDelegatedInteractionReady()
     {
         _delegatedInteractionReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
     {
-        return Disabled ? Task.CompletedTask : SetPressedAsync(!IsPressed);
+        return Disabled ? Task.CompletedTask : SetPressed(!IsPressed);
     }
 }

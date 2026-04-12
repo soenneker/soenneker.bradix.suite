@@ -51,7 +51,7 @@ function ensureDismissableLayerListeners() {
     const dispatchPointerDownOutside = (topLayer, event) => {
       const snapshot = createDismissablePointerSnapshot(event);
       snapshot.activeElementInsideLayer = !!(document.activeElement && topLayer.element.contains(document.activeElement));
-      topLayer.dotNetRef.invokeMethodAsync("HandlePointerDownOutsideAsync", snapshot).catch(() => {});
+      topLayer.dotNetRef.invokeMethodAsync("HandlePointerDownOutside", snapshot).catch(() => {});
     };
 
     document.addEventListener("pointerdown", (event) => {
@@ -154,7 +154,7 @@ function ensureDismissableLayerListeners() {
       }
     }
 
-    topLayer.dotNetRef.invokeMethodAsync("HandleFocusOutsideAsync", createDismissableFocusSnapshot(event)).catch(() => {});
+    topLayer.dotNetRef.invokeMethodAsync("HandleFocusOutside", createDismissableFocusSnapshot(event)).catch(() => {});
   });
 
   document.addEventListener("keydown", (event) => {
@@ -167,7 +167,7 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
-    topLayer.dotNetRef.invokeMethodAsync("HandleEscapeKeyDownAsync", createDismissableKeyboardSnapshot(event)).then((shouldPreventDefault) => {
+    topLayer.dotNetRef.invokeMethodAsync("HandleEscapeKeyDown", createDismissableKeyboardSnapshot(event)).then((shouldPreventDefault) => {
       if (shouldPreventDefault) {
         event.preventDefault();
       }

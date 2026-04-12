@@ -13,7 +13,7 @@
 
     private Dictionary<string, object> RootAttributes => BuildAttributes();
 
-    internal Task SetImageLoadingStatusAsync(BradixAvatarImageLoadingStatus status)
+    internal Task SetImageLoadingStatus(BradixAvatarImageLoadingStatus status)
     {
         if (ImageLoadingStatus == status)
             return Task.CompletedTask;

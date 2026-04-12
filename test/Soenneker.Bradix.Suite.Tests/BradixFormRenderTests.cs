@@ -51,7 +51,7 @@ public sealed class BradixFormRenderTests : BunitContext
         var cut = RenderForm();
         var control = cut.FindComponent<BradixFormControl>();
 
-        await control.Instance.HandleValidityChangedAsync(new BradixFormValiditySnapshot
+        await control.Instance.HandleValidityChanged(new BradixFormValiditySnapshot
         {
             Valid = false,
             ValueMissing = true
@@ -97,7 +97,7 @@ public sealed class BradixFormRenderTests : BunitContext
         });
 
         var control = cut.FindComponent<BradixFormControl>();
-        await control.Instance.HandleValidityChangedAsync(new BradixFormValiditySnapshot
+        await control.Instance.HandleValidityChanged(new BradixFormValiditySnapshot
         {
             Valid = false,
             TypeMismatch = true
@@ -137,7 +137,7 @@ public sealed class BradixFormRenderTests : BunitContext
 
         var control = cut.FindComponent<BradixFormControl>();
 
-        await control.Instance.HandleControlStateChangedAsync(CreateControlSnapshot("mismatch", new BradixFormValiditySnapshot(), new Dictionary<string, string[]>
+        await control.Instance.HandleControlStateChanged(CreateControlSnapshot("mismatch", new BradixFormValiditySnapshot(), new Dictionary<string, string[]>
         {
             ["password"] = ["secret"],
             ["confirmPassword"] = ["mismatch"]
@@ -164,7 +164,7 @@ public sealed class BradixFormRenderTests : BunitContext
 
         var control = cut.FindComponent<BradixFormControl>();
 
-        await control.Instance.HandleControlStateChangedAsync(CreateControlSnapshot("taken", new BradixFormValiditySnapshot(), new Dictionary<string, string[]>
+        await control.Instance.HandleControlStateChanged(CreateControlSnapshot("taken", new BradixFormValiditySnapshot(), new Dictionary<string, string[]>
         {
             ["confirmPassword"] = ["taken"]
         }));
@@ -215,7 +215,7 @@ public sealed class BradixFormRenderTests : BunitContext
         var control = cut.Find("input");
         var controlComponent = cut.FindComponent<BradixFormControl>();
 
-        await controlComponent.Instance.HandleValidityChangedAsync(new BradixFormValiditySnapshot
+        await controlComponent.Instance.HandleValidityChanged(new BradixFormValiditySnapshot
         {
             Valid = false,
             ValueMissing = true

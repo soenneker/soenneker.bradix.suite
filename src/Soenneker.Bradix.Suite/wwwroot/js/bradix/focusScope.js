@@ -141,7 +141,7 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
   const previous = scope.previouslyFocusedElement;
   const hasFocusedCandidate = previous && scope.element.contains(previous);
   if (!hasFocusedCandidate) {
-    const mountAutoFocusPrevented = await dotNetRef.invokeMethodAsync("HandleMountAutoFocusAsync");
+    const mountAutoFocusPrevented = await dotNetRef.invokeMethodAsync("HandleMountAutoFocus");
     if (!scope.preventMountAutoFocus && !mountAutoFocusPrevented) {
       focusFirst(removeLinks(getTabbableCandidates(scope.element)), true);
       if (document.activeElement === previous) {

@@ -5,8 +5,8 @@
 @if (Content?.CanScrollDown == true)
 {
     <div aria-hidden="true"
-         @onpointerdown="HandlePointerDownAsync"
-         @onpointermove="HandlePointerMoveAsync"
+         @onpointerdown="HandlePointerDown"
+         @onpointermove="HandlePointerMove"
          @onpointerleave="HandlePointerLeave"
          @onpointerup="HandlePointerUp"
          @attributes="ButtonAttributes">
@@ -32,7 +32,7 @@
             return Task.CompletedTask;
 
         _didNotifyContent = true;
-        return Content.HandleScrollButtonMountedAsync();
+        return Content.HandleScrollButtonMounted();
     }
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
@@ -45,14 +45,14 @@
         return string.IsNullOrWhiteSpace(Style) ? baseStyle : $"{baseStyle} {Style}";
     }
 
-    private Task HandlePointerDownAsync(PointerEventArgs _)
+    private Task HandlePointerDown(PointerEventArgs _)
     {
-        return Content?.StartAutoScrollAsync(false) ?? Task.CompletedTask;
+        return Content?.StartAutoScroll(false) ?? Task.CompletedTask;
     }
 
-    private Task HandlePointerMoveAsync(PointerEventArgs _)
+    private Task HandlePointerMove(PointerEventArgs _)
     {
-        return Content?.StartAutoScrollAsync(false) ?? Task.CompletedTask;
+        return Content?.StartAutoScroll(false) ?? Task.CompletedTask;
     }
 
     private void HandlePointerLeave(PointerEventArgs _)

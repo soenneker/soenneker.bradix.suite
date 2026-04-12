@@ -40,5 +40,5 @@ public interface IBradixRadioGroupItem
     ValueTask DisposeAsync();
 
     /// <summary>Called from script when the roving-focus bridge is ready.</summary>
-    Task HandleRovingFocusBridgeReadyAsync();
+    Task HandleRovingFocusBridgeReady();
 }

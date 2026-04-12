@@ -4,7 +4,7 @@
 
 <BradixMenu @ref="_menu"
             Open="@_open"
-            OpenChanged="HandleMenuOpenChangedAsync"
+            OpenChanged="HandleMenuOpenChanged"
             Dir="@Dir"
             Modal="@Modal">
     <CascadingValue Value="this">
@@ -27,7 +27,7 @@
 
     internal bool CurrentOpen => _open;
 
-    internal async Task OpenAtPointAsync(double x, double y)
+    internal async Task OpenAtPoint(double x, double y)
     {
         _menu?.RegisterVirtualAnchor(x, y);
 
@@ -37,15 +37,15 @@
             return;
         }
 
-        await SetOpenAsync(true);
+        await SetOpen(true);
     }
 
-    internal Task CloseAsync()
+    internal Task Close()
     {
-        return SetOpenAsync(false);
+        return SetOpen(false);
     }
 
-    private async Task SetOpenAsync(bool open)
+    private async Task SetOpen(bool open)
     {
         if (_open == open)
             return;
@@ -58,8 +58,8 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleMenuOpenChangedAsync(bool open)
+    private Task HandleMenuOpenChanged(bool open)
     {
-        return SetOpenAsync(open);
+        return SetOpen(open);
     }
 }

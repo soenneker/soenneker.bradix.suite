@@ -7,9 +7,9 @@
 
 <BradixPopperAnchor>
     <button @ref="_button"
-            @onclick="HandleClickAsync"
-            @onpointerdown="HandlePointerDownAsync"
-            @onkeydown="HandleKeyDownAsync"
+            @onclick="HandleClick"
+            @onpointerdown="HandlePointerDown"
+            @onkeydown="HandleKeyDown"
             @attributes="TriggerAttributes">
         @ChildContent
     </button>
@@ -56,7 +56,7 @@
                     currentTargetOnly = true,
                     filter = "primaryMousePointerDown",
                     preventDefault = true,
-                    method = nameof(HandleDelegatedPointerDownAsync)
+                    method = nameof(HandleDelegatedPointerDown)
                 },
                 keydown = new
                 {
@@ -77,7 +77,7 @@
         _dotNetReference?.Dispose();
     }
 
-    private async Task HandleClickAsync(MouseEventArgs _)
+    private async Task HandleClick(MouseEventArgs _)
     {
         if (IsDisabled || Select is null)
             return;
@@ -85,10 +85,10 @@
         await _button.FocusAsync();
 
         if (!Select.CurrentOpen)
-            await Select.OpenFromTriggerAsync();
+            await Select.OpenFromTrigger();
     }
 
-    private async Task HandlePointerDownAsync(PointerEventArgs args)
+    private async Task HandlePointerDown(PointerEventArgs args)
     {
         if (IsDisabled || Select is null)
             return;
@@ -96,28 +96,28 @@
         _pointerType = args.PointerType ?? "touch";
     }
 
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private async Task HandleKeyDown(KeyboardEventArgs args)
     {
         if (IsDisabled || Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
         if (!Select.CurrentOpen && args.Key.Length == 1)
         {
-            await Select.HandleTriggerTypeaheadAsync(args.Key);
+            await Select.HandleTriggerTypeahead(args.Key);
             return;
         }
 
         if (args.Key is " " or "Spacebar" or "Enter" or "ArrowUp" or "ArrowDown")
-            await Select.OpenFromTriggerAsync();
+            await Select.OpenFromTrigger();
     }
 
     [JSInvokable]
-    public Task HandleDelegatedPointerDownAsync(BradixDelegatedMouseEvent args)
+    public Task HandleDelegatedPointerDown(BradixDelegatedMouseEvent args)
     {
         if (IsDisabled || Select is null)
             return Task.CompletedTask;
 
         _pointerType = string.IsNullOrWhiteSpace(args.PointerType) ? "mouse" : args.PointerType;
-        return Select.OpenFromTriggerAsync(args.PageX, args.PageY);
+        return Select.OpenFromTrigger(args.PageX, args.PageY);
     }
 }

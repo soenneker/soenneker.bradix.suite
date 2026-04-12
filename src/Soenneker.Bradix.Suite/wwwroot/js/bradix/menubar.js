@@ -36,7 +36,7 @@ export function registerMenubarDocumentDismiss(element, dotNetRef, menubarId) {
       return;
     }
 
-    dotNetRef.invokeMethodAsync("HandleDocumentPointerDownOutsideAsync").catch(() => {});
+    dotNetRef.invokeMethodAsync("HandleDocumentPointerDownOutside").catch(() => {});
   };
 
   document.addEventListener("pointerdown", pointerdown, true);

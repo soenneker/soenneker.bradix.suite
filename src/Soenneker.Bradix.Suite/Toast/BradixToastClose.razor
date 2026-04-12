@@ -2,7 +2,7 @@
 
 @inherits BradixComponentBase
 
-<button @onclick="HandleClickAsync"
+<button @onclick="HandleClick"
         @attributes="ButtonAttributes">
     @ChildContent
 </button>
@@ -16,8 +16,8 @@
         ("aria-label", "Close"),
         ("data-radix-toast-announce-exclude", string.Empty));
 
-    private Task HandleClickAsync()
+    private Task HandleClick()
     {
-        return Toast?.TriggerCloseAsync() ?? Task.CompletedTask;
+        return Toast?.TriggerClose() ?? Task.CompletedTask;
     }
 }

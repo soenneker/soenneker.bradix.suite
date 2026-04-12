@@ -3,7 +3,7 @@
 @inject IBradixIdGenerator IdGenerator
 
 <BradixMenu Open="@IsOpen"
-            OpenChanged="HandleMenuOpenChangedAsync"
+            OpenChanged="HandleMenuOpenChanged"
             Dir="@Menubar?.ResolvedDirection"
             Modal="false">
     <CascadingValue Value="this">
@@ -48,12 +48,12 @@
         WasKeyboardTriggerOpen = false;
     }
 
-    private Task HandleMenuOpenChangedAsync(bool open)
+    private Task HandleMenuOpenChanged(bool open)
     {
         if (open)
-            return Menubar?.OpenMenuAsync(CurrentValue) ?? Task.CompletedTask;
+            return Menubar?.OpenMenu(CurrentValue) ?? Task.CompletedTask;
 
         ResetKeyboardTriggerOpen();
-        return Menubar?.CloseMenuAsync() ?? Task.CompletedTask;
+        return Menubar?.CloseMenu() ?? Task.CompletedTask;
     }
 }

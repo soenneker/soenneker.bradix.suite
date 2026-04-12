@@ -40,7 +40,7 @@
         ("data-disabled", Collapsible.Disabled ? string.Empty : null),
         ("disabled", Collapsible.Disabled ? true : null));
 
-    internal ValueTask FocusAsync()
+    internal ValueTask Focus()
     {
         return _element.FocusAsync();
     }
@@ -53,10 +53,10 @@
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
         {
-            readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
+            readyMethod = nameof(HandleDelegatedInteractionReady),
             click = new
             {
-                method = nameof(HandleDelegatedClickAsync),
+                method = nameof(HandleDelegatedClick),
                 currentTargetOnly = false
             }
         });
@@ -76,7 +76,7 @@
         if (_delegatedInteractionReady)
             return;
 
-        await Collapsible.ToggleAsync();
+        await Collapsible.Toggle();
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
@@ -86,15 +86,15 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
+    public Task HandleDelegatedInteractionReady()
     {
         _delegatedInteractionReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public Task HandleDelegatedClickAsync(BradixDelegatedMouseEvent _)
+    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
     {
-        return Collapsible.ToggleAsync();
+        return Collapsible.Toggle();
     }
 }

@@ -31,5 +31,5 @@ public interface IBradixNavigationMenuViewport
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler when viewport dimensions change.</summary>
-    Task HandleViewportSizeChangedAsync(double width, double height);
+    Task HandleViewportSizeChanged(double width, double height);
 }

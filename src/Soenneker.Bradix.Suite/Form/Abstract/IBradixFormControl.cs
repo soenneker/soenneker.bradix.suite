@@ -31,10 +31,10 @@ public interface IBradixFormControl
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     /// <summary>Updates field validity in the parent form.</summary>
-    Task HandleValidityChangedAsync(BradixFormValiditySnapshot? validity);
+    Task HandleValidityChanged(BradixFormValiditySnapshot? validity);
 
     /// <summary>Propagates control snapshot changes for custom validation.</summary>
-    Task HandleControlStateChangedAsync(BradixFormControlSnapshot snapshot);
+    Task HandleControlStateChanged(BradixFormControlSnapshot snapshot);
 
     /// <summary>Unregisters the control from the parent form.</summary>
     ValueTask DisposeAsync();

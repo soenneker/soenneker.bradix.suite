@@ -74,7 +74,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         var cut = Render(CreatePopover(defaultOpen: true));
 
         var layer = cut.FindComponent<BradixDismissableLayer>();
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
         var trigger = cut.Find("button[aria-haspopup='dialog']");
         Assert.Equal("false", trigger.GetAttribute("aria-expanded"));
@@ -88,7 +88,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         var trigger = cut.Find("button[aria-haspopup='dialog']");
         string triggerId = Assert.IsType<string>(trigger.Id);
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
             AncestorIds = [triggerId]
         }));
@@ -102,7 +102,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         var cut = Render(CreatePopover(defaultOpen: true));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
             Button = 2
         }));
@@ -132,7 +132,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         });
 
         var layer = cut.FindComponent<BradixDismissableLayer>();
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
         Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
     }
@@ -143,7 +143,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         var cut = Render(CreatePopover(defaultOpen: true, closeOnEscapeKeyDown: false));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDownAsync());
+        await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDown());
 
         Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
     }
@@ -158,7 +158,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         Assert.Single(cut.FindAll("[role='dialog']"));
 
         var presence = cut.FindComponent<BradixPresence>();
-        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEndAsync("fade-out"));
+        await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-out"));
 
         Assert.Empty(cut.FindAll("[role='dialog']"));
     }

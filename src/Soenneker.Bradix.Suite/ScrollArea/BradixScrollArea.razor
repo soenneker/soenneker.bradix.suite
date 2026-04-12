@@ -241,7 +241,7 @@
     }
 
     [JSInvokable]
-    public Task HandleHoverChangedAsync(bool hovering)
+    public Task HandleHoverChanged(bool hovering)
     {
         if (hovering)
         {
@@ -257,7 +257,7 @@
             _hoverHideTokenSource?.Cancel();
             _hoverHideTokenSource?.Dispose();
             _hoverHideTokenSource = new CancellationTokenSource();
-            _ = HideHoverAfterDelayAsync(_hoverHideTokenSource.Token);
+            _ = HideHoverAfterDelay(_hoverHideTokenSource.Token);
             return Task.CompletedTask;
         }
 
@@ -266,7 +266,7 @@
     }
 
     [JSInvokable]
-    public Task HandleViewportMetricsChangedAsync(double scrollLeft, double scrollTop, double scrollWidth, double scrollHeight, double viewportWidth, double viewportHeight)
+    public Task HandleViewportMetricsChanged(double scrollLeft, double scrollTop, double scrollWidth, double scrollHeight, double viewportWidth, double viewportHeight)
     {
         bool xChanged = !AreClose(ScrollLeft, scrollLeft);
         bool yChanged = !AreClose(ScrollTop, scrollTop);
@@ -297,7 +297,7 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    internal Task HandleScrollbarPointerChangedAsync(string orientation, bool entering)
+    internal Task HandleScrollbarPointerChanged(string orientation, bool entering)
     {
         bool horizontal = orientation == "horizontal";
 
@@ -312,7 +312,7 @@
             }
             else if (IsScrollingX)
             {
-                _ = HideAfterDelayAsync(true, ReplaceHideToken(ref _hideXTokenSource).Token);
+                _ = HideAfterDelay(true, ReplaceHideToken(ref _hideXTokenSource).Token);
             }
         }
         else
@@ -326,7 +326,7 @@
             }
             else if (IsScrollingY)
             {
-                _ = HideAfterDelayAsync(false, ReplaceHideToken(ref _hideYTokenSource).Token);
+                _ = HideAfterDelay(false, ReplaceHideToken(ref _hideYTokenSource).Token);
             }
         }
 
@@ -334,7 +334,7 @@
     }
 
     [JSInvokable]
-    public Task HandleScrollbarMetricsChangedAsync(string orientation, double clientWidth, double clientHeight, double paddingStart, double paddingEnd)
+    public Task HandleScrollbarMetricsChanged(string orientation, double clientWidth, double clientHeight, double paddingStart, double paddingEnd)
     {
         if (orientation == "horizontal")
         {
@@ -447,17 +447,17 @@
         {
             CancelToken(ref _hideXTokenSource);
             IsScrollingX = true;
-            _ = CompleteScrollAsync(true, ReplaceHideToken(ref _scrollEndXTokenSource).Token);
+            _ = CompleteScroll(true, ReplaceHideToken(ref _scrollEndXTokenSource).Token);
         }
         else
         {
             CancelToken(ref _hideYTokenSource);
             IsScrollingY = true;
-            _ = CompleteScrollAsync(false, ReplaceHideToken(ref _scrollEndYTokenSource).Token);
+            _ = CompleteScroll(false, ReplaceHideToken(ref _scrollEndYTokenSource).Token);
         }
     }
 
-    private async Task CompleteScrollAsync(bool horizontal, CancellationToken cancellationToken)
+    private async Task CompleteScroll(bool horizontal, CancellationToken cancellationToken)
     {
         try
         {
@@ -468,14 +468,14 @@
                 if (IsScrollbarInteractingX)
                     return;
 
-                _ = HideAfterDelayAsync(true, ReplaceHideToken(ref _hideXTokenSource).Token);
+                _ = HideAfterDelay(true, ReplaceHideToken(ref _hideXTokenSource).Token);
             }
             else
             {
                 if (IsScrollbarInteractingY)
                     return;
 
-                _ = HideAfterDelayAsync(false, ReplaceHideToken(ref _hideYTokenSource).Token);
+                _ = HideAfterDelay(false, ReplaceHideToken(ref _hideYTokenSource).Token);
             }
         }
         catch (TaskCanceledException)
@@ -483,7 +483,7 @@
         }
     }
 
-    private async Task HideAfterDelayAsync(bool horizontal, CancellationToken cancellationToken)
+    private async Task HideAfterDelay(bool horizontal, CancellationToken cancellationToken)
     {
         try
         {
@@ -509,7 +509,7 @@
         }
     }
 
-    private async Task HideHoverAfterDelayAsync(CancellationToken cancellationToken)
+    private async Task HideHoverAfterDelay(CancellationToken cancellationToken)
     {
         try
         {

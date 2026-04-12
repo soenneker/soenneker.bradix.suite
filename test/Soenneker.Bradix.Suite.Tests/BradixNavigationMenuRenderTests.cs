@@ -163,7 +163,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         cut.WaitForAssertion(() => Assert.Contains("Getting started", cut.Markup));
 
         var layer = cut.FindComponent<BradixDismissableLayer>();
-        await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDownAsync(new BradixDelegatedKeyboardEvent
+        await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "Escape"
         }));
@@ -202,7 +202,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
         var indicator = cut.FindComponent<BradixNavigationMenuIndicator>().Instance;
 
-        await indicator.HandleIndicatorPositionChangedAsync(80, 24);
+        await indicator.HandleIndicatorPositionChanged(80, 24);
 
         cut.WaitForAssertion(() =>
         {
@@ -219,7 +219,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
         var viewport = cut.FindComponent<BradixNavigationMenuViewport>().Instance;
 
-        await viewport.HandleViewportSizeChangedAsync(320, 180);
+        await viewport.HandleViewportSizeChanged(320, 180);
 
         cut.WaitForAssertion(() =>
         {
@@ -321,7 +321,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         Assert.False(string.IsNullOrWhiteSpace(viewport.Id));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutsideAsync(new BradixDelegatedMouseEvent
+        await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
             AncestorIds = [viewport.Id]
         }));
@@ -341,7 +341,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         Assert.False(string.IsNullOrWhiteSpace(root.Id));
         var layer = cut.FindComponent<BradixDismissableLayer>();
 
-        await cut.InvokeAsync(() => layer.Instance.HandleFocusOutsideAsync(new BradixDelegatedFocusEvent
+        await cut.InvokeAsync(() => layer.Instance.HandleFocusOutside(new BradixDelegatedFocusEvent
         {
             AncestorIds = [root.Id]
         }));

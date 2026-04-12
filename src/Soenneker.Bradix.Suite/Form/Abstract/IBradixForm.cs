@@ -31,5 +31,5 @@ public interface IBradixForm
     ValueTask DisposeAsync();
 
     /// <summary>Interop handler when invalid controls are reported from script.</summary>
-    Task HandleInvalidControlsAsync(string[] fieldNames);
+    Task HandleInvalidControls(string[] fieldNames);
 }

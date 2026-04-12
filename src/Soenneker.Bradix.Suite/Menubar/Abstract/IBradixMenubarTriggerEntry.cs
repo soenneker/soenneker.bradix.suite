@@ -17,5 +17,5 @@ internal interface IBradixMenubarTriggerEntry
     bool Disabled { get; }
 
     /// <summary>Moves focus to the trigger button.</summary>
-    ValueTask FocusAsync();
+    ValueTask Focus();
 }

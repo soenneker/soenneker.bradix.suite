@@ -6,9 +6,9 @@
 
 <input @ref="_element"
        @oninvalid:preventDefault="true"
-       @oninvalid="HandleInvalidAsync"
-       @oninput="HandleInputAsync"
-       @onchange="HandleChangeAsync"
+       @oninvalid="HandleInvalid"
+       @oninput="HandleInput"
+       @onchange="HandleChange"
        @attributes="ControlAttributes" />
 
 @code {
@@ -42,7 +42,7 @@
         ("aria-describedby", !string.IsNullOrWhiteSpace(ResolvedName) ? Form?.GetFieldDescription(ResolvedName) : null),
         ("title", string.Empty));
 
-    public async Task HandleValidityChangedAsync(BradixFormValiditySnapshot? validity)
+    public async Task HandleValidityChanged(BradixFormValiditySnapshot? validity)
     {
         if (!string.IsNullOrWhiteSpace(ResolvedName))
             Form?.SetFieldValidity(ResolvedName, validity);
@@ -50,12 +50,12 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task HandleControlStateChangedAsync(BradixFormControlSnapshot snapshot)
+    public async Task HandleControlStateChanged(BradixFormControlSnapshot snapshot)
     {
         if (Form is null || string.IsNullOrWhiteSpace(ResolvedName))
             return;
 
-        await Form.UpdateControlStateAsync(_element, ResolvedName, snapshot);
+        await Form.UpdateControlState(_element, ResolvedName, snapshot);
         await InvokeAsync(StateHasChanged);
     }
 
@@ -83,19 +83,19 @@
         return ValueTask.CompletedTask;
     }
 
-    private async Task HandleInvalidAsync()
+    private async Task HandleInvalid()
     {
         BradixFormControlSnapshot snapshot = await Interop.GetFormControlState(_element);
-        await HandleControlStateChangedAsync(snapshot);
+        await HandleControlStateChanged(snapshot);
     }
 
-    private async Task HandleChangeAsync(ChangeEventArgs _)
+    private async Task HandleChange(ChangeEventArgs _)
     {
         BradixFormControlSnapshot snapshot = await Interop.GetFormControlState(_element);
-        await HandleControlStateChangedAsync(snapshot);
+        await HandleControlStateChanged(snapshot);
     }
 
-    private async Task HandleInputAsync(ChangeEventArgs _)
+    private async Task HandleInput(ChangeEventArgs _)
     {
         await Interop.SetFormControlCustomValidity(_element, null);
 

@@ -77,11 +77,11 @@
         return values.Contains(value);
     }
 
-    internal async Task ActivateItemAsync(string value)
+    internal async Task ActivateItem(string value)
     {
         if (IsSingle)
         {
-            await SetSingleValueAsync(value);
+            await SetSingleValue(value);
             return;
         }
 
@@ -91,14 +91,14 @@
             return;
 
         next.Add(value);
-        await SetMultipleValuesAsync(next);
+        await SetMultipleValues(next);
     }
 
-    internal async Task DeactivateItemAsync(string value)
+    internal async Task DeactivateItem(string value)
     {
         if (IsSingle)
         {
-            await SetSingleValueAsync(string.Empty);
+            await SetSingleValue(string.Empty);
             return;
         }
 
@@ -107,10 +107,10 @@
         if (!next.Remove(value))
             return;
 
-        await SetMultipleValuesAsync(next);
+        await SetMultipleValues(next);
     }
 
-    private async Task SetSingleValueAsync(string? value)
+    private async Task SetSingleValue(string? value)
     {
         string normalizedValue = NormalizeSingleValue(value);
 
@@ -129,7 +129,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task SetMultipleValuesAsync(IReadOnlyCollection<string> values)
+    private async Task SetMultipleValues(IReadOnlyCollection<string> values)
     {
         List<string> next = values.Distinct(StringComparer.Ordinal).ToList();
 
