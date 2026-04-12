@@ -49,7 +49,7 @@ public sealed class BradixTabsRenderTests : BunitContext
 
         var cut = Render(CreateTabs(
             defaultValue: "tab1",
-            activationMode: "manual",
+            activationMode: BradixTabsActivationMode.Manual,
             onValueChange: EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
 
         var buttons = cut.FindAll("button");
@@ -115,13 +115,13 @@ public sealed class BradixTabsRenderTests : BunitContext
     [Fact]
     public void Vertical_tabs_list_exposes_vertical_aria_orientation()
     {
-        var cut = Render(CreateTabs(defaultValue: "tab1", orientation: "vertical"));
+        var cut = Render(CreateTabs(defaultValue: "tab1", orientation: BradixOrientation.Vertical));
 
         Assert.Equal("vertical", cut.Find("[role='tablist']").GetAttribute("aria-orientation"));
     }
 
-    private static RenderFragment CreateTabs(string? defaultValue = null, string activationMode = "automatic", EventCallback<string?> onValueChange = default,
-        bool forceMount = false, string orientation = "horizontal")
+    private static RenderFragment CreateTabs(string? defaultValue = null, BradixTabsActivationMode? activationMode = null, EventCallback<string?> onValueChange = default,
+        bool forceMount = false, BradixOrientation? orientation = null)
     {
         return builder =>
         {
@@ -130,8 +130,8 @@ public sealed class BradixTabsRenderTests : BunitContext
             if (defaultValue is not null)
                 builder.AddAttribute(1, nameof(BradixTabs.DefaultValue), defaultValue);
 
-            builder.AddAttribute(2, nameof(BradixTabs.ActivationMode), activationMode);
-            builder.AddAttribute(6, nameof(BradixTabs.Orientation), orientation);
+            builder.AddAttribute(2, nameof(BradixTabs.ActivationMode), (object) (activationMode ?? BradixTabsActivationMode.Automatic));
+            builder.AddAttribute(6, nameof(BradixTabs.Orientation), (object) (orientation ?? BradixOrientation.Horizontal));
 
             if (onValueChange.HasDelegate)
                 builder.AddAttribute(3, nameof(BradixTabs.OnValueChange), onValueChange);

@@ -20,7 +20,7 @@
 
 @code {
     private bool _initialized;
-    private BradixCheckboxCheckedState _uncontrolledChecked;
+    private BradixCheckboxCheckedState _uncontrolledChecked = BradixCheckboxCheckedState.Unchecked;
 
     [Parameter]
     public BradixCheckboxCheckedState? Checked { get; set; }
@@ -122,11 +122,11 @@
 
     private static string GetDataState(BradixCheckboxCheckedState state)
     {
-        return state switch
+        return state.Value switch
         {
-            BradixCheckboxCheckedState.Checked => "checked",
-            BradixCheckboxCheckedState.Indeterminate => "indeterminate",
-            _ => "unchecked"
+            BradixCheckboxCheckedState.CheckedValue => BradixCheckboxCheckedState.CheckedValue,
+            BradixCheckboxCheckedState.IndeterminateValue => BradixCheckboxCheckedState.IndeterminateValue,
+            _ => BradixCheckboxCheckedState.UncheckedValue
         };
     }
 }

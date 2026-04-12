@@ -113,8 +113,8 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         return builder =>
         {
             builder.OpenComponent<BradixToggleGroup>(0);
-            builder.AddAttribute(1, nameof(BradixToggleGroup.Type), "single");
-            builder.AddAttribute(2, nameof(BradixToggleGroup.Orientation), "horizontal");
+            builder.AddAttribute(1, nameof(BradixToggleGroup.Type), (object) BradixSelectionMode.Single);
+            builder.AddAttribute(2, nameof(BradixToggleGroup.Orientation), (object) BradixOrientation.Horizontal);
 
             if (onValueChange.HasDelegate)
                 builder.AddAttribute(3, nameof(BradixToggleGroup.OnValueChange), onValueChange);
@@ -134,7 +134,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         return builder =>
         {
             builder.OpenComponent<BradixToggleGroup>(0);
-            builder.AddAttribute(1, nameof(BradixToggleGroup.Type), "multiple");
+            builder.AddAttribute(1, nameof(BradixToggleGroup.Type), (object) BradixSelectionMode.Multiple);
 
             if (onValuesChange.HasDelegate)
                 builder.AddAttribute(2, nameof(BradixToggleGroup.OnValuesChange), onValuesChange);

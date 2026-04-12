@@ -42,7 +42,7 @@
 
     internal bool IsFocusable => !IsDisabled;
 
-    private bool IsSingle => Group.Type != "multiple";
+    private bool IsSingle => Group.Type != BradixSelectionMode.Multiple;
 
     private Dictionary<string, object> ToggleAttributes
     {
@@ -68,14 +68,14 @@
                     attributes["data-bradix-roving-item-id"] = TabStopId;
 
                 if (Group.Orientation is not null)
-                    attributes["data-bradix-roving-orientation"] = Group.Orientation;
+                    attributes["data-bradix-roving-orientation"] = Group.Orientation.Value;
 
                 attributes["data-bradix-roving-dir"] = Group.ResolvedDirection;
                 attributes["data-bradix-roving-loop"] = Group.Loop ? "true" : "false";
             }
 
             if (Group.Orientation is not null)
-                attributes["data-orientation"] = Group.Orientation;
+                attributes["data-orientation"] = Group.Orientation.Value;
 
             return attributes;
         }

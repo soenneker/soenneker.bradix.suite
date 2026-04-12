@@ -25,11 +25,11 @@
 
     private static string GetDataState(BradixCheckboxCheckedState state)
     {
-        return state switch
+        return state.Value switch
         {
-            BradixCheckboxCheckedState.Checked => "checked",
-            BradixCheckboxCheckedState.Indeterminate => "indeterminate",
-            _ => "unchecked"
+            BradixCheckboxCheckedState.CheckedValue => BradixCheckboxCheckedState.CheckedValue,
+            BradixCheckboxCheckedState.IndeterminateValue => BradixCheckboxCheckedState.IndeterminateValue,
+            _ => BradixCheckboxCheckedState.UncheckedValue
         };
     }
 }

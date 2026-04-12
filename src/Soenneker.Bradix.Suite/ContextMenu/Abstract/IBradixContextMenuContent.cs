@@ -13,13 +13,13 @@ public interface IBradixContextMenuContent
     bool Loop { get; set; }
 
     /// <summary>Gets or sets the preferred popper side.</summary>
-    string Side { get; set; }
+    BradixSide Side { get; set; }
 
     /// <summary>Gets or sets the offset from the side edge.</summary>
     double SideOffset { get; set; }
 
     /// <summary>Gets or sets the alignment along the cross axis.</summary>
-    string Align { get; set; }
+    BradixAlignment Align { get; set; }
 
     /// <summary>Gets or sets the alignment offset.</summary>
     double AlignOffset { get; set; }

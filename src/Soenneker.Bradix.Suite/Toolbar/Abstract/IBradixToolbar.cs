@@ -24,7 +24,7 @@ public interface IBradixToolbar
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     /// <summary>Gets or sets the toolbar orientation.</summary>
-    string Orientation { get; set; }
+    BradixOrientation Orientation { get; set; }
 
     /// <summary>Gets or sets whether keyboard navigation wraps at the ends.</summary>
     bool Loop { get; set; }

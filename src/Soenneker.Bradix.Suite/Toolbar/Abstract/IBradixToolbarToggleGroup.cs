@@ -23,8 +23,8 @@ public interface IBradixToolbarToggleGroup
     /// <summary>Gets or sets additional attributes merged onto the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Gets or sets the selection mode (<c>single</c> or <c>multiple</c>).</summary>
-    string Type { get; set; }
+    /// <summary>Gets or sets the selection mode.</summary>
+    BradixSelectionMode Type { get; set; }
 
     /// <summary>Gets or sets whether the group is disabled.</summary>
     bool Disabled { get; set; }

@@ -42,7 +42,7 @@
     public EventCallback<string?> OnValueChange { get; set; }
 
     [Parameter]
-    public string? Orientation { get; set; }
+    public BradixOrientation? Orientation { get; set; }
 
     [Parameter]
     public string? Dir { get; set; }
@@ -61,7 +61,7 @@
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", "radiogroup"),
         ("aria-required", Required ? "true" : null),
-        ("aria-orientation", Orientation),
+        ("aria-orientation", Orientation?.Value),
         ("data-disabled", Disabled ? string.Empty : null),
         ("dir", ResolvedDirection));
 
@@ -72,8 +72,6 @@
 
     protected override void OnParametersSet()
     {
-        Orientation = Orientation is "horizontal" or "vertical" ? Orientation : null;
-
         if (_initialized)
         {
             EnsureCurrentTabStopId();
@@ -171,7 +169,7 @@
 
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(
                 args.Key,
-                Orientation,
+                Orientation?.Value,
                 ResolvedDirection,
                 currentIndex,
                 focusableItems.Count,

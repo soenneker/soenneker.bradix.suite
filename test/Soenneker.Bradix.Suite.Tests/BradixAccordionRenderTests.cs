@@ -96,7 +96,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
         IReadOnlyCollection<string>? requestedValues = null;
 
         IRenderedComponent<ContainerFragment> cut = Render(CreateAccordion(
-            "multiple",
+            BradixSelectionMode.Multiple,
             collapsible: true,
             onValuesChange: EventCallback.Factory.Create<IReadOnlyCollection<string>>(this, values => requestedValues = values)));
 
@@ -110,20 +110,20 @@ public sealed class BradixAccordionRenderTests : BunitContext
 
     private static RenderFragment CreateSingleAccordion()
     {
-        return CreateAccordion("single", collapsible: false);
+        return CreateAccordion(BradixSelectionMode.Single, collapsible: false);
     }
 
     private static RenderFragment CreateMultipleAccordion()
     {
-        return CreateAccordion("multiple", collapsible: true);
+        return CreateAccordion(BradixSelectionMode.Multiple, collapsible: true);
     }
 
-    private static RenderFragment CreateAccordion(string type, bool collapsible, EventCallback<IReadOnlyCollection<string>> onValuesChange = default)
+    private static RenderFragment CreateAccordion(BradixSelectionMode type, bool collapsible, EventCallback<IReadOnlyCollection<string>> onValuesChange = default)
     {
         return builder =>
         {
             builder.OpenComponent<BradixAccordion>(0);
-            builder.AddAttribute(1, nameof(BradixAccordion.Type), type);
+            builder.AddAttribute(1, nameof(BradixAccordion.Type), (object) type);
             builder.AddAttribute(2, nameof(BradixAccordion.Collapsible), collapsible);
             if (onValuesChange.HasDelegate)
                 builder.AddAttribute(4, nameof(BradixAccordion.OnValuesChange), onValuesChange);

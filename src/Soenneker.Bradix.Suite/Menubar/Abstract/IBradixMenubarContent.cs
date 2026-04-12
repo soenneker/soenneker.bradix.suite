@@ -14,7 +14,7 @@ public interface IBradixMenubarContent : IAsyncDisposable {
     bool Loop { get; set; }
 
     /// <summary>Gets or sets the alignment along the cross axis.</summary>
-    string Align { get; set; }
+    BradixAlignment Align { get; set; }
 
     /// <summary>Gets or sets the offset from the side edge.</summary>
     double SideOffset { get; set; }

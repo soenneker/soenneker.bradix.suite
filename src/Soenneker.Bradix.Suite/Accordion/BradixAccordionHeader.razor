@@ -15,7 +15,7 @@
     internal BradixAccordionItem Item { get; set; } = null!;
 
     private IReadOnlyDictionary<string, object> HeaderAttributes => BuildAttributes(
-        ("data-orientation", Accordion.Orientation),
+        ("data-orientation", Accordion.Orientation.Value),
         ("data-state", DataState(Item.IsOpen)),
         ("data-disabled", Item.IsDisabled ? string.Empty : null));
 }

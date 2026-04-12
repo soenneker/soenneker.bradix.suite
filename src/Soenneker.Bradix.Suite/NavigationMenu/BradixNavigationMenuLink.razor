@@ -38,7 +38,7 @@
         ("aria-current", Active ? "page" : null),
         ("data-bradix-roving-group", FocusGroupId),
         ("data-bradix-roving-item", string.Empty),
-        ("data-bradix-roving-orientation", NavigationMenu?.Orientation),
+        ("data-bradix-roving-orientation", NavigationMenu?.Orientation?.Value),
         ("data-bradix-roving-dir", NavigationMenu?.ResolvedDirection),
         ("data-bradix-roving-loop", "true"));
 

@@ -45,7 +45,7 @@
 
             attributes["aria-hidden"] = "true";
             attributes["data-state"] = NavigationMenu?.HasOpenItem == true ? "visible" : "hidden";
-            attributes["data-orientation"] = NavigationMenu?.Orientation ?? "horizontal";
+            attributes["data-orientation"] = (NavigationMenu?.Orientation ?? BradixOrientation.Horizontal).Value;
             return attributes;
         }
     }
@@ -54,12 +54,12 @@
     {
         get
         {
-            string orientation = NavigationMenu?.Orientation ?? "horizontal";
+            BradixOrientation orientation = NavigationMenu?.Orientation ?? BradixOrientation.Horizontal;
             string baseStyle = "position:absolute;";
 
             if (_size.HasValue && _offset.HasValue)
             {
-                if (orientation == "vertical")
+                if (orientation == BradixOrientation.Vertical)
                 {
                     baseStyle += $" top:0;height:{_size.Value.ToString(CultureInfo.InvariantCulture)}px;transform:translateY({_offset.Value.ToString(CultureInfo.InvariantCulture)}px);";
                 }
@@ -99,12 +99,12 @@
 
         if (_registered)
         {
-            await Interop.UpdateNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, navigationMenu.Orientation);
+            await Interop.UpdateNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, navigationMenu.Orientation.Value);
         }
         else
         {
             await Interop.RegisterNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, _dotNetReference,
-                navigationMenu.Orientation);
+                navigationMenu.Orientation.Value);
             _registered = true;
         }
     }

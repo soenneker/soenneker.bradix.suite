@@ -43,7 +43,7 @@
         ("id", ContentId),
         ("tabindex", IsSelected ? 0 : -1),
         ("data-state", IsSelected ? "active" : "inactive"),
-        ("data-orientation", Tabs.Orientation),
+        ("data-orientation", Tabs.Orientation.Value),
         ("style", BuildContentStyle()));
 
     protected override void OnParametersSet()

@@ -10,11 +10,6 @@
 </CascadingValue>
 
 @code {
-    private const string SingleType = "single";
-    private const string MultipleType = "multiple";
-    private const string VerticalOrientation = "vertical";
-    private const string HorizontalOrientation = "horizontal";
-
     private readonly List<BradixAccordionTrigger> _triggers = [];
     private bool _initialized;
     private string? _uncontrolledValue;
@@ -24,13 +19,13 @@
     private string? CascadedDirection { get; set; }
 
     [Parameter]
-    public string Type { get; set; } = SingleType;
+    public BradixSelectionMode Type { get; set; } = BradixSelectionMode.Single;
 
     [Parameter]
     public bool Disabled { get; set; }
 
     [Parameter]
-    public string Orientation { get; set; } = VerticalOrientation;
+    public BradixOrientation Orientation { get; set; } = BradixOrientation.Vertical;
 
     [Parameter]
     public string? Dir { get; set; }
@@ -62,20 +57,17 @@
     [Parameter]
     public EventCallback<IReadOnlyCollection<string>> OnValuesChange { get; set; }
 
-    internal bool IsCollapsible => Type == MultipleType || Collapsible;
+    internal bool IsCollapsible => Type == BradixSelectionMode.Multiple || Collapsible;
     internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
 
-    private bool IsSingle => Type == SingleType;
+    private bool IsSingle => Type == BradixSelectionMode.Single;
 
     private IReadOnlyDictionary<string, object> RootAttributes => BuildAttributes(
-        ("data-orientation", Orientation),
+        ("data-orientation", Orientation.Value),
         ("dir", ResolvedDirection));
 
     protected override void OnParametersSet()
     {
-        Type = Type == MultipleType ? MultipleType : SingleType;
-        Orientation = Orientation == HorizontalOrientation ? HorizontalOrientation : VerticalOrientation;
-
         if (_initialized)
             return;
 
@@ -171,18 +163,18 @@
             case "End":
                 nextIndex = enabledTriggers.Count - 1;
                 break;
-            case "ArrowDown" when Orientation == VerticalOrientation:
+            case "ArrowDown" when Orientation.Value == BradixOrientation.VerticalValue:
                 nextIndex = (currentIndex + 1) % enabledTriggers.Count;
                 break;
-            case "ArrowUp" when Orientation == VerticalOrientation:
+            case "ArrowUp" when Orientation.Value == BradixOrientation.VerticalValue:
                 nextIndex = (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;
                 break;
-            case "ArrowRight" when Orientation == HorizontalOrientation:
+            case "ArrowRight" when Orientation.Value == BradixOrientation.HorizontalValue:
                 nextIndex = ResolvedDirection == "rtl"
                     ? (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count
                     : (currentIndex + 1) % enabledTriggers.Count;
                 break;
-            case "ArrowLeft" when Orientation == HorizontalOrientation:
+            case "ArrowLeft" when Orientation.Value == BradixOrientation.HorizontalValue:
                 nextIndex = ResolvedDirection == "rtl"
                     ? (currentIndex + 1) % enabledTriggers.Count
                     : (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;

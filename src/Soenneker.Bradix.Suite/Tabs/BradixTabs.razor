@@ -32,13 +32,13 @@
     public EventCallback<string?> OnValueChange { get; set; }
 
     [Parameter]
-    public string Orientation { get; set; } = "horizontal";
+    public BradixOrientation Orientation { get; set; } = BradixOrientation.Horizontal;
 
     [Parameter]
     public string? Dir { get; set; }
 
     [Parameter]
-    public string ActivationMode { get; set; } = "automatic";
+    public BradixTabsActivationMode ActivationMode { get; set; } = BradixTabsActivationMode.Automatic;
 
     internal string? BaseId { get; private set; }
 
@@ -48,11 +48,11 @@
 
     internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
 
-    internal bool IsAutomaticActivation => ActivationMode != "manual";
+    internal bool IsAutomaticActivation => ActivationMode != BradixTabsActivationMode.Manual;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("dir", ResolvedDirection),
-        ("data-orientation", Orientation));
+        ("data-orientation", Orientation.Value));
 
     protected override void OnInitialized()
     {
@@ -61,9 +61,6 @@
 
     protected override void OnParametersSet()
     {
-        Orientation = Orientation == "vertical" ? "vertical" : "horizontal";
-        ActivationMode = ActivationMode == "manual" ? "manual" : "automatic";
-
         if (_initialized)
         {
             EnsureCurrentTabStopId();
@@ -126,7 +123,7 @@
 
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(
                 args.Key,
-                Orientation,
+                Orientation.Value,
                 ResolvedDirection,
                 currentIndex,
                 focusableTriggers.Count,

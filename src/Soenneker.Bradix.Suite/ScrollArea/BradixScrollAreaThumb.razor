@@ -4,7 +4,7 @@
 
 @implements IBradixScrollAreaThumb
 
-@if (Scrollbar.ScrollArea.ShouldRenderThumb(Scrollbar.Orientation, ForceMount))
+@if (Scrollbar.ScrollArea.ShouldRenderThumb(Scrollbar.Orientation.Value, ForceMount))
 {
     <div @ref="_thumb"
          @attributes="ThumbAttributes"></div>
@@ -25,12 +25,12 @@
     }
 
     private Dictionary<string, object> ThumbAttributes => BuildAttributes(
-        ("data-state", Scrollbar.ScrollArea.GetThumbState(Scrollbar.Orientation)),
+        ("data-state", Scrollbar.ScrollArea.GetThumbState(Scrollbar.Orientation.Value)),
         ("style", BuildThumbStyle()));
 
     private string BuildThumbStyle()
     {
-        string baseStyle = Scrollbar.ScrollArea.GetThumbStyle(Scrollbar.Orientation);
+        string baseStyle = Scrollbar.ScrollArea.GetThumbStyle(Scrollbar.Orientation.Value);
 
         if (string.IsNullOrWhiteSpace(Style))
             return baseStyle;

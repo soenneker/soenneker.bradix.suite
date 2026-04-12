@@ -39,8 +39,8 @@ public interface IBradixToast : IAsyncDisposable {
     /// <summary>Gets or sets whether the toast stays mounted when closed.</summary>
     bool ForceMount { get; set; }
 
-    /// <summary>Gets or sets the toast type (<c>foreground</c> or <c>background</c>).</summary>
-    string Type { get; set; }
+    /// <summary>Gets or sets the toast type.</summary>
+    BradixToastType Type { get; set; }
 
     /// <summary>Gets or sets the auto-close duration in milliseconds.</summary>
     int? Duration { get; set; }

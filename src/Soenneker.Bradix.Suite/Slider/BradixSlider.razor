@@ -36,7 +36,7 @@
     public bool Disabled { get; set; }
 
     [Parameter]
-    public string Orientation { get; set; } = "horizontal";
+    public BradixOrientation Orientation { get; set; } = BradixOrientation.Horizontal;
 
     [Parameter]
     public string? Dir { get; set; }
@@ -82,15 +82,14 @@
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", "group"),
-        ("aria-orientation", Orientation),
-        ("data-orientation", Orientation),
+        ("aria-orientation", Orientation.Value),
+        ("data-orientation", Orientation.Value),
         ("data-disabled", Disabled ? string.Empty : null),
         ("aria-disabled", Disabled ? "true" : null),
         ("dir", ResolvedDirection));
 
     protected override void OnParametersSet()
     {
-        Orientation = Orientation == "vertical" ? "vertical" : "horizontal";
         Max = Max < Min ? Min : Max;
         Step = Step <= 0 ? 1 : Step;
         MinStepsBetweenThumbs = Math.Max(0, MinStepsBetweenThumbs);
@@ -306,7 +305,7 @@
         if (range <= 0)
             return Min;
 
-        if (Orientation == "horizontal")
+        if (Orientation == BradixOrientation.Horizontal)
         {
             bool slidingFromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
             return slidingFromLeft
@@ -322,7 +321,7 @@
 
     private bool IsBackKey(string key)
     {
-        return Orientation == "horizontal"
+        return Orientation == BradixOrientation.Horizontal
             ? GetHorizontalBackKeys().Contains(key)
             : GetVerticalBackKeys().Contains(key);
     }

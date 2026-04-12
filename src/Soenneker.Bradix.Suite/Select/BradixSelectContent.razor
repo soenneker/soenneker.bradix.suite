@@ -110,16 +110,16 @@ else
     public bool ForceMount { get; set; }
 
     [Parameter]
-    public string Position { get; set; } = "item-aligned";
+    public BradixSelectPosition Position { get; set; } = BradixSelectPosition.ItemAligned;
 
     [Parameter]
-    public string Side { get; set; } = "bottom";
+    public BradixSide Side { get; set; } = BradixSide.Bottom;
 
     [Parameter]
     public double SideOffset { get; set; }
 
     [Parameter]
-    public string Align { get; set; } = "start";
+    public BradixAlignment Align { get; set; } = BradixAlignment.Start;
 
     [Parameter]
     public double AlignOffset { get; set; }
@@ -161,7 +161,7 @@ else
 
     internal bool CanScrollDown => _viewportRegistered && Math.Ceiling(_viewportScrollTop) < Math.Max(_viewportScrollHeight - _viewportHeight, 0);
 
-    private bool UseItemAlignedPosition => !string.Equals(Position, "popper", StringComparison.OrdinalIgnoreCase);
+    private bool UseItemAlignedPosition => Position != BradixSelectPosition.Popper;
     
     private bool ShouldDisableOutsidePointerEvents => Select?.CurrentOpen == true;
 

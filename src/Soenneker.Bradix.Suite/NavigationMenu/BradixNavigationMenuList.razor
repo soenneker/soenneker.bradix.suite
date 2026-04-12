@@ -28,7 +28,7 @@ else
     private BradixNavigationMenu? NavigationMenu { get; set; }
 
     private Dictionary<string, object> ListAttributes => BuildAttributes(
-        ("data-orientation", NavigationMenu?.Orientation ?? "horizontal"));
+        ("data-orientation", (NavigationMenu?.Orientation ?? BradixOrientation.Horizontal).Value));
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {

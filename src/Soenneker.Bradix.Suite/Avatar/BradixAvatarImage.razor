@@ -106,7 +106,7 @@
             _ => BradixAvatarImageLoadingStatus.Idle
         };
 
-        if (_loadingStatus == resolvedStatus)
+        if (_loadingStatus.Value == resolvedStatus.Value)
             return;
 
         _loadingStatus = resolvedStatus;

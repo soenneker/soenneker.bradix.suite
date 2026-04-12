@@ -95,7 +95,7 @@
     public bool ForceMount { get; set; }
 
     [Parameter]
-    public string Type { get; set; } = "foreground";
+    public BradixToastType Type { get; set; } = BradixToastType.Foreground;
 
     [Parameter]
     public int? Duration { get; set; }
@@ -128,7 +128,7 @@
 
     private bool ShouldPresent => ForceMount || CurrentOpen;
 
-    private bool IsForeground => !string.Equals(Type, "background", StringComparison.OrdinalIgnoreCase);
+    private bool IsForeground => Type != BradixToastType.Background;
 
     private int ResolvedDuration => Duration ?? Provider?.Duration ?? 5000;
 
@@ -161,7 +161,7 @@
             attributes["tabindex"] = 0;
             attributes["data-radix-toast-root"] = string.Empty;
             attributes["data-state"] = CurrentOpen ? "open" : "closed";
-            attributes["data-swipe-direction"] = Provider?.SwipeDirection ?? "right";
+            attributes["data-swipe-direction"] = (Provider?.SwipeDirection ?? BradixSwipeDirection.Right).Value;
 
             if (!string.IsNullOrWhiteSpace(_swipeState))
                 attributes["data-swipe"] = _swipeState;
@@ -458,7 +458,7 @@
 
         double x = args.ClientX - _pointerStartX.Value;
         double y = args.ClientY - _pointerStartY.Value;
-        bool horizontal = Provider.SwipeDirection is "left" or "right";
+        bool horizontal = Provider.SwipeDirection.Value is BradixSwipeDirection.LeftValue or BradixSwipeDirection.RightValue;
         double clampedX = horizontal ? ClampInDirection(x, Provider.SwipeDirection) : 0;
         double clampedY = horizontal ? 0 : ClampInDirection(y, Provider.SwipeDirection);
         double moveStartBuffer = string.Equals(args.PointerType, "touch", StringComparison.OrdinalIgnoreCase) ? 10 : 2;
@@ -596,25 +596,25 @@
         await Interop.ReleasePointer(_toastElement, pointerId);
     }
 
-    private static bool IsDeltaInDirection(double x, double y, string direction, double threshold)
+    private static bool IsDeltaInDirection(double x, double y, BradixSwipeDirection direction, double threshold)
     {
         double deltaX = Math.Abs(x);
         double deltaY = Math.Abs(y);
         bool isDeltaX = deltaX > deltaY;
 
-        return direction switch
+        return direction.Value switch
         {
-            "right" => isDeltaX && x > threshold,
-            "left" => isDeltaX && x < -threshold,
-            "down" => !isDeltaX && y > threshold,
-            "up" => !isDeltaX && y < -threshold,
+            BradixSwipeDirection.RightValue => isDeltaX && x > threshold,
+            BradixSwipeDirection.LeftValue => isDeltaX && x < -threshold,
+            BradixSwipeDirection.DownValue => !isDeltaX && y > threshold,
+            BradixSwipeDirection.UpValue => !isDeltaX && y < -threshold,
             _ => false
         };
     }
 
-    private static double ClampInDirection(double delta, string direction)
+    private static double ClampInDirection(double delta, BradixSwipeDirection direction)
     {
-        return direction is "left" or "up"
+        return direction.Value is BradixSwipeDirection.LeftValue or BradixSwipeDirection.UpValue
             ? Math.Min(0, delta)
             : Math.Max(0, delta);
     }

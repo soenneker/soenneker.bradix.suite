@@ -5,13 +5,13 @@
 <section class="website-demo-page">
     <section class="card website-demo-card">
         <BradixToolbar Class="toolbar-root" aria-label="Formatting options">
-            <BradixToolbarToggleGroup Type="multiple" aria-label="Text formatting">
+            <BradixToolbarToggleGroup Type="@BradixSelectionMode.Multiple" aria-label="Text formatting">
                 <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="bold">B</BradixToolbarToggleItem>
                 <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="italic">I</BradixToolbarToggleItem>
                 <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="strikethrough">S</BradixToolbarToggleItem>
             </BradixToolbarToggleGroup>
             <BradixToolbarSeparator Class="toolbar-separator" />
-            <BradixToolbarToggleGroup Class="toolbar-toggle-group" Type="single" DefaultValue="center" aria-label="Text alignment">
+            <BradixToolbarToggleGroup Class="toolbar-toggle-group" Type="@BradixSelectionMode.Single" DefaultValue="center" aria-label="Text alignment">
                 <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="left">L</BradixToolbarToggleItem>
                 <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="center">C</BradixToolbarToggleItem>
                 <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="right">R</BradixToolbarToggleItem>

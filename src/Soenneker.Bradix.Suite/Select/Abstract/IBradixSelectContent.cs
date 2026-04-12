@@ -27,17 +27,17 @@ public interface IBradixSelectContent : IAsyncDisposable {
     /// <summary>Gets or sets whether the content stays mounted when closed.</summary>
     bool ForceMount { get; set; }
 
-    /// <summary>Gets or sets the positioning mode (<c>item-aligned</c> or <c>popper</c>).</summary>
-    string Position { get; set; }
+    /// <summary>Gets or sets the positioning mode.</summary>
+    BradixSelectPosition Position { get; set; }
 
     /// <summary>Gets or sets the popper side.</summary>
-    string Side { get; set; }
+    BradixSide Side { get; set; }
 
     /// <summary>Gets or sets the popper side offset.</summary>
     double SideOffset { get; set; }
 
     /// <summary>Gets or sets the popper alignment.</summary>
-    string Align { get; set; }
+    BradixAlignment Align { get; set; }
 
     /// <summary>Gets or sets the popper alignment offset.</summary>
     double AlignOffset { get; set; }

@@ -29,8 +29,8 @@ public interface IBradixToastProvider
     /// <summary>Gets or sets the default auto-close duration in milliseconds.</summary>
     int Duration { get; set; }
 
-    /// <summary>Gets or sets the swipe direction (<c>left</c>, <c>right</c>, <c>up</c>, or <c>down</c>).</summary>
-    string SwipeDirection { get; set; }
+    /// <summary>Gets or sets the swipe direction.</summary>
+    BradixSwipeDirection SwipeDirection { get; set; }
 
     /// <summary>Gets or sets the swipe distance threshold.</summary>
     double SwipeThreshold { get; set; }

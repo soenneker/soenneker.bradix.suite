@@ -62,7 +62,7 @@
     public EventCallback<string?> OnValueChange { get; set; }
 
     [Parameter]
-    public string Orientation { get; set; } = "horizontal";
+    public BradixOrientation Orientation { get; set; } = BradixOrientation.Horizontal;
 
     [Parameter]
     public string? Dir { get; set; }
@@ -104,7 +104,7 @@
         ("id", RootId),
         ("aria-label", IsRootMenu ? "Main" : null),
         ("style", IsRootMenu ? "position:relative;" : null),
-        ("data-orientation", Orientation),
+        ("data-orientation", Orientation.Value),
         ("dir", ResolvedDirection));
 
     protected override void OnInitialized()
@@ -114,8 +114,6 @@
 
     protected override void OnParametersSet()
     {
-        Orientation = Orientation == "vertical" ? "vertical" : "horizontal";
-
         if (!_initialized)
         {
             _uncontrolledValue = DefaultValue;
@@ -535,7 +533,7 @@
 
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(
                 args.Key,
-                Orientation,
+                Orientation.Value,
                 ResolvedDirection,
                 currentIndex,
                 focusableTriggers.Count,

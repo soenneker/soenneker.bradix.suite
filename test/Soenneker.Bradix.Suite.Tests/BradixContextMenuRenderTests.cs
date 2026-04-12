@@ -203,7 +203,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
                         menuContent.CloseComponent();
 
                         menuContent.OpenComponent<BradixContextMenuCheckboxItem>(3);
-                        menuContent.AddAttribute(4, nameof(BradixContextMenuCheckboxItem.DefaultChecked), BradixCheckboxCheckedState.Indeterminate);
+                        menuContent.AddAttribute(4, nameof(BradixContextMenuCheckboxItem.DefaultChecked), (object) BradixCheckboxCheckedState.Indeterminate);
                         menuContent.AddAttribute(5, nameof(BradixContextMenuCheckboxItem.CloseOnSelect), false);
                         menuContent.AddAttribute(6, nameof(BradixContextMenuCheckboxItem.ChildContent), (RenderFragment)(item => item.AddContent(0, "Show bookmarks")));
                         menuContent.CloseComponent();

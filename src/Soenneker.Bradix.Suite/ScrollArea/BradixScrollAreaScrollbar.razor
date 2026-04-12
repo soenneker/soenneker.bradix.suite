@@ -8,7 +8,7 @@
 
 @inject IBradixSuiteInterop Interop
 
-@if (ScrollArea.ShouldRenderScrollbar(Orientation, ForceMount))
+@if (ScrollArea.ShouldRenderScrollbar(Orientation.Value, ForceMount))
 {
     <CascadingValue Value="this">
         <div @ref="_scrollbar"
@@ -31,19 +31,19 @@
     internal BradixScrollArea ScrollArea { get; set; } = null!;
 
     [Parameter]
-    public string Orientation { get; set; } = "vertical";
+    public BradixOrientation Orientation { get; set; } = BradixOrientation.Vertical;
 
     [Parameter]
     public bool ForceMount { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Orientation = Orientation == "horizontal" ? "horizontal" : "vertical";
-        bool shouldRender = ScrollArea.ShouldRenderScrollbar(Orientation, ForceMount);
+        string orientation = Orientation.Value;
+        bool shouldRender = ScrollArea.ShouldRenderScrollbar(orientation, ForceMount);
 
         if (!shouldRender || !ScrollArea.HasViewport)
         {
-            ScrollArea.UnregisterScrollbar(Orientation);
+            ScrollArea.UnregisterScrollbar(orientation);
 
             if (_registered)
             {
@@ -54,18 +54,18 @@
             return;
         }
 
-        ScrollArea.RegisterScrollbar(Orientation, ForceMount);
+        ScrollArea.RegisterScrollbar(orientation, ForceMount);
 
         if (_dotNetReference is null)
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
 
-        await Interop.RegisterScrollAreaScrollbar(_scrollbar, _thumb, ScrollArea.ViewportElement, Orientation, ScrollArea.ResolvedDirection, _dotNetReference);
+        await Interop.RegisterScrollAreaScrollbar(_scrollbar, _thumb, ScrollArea.ViewportElement, orientation, ScrollArea.ResolvedDirection, _dotNetReference);
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
-        ScrollArea.UnregisterScrollbar(Orientation);
+        ScrollArea.UnregisterScrollbar(Orientation.Value);
 
         if (_registered)
             await Interop.UnregisterScrollAreaScrollbar(_scrollbar);
@@ -85,22 +85,22 @@
 
     private Task HandlePointerEnter(PointerEventArgs _)
     {
-        return ScrollArea.HandleScrollbarPointerChanged(Orientation, true);
+        return ScrollArea.HandleScrollbarPointerChanged(Orientation.Value, true);
     }
 
     private Task HandlePointerLeave(PointerEventArgs _)
     {
-        return ScrollArea.HandleScrollbarPointerChanged(Orientation, false);
+        return ScrollArea.HandleScrollbarPointerChanged(Orientation.Value, false);
     }
 
     private Dictionary<string, object> ScrollbarAttributes => BuildAttributes(
-        ("data-orientation", Orientation),
-        ("data-state", ScrollArea.GetScrollbarState(Orientation)),
+        ("data-orientation", Orientation.Value),
+        ("data-state", ScrollArea.GetScrollbarState(Orientation.Value)),
         ("style", BuildScrollbarStyle()));
 
     private string BuildScrollbarStyle()
     {
-        string baseStyle = ScrollArea.GetScrollbarStyle(Orientation);
+        string baseStyle = ScrollArea.GetScrollbarStyle(Orientation.Value);
 
         if (string.IsNullOrWhiteSpace(Style))
             return baseStyle;

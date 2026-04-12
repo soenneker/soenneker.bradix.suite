@@ -24,8 +24,8 @@ public interface IBradixScrollArea : IAsyncDisposable {
     /// <summary>Gets or sets additional attributes merged onto the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Gets or sets when scrollbars are shown (e.g. hover, scroll, always).</summary>
-    string Type { get; set; }
+    /// <summary>Gets or sets when scrollbars are shown.</summary>
+    BradixScrollAreaType Type { get; set; }
 
     /// <summary>Gets or sets the text direction override.</summary>
     string? Dir { get; set; }

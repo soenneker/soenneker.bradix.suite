@@ -23,8 +23,8 @@ public interface IBradixScrollAreaScrollbar : IAsyncDisposable {
     /// <summary>Gets or sets additional attributes merged onto the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Gets or sets the scrollbar orientation (<c>horizontal</c> or <c>vertical</c>).</summary>
-    string Orientation { get; set; }
+    /// <summary>Gets or sets the scrollbar orientation.</summary>
+    BradixOrientation Orientation { get; set; }
 
     /// <summary>Gets or sets whether the scrollbar stays mounted when not visible.</summary>
     bool ForceMount { get; set; }

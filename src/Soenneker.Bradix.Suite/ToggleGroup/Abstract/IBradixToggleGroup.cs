@@ -23,8 +23,8 @@ public interface IBradixToggleGroup
     /// <summary>Gets or sets additional attributes merged onto the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Gets or sets the selection mode (<c>single</c> or <c>multiple</c>).</summary>
-    string Type { get; set; }
+    /// <summary>Gets or sets the selection mode.</summary>
+    BradixSelectionMode Type { get; set; }
 
     /// <summary>Gets or sets whether the entire group is disabled.</summary>
     bool Disabled { get; set; }
@@ -35,8 +35,8 @@ public interface IBradixToggleGroup
     /// <summary>Gets or sets whether keyboard navigation wraps at the ends.</summary>
     bool Loop { get; set; }
 
-    /// <summary>Gets or sets the orientation (<c>horizontal</c> or <c>vertical</c>).</summary>
-    string? Orientation { get; set; }
+    /// <summary>Gets or sets the orientation.</summary>
+    BradixOrientation? Orientation { get; set; }
 
     /// <summary>Gets or sets the text direction override.</summary>
     string? Dir { get; set; }

@@ -10,9 +10,6 @@
 </CascadingValue>
 
 @code {
-    private const string SingleType = "single";
-    private const string MultipleType = "multiple";
-
     private bool _initialized;
     private string _uncontrolledValue = string.Empty;
     private List<string> _uncontrolledValues = [];
@@ -21,7 +18,7 @@
     internal BradixToolbar Toolbar { get; set; } = null!;
 
     [Parameter]
-    public string Type { get; set; } = SingleType;
+    public BradixSelectionMode Type { get; set; } = BradixSelectionMode.Single;
 
     [Parameter]
     public bool Disabled { get; set; }
@@ -50,18 +47,16 @@
     [Parameter]
     public EventCallback<IReadOnlyCollection<string>> OnValuesChange { get; set; }
 
-    internal bool IsSingle => Type != MultipleType;
+    internal bool IsSingle => Type != BradixSelectionMode.Multiple;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", IsSingle ? "radiogroup" : "group"),
         ("dir", Toolbar.ResolvedDirection),
-        ("aria-orientation", Toolbar.Orientation),
-        ("data-orientation", Toolbar.Orientation));
+        ("aria-orientation", Toolbar.Orientation.Value),
+        ("data-orientation", Toolbar.Orientation.Value));
 
     protected override void OnParametersSet()
     {
-        Type = Type == MultipleType ? MultipleType : SingleType;
-
         if (_initialized)
             return;
 

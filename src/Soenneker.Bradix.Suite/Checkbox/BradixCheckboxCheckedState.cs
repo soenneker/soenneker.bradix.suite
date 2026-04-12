@@ -1,8 +1,11 @@
+using Soenneker.Gen.EnumValues;
+
 namespace Soenneker.Bradix;
 
-public enum BradixCheckboxCheckedState
+[EnumValue<string>]
+public sealed partial class BradixCheckboxCheckedState
 {
-    Unchecked = 0,
-    Checked = 1,
-    Indeterminate = 2
+    public static readonly BradixCheckboxCheckedState Unchecked = new("unchecked");
+    public static readonly BradixCheckboxCheckedState Checked = new("checked");
+    public static readonly BradixCheckboxCheckedState Indeterminate = new("indeterminate");
 }

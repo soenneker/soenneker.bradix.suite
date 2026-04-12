@@ -7,7 +7,7 @@
                        ForceMount="ForceMount"
                        Loop="Loop"
                        Side="@ResolvedSide"
-                       Align="start"
+                       Align="@BradixAlignment.Start"
                        SideOffset="SideOffset"
                        AlignOffset="AlignOffset"
                        ArrowPadding="ArrowPadding"
@@ -117,7 +117,7 @@
     [Parameter]
     public EventCallback OnPlaced { get; set; }
 
-    private string ResolvedSide => ParentMenu.ResolvedDirection == "rtl" ? "left" : "right";
+    private BradixSide ResolvedSide => ParentMenu.ResolvedDirection == "rtl" ? BradixSide.Left : BradixSide.Right;
 
     private IReadOnlyDictionary<string, object> ContentAttributes
     {

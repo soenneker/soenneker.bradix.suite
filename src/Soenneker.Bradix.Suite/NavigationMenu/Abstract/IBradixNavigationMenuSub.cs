@@ -20,8 +20,8 @@ public interface IBradixNavigationMenuSub
     /// <summary>Raised when the value changes.</summary>
     EventCallback<string?> OnValueChange { get; set; }
 
-    /// <summary><c>horizontal</c> or <c>vertical</c> layout.</summary>
-    string Orientation { get; set; }
+    /// <summary>Layout orientation.</summary>
+    BradixOrientation Orientation { get; set; }
 
     /// <summary>Root element id.</summary>
     string? Id { get; set; }

@@ -63,7 +63,7 @@
         ("data-bradix-roving-group", NavigationMenu is not null ? $"{NavigationMenu.BaseId}-triggers" : null),
         ("data-bradix-roving-item", string.Empty),
         ("data-bradix-roving-item-id", Item?.ResolvedValue),
-        ("data-bradix-roving-orientation", NavigationMenu?.Orientation),
+        ("data-bradix-roving-orientation", NavigationMenu?.Orientation?.Value),
         ("data-bradix-roving-dir", NavigationMenu?.ResolvedDirection),
         ("data-bradix-roving-loop", "true"),
         ("aria-expanded", IsOpen ? "true" : "false"),

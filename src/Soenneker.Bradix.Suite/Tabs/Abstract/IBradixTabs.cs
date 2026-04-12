@@ -36,11 +36,11 @@ public interface IBradixTabs
     EventCallback<string?> OnValueChange { get; set; }
 
     /// <summary>Gets or sets the tab list orientation.</summary>
-    string Orientation { get; set; }
+    BradixOrientation Orientation { get; set; }
 
     /// <summary>Gets or sets the text direction override.</summary>
     string? Dir { get; set; }
 
-    /// <summary>Gets or sets how tabs are activated (<c>automatic</c> or <c>manual</c>).</summary>
-    string ActivationMode { get; set; }
+    /// <summary>Gets or sets how tabs are activated.</summary>
+    BradixTabsActivationMode ActivationMode { get; set; }
 }

@@ -16,10 +16,6 @@
 </CascadingValue>
 
 @code {
-    private const string HoverType = "hover";
-    private const string ScrollType = "scroll";
-    private const string AutoType = "auto";
-    private const string AlwaysType = "always";
     private const int ScrollEndDebounceMs = 100;
 
     private ElementReference _element;
@@ -35,7 +31,7 @@
     private string? CascadedDirection { get; set; }
 
     [Parameter]
-    public string Type { get; set; } = HoverType;
+    public BradixScrollAreaType Type { get; set; } = BradixScrollAreaType.Hover;
 
     [Parameter]
     public string? Dir { get; set; }
@@ -167,12 +163,12 @@
         if (!mounted)
             return false;
 
-        return Type switch
+        return Type.Value switch
         {
-            AlwaysType => true,
-            AutoType => overflow,
-            HoverType => overflow && IsHovering,
-            ScrollType => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
+            BradixScrollAreaType.AlwaysValue => true,
+            BradixScrollAreaType.AutoValue => overflow,
+            BradixScrollAreaType.HoverValue => overflow && IsHovering,
+            BradixScrollAreaType.ScrollValue => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
             _ => overflow && IsHovering
         };
     }
@@ -184,12 +180,12 @@
         if (forceMount)
             return true;
 
-        return Type switch
+        return Type.Value switch
         {
-            AlwaysType => true,
-            AutoType => overflow,
-            HoverType => overflow && IsHovering,
-            ScrollType => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
+            BradixScrollAreaType.AlwaysValue => true,
+            BradixScrollAreaType.AutoValue => overflow,
+            BradixScrollAreaType.HoverValue => overflow && IsHovering,
+            BradixScrollAreaType.ScrollValue => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
             _ => overflow && IsHovering
         };
     }
@@ -235,7 +231,7 @@
         return $"height: {verticalThumbSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translate3d(0, {verticalOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}px, 0);";
     }
 
-    internal bool ShouldRenderCorner => Type != ScrollType && ScrollbarXMounted && ScrollbarYMounted && IsScrollbarVisible("horizontal") && IsScrollbarVisible("vertical");
+    internal bool ShouldRenderCorner => Type != BradixScrollAreaType.Scroll && ScrollbarXMounted && ScrollbarYMounted && IsScrollbarVisible("horizontal") && IsScrollbarVisible("vertical");
 
     internal string GetCornerStyle()
     {
@@ -254,7 +250,7 @@
             return InvokeAsync(StateHasChanged);
         }
 
-        if (Type == HoverType)
+        if (Type == BradixScrollAreaType.Hover)
         {
             _hoverHideTokenSource?.Cancel();
             _hoverHideTokenSource?.Dispose();
@@ -287,7 +283,7 @@
         ViewportWidth = viewportWidth;
         ViewportHeight = viewportHeight;
 
-        if (Type == ScrollType)
+        if (Type == BradixScrollAreaType.Scroll)
         {
             if (xChanged)
                 NotifyScrollActivity(true);

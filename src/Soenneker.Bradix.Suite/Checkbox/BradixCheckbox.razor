@@ -29,9 +29,9 @@
     private bool _registered;
     private bool _formControlStateResolved;
     private bool _hasSyncedBubbleInput;
-    private BradixCheckboxCheckedState _initialUncheckedState;
-    private BradixCheckboxCheckedState _uncontrolledChecked;
-    private BradixCheckboxCheckedState _lastRenderedState;
+    private BradixCheckboxCheckedState _initialUncheckedState = BradixCheckboxCheckedState.Unchecked;
+    private BradixCheckboxCheckedState _uncontrolledChecked = BradixCheckboxCheckedState.Unchecked;
+    private BradixCheckboxCheckedState _lastRenderedState = BradixCheckboxCheckedState.Unchecked;
     private ElementReference _buttonElement;
     private ElementReference _bubbleInputElement;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -232,11 +232,11 @@
 
     private static string GetDataState(BradixCheckboxCheckedState state)
     {
-        return state switch
+        return state.Value switch
         {
-            BradixCheckboxCheckedState.Checked => "checked",
-            BradixCheckboxCheckedState.Indeterminate => "indeterminate",
-            _ => "unchecked"
+            BradixCheckboxCheckedState.CheckedValue => BradixCheckboxCheckedState.CheckedValue,
+            BradixCheckboxCheckedState.IndeterminateValue => BradixCheckboxCheckedState.IndeterminateValue,
+            _ => BradixCheckboxCheckedState.UncheckedValue
         };
     }
 }

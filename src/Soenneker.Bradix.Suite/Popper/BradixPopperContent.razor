@@ -45,13 +45,13 @@
     private string? Direction { get; set; }
 
     [Parameter]
-    public string Side { get; set; } = "bottom";
+    public BradixSide Side { get; set; } = BradixSide.Bottom;
 
     [Parameter]
     public double SideOffset { get; set; }
 
     [Parameter]
-    public string Align { get; set; } = "center";
+    public BradixAlignment Align { get; set; } = BradixAlignment.Center;
 
     [Parameter]
     public double AlignOffset { get; set; }
@@ -208,7 +208,8 @@
     }
 
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir) CurrentOptions
-        => (Side, SideOffset, Align, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, HideWhenDetached, Direction == "rtl" ? "rtl" : "ltr");
+        => (Side.Value, SideOffset, Align.Value, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, HideWhenDetached,
+            Direction == "rtl" ? "rtl" : "ltr");
 
     private static object CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir) options)
     {

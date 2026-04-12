@@ -59,7 +59,7 @@
             string startEdge;
             string transform;
 
-            if (Slider.Orientation == "horizontal")
+            if (Slider.Orientation == BradixOrientation.Horizontal)
             {
                 bool fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
                 startEdge = fromLeft ? "left" : "right";
@@ -87,8 +87,8 @@
                 ("aria-valuemin", Slider.Min.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                 ("aria-valuenow", Value?.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                 ("aria-valuemax", Slider.Max.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                ("aria-orientation", Slider.Orientation),
-                ("data-orientation", Slider.Orientation),
+                ("aria-orientation", Slider.Orientation.Value),
+                ("data-orientation", Slider.Orientation.Value),
                 ("data-disabled", Slider.Disabled ? string.Empty : null),
                 ("tabindex", Slider.Disabled ? null : 0),
                 ("style", Value is null ? "display: none;" : null));

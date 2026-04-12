@@ -12,6 +12,6 @@
     internal BradixSlider Slider { get; set; } = null!;
 
     private Dictionary<string, object> TrackAttributes => BuildAttributes(
-        ("data-orientation", Slider.Orientation),
+        ("data-orientation", Slider.Orientation.Value),
         ("data-disabled", Slider.Disabled ? string.Empty : null));
 }

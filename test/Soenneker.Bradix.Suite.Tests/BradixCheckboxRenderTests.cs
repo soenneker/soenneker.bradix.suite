@@ -104,15 +104,15 @@ public sealed class BradixCheckboxRenderTests : BunitContext
         Assert.Equal("mixed", button.GetAttribute("aria-checked"));
     }
 
-    private static RenderFragment CreateCheckbox(BradixCheckboxCheckedState? checkedState = null, BradixCheckboxCheckedState defaultChecked = BradixCheckboxCheckedState.Unchecked, bool forceMountIndicator = false, string? name = null, string? form = null)
+    private static RenderFragment CreateCheckbox(BradixCheckboxCheckedState? checkedState = null, BradixCheckboxCheckedState? defaultChecked = null, bool forceMountIndicator = false, string? name = null, string? form = null)
     {
         return builder =>
         {
             builder.OpenComponent<BradixCheckbox>(0);
-            builder.AddAttribute(1, nameof(BradixCheckbox.DefaultChecked), defaultChecked);
+            builder.AddAttribute(1, nameof(BradixCheckbox.DefaultChecked), (object) (defaultChecked ?? BradixCheckboxCheckedState.Unchecked));
 
-            if (checkedState.HasValue)
-                builder.AddAttribute(2, nameof(BradixCheckbox.Checked), checkedState.Value);
+            if (checkedState is not null)
+                builder.AddAttribute(2, nameof(BradixCheckbox.Checked), (object) checkedState);
 
             if (name is not null)
                 builder.AddAttribute(3, nameof(BradixCheckbox.Name), name);

@@ -62,13 +62,13 @@
     public bool ForceMount { get; set; }
 
     [Parameter]
-    public string Side { get; set; } = "top";
+    public BradixSide Side { get; set; } = BradixSide.Top;
 
     [Parameter]
     public double SideOffset { get; set; }
 
     [Parameter]
-    public string Align { get; set; } = "center";
+    public BradixAlignment Align { get; set; } = BradixAlignment.Center;
 
     [Parameter]
     public double AlignOffset { get; set; }

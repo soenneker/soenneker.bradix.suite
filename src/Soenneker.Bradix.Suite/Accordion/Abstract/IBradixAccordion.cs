@@ -9,9 +9,9 @@ namespace Soenneker.Bradix;
 public interface IBradixAccordion
 {
     /// <summary>
-    /// Gets or sets the accordion behavior mode (<c>single</c> or <c>multiple</c>).
+    /// Gets or sets the accordion behavior mode.
     /// </summary>
-    string Type { get; set; }
+    BradixSelectionMode Type { get; set; }
 
     /// <summary>
     /// Gets or sets whether the entire accordion is disabled.
@@ -19,9 +19,9 @@ public interface IBradixAccordion
     bool Disabled { get; set; }
 
     /// <summary>
-    /// Gets or sets the layout orientation (<c>vertical</c> or <c>horizontal</c>).
+    /// Gets or sets the layout orientation.
     /// </summary>
-    string Orientation { get; set; }
+    BradixOrientation Orientation { get; set; }
 
     /// <summary>
     /// Gets or sets the text direction override for the accordion.

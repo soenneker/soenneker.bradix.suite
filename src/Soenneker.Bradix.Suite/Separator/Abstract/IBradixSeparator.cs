@@ -24,7 +24,7 @@ public interface IBradixSeparator
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     /// <summary>Gets or sets the separator orientation.</summary>
-    string Orientation { get; set; }
+    BradixOrientation Orientation { get; set; }
 
     /// <summary>Gets or sets whether the separator is purely decorative (no ARIA separator role).</summary>
     bool Decorative { get; set; }

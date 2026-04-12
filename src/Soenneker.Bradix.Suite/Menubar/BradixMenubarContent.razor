@@ -43,7 +43,7 @@
     public bool Loop { get; set; }
 
     [Parameter]
-    public string Align { get; set; } = "start";
+    public BradixAlignment Align { get; set; } = BradixAlignment.Start;
 
     [Parameter]
     public double SideOffset { get; set; }
@@ -429,7 +429,7 @@
                                         OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
                                         OnFocusOutsideDetailed="@HandleFocusOutside"
                                         OnInteractOutsideDetailed="@HandleInteractOutside">
-                    <BradixPopperContent Side="bottom"
+                    <BradixPopperContent Side="@BradixSide.Bottom"
                                          SideOffset="@SideOffset"
                                          Align="@Align"
                                          AlignOffset="@AlignOffset"

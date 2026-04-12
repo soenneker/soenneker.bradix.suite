@@ -10,13 +10,13 @@ namespace Soenneker.Bradix;
 /// </summary>
 public interface IBradixPopperContent : IAsyncDisposable {
     /// <summary>Preferred popper side.</summary>
-    string Side { get; set; }
+    BradixSide Side { get; set; }
 
     /// <summary>Offset along the side axis.</summary>
     double SideOffset { get; set; }
 
     /// <summary>Alignment along the cross axis.</summary>
-    string Align { get; set; }
+    BradixAlignment Align { get; set; }
 
     /// <summary>Offset along the alignment axis.</summary>
     double AlignOffset { get; set; }

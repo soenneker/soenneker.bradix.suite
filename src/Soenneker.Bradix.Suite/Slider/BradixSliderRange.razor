@@ -10,7 +10,7 @@
     internal BradixSlider Slider { get; set; } = null!;
 
     private Dictionary<string, object> RangeAttributes => BuildAttributes(
-        ("data-orientation", Slider.Orientation),
+        ("data-orientation", Slider.Orientation.Value),
         ("data-disabled", Slider.Disabled ? string.Empty : null),
         ("style", BuildRangeStyle()));
 
@@ -24,7 +24,7 @@
         string startEdge;
         string endEdge;
 
-        if (Slider.Orientation == "horizontal")
+        if (Slider.Orientation == BradixOrientation.Horizontal)
         {
             bool fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
             startEdge = fromLeft ? "left" : "right";
