@@ -29,7 +29,9 @@
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _hasSyncedBubbleInput;
     private bool _isFormControl = true;
+    private bool _formControlStateResolved;
     private bool _lastRenderedChecked;
+    private string? _lastResolvedForm;
     private bool _registered;
     private bool _rovingFocusBridgeReady;
 
@@ -114,13 +116,18 @@
             _lastRenderedChecked = IsChecked;
         }
 
-        bool isFormControl = await Interop.IsFormControl(_element, Form);
-
-        if (_isFormControl != isFormControl)
+        if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
         {
-            _isFormControl = isFormControl;
-            await InvokeAsync(StateHasChanged);
-            return;
+            bool isFormControl = await Interop.IsFormControl(_element, Form);
+            _formControlStateResolved = true;
+            _lastResolvedForm = Form;
+
+            if (_isFormControl != isFormControl)
+            {
+                _isFormControl = isFormControl;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
         }
 
         if (ShouldRenderBubbleInput)

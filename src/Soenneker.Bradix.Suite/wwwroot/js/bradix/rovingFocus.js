@@ -123,12 +123,25 @@ function getRovingFocusTarget(element, key) {
     return null;
   }
 
-  const items = Array.from(document.querySelectorAll(`[data-bradix-roving-group="${cssEscape(groupId)}"]`))
-    .filter((candidate) => candidate instanceof HTMLElement)
-    .filter((candidate) => candidate.hasAttribute("data-bradix-roving-item"))
-    .filter((candidate) => isRovingFocusableElement(candidate));
+  const candidates = document.querySelectorAll(
+    `[data-bradix-roving-group="${cssEscape(groupId)}"][data-bradix-roving-item]`
+  );
+  const items = [];
+  let currentIndex = -1;
 
-  const currentIndex = items.indexOf(element);
+  for (let index = 0; index < candidates.length; index += 1) {
+    const candidate = candidates[index];
+
+    if (!(candidate instanceof HTMLElement) || !isRovingFocusableElement(candidate)) {
+      continue;
+    }
+
+    if (candidate === element) {
+      currentIndex = items.length;
+    }
+
+    items.push(candidate);
+  }
 
   if (currentIndex < 0 || items.length === 0) {
     return null;

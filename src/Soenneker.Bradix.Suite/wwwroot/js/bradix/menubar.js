@@ -20,15 +20,19 @@ export function registerMenubarDocumentDismiss(element, dotNetRef, menubarId) {
       return;
     }
 
-    const openContents = Array.from(
-      document.querySelectorAll(`[data-radix-menubar-content][data-bradix-menubar-id="${cssEscape(menubarId)}"][data-state="open"]`)
-    );
+    const selector = `[data-radix-menubar-content][data-bradix-menubar-id="${cssEscape(menubarId)}"][data-state="open"]`;
+    const openContent = document.querySelector(selector);
 
-    if (openContents.length === 0) {
+    if (!(openContent instanceof HTMLElement)) {
       return;
     }
 
-    if (openContents.some((content) => content instanceof HTMLElement && content.contains(target))) {
+    const targetElement =
+      target instanceof Element
+        ? target
+        : target.parentElement;
+
+    if (targetElement?.closest(selector)) {
       return;
     }
 

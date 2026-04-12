@@ -25,6 +25,7 @@
     private bool _delegatedInteractionReady;
     private bool _isFormControl = true;
     private bool _registered;
+    private bool _formControlStateResolved;
     private bool _hasSyncedBubbleInput;
     private bool _initialUncheckedState;
     private bool _uncontrolledChecked;
@@ -32,6 +33,7 @@
     private ElementReference _buttonElement;
     private ElementReference _bubbleInputElement;
     private DotNetObjectReference<object>? _dotNetReference;
+    private string? _lastResolvedForm;
 
     [Parameter]
     public bool? Checked { get; set; }
@@ -136,13 +138,18 @@
             _registered = true;
         }
 
-        bool isFormControl = await Interop.IsFormControl(_buttonElement, Form);
-
-        if (_isFormControl != isFormControl)
+        if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
         {
-            _isFormControl = isFormControl;
-            await InvokeAsync(StateHasChanged);
-            return;
+            bool isFormControl = await Interop.IsFormControl(_buttonElement, Form);
+            _formControlStateResolved = true;
+            _lastResolvedForm = Form;
+
+            if (_isFormControl != isFormControl)
+            {
+                _isFormControl = isFormControl;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
         }
 
         if (ShouldRenderBubbleInput)

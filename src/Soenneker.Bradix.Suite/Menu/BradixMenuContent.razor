@@ -11,12 +11,12 @@
     @if (Menu?.Modal == true)
     {
         <BradixRemoveScroll AllowPinchZoom>
-            @RenderContentTree()
+            @_contentTree
         </BradixRemoveScroll>
     }
     else
     {
-        @RenderContentTree()
+        @_contentTree
     }
 }
 
@@ -33,6 +33,7 @@
     private ElementReference _contentElement;
     private ElementReference _layerElement;
     private DotNetObjectReference<object>? _dotNetReference;
+    private RenderFragment? _contentTree;
 
     [CascadingParameter]
     private BradixMenu? Menu { get; set; }
@@ -144,6 +145,11 @@
 
             return attributes;
         }
+    }
+
+    protected override void OnInitialized()
+    {
+        _contentTree = RenderContentTree();
     }
 
     protected override void OnParametersSet()

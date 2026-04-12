@@ -7,7 +7,7 @@
 
 @if (ShouldRenderContainer)
 {
-    @RenderContentTree()
+    @_contentTree
 }
 
 @code {
@@ -18,6 +18,7 @@
     private ElementReference _contentElement;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _delegatedInteractionRegistered;
+    private RenderFragment? _contentTree;
 
     [CascadingParameter]
     private BradixMenubar? Menubar { get; set; }
@@ -129,6 +130,11 @@
 
             return attributes;
         }
+    }
+
+    protected override void OnInitialized()
+    {
+        _contentTree = RenderContentTree();
     }
 
     protected override void OnParametersSet()

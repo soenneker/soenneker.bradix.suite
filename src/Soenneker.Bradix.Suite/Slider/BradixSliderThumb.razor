@@ -23,7 +23,9 @@
     private ElementReference _bubbleInputElement;
     private bool _hasSyncedBubbleInput;
     private bool _isFormControl = true;
+    private bool _formControlStateResolved;
     private double? _lastRenderedValue;
+    private string? _lastResolvedForm;
     private bool _registered;
 
     [CascadingParameter]
@@ -123,13 +125,18 @@
             _lastRenderedValue = Value;
         }
 
-        bool isFormControl = await Interop.IsFormControl(_element, Slider.Form);
-
-        if (_isFormControl != isFormControl)
+        if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Slider.Form, StringComparison.Ordinal))
         {
-            _isFormControl = isFormControl;
-            await InvokeAsync(StateHasChanged);
-            return;
+            bool isFormControl = await Interop.IsFormControl(_element, Slider.Form);
+            _formControlStateResolved = true;
+            _lastResolvedForm = Slider.Form;
+
+            if (_isFormControl != isFormControl)
+            {
+                _isFormControl = isFormControl;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
         }
 
         if (ShouldRenderBubbleInput && Value is not null)
