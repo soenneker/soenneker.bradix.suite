@@ -6,7 +6,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Minimal primitive base for id/class/style/attribute composition.
 /// </summary>
-public abstract class BradixComponentBase : ComponentBase
+public abstract class BradixComponent : ComponentBase
 {
     [Parameter]
     public string? Id { get; set; }

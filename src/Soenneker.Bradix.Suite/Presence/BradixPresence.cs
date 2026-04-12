@@ -9,7 +9,7 @@ using Microsoft.JSInterop;
 
 namespace Soenneker.Bradix;
 
-public sealed class BradixPresence : BradixComponentBase, IAsyncDisposable
+public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 {
     [Inject]
     public IBradixSuiteInterop Interop { get; set; } = null!;

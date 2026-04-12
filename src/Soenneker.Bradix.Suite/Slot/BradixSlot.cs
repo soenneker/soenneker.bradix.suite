@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Soenneker.Bradix;
 
-public sealed class BradixSlot : BradixComponentBase
+public sealed class BradixSlot : BradixComponent
 {
     [Parameter, EditorRequired]
     public string ElementName { get; set; } = null!;
