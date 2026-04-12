@@ -95,9 +95,14 @@ export function registerHideOthers(element) {
 
   const changed = [];
   const bodyChildren = Array.from(document.body.children);
+  const branchSelector = "[data-bradix-dismissable-layer-branch]";
 
   for (const child of bodyChildren) {
     if (child === element || child.contains(element) || element.contains(child)) {
+      continue;
+    }
+
+    if (child.matches(branchSelector) || child.querySelector(branchSelector)) {
       continue;
     }
 

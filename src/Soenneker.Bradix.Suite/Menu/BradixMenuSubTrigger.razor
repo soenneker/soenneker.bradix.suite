@@ -80,6 +80,7 @@
         {
             ParentMenu.RegisterItem(this);
             SubMenu.RegisterTrigger(_element);
+            SubMenu.RegisterAnchor(_element);
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
             {
@@ -239,12 +240,6 @@
     {
         _pointerGraceActive = active;
         ParentContent.SetSubmenuPointerGrace(TabStopId, active);
-        return Task.CompletedTask;
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
-    {
         return Task.CompletedTask;
     }
 

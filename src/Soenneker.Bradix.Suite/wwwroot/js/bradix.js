@@ -7,6 +7,7 @@ export * from "./bradix/focusScope.js";
 export * from "./bradix/hoverCardAvatar.js";
 export * from "./bradix/label.js";
 export * from "./bradix/menu.js";
+export * from "./bradix/menubar.js";
 export * from "./bradix/navigationMenu.js";
 export * from "./bradix/popper.js";
 export * from "./bradix/portal.js";

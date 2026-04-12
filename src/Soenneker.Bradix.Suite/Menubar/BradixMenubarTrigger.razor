@@ -7,8 +7,7 @@
 
 <BradixMenuAnchor>
     <button @ref="_button"
-            @onpointerdown="HandlePointerDownAsync"
-            @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
+            @onclick="HandleClickAsync"
             @onpointerenter="HandlePointerEnterAsync"
             @onkeydown="HandleKeyDownAsync"
             @onfocus="HandleFocusAsync"
@@ -44,8 +43,6 @@
     bool IBradixMenubarTrigger.Disabled => Disabled;
 
     private bool IsOpen => MenubarMenu?.IsOpen == true;
-
-    private bool PreventTriggerFocusOnOpen => !Disabled && IsOpen == false;
 
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
         ("type", "button"),
@@ -93,7 +90,7 @@
 
     ValueTask IBradixMenubarTrigger.FocusAsync() => _button.FocusAsync();
 
-    private Task HandlePointerDownAsync(PointerEventArgs args)
+    private Task HandleClickAsync(MouseEventArgs args)
     {
         if (Disabled || Menubar is null || MenubarMenu is null || args.Button != 0 || args.CtrlKey)
             return Task.CompletedTask;
@@ -149,9 +146,4 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
-    {
-        return Task.CompletedTask;
-    }
 }

@@ -268,8 +268,15 @@
     [JSInvokable]
     public Task HandleViewportMetricsChangedAsync(double scrollLeft, double scrollTop, double scrollWidth, double scrollHeight, double viewportWidth, double viewportHeight)
     {
-        bool xChanged = ScrollLeft != scrollLeft;
-        bool yChanged = ScrollTop != scrollTop;
+        bool xChanged = !AreClose(ScrollLeft, scrollLeft);
+        bool yChanged = !AreClose(ScrollTop, scrollTop);
+        bool widthChanged = !AreClose(ContentWidth, scrollWidth);
+        bool heightChanged = !AreClose(ContentHeight, scrollHeight);
+        bool viewportWidthChanged = !AreClose(ViewportWidth, viewportWidth);
+        bool viewportHeightChanged = !AreClose(ViewportHeight, viewportHeight);
+
+        if (!xChanged && !yChanged && !widthChanged && !heightChanged && !viewportWidthChanged && !viewportHeightChanged)
+            return Task.CompletedTask;
 
         ScrollLeft = scrollLeft;
         ScrollTop = scrollTop;
@@ -331,6 +338,14 @@
     {
         if (orientation == "horizontal")
         {
+            if (AreClose(HorizontalScrollbarWidth, clientWidth) &&
+                AreClose(HorizontalScrollbarHeight, clientHeight) &&
+                AreClose(HorizontalScrollbarPaddingStart, paddingStart) &&
+                AreClose(HorizontalScrollbarPaddingEnd, paddingEnd))
+            {
+                return Task.CompletedTask;
+            }
+
             HorizontalScrollbarWidth = clientWidth;
             HorizontalScrollbarHeight = clientHeight;
             HorizontalScrollbarPaddingStart = paddingStart;
@@ -338,6 +353,14 @@
         }
         else
         {
+            if (AreClose(VerticalScrollbarWidth, clientWidth) &&
+                AreClose(VerticalScrollbarHeight, clientHeight) &&
+                AreClose(VerticalScrollbarPaddingStart, paddingStart) &&
+                AreClose(VerticalScrollbarPaddingEnd, paddingEnd))
+            {
+                return Task.CompletedTask;
+            }
+
             VerticalScrollbarWidth = clientWidth;
             VerticalScrollbarHeight = clientHeight;
             VerticalScrollbarPaddingStart = paddingStart;
@@ -351,6 +374,11 @@
     private bool HasOverflowY => ViewportHeight > 0 && ContentHeight > ViewportHeight;
     private bool HasThumbX => GetThumbRatio(true) > 0 && GetThumbRatio(true) < 1;
     private bool HasThumbY => GetThumbRatio(false) > 0 && GetThumbRatio(false) < 1;
+
+    private static bool AreClose(double left, double right)
+    {
+        return Math.Abs(left - right) < 0.1;
+    }
 
     private string BuildRootStyle()
     {

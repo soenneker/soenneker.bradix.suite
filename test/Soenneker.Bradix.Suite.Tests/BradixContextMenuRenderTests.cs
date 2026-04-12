@@ -68,6 +68,14 @@ public sealed class BradixContextMenuRenderTests : BunitContext
             Assert.Equal("true", updatedTrigger.GetAttribute("aria-expanded"));
             Assert.Equal(closedControls, updatedTrigger.GetAttribute("aria-controls"));
         });
+
+        Assert.Contains(_module.Invocations, invocation =>
+            invocation.Identifier == "registerVirtualPopperContent" &&
+            invocation.Arguments.Count >= 5 &&
+            invocation.Arguments[3] is double x &&
+            invocation.Arguments[4] is double y &&
+            x == 120 &&
+            y == 40);
     }
 
     [Fact]

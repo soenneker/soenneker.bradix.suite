@@ -2,7 +2,8 @@
 
 @inherits BradixComponentBase
 
-<BradixMenu Open="@_open"
+<BradixMenu @ref="_menu"
+            Open="@_open"
             OpenChanged="HandleMenuOpenChangedAsync"
             Dir="@Dir"
             Modal="@Modal">
@@ -13,9 +14,7 @@
 
 @code {
     private bool _open;
-
-    [CascadingParameter]
-    private BradixPopper? Popper { get; set; }
+    private BradixMenu? _menu;
 
     [Parameter]
     public EventCallback<bool> OnOpenChange { get; set; }
@@ -30,7 +29,7 @@
 
     internal async Task OpenAtPointAsync(double x, double y)
     {
-        Popper?.RegisterVirtualAnchor(x, y);
+        _menu?.RegisterVirtualAnchor(x, y);
 
         if (_open)
         {

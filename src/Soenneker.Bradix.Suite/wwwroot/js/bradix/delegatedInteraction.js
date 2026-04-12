@@ -11,7 +11,9 @@ export function registerDelegatedInteraction(element, dotNetRef, options) {
   delegatedInteractionHandlers.set(element, { dotNetRef, options: options || {} });
   ensureDelegatedInteractionListeners();
 
-  dotNetRef.invokeMethodAsync("HandleDelegatedInteractionReadyAsync").catch(() => {});
+  if (typeof options?.readyMethod === "string" && options.readyMethod) {
+    dotNetRef.invokeMethodAsync(options.readyMethod).catch(() => {});
+  }
 }
 
 export function unregisterDelegatedInteraction(element) {

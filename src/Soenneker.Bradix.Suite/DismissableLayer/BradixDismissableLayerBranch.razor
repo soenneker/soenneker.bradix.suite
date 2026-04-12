@@ -13,7 +13,8 @@
     private ElementReference _element;
     private bool _registered;
 
-    private Dictionary<string, object> BranchAttributes => BuildAttributes();
+    private Dictionary<string, object> BranchAttributes => BuildAttributes(
+        ("data-bradix-dismissable-layer-branch", string.Empty));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

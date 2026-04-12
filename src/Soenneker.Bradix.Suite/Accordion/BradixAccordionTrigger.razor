@@ -60,6 +60,7 @@
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_trigger.Element, _dotNetReference, new
             {
+                readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
                 keydown = new
                 {
                     method = nameof(HandleDelegatedKeyDownAsync),

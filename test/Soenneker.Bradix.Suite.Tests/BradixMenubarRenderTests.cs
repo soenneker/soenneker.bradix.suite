@@ -22,6 +22,8 @@ public sealed class BradixMenubarRenderTests : BunitContext
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("registerDismissableLayerBranch", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayerBranch", _ => true).SetVoidResult();
+        _module.SetupVoid("registerMenubarDocumentDismiss", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterMenubarDocumentDismiss", _ => true).SetVoidResult();
         _module.SetupVoid("registerPopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("updatePopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPopperContent", _ => true).SetVoidResult();

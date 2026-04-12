@@ -4,6 +4,7 @@
 @implements IAsyncDisposable
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
+@using Microsoft.JSInterop
 
 <CascadingValue Value="this">
     <form @ref="_formElement"
@@ -22,8 +23,10 @@
     private readonly Dictionary<string, Dictionary<string, bool>> _customErrorsByField = new(StringComparer.Ordinal);
     private readonly Dictionary<string, long> _validationVersions = new(StringComparer.Ordinal);
     private readonly Dictionary<string, HashSet<string>> _messageIdsByField = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ElementReference> _controlsByField = new(StringComparer.Ordinal);
     private ElementReference _formElement;
     private bool _registered;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [Parameter]
     public EventCallback OnClearServerErrors { get; set; }
@@ -35,7 +38,8 @@
         if (!firstRender)
             return;
 
-        await Interop.RegisterFormRoot(_formElement);
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterFormRoot(_formElement, _dotNetReference);
         _registered = true;
     }
 
@@ -43,6 +47,8 @@
     {
         if (_registered)
             await Interop.UnregisterFormRoot(_formElement);
+
+        _dotNetReference?.Dispose();
     }
 
     internal BradixFormValiditySnapshot? GetFieldValidity(string fieldName)
@@ -272,5 +278,35 @@
 
         _customErrorsByField[fieldName] = new Dictionary<string, bool>(errors, StringComparer.Ordinal);
         _ = InvokeAsync(StateHasChanged);
+    }
+
+    internal void RegisterControl(string fieldName, ElementReference element)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+            return;
+
+        _controlsByField[fieldName] = element;
+    }
+
+    internal void UnregisterControl(string fieldName, ElementReference element)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+            return;
+
+        if (_controlsByField.TryGetValue(fieldName, out ElementReference existing) && string.Equals(existing.Id, element.Id, StringComparison.Ordinal))
+            _controlsByField.Remove(fieldName);
+    }
+
+    [JSInvokable]
+    public async Task HandleInvalidControlsAsync(string[] fieldNames)
+    {
+        foreach (string fieldName in fieldNames.Distinct(StringComparer.Ordinal))
+        {
+            if (!_controlsByField.TryGetValue(fieldName, out ElementReference element))
+                continue;
+
+            BradixFormControlSnapshot snapshot = await Interop.GetFormControlState(element);
+            await UpdateControlStateAsync(element, fieldName, snapshot);
+        }
     }
 }

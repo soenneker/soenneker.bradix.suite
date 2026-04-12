@@ -112,12 +112,6 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    [JSInvokable]
     public Task HandleDelegatedPointerDownAsync(BradixDelegatedMouseEvent args)
     {
         if (IsDisabled || Select is null)

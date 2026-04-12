@@ -49,7 +49,7 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask DispatchTooltipOpen(string contentId, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterFormRoot(ElementReference element, CancellationToken cancellationToken = default);
+    ValueTask RegisterFormRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     ValueTask UnregisterFormRoot(ElementReference element, CancellationToken cancellationToken = default);
 
@@ -144,6 +144,11 @@ public interface IBradixSuiteInterop : IAsyncDisposable
     ValueTask RegisterDismissableLayerBranch(ElementReference element, CancellationToken cancellationToken = default);
 
     ValueTask UnregisterDismissableLayerBranch(ElementReference element, CancellationToken cancellationToken = default);
+
+    ValueTask RegisterMenubarDocumentDismiss(ElementReference element, DotNetObjectReference<object> dotNetReference, string menubarId,
+        CancellationToken cancellationToken = default);
+
+    ValueTask UnregisterMenubarDocumentDismiss(ElementReference element, CancellationToken cancellationToken = default);
 
     ValueTask RegisterFocusScope(ElementReference element, DotNetObjectReference<object> dotNetReference, bool loop, bool trapped,
         bool preventMountAutoFocus, bool preventUnmountAutoFocus, CancellationToken cancellationToken = default);

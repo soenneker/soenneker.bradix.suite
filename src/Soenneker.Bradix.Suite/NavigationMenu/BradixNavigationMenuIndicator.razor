@@ -124,6 +124,12 @@
     [JSInvokable]
     public Task HandleIndicatorPositionChangedAsync(double size, double offset)
     {
+        if (Math.Abs((_size ?? -1) - size) < 0.1 &&
+            Math.Abs((_offset ?? -1) - offset) < 0.1)
+        {
+            return Task.CompletedTask;
+        }
+
         _size = size;
         _offset = offset;
         return InvokeAsync(StateHasChanged);

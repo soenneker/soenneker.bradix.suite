@@ -206,12 +206,6 @@
         return Task.CompletedTask;
     }
 
-    [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
-    {
-        return Task.CompletedTask;
-    }
-
     private sealed class TriggerRegistration(string value, string triggerId, bool disabled, ElementReference triggerElement) : IBradixNavigationMenuTrigger
     {
         public string Value { get; } = value;

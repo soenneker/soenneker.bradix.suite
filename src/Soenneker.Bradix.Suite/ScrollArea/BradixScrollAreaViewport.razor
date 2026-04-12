@@ -49,6 +49,7 @@
 
     private Dictionary<string, object> ViewportAttributes => BuildAttributes(
         ("data-radix-scroll-area-viewport", string.Empty),
+        ("class", Class),
         ("style", BuildViewportStyle()));
 
     private string BuildViewportStyle()

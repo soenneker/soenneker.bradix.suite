@@ -78,9 +78,11 @@
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
         {
+            readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
             click = new
             {
-                method = nameof(HandleDelegatedClickAsync)
+                method = nameof(HandleDelegatedClickAsync),
+                currentTargetOnly = false
             }
         });
     }

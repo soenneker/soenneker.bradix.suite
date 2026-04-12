@@ -198,12 +198,6 @@
         await Content.HandleItemKeyDownAsync(this, args);
     }
 
-    [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
-    {
-        return Task.CompletedTask;
-    }
-
     private Task HandlePointerMoveAsync(PointerEventArgs args)
     {
         return Disabled

@@ -200,12 +200,6 @@
 
     }
 
-    [JSInvokable]
-    public Task HandleDelegatedInteractionReadyAsync()
-    {
-        return Task.CompletedTask;
-    }
-
     private Task HandlePointerDownAsync(PointerEventArgs args)
     {
         _pointerType = args.PointerType ?? "mouse";

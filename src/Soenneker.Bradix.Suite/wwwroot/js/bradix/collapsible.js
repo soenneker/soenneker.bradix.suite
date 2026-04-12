@@ -5,14 +5,15 @@ function updateCollapsibleSize(element) {
     return;
   }
 
-  const rect = element.getBoundingClientRect();
+  const height = element.scrollHeight;
+  const width = element.scrollWidth;
 
-  if (rect.height > 0) {
-    element.style.setProperty("--radix-collapsible-content-height", `${rect.height}px`);
+  if (height > 0) {
+    element.style.setProperty("--radix-collapsible-content-height", `${height}px`);
   }
 
-  if (rect.width > 0) {
-    element.style.setProperty("--radix-collapsible-content-width", `${rect.width}px`);
+  if (width > 0) {
+    element.style.setProperty("--radix-collapsible-content-width", `${width}px`);
   }
 }
 

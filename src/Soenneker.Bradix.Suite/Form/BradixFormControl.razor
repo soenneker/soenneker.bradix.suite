@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@implements IAsyncDisposable
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
 
@@ -13,6 +14,7 @@
 @code {
     private ElementReference _element;
     private bool? _lastServerInvalid;
+    private bool _registeredWithForm;
 
     [CascadingParameter]
     private BradixForm? Form { get; set; }
@@ -59,12 +61,26 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender && Form is not null && !string.IsNullOrWhiteSpace(ResolvedName))
+        {
+            Form.RegisterControl(ResolvedName, _element);
+            _registeredWithForm = true;
+        }
+
         bool serverInvalid = Field?.ServerInvalid == true;
 
         if (serverInvalid && (_lastServerInvalid != true || firstRender))
             await Interop.FocusServerInvalidFormControl(_element);
 
         _lastServerInvalid = serverInvalid;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (_registeredWithForm && Form is not null && !string.IsNullOrWhiteSpace(ResolvedName))
+            Form.UnregisterControl(ResolvedName, _element);
+
+        return ValueTask.CompletedTask;
     }
 
     private async Task HandleInvalidAsync()

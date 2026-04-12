@@ -1,15 +1,23 @@
 @namespace Soenneker.Bradix
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 @using System.Linq
 @inherits BradixComponentBase
+@inject IBradixIdGenerator IdGenerator
+@inject IBradixSuiteInterop Interop
 
 <CascadingValue Value="this">
-    <div @attributes="RootAttributes">
+    <div @ref="_element"
+         @attributes="RootAttributes">
         @ChildContent
     </div>
 </CascadingValue>
 
 @code {
     private readonly BradixCollectionRegistry<IBradixMenubarTrigger> _triggers = new();
+    private ElementReference _element;
+    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _documentDismissRegistered;
     private bool _initialized;
     private string? _uncontrolledValue;
 
@@ -34,6 +42,8 @@
     [Parameter]
     public string? Dir { get; set; }
 
+    internal string MenubarId { get; private set; } = string.Empty;
+
     internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
 
     internal string? CurrentValue => Value ?? _uncontrolledValue;
@@ -45,7 +55,31 @@
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", "menubar"),
         ("aria-orientation", "horizontal"),
-        ("dir", ResolvedDirection));
+        ("dir", ResolvedDirection),
+        ("data-bradix-menubar-id", MenubarId));
+
+    protected override void OnInitialized()
+    {
+        MenubarId = IdGenerator.New("bradix-menubar");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterMenubarDocumentDismiss(_element, _dotNetReference, MenubarId);
+        _documentDismissRegistered = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_documentDismissRegistered)
+            await Interop.UnregisterMenubarDocumentDismiss(_element);
+
+        _dotNetReference?.Dispose();
+    }
 
     protected override void OnParametersSet()
     {
@@ -234,5 +268,11 @@
         return Enumerable.Range(0, values.Count)
             .Select(index => values[(startIndex + index) % values.Count])
             .ToList();
+    }
+
+    [JSInvokable]
+    public Task HandleDocumentPointerDownOutsideAsync()
+    {
+        return HasOpenMenu ? CloseMenuAsync() : Task.CompletedTask;
     }
 }

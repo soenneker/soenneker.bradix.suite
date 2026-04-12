@@ -1,9 +1,10 @@
 @namespace Soenneker.Bradix
 <BradixMenuContent ForceMount="@ForceMount"
                    Loop="@Loop"
-                   Side="right"
-                   SideOffset="2"
-                   Align="start"
+                   Side="@Side"
+                   SideOffset="@SideOffset"
+                   Align="@Align"
+                   AlignOffset="@AlignOffset"
                    ArrowPadding="@ArrowPadding"
                    AvoidCollisions="@AvoidCollisions"
                    CollisionPadding="@CollisionPadding"
@@ -36,6 +37,18 @@
 
     [Parameter]
     public bool Loop { get; set; }
+
+    [Parameter]
+    public string Side { get; set; } = "right";
+
+    [Parameter]
+    public double SideOffset { get; set; } = 2;
+
+    [Parameter]
+    public string Align { get; set; } = "start";
+
+    [Parameter]
+    public double AlignOffset { get; set; }
 
     [Parameter]
     public double ArrowPadding { get; set; }

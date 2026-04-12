@@ -1,6 +1,5 @@
 @namespace Soenneker.Bradix
 
-@using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inherits BradixComponentBase
 @inject IBradixIdGenerator IdGenerator
@@ -23,9 +22,7 @@
 
 @code {
     private BradixToggle? _toggle;
-    private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
-    private bool _rovingFocusBridgeReady;
 
     [CascadingParameter]
     internal BradixToggleGroup Group { get; set; } = null!;
@@ -97,18 +94,13 @@
         _registered = true;
 
         if (Group.RovingFocus && _toggle is not null)
-        {
-            _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterRovingFocusNavigationKeys(_toggle.Element, _dotNetReference);
-        }
+            await Interop.RegisterRovingFocusNavigationKeys(_toggle.Element);
     }
 
     public async ValueTask DisposeAsync()
     {
         if (Group.RovingFocus && _toggle is not null)
             await Interop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
-
-        _dotNetReference?.Dispose();
 
         if (_registered)
             Group.UnregisterItem(this);
@@ -137,9 +129,6 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
-        if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
-            return Task.CompletedTask;
-
         return Group.HandleItemKeyDownAsync(this, args);
     }
 
@@ -148,12 +137,5 @@
         return pressed
             ? Group.ActivateItemAsync(Value)
             : Group.DeactivateItemAsync(Value);
-    }
-
-    [JSInvokable]
-    public Task HandleRovingFocusBridgeReadyAsync()
-    {
-        _rovingFocusBridgeReady = true;
-        return Task.CompletedTask;
     }
 }

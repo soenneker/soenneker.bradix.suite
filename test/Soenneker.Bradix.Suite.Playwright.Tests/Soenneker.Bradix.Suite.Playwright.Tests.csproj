@@ -27,11 +27,16 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
         <PackageReference Include="Soenneker.Utils.Test" Version="4.0.313" />
         <PackageReference Include="Soenneker.Tests.FixturedUnit" Version="4.0.2293" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
         <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.810" />
         <PackageReference Include="Soenneker.Playwrights.Installation" Version="4.0.3" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
         <PackageReference Include="xunit.v3" Version="3.2.2" />
     </ItemGroup>
 

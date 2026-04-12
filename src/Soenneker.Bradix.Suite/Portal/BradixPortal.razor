@@ -4,17 +4,13 @@
 @inherits BradixComponentBase
 @inject IBradixSuiteInterop Interop
 
-@if (_isMounted)
-{
-    <div @ref="_element"
-         @attributes="PortalAttributes">
-        @ChildContent
-    </div>
-}
+<div @ref="_element"
+     @attributes="PortalAttributes">
+    @ChildContent
+</div>
 
 @code {
     private ElementReference _element;
-    private bool _isMounted;
     private bool _mounted;
     private ElementReference _lastContainer;
     private bool _lastContainerCaptured;
@@ -30,16 +26,6 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !_isMounted)
-        {
-            _isMounted = true;
-            await InvokeAsync(StateHasChanged);
-            return;
-        }
-
-        if (!_isMounted)
-            return;
-
         bool containerChanged = !_lastContainerCaptured || !EqualityComparer<ElementReference>.Default.Equals(_lastContainer, Container);
 
         if (_mounted && !firstRender && !containerChanged && string.Equals(_lastContainerSelector, ContainerSelector, StringComparison.Ordinal))

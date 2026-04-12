@@ -5,7 +5,7 @@
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 
-<BradixPopper>
+<BradixPopper @ref="_popper">
     <CascadingValue Name="BradixMenuRoot" Value="RootMenu">
         <CascadingValue Value="this">
             @ChildContent
@@ -16,6 +16,7 @@
 @code {
     private readonly BradixCollectionRegistry<IBradixMenuItem> _items = new();
     private readonly BradixTypeaheadBuffer _typeahead = new();
+    private BradixPopper? _popper;
     private bool _initialized;
     private bool _focusFirstItemOnOpen;
     private bool _focusContentOnOpen = true;
@@ -228,6 +229,11 @@
         HasTrigger = true;
     }
 
+    internal void RegisterAnchor(ElementReference element)
+    {
+        _popper?.RegisterAnchor(element);
+    }
+
     internal void RegisterContent(ElementReference element)
     {
         ContentElement = element;
@@ -255,6 +261,11 @@
         catch
         {
         }
+    }
+
+    internal void RegisterVirtualAnchor(double x, double y)
+    {
+        _popper?.RegisterVirtualAnchor(x, y);
     }
 
     internal async Task SetOpenAsync(bool open)

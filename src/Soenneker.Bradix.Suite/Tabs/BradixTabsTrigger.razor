@@ -80,6 +80,7 @@
         await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
         await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
         {
+            readyMethod = nameof(HandleDelegatedInteractionReadyAsync),
             mousedown = new
             {
                 method = nameof(HandleDelegatedMouseDownAsync),

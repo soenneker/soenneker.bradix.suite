@@ -124,6 +124,8 @@
                 attributes["aria-labelledby"] = MenubarMenu.TriggerId;
             attributes["data-state"] = MenubarMenu?.IsOpen == true ? "open" : "closed";
             attributes["data-radix-menubar-content"] = string.Empty;
+            if (!string.IsNullOrWhiteSpace(Menubar?.MenubarId))
+                attributes["data-bradix-menubar-id"] = Menubar.MenubarId;
 
             return attributes;
         }

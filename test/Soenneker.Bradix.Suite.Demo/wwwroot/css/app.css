@@ -1785,6 +1785,11 @@ input[type="radio"] {
     min-width: 40px;
 }
 
+.toggle-group-demo__item[data-state="on"] {
+    background-color: var(--violet-6);
+    color: var(--violet-12);
+}
+
 .toolbar-demo__link {
     margin-right: 10px;
     color: var(--text-muted);

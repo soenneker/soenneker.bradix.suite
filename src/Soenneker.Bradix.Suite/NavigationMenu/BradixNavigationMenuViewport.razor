@@ -180,6 +180,12 @@
     [JSInvokable]
     public Task HandleViewportSizeChangedAsync(double width, double height)
     {
+        if (Math.Abs((_width ?? -1) - width) < 0.1 &&
+            Math.Abs((_height ?? -1) - height) < 0.1)
+        {
+            return Task.CompletedTask;
+        }
+
         _width = width;
         _height = height;
         return InvokeAsync(StateHasChanged);

@@ -113,10 +113,10 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("dispatchTooltipOpen", cancellationToken, contentId);
     }
 
-    public async ValueTask RegisterFormRoot(ElementReference element, CancellationToken cancellationToken = default)
+    public async ValueTask RegisterFormRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerFormRoot", cancellationToken, element);
+        await module.InvokeVoidAsync("registerFormRoot", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterFormRoot(ElementReference element, CancellationToken cancellationToken = default)
@@ -389,6 +389,19 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("unregisterDismissableLayerBranch", cancellationToken, element);
+    }
+
+    public async ValueTask RegisterMenubarDocumentDismiss(ElementReference element, DotNetObjectReference<object> dotNetReference, string menubarId,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("registerMenubarDocumentDismiss", cancellationToken, element, dotNetReference, menubarId);
+    }
+
+    public async ValueTask UnregisterMenubarDocumentDismiss(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("unregisterMenubarDocumentDismiss", cancellationToken, element);
     }
 
     public async ValueTask RegisterFocusScope(ElementReference element, DotNetObjectReference<object> dotNetReference, bool loop, bool trapped,

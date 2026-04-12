@@ -1,7 +1,7 @@
 const portalMounts = new WeakMap();
 
 export function mountPortal(element, containerSelector, containerElement) {
-  if (!element) {
+  if (!(element instanceof Node)) {
     return;
   }
 
@@ -15,7 +15,7 @@ export function mountPortal(element, containerSelector, containerElement) {
       ? document.querySelector(containerSelector)
       : document.body;
 
-  if (!container) {
+  if (!(container instanceof Node)) {
     return;
   }
 
@@ -24,6 +24,10 @@ export function mountPortal(element, containerSelector, containerElement) {
 }
 
 export function unmountPortal(element) {
+  if (!(element instanceof Node)) {
+    return;
+  }
+
   const mount = portalMounts.get(element);
 
   if (!mount) {

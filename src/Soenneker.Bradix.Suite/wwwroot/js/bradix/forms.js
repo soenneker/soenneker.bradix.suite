@@ -54,7 +54,7 @@ export function unregisterCheckboxRoot(element) {
   checkboxRootHandlers.delete(element);
 }
 
-export function registerFormRoot(element) {
+export function registerFormRoot(element, dotNetRef) {
   if (!element) {
     return;
   }
@@ -73,10 +73,18 @@ export function registerFormRoot(element) {
     if (firstInvalid && firstInvalid === event.target && typeof firstInvalid.focus === "function") {
       firstInvalid.focus();
     }
+
+    if (dotNetRef) {
+      const invalidControlNames = invalidElements
+        .map((candidate) => candidate.getAttribute("name") || candidate.getAttribute("id") || "")
+        .filter((value) => value);
+
+      dotNetRef.invokeMethodAsync("HandleInvalidControlsAsync", invalidControlNames);
+    }
   };
 
   element.addEventListener("invalid", invalid, true);
-  formRootHandlers.set(element, { invalid });
+  formRootHandlers.set(element, { invalid, dotNetRef });
 }
 
 export function unregisterFormRoot(element) {

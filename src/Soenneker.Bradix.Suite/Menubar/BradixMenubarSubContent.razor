@@ -26,6 +26,9 @@
 </BradixMenuSubContent>
 
 @code {
+    [CascadingParameter]
+    private BradixMenubar? Menubar { get; set; }
+
     [Parameter]
     public bool ForceMount { get; set; }
 
@@ -118,6 +121,8 @@
                 : new Dictionary<string, object>();
 
             attributes["data-radix-menubar-content"] = string.Empty;
+            if (!string.IsNullOrWhiteSpace(Menubar?.MenubarId))
+                attributes["data-bradix-menubar-id"] = Menubar.MenubarId;
             return attributes;
         }
     }
