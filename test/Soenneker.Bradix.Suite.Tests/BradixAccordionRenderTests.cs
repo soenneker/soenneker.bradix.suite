@@ -108,6 +108,29 @@ public sealed class BradixAccordionRenderTests : BunitContext
         Assert.Equal(new[] { "two", "one" }, requestedValues!.ToArray());
     }
 
+    [Fact]
+    public void Content_style_merging_tolerates_missing_trailing_semicolon()
+    {
+        IReadOnlyDictionary<string, object> contentAttributes = new Dictionary<string, object>
+        {
+            ["style"] = "--radix-accordion-content-height: 0px"
+        };
+
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAccordion(
+            BradixSelectionMode.Single,
+            collapsible: true,
+            contentAdditionalAttributes: contentAttributes));
+
+        cut.Find("button").Click();
+
+        IElement content = cut.Find("[role='region']");
+        string style = content.GetAttribute("style") ?? string.Empty;
+
+        Assert.Contains("--radix-accordion-content-height: 0px;", style);
+        Assert.Contains("--radix-accordion-content-width: var(--radix-collapsible-content-width);", style);
+        Assert.DoesNotContain("0px --radix-accordion-content-height", style);
+    }
+
     private static RenderFragment CreateSingleAccordion()
     {
         return CreateAccordion(BradixSelectionMode.Single, collapsible: false);
@@ -118,7 +141,8 @@ public sealed class BradixAccordionRenderTests : BunitContext
         return CreateAccordion(BradixSelectionMode.Multiple, collapsible: true);
     }
 
-    private static RenderFragment CreateAccordion(BradixSelectionMode type, bool collapsible, EventCallback<IReadOnlyCollection<string>> onValuesChange = default)
+    private static RenderFragment CreateAccordion(BradixSelectionMode type, bool collapsible,
+        EventCallback<IReadOnlyCollection<string>> onValuesChange = default, IReadOnlyDictionary<string, object>? contentAdditionalAttributes = null)
     {
         return builder =>
         {
@@ -130,14 +154,15 @@ public sealed class BradixAccordionRenderTests : BunitContext
 
             builder.AddAttribute(3, nameof(BradixAccordion.ChildContent), (RenderFragment) (contentBuilder =>
             {
-                RenderItem(contentBuilder, 0, "one", "One");
-                RenderItem(contentBuilder, 10, "two", "Two");
+                RenderItem(contentBuilder, 0, "one", "One", contentAdditionalAttributes);
+                RenderItem(contentBuilder, 10, "two", "Two", contentAdditionalAttributes);
             }));
             builder.CloseComponent();
         };
     }
 
-    private static void RenderItem(RenderTreeBuilder builder, int sequence, string value, string label)
+    private static void RenderItem(RenderTreeBuilder builder, int sequence, string value, string label,
+        IReadOnlyDictionary<string, object>? contentAdditionalAttributes = null)
     {
         builder.OpenComponent<BradixAccordionItem>(sequence);
         builder.AddAttribute(sequence + 1, nameof(BradixAccordionItem.Value), value);
@@ -156,7 +181,10 @@ public sealed class BradixAccordionRenderTests : BunitContext
             itemBuilder.CloseComponent();
 
             itemBuilder.OpenComponent<BradixAccordionContent>(2);
-            itemBuilder.AddAttribute(3, nameof(BradixAccordionContent.ChildContent), (RenderFragment) (contentInnerBuilder =>
+            if (contentAdditionalAttributes is not null)
+                itemBuilder.AddAttribute(3, nameof(BradixAccordionContent.AdditionalAttributes), contentAdditionalAttributes);
+
+            itemBuilder.AddAttribute(4, nameof(BradixAccordionContent.ChildContent), (RenderFragment) (contentInnerBuilder =>
             {
                 contentInnerBuilder.AddContent(0, $"Content {label}");
             }));

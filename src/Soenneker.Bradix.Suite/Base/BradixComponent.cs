@@ -102,6 +102,18 @@ public abstract class BradixComponent : ComponentBase, IBradixComponent
         attributes["style"] = value;
     }
 
+    internal static string? MergeStyleValues(string? existingValue, string? newValue)
+    {
+        if (existingValue.IsNullOrWhiteSpace())
+            return newValue;
+
+        if (newValue.IsNullOrWhiteSpace())
+            return existingValue;
+
+        string trimmed = existingValue!.TrimEnd();
+        return trimmed.EndsWith(';') ? $"{trimmed} {newValue}" : $"{trimmed}; {newValue}";
+    }
+
     protected static void SetAttribute(IDictionary<string, object> attributes, string key, object? value)
     {
         if (value is null)

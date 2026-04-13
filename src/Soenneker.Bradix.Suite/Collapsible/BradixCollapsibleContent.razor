@@ -123,12 +123,6 @@
 
     private string? BuildMergedStyle(string? additionalStyle)
     {
-        if (string.IsNullOrWhiteSpace(additionalStyle))
-            return Style;
-
-        if (string.IsNullOrWhiteSpace(Style))
-            return additionalStyle;
-
-        return $"{additionalStyle} {Style}";
+        return MergeStyleValues(additionalStyle, Style);
     }
 }

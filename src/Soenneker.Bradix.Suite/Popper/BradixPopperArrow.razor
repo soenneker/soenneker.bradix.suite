@@ -50,9 +50,6 @@
         if (Content.ShouldHideArrow)
             positionStyle += " visibility: hidden;";
 
-        if (string.IsNullOrWhiteSpace(Style))
-            return positionStyle;
-
-        return $"{positionStyle} {Style}";
+        return MergeStyleValues(positionStyle, Style)!;
     }
 }

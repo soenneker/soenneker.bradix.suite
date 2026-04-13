@@ -30,9 +30,7 @@
             const string radixAliasStyles =
                 "--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);";
 
-            return string.IsNullOrWhiteSpace(Style)
-                ? radixAliasStyles
-                : $"{radixAliasStyles} {Style}";
+            return MergeStyleValues(radixAliasStyles, Style)!;
         }
     }
 

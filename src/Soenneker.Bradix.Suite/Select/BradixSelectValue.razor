@@ -48,6 +48,6 @@
     private string BuildStyle()
     {
         const string baseStyle = "pointer-events:none;";
-        return string.IsNullOrWhiteSpace(Style) ? baseStyle : $"{baseStyle} {Style}";
+        return MergeStyleValues(baseStyle, Style)!;
     }
 }

@@ -384,10 +384,7 @@
         string cornerHeight = CornerHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string scrollAreaStyle = $"position: relative; --radix-scroll-area-corner-width: {cornerWidth}px; --radix-scroll-area-corner-height: {cornerHeight}px;";
 
-        if (string.IsNullOrWhiteSpace(Style))
-            return scrollAreaStyle;
-
-        return $"{scrollAreaStyle} {Style}";
+        return MergeStyleValues(scrollAreaStyle, Style)!;
     }
 
     private double GetThumbRatio(bool horizontal)

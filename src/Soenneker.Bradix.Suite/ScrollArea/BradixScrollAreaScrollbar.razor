@@ -102,9 +102,6 @@
     {
         string baseStyle = ScrollArea.GetScrollbarStyle(Orientation.Value);
 
-        if (string.IsNullOrWhiteSpace(Style))
-            return baseStyle;
-
-        return $"{baseStyle} {Style}";
+        return MergeStyleValues(baseStyle, Style)!;
     }
 }

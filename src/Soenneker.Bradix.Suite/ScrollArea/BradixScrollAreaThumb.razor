@@ -32,9 +32,6 @@
     {
         string baseStyle = Scrollbar.ScrollArea.GetThumbStyle(Scrollbar.Orientation.Value);
 
-        if (string.IsNullOrWhiteSpace(Style))
-            return baseStyle;
-
-        return $"{baseStyle} {Style}";
+        return MergeStyleValues(baseStyle, Style)!;
     }
 }

@@ -20,9 +20,6 @@
     {
         string baseStyle = ScrollArea.GetCornerStyle();
 
-        if (string.IsNullOrWhiteSpace(Style))
-            return baseStyle;
-
-        return $"{baseStyle} {Style}";
+        return MergeStyleValues(baseStyle, Style)!;
     }
 }

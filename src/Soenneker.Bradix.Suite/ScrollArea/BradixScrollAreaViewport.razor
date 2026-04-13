@@ -60,9 +60,6 @@
         string overflowY = ScrollArea.ScrollbarYMounted ? "scroll" : "hidden";
         string baseStyle = $"overflow-x: {overflowX}; overflow-y: {overflowY};";
 
-        if (string.IsNullOrWhiteSpace(Style))
-            return baseStyle;
-
-        return $"{baseStyle} {Style}";
+        return MergeStyleValues(baseStyle, Style)!;
     }
 }

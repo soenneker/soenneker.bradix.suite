@@ -44,7 +44,7 @@
     private string BuildStyle()
     {
         const string baseStyle = "flex-shrink:0;";
-        return string.IsNullOrWhiteSpace(Style) ? baseStyle : $"{baseStyle} {Style}";
+        return MergeStyleValues(baseStyle, Style)!;
     }
 
     private Task HandlePointerDown(PointerEventArgs _)

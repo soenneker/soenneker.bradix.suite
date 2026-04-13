@@ -65,13 +65,7 @@
     {
         string? animationStyle = _preventMountAnimation ? "animation-duration: 0s;" : null;
 
-        if (string.IsNullOrWhiteSpace(Style))
-            return animationStyle;
-
-        if (string.IsNullOrWhiteSpace(animationStyle))
-            return Style;
-
-        return $"{animationStyle} {Style}";
+        return MergeStyleValues(animationStyle, Style);
     }
 
     private async Task HandleExitComplete()

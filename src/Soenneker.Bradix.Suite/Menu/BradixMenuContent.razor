@@ -128,7 +128,7 @@
     private string PositionerStyle =>
         "--radix-menu-content-transform-origin: var(--radix-popper-transform-origin); --radix-menu-content-available-width: var(--radix-popper-available-width); --radix-menu-content-available-height: var(--radix-popper-available-height); --radix-menu-trigger-width: var(--radix-popper-anchor-width); --radix-menu-trigger-height: var(--radix-popper-anchor-height);";
 
-    private string MergedContentStyle => string.IsNullOrWhiteSpace(Style) ? "outline:none;" : $"outline:none; {Style}";
+    private string MergedContentStyle => MergeStyleValues("outline:none;", Style)!;
 
     private IReadOnlyDictionary<string, object> PresenceAttributes
     {

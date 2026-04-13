@@ -146,7 +146,7 @@
             if (_swipeEndY != 0)
                 swipeStyles += $"--radix-toast-swipe-end-y:{_swipeEndY}px;";
 
-            return string.IsNullOrWhiteSpace(Style) ? swipeStyles : $"{swipeStyles} {Style}";
+            return MergeStyleValues(swipeStyles, Style)!;
         }
     }
 

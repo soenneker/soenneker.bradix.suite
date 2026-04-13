@@ -35,7 +35,7 @@ else
     [Parameter]
     public IReadOnlyDictionary<string, object>? ChildAttributes { get; set; }
 
-    private string ResolvedStyle => string.IsNullOrWhiteSpace(Style) ? HiddenStyles : $"{HiddenStyles} {Style}";
+    private string ResolvedStyle => MergeStyleValues(HiddenStyles, Style)!;
 
     private string ResolvedChildElementName => ChildElementName ?? string.Empty;
 

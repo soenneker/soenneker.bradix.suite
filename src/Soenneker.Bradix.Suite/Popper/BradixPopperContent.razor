@@ -201,10 +201,7 @@
         if (_hidden)
             baseStyle += " visibility: hidden; pointer-events: none;";
 
-        if (string.IsNullOrWhiteSpace(Style))
-            return baseStyle;
-
-        return $"{baseStyle} {Style}";
+        return MergeStyleValues(baseStyle, Style)!;
     }
 
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir) CurrentOptions

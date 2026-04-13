@@ -48,6 +48,6 @@
     private string BuildStyle()
     {
         const string baseStyle = "position:relative;flex:1;overflow:hidden auto;";
-        return string.IsNullOrWhiteSpace(Style) ? baseStyle : $"{baseStyle} {Style}";
+        return MergeStyleValues(baseStyle, Style)!;
     }
 }

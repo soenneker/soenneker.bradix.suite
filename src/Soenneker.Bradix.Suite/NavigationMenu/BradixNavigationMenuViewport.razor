@@ -94,10 +94,7 @@
             if (NavigationMenu?.HasOpenItem != true)
                 viewportStyle += "pointer-events:none;";
 
-            if (string.IsNullOrWhiteSpace(Style))
-                return viewportStyle;
-
-            return $"{viewportStyle} {Style}";
+            return MergeStyleValues(viewportStyle, Style)!;
         }
     }
 
