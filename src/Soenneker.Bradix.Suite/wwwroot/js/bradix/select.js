@@ -3,12 +3,40 @@ const selectContentPointerTrackers = new WeakMap();
 const selectWindowDismissHandlers = new WeakMap();
 const selectItemAlignedHandlers = new WeakMap();
 
+function invokeDotNetSafely(dotNetRef, methodName, ...args) {
+  try {
+    const invocation = dotNetRef?.invokeMethodAsync?.(methodName, ...args);
+    if (invocation && typeof invocation.catch === "function") {
+      invocation.catch(() => {});
+    }
+  } catch {
+  }
+}
+
 export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
   if (!viewport) {
     return;
   }
 
   unregisterSelectViewport(viewport);
+
+  const registration = {
+    animationFrameIds: new Set()
+  };
+
+  const queueNotify = () => {
+    const frameId = requestAnimationFrame(() => {
+      registration.animationFrameIds.delete(frameId);
+
+      if (selectViewportHandlers.get(viewport) !== registration) {
+        return;
+      }
+
+      notify();
+    });
+
+    registration.animationFrameIds.add(frameId);
+  };
 
   const expandOnScroll = () => {
     if (!wrapper) {
@@ -48,13 +76,18 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
   };
 
   const notify = () => {
+    if (selectViewportHandlers.get(viewport) !== registration) {
+      return;
+    }
+
     const contentElement = content || viewport.firstElementChild;
-    dotNetRef.invokeMethodAsync(
+    invokeDotNetSafely(
+      dotNetRef,
       "HandleViewportMetricsChanged",
       viewport.scrollTop,
       contentElement ? contentElement.scrollHeight : viewport.scrollHeight,
       viewport.offsetHeight
-    ).catch(() => {});
+    );
   };
 
   const scroll = () => {
@@ -64,20 +97,24 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
   viewport.addEventListener("scroll", scroll);
 
   const viewportResizeObserver = new ResizeObserver(() => {
-    requestAnimationFrame(notify);
+    queueNotify();
   });
   viewportResizeObserver.observe(viewport);
 
   let contentResizeObserver = null;
   if (content) {
     contentResizeObserver = new ResizeObserver(() => {
-      requestAnimationFrame(notify);
+      queueNotify();
     });
     contentResizeObserver.observe(content);
   }
 
-  requestAnimationFrame(notify);
-  selectViewportHandlers.set(viewport, { scroll, viewportResizeObserver, contentResizeObserver });
+  registration.scroll = scroll;
+  registration.viewportResizeObserver = viewportResizeObserver;
+  registration.contentResizeObserver = contentResizeObserver;
+
+  selectViewportHandlers.set(viewport, registration);
+  queueNotify();
 }
 
 export function unregisterSelectViewport(viewport) {
@@ -90,6 +127,12 @@ export function unregisterSelectViewport(viewport) {
   handlers.viewportResizeObserver.disconnect();
   if (handlers.contentResizeObserver) {
     handlers.contentResizeObserver.disconnect();
+  }
+  if (handlers.animationFrameIds) {
+    for (const frameId of handlers.animationFrameIds) {
+      cancelAnimationFrame(frameId);
+    }
+    handlers.animationFrameIds.clear();
   }
 
   selectViewportHandlers.delete(viewport);
@@ -111,9 +154,15 @@ export function registerSelectContentPointerTracker(content, dotNetRef, pageX, p
 
   unregisterSelectContentPointerTracker(content);
 
+  const registration = {};
+
   let pointerMoveDelta = { x: 0, y: 0 };
 
   const handlePointerMove = (event) => {
+    if (selectContentPointerTrackers.get(content) !== registration) {
+      return;
+    }
+
     pointerMoveDelta = {
       x: Math.abs(Math.round(event.pageX) - Math.round(pageX || 0)),
       y: Math.abs(Math.round(event.pageY) - Math.round(pageY || 0))
@@ -121,20 +170,27 @@ export function registerSelectContentPointerTracker(content, dotNetRef, pageX, p
   };
 
   const handlePointerUp = (event) => {
+    if (selectContentPointerTrackers.get(content) !== registration) {
+      return;
+    }
+
+    document.removeEventListener("pointermove", handlePointerMove);
+    selectContentPointerTrackers.delete(content);
+
     const withinPointerTolerance = pointerMoveDelta.x <= 10 && pointerMoveDelta.y <= 10;
     const target = event.target;
     const targetInsideContent = !!target && content.contains(target);
     const suppressSelection = withinPointerTolerance && targetInsideContent;
     const shouldClose = !withinPointerTolerance && !!target && !targetInsideContent;
 
-    dotNetRef.invokeMethodAsync("HandleTriggerPointerGuardResult", suppressSelection, shouldClose).catch(() => {});
-    document.removeEventListener("pointermove", handlePointerMove);
-    selectContentPointerTrackers.delete(content);
+    invokeDotNetSafely(dotNetRef, "HandleTriggerPointerGuardResult", suppressSelection, shouldClose);
   };
 
   document.addEventListener("pointermove", handlePointerMove);
   document.addEventListener("pointerup", handlePointerUp, { capture: true, once: true });
-  selectContentPointerTrackers.set(content, { handlePointerMove, handlePointerUp });
+  registration.handlePointerMove = handlePointerMove;
+  registration.handlePointerUp = handlePointerUp;
+  selectContentPointerTrackers.set(content, registration);
 }
 
 export function unregisterSelectContentPointerTracker(content) {
@@ -155,14 +211,21 @@ export function registerSelectWindowDismiss(content, dotNetRef) {
 
   unregisterSelectWindowDismiss(content);
 
+  const registration = {};
+
   const dismiss = () => {
-    dotNetRef.invokeMethodAsync("HandleWindowDismiss").catch(() => {});
+    if (selectWindowDismissHandlers.get(content) !== registration) {
+      return;
+    }
+
+    invokeDotNetSafely(dotNetRef, "HandleWindowDismiss");
   };
 
   window.addEventListener("blur", dismiss);
   window.addEventListener("resize", dismiss);
 
-  selectWindowDismissHandlers.set(content, { dismiss });
+  registration.dismiss = dismiss;
+  selectWindowDismissHandlers.set(content, registration);
 }
 
 export function unregisterSelectWindowDismiss(content) {
