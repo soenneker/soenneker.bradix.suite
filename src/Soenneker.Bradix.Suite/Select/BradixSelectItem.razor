@@ -163,8 +163,8 @@
             return;
 
         await Select.SetValue(Value);
-        await Select.SetOpen(false);
         await Select.FocusTrigger();
+        await Select.SetOpen(false);
     }
 
     private Task HandleFocus(FocusEventArgs _)
@@ -196,8 +196,8 @@
         if (args.Key is " " or "Spacebar" or "Enter")
         {
             await Select.SetValue(Value);
-            await Select.SetOpen(false);
             await Select.FocusTrigger();
+            await Select.SetOpen(false);
             return;
         }
 
@@ -218,8 +218,8 @@
             return;
 
         await Select.SetValue(Value);
-        await Select.SetOpen(false);
         await Select.FocusTrigger();
+        await Select.SetOpen(false);
     }
 
     private async Task HandlePointerMove(PointerEventArgs args)

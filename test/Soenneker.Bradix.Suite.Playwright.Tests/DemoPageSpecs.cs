@@ -1,9 +1,9 @@
-using Microsoft.Playwright;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Playwright;
 
-namespace Soenneker.Bradix.Suite.Playwright.Tests;
+namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 internal sealed record DemoPageSpec(
     string Route,

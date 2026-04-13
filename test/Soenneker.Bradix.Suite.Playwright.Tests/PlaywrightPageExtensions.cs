@@ -1,13 +1,13 @@
-using Microsoft.Playwright;
 using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Playwright;
 
-namespace Soenneker.Bradix.Suite.Playwright.Tests;
+namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 internal static class PlaywrightPageExtensions
 {
-    public static async Task GotoAndWaitForReadyAsync(this IPage page, string url, Func<IPage, ILocator> readyLocatorFactory, string? expectedTitle = null)
+    public static async Task GotoAndWaitForReady(this IPage page, string url, Func<IPage, ILocator> readyLocatorFactory, string? expectedTitle = null)
     {
         await page.GotoAsync(url, new PageGotoOptions
         {
@@ -25,7 +25,7 @@ internal static class PlaywrightPageExtensions
         return route == "/" ? fixture.BaseUrl : $"{fixture.BaseUrl}{route.TrimStart('/')}";
     }
 
-    public static async Task OpenDemoPageAsync(this IPage page, Fixture fixture, DemoPageSpec spec)
+    public static async Task OpenDemoPage(this IPage page, Fixture fixture, DemoPageSpec spec)
     {
         await page.GotoAsync(fixture.GetRouteUrl(spec.Route), new PageGotoOptions
         {

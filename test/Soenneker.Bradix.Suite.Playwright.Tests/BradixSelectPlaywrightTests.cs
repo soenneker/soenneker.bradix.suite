@@ -1,10 +1,10 @@
-using Microsoft.Playwright;
-using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Soenneker.Tests.FixturedUnit;
 using Xunit;
 
-namespace Soenneker.Bradix.Suite.Playwright.Tests;
+namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
 public sealed class BradixSelectPlaywrightTests : FixturedUnitTest
@@ -22,7 +22,7 @@ public sealed class BradixSelectPlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReadyAsync(
+        await page.GotoAndWaitForReady(
             $"{_fixture.BaseUrl}select",
             static p => p.Locator("[role='combobox']").First,
             expectedTitle: "Select Demo");
@@ -46,5 +46,31 @@ public sealed class BradixSelectPlaywrightTests : FixturedUnitTest
 
         await Assertions.Expect(trigger).ToContainTextAsync("Banana");
         await Assertions.Expect(listBox).Not.ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async Task Select_demo_single_click_keeps_listbox_open()
+    {
+        await using BrowserSession session = await _fixture.CreateSession();
+        IPage page = session.Page;
+
+        await page.GotoAndWaitForReady(
+            $"{_fixture.BaseUrl}select",
+            static p => p.Locator("[role='combobox']").First,
+            expectedTitle: "Select Demo");
+
+        ILocator trigger = page.Locator("[role='combobox']").First;
+
+        await trigger.ClickAsync();
+
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
+
+        ILocator listBox = page.Locator("[role='listbox']:visible").First;
+        await Assertions.Expect(listBox).ToBeVisibleAsync();
+
+        await page.WaitForTimeoutAsync(250);
+
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(listBox).ToBeVisibleAsync();
     }
 }

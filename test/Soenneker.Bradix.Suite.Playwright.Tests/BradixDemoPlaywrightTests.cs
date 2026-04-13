@@ -1,10 +1,10 @@
-using Microsoft.Playwright;
-using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Soenneker.Tests.FixturedUnit;
 using Xunit;
 
-namespace Soenneker.Bradix.Suite.Playwright.Tests;
+namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
 public sealed class BradixDemoPlaywrightTests : FixturedUnitTest
@@ -22,7 +22,7 @@ public sealed class BradixDemoPlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReadyAsync(
+        await page.GotoAndWaitForReady(
             _fixture.BaseUrl,
             static p => p.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Bradix primitives" }),
             expectedTitle: "Bradix Component Library Demo");
@@ -38,7 +38,7 @@ public sealed class BradixDemoPlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReadyAsync(
+        await page.GotoAndWaitForReady(
             $"{_fixture.BaseUrl}dialog",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }),
             expectedTitle: "Bradix Dialog");

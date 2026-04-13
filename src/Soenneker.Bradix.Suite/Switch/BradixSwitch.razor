@@ -64,6 +64,9 @@
     [Parameter]
     public EventCallback<bool> OnCheckedChange { get; set; }
 
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
     internal bool CurrentChecked => Checked ?? _uncontrolledChecked;
 
     internal bool IsDisabled => Disabled;
@@ -192,9 +195,15 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleClick()
+    private async Task HandleClick(MouseEventArgs args)
     {
-        return Disabled || _delegatedInteractionReady ? Task.CompletedTask : SetChecked(!CurrentChecked);
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
+
+        if (Disabled || _delegatedInteractionReady)
+            return;
+
+        await SetChecked(!CurrentChecked);
     }
 
     [JSInvokable]

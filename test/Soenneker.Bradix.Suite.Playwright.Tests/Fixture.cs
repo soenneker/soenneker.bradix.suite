@@ -1,39 +1,21 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Playwright;
-using Serilog;
-using Soenneker.Fixtures.Unit;
-using Soenneker.Playwrights.Installation.Abstract;
-using Soenneker.Playwrights.Installation.Registrars;
-using Soenneker.Utils.Test;
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Soenneker.Fixtures.Unit;
 using Soenneker.Playwrights.Session;
-using Soenneker.Utils.Dotnet.Abstract;
-using Soenneker.Utils.Dotnet.Registrars;
-using Soenneker.Utils.Network.Abstract;
-using Soenneker.Utils.Network.Registrars;
 
-namespace Soenneker.Bradix.Suite.Playwright.Tests;
+namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 public sealed class Fixture : UnitFixture
 {
-    private readonly HttpClient _httpClient = new();
-    private readonly StringBuilder _demoOutput = new();
-    private readonly object _sync = new();
     private readonly string _demoProjectPath;
+    private FixtureHost? _fixtureHost;
+    private FixtureOrchestrator? _orchestrator;
 
-    private Process? _demoProcess;
-    private IPlaywright? _playwright;
-    private IBrowser? _browser;
-    private IDotnetUtil _dotnetUtil;
-
-
-    public string BaseUrl { get; set;  }
+    public string BaseUrl =>
+        _orchestrator?.BaseUrl ?? throw new InvalidOperationException("Fixture has not been initialized.");
 
     public Fixture()
     {
@@ -42,203 +24,49 @@ public sealed class Fixture : UnitFixture
 
     public override async ValueTask InitializeAsync()
     {
-        SetupIoC(Services);
+        _fixtureHost = new FixtureHost();
+        await _fixtureHost.Start();
 
         await base.InitializeAsync();
 
-        if (ServiceProvider is null)
-            throw new InvalidOperationException("Service provider was not initialized.");
-
-        _dotnetUtil = ServiceProvider.GetRequiredService<IDotnetUtil>();
-
-        var networkUtil = ServiceProvider.GetRequiredService<INetworkUtil>();
-
-        BaseUrl = $"http://127.0.0.1:{networkUtil.GetFreePort()}/";
-
-        var playwrightInstallationUtil = ServiceProvider.GetRequiredService<IPlaywrightInstallationUtil>();
-
-        await playwrightInstallationUtil.EnsureInstalled();
-
-        _playwright = await Microsoft.Playwright.Playwright.CreateAsync();
-        _browser = await LaunchBrowser(ServiceProvider.GetRequiredService<IConfiguration>());
-
-        await StartDemo();
+        _orchestrator = _fixtureHost.Services.GetRequiredService<FixtureOrchestrator>();
+        await _orchestrator.Initialize(_demoProjectPath, CancellationToken.None);
     }
 
-    private static void SetupIoC(IServiceCollection services)
+    public ValueTask<BrowserSession> CreateSession()
     {
-        services.AddLogging(builder =>
-        {
-            builder.AddSerilog(dispose: false);
-        });
+        if (_orchestrator is null)
+            throw new InvalidOperationException("Fixture has not been initialized.");
 
-        services.AddPlaywrightInstallationUtilAsSingleton();
-        services.AddNetworkUtilAsSingleton();
-        services.AddDotnetUtilAsSingleton();
-
-        IConfiguration config = TestUtil.BuildConfig();
-        services.AddSingleton(config);
-    }
-
-    private async Task<IBrowser> LaunchBrowser(IConfiguration configuration)
-    {
-        if (_playwright is null)
-            throw new InvalidOperationException("Playwright has not been initialized.");
-
-        string browser = configuration["Playwright:Browser"]?.Trim().ToLowerInvariant() ?? "chromium";
-
-        var options = new BrowserTypeLaunchOptions
-        {
-            Headless = true
-        };
-
-        return browser switch
-        {
-            "chromium" => await _playwright.Chromium.LaunchAsync(options),
-            "firefox" => await _playwright.Firefox.LaunchAsync(options),
-            "webkit" => await _playwright.Webkit.LaunchAsync(options),
-            _ => throw new InvalidOperationException($"Unsupported Playwright browser '{browser}'.")
-        };
-    }
-
-    public async Task<BrowserSession> CreateSession()
-    {
-        if (_browser is null)
-            throw new InvalidOperationException("Browser has not been initialized.");
-
-        IBrowserContext context = await _browser.NewContextAsync(new BrowserNewContextOptions
-        {
-            BaseURL = BaseUrl
-        });
-
-        IPage page = await context.NewPageAsync();
-
-        return new BrowserSession(context, page);
+        return _orchestrator.CreateSession();
     }
 
     public override async ValueTask DisposeAsync()
     {
-        Exception? disposalException = null;
+        Exception? exception = null;
 
         try
         {
-            if (_browser is not null)
-                await _browser.DisposeAsync();
+            if (_orchestrator is not null)
+                await _orchestrator.DisposeAsync();
         }
         catch (Exception ex)
         {
-            disposalException = ex;
+            exception = ex;
         }
 
         try
         {
-            _playwright?.Dispose();
+            if (_fixtureHost is not null)
+                await _fixtureHost.DisposeAsync();
         }
-        catch (Exception ex) when (disposalException is null)
+        catch (Exception ex) when (exception is null)
         {
-            disposalException = ex;
+            exception = ex;
         }
 
-        try
-        {
-            if (_demoProcess is not null)
-            {
-                if (!_demoProcess.HasExited)
-                    _demoProcess.Kill(entireProcessTree: true);
-
-                _demoProcess.Dispose();
-            }
-        }
-        catch (Exception ex) when (disposalException is null)
-        {
-            disposalException = ex;
-        }
-
-        if (disposalException is not null)
-            throw disposalException;
-    }
-
-    private async Task StartDemo()
-    {
-        string trimmedBaseUrl = BaseUrl.TrimEnd('/');
-
-        await _dotnetUtil.Run(_demoProjectPath, urls: trimmedBaseUrl);
-
-
-
-        //var startInfo = new ProcessStartInfo
-        //{
-        //    FileName = "dotnet",
-        //    Arguments = $"run --project \"{_demoProjectPath}\" --urls {trimmedBaseUrl}",
-        //    WorkingDirectory = Path.GetDirectoryName(_demoProjectPath)!,
-        //    RedirectStandardOutput = true,
-        //    RedirectStandardError = true,
-        //    UseShellExecute = false,
-        //    CreateNoWindow = true
-        //};
-
-        //_demoProcess = new Process
-        //{
-        //    StartInfo = startInfo,
-        //    EnableRaisingEvents = true
-        //};
-
-        //_demoProcess.OutputDataReceived += (_, args) => AppendDemoOutput(args.Data);
-        //_demoProcess.ErrorDataReceived += (_, args) => AppendDemoOutput(args.Data);
-
-        //if (!_demoProcess.Start())
-        //    throw new InvalidOperationException("Failed to start Bradix demo process.");
-
-        //_demoProcess.BeginOutputReadLine();
-        //_demoProcess.BeginErrorReadLine();
-
-        await WaitForDemoReady();
-    }
-
-    private async Task WaitForDemoReady()
-    {
-        for (var attempt = 0; attempt < 120; attempt++)
-        {
-            if (_demoProcess is not null && _demoProcess.HasExited)
-            {
-                throw new InvalidOperationException(
-                    $"Bradix demo exited before becoming ready. Exit code: {_demoProcess.ExitCode}{Environment.NewLine}{GetCapturedOutput()}");
-            }
-
-            try
-            {
-                using HttpResponseMessage response = await _httpClient.GetAsync(BaseUrl);
-
-                if (response.IsSuccessStatusCode)
-                    return;
-            }
-            catch
-            {
-            }
-
-            await Task.Delay(1000);
-        }
-
-        throw new TimeoutException($"Timed out waiting for Bradix demo at {BaseUrl}.{Environment.NewLine}{GetCapturedOutput()}");
-    }
-
-    private void AppendDemoOutput(string? data)
-    {
-        if (string.IsNullOrWhiteSpace(data))
-            return;
-
-        lock (_sync)
-        {
-            _demoOutput.AppendLine(data);
-        }
-    }
-
-    private string GetCapturedOutput()
-    {
-        lock (_sync)
-        {
-            return _demoOutput.ToString();
-        }
+        if (exception is not null)
+            throw exception;
     }
 
     private static string ResolveDemoProjectPath()

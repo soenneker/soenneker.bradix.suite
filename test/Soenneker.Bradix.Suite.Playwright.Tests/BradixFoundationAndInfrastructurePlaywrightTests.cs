@@ -1,10 +1,10 @@
-using Microsoft.Playwright;
-using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Soenneker.Tests.FixturedUnit;
 using Xunit;
 
-namespace Soenneker.Bradix.Suite.Playwright.Tests;
+namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
 public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedUnitTest
@@ -22,7 +22,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/accessible-icon"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/accessible-icon"));
 
         ILocator button = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Close panel", Exact = true });
         await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Panel: Open");
@@ -38,7 +38,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/collection"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/collection"));
 
         ILocator input = page.Locator("#typeahead-input");
         await input.ClickAsync();
@@ -60,7 +60,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/label"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/label"));
 
         ILocator input = page.Locator("#firstName");
         await page.GetByText("First name", new PageGetByTextOptions { Exact = true }).ClickAsync();
@@ -74,7 +74,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/portal"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/portal"));
 
         await Assertions.Expect(page.Locator("body .portal-surface")).ToContainTextAsync("Portaled into body.");
         await Assertions.Expect(page.Locator(".docs-shell__content .portal-surface")).ToHaveCountAsync(0);
@@ -86,7 +86,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/presence"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/presence"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle presence", Exact = true }).ClickAsync();
 
@@ -100,7 +100,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/slot"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/slot"));
 
         ILocator button = page.Locator("#slot-button");
 
@@ -115,7 +115,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/visually-hidden"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/visually-hidden"));
 
         await Assertions.Expect(page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Save the file", Exact = true })).ToBeVisibleAsync();
     }
@@ -126,7 +126,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/dismissable-layer"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/dismissable-layer"));
 
         await page.Locator(".docs-shell__main").ClickAsync(new LocatorClickOptions
         {
@@ -146,7 +146,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/focus-scope"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/focus-scope"));
 
         ILocator first = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "First", Exact = true });
         ILocator third = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Third", Exact = true });
@@ -163,7 +163,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/popper"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/popper"));
 
         await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync(new System.Text.RegularExpressions.Regex("Placed:\\s+[1-9]"));
     }
@@ -174,7 +174,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/remove-scroll"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/remove-scroll"));
 
         ILocator textarea = page.GetByRole(AriaRole.Textbox);
         ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle scroll lock", Exact = true });

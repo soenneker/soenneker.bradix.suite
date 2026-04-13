@@ -1,10 +1,10 @@
-using Microsoft.Playwright;
-using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Soenneker.Tests.FixturedUnit;
 using Xunit;
 
-namespace Soenneker.Bradix.Suite.Playwright.Tests;
+namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
 public sealed class BradixDemoCatalogPlaywrightTests : FixturedUnitTest
@@ -25,7 +25,7 @@ public sealed class BradixDemoCatalogPlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, spec);
+        await page.OpenDemoPage(_fixture, spec);
         await Assertions.Expect(page).ToHaveURLAsync(_fixture.GetRouteUrl(route));
     }
 

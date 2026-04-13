@@ -12,6 +12,7 @@
                           Class="@Class"
                           Style="@Style"
                           AriaDisabled="@AriaDisabled"
+                          OnClick="@OnClick"
                           OnKeyDown="HandleKeyDown"
                           AdditionalAttributes="TriggerAttributes">
     @ChildContent
@@ -27,6 +28,9 @@
 
     [CascadingParameter]
     internal BradixAccordionItem Item { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     [Parameter]
     public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }

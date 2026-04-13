@@ -1,10 +1,10 @@
-using Microsoft.Playwright;
-using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Soenneker.Tests.FixturedUnit;
 using Xunit;
 
-namespace Soenneker.Bradix.Suite.Playwright.Tests;
+namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
 public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
@@ -22,7 +22,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/accordion"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/accordion"));
 
         ILocator accessibleTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Is it accessible?", Exact = true });
         ILocator unstyledTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Is it unstyled?", Exact = true });
@@ -41,7 +41,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/alert-dialog"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/alert-dialog"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Delete account", Exact = true }).ClickAsync();
 
@@ -57,7 +57,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/collapsible"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/collapsible"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button);
         await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "false");
@@ -75,7 +75,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/dialog"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/dialog"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
         await page.Locator("#dialog-name").FillAsync("Unsaved");
@@ -91,7 +91,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/hover-card"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/hover-card"));
 
         await page.GetByAltText("Radix UI").HoverAsync();
 
@@ -105,7 +105,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/popover"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/popover"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true }).ClickAsync();
 
@@ -121,7 +121,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/toast"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/toast"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Add to calendar", Exact = true }).ClickAsync();
 
@@ -135,7 +135,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
         await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/tooltip"));
+        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/tooltip"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "+", Exact = true }).HoverAsync();
 
