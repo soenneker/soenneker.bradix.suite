@@ -1,12 +1,12 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
+using Soenneker.Extensions.String;
 
 namespace Soenneker.Bradix;
 
-/// <summary>
-/// Minimal primitive base for id/class/style/attribute composition.
-/// </summary>
-public abstract class BradixComponent : ComponentBase
+///<inheritdoc cref="IBradixComponent"/>
+public abstract class BradixComponent : ComponentBase, IBradixComponent
 {
     [Parameter]
     public string? Id { get; set; }
@@ -25,26 +25,32 @@ public abstract class BradixComponent : ComponentBase
 
     protected Dictionary<string, object> BuildAttributes(params (string Key, object? Value)[] values)
     {
-        Dictionary<string, object> attributes = new();
+        var attributes = new Dictionary<string, object>();
 
         SetAttribute(attributes, "id", Id);
-        MergeStringAttribute(attributes, "class", Class);
-        MergeStringAttribute(attributes, "style", Style);
+
+        MergeClassAttribute(attributes, Class);
+        MergeStyleAttribute(attributes, Style);
 
         foreach ((string key, object? value) in values)
         {
             SetAttribute(attributes, key, value);
         }
 
-        if (AdditionalAttributes is null)
+        if (AdditionalAttributes is null || AdditionalAttributes.Count == 0)
             return attributes;
 
         foreach ((string key, object value) in AdditionalAttributes)
         {
-            if (string.Equals(key, "class", System.StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(key, "style", System.StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(key, "class", StringComparison.OrdinalIgnoreCase))
             {
-                MergeStringAttribute(attributes, key, value?.ToString());
+                MergeClassAttribute(attributes, value?.ToString());
+                continue;
+            }
+
+            if (string.Equals(key, "style", StringComparison.OrdinalIgnoreCase))
+            {
+                MergeStyleAttribute(attributes, value?.ToString());
                 continue;
             }
 
@@ -56,22 +62,47 @@ public abstract class BradixComponent : ComponentBase
 
     protected static string DataState(bool open) => open ? "open" : "closed";
 
-    private static void MergeStringAttribute(IDictionary<string, object> attributes, string key, string? value)
+    protected static void MergeClassAttribute(IDictionary<string, object> attributes, string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (value.IsNullOrWhiteSpace())
             return;
 
-        if (attributes.TryGetValue(key, out object? existing) && existing is not null)
+        if (attributes.TryGetValue("class", out object? existing) && existing is not null)
         {
-            string merged = $"{existing} {value}".Trim();
-            attributes[key] = merged;
+            string existingText = existing.ToString() ?? string.Empty;
+
+            attributes["class"] = existingText.IsNullOrWhiteSpace() ? value : $"{existingText} {value}";
             return;
         }
 
-        attributes[key] = value;
+        attributes["class"] = value;
     }
 
-    private static void SetAttribute(IDictionary<string, object> attributes, string key, object? value)
+    protected static void MergeStyleAttribute(IDictionary<string, object> attributes, string? value)
+    {
+        if (value.IsNullOrWhiteSpace())
+            return;
+
+        if (attributes.TryGetValue("style", out object? existing) && existing is not null)
+        {
+            string existingText = existing.ToString() ?? string.Empty;
+
+            if (existingText.IsNullOrWhiteSpace())
+            {
+                attributes["style"] = value;
+                return;
+            }
+
+            string trimmed = existingText.TrimEnd();
+
+            attributes["style"] = trimmed.EndsWith(';') ? $"{trimmed} {value}" : $"{trimmed}; {value}";
+            return;
+        }
+
+        attributes["style"] = value;
+    }
+
+    protected static void SetAttribute(IDictionary<string, object> attributes, string key, object? value)
     {
         if (value is null)
             return;
