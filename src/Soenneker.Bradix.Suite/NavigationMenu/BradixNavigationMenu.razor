@@ -2,12 +2,12 @@
 
 @using System.Linq
 @using System.Threading
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixNavigationMenu
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     @if (IsRootMenu)
     {
@@ -98,7 +98,8 @@
 
     internal string ActiveViewportValue => HasOpenItem ? CurrentValue : PreviousValue;
 
-    internal string RootId => string.IsNullOrWhiteSpace(Id) ? $"{BaseId}-root" : Id;
+    internal string RootId =>
+        string.IsNullOrWhiteSpace(Id) ? BlazorIdGenerator.Child(BaseId!, "root") : Id;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("id", RootId),
@@ -109,7 +110,7 @@
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-navigation-menu");
+        BaseId ??= BlazorIdGenerator.New("bradix-navigation-menu");
     }
 
     protected override void OnParametersSet()
@@ -130,9 +131,11 @@
         EnsureCurrentTabStopValue();
     }
 
-    internal string MakeTriggerId(string value) => $"{BaseId}-trigger-{value}";
+    internal string MakeTriggerId(string value) =>
+        BlazorIdGenerator.Child(BlazorIdGenerator.Child(BaseId!, "trigger"), value);
 
-    internal string MakeContentId(string value) => $"{BaseId}-content-{value}";
+    internal string MakeContentId(string value) =>
+        BlazorIdGenerator.Child(BlazorIdGenerator.Child(BaseId!, "content"), value);
 
     internal bool IsCurrentTabStop(BradixNavigationMenuItem item)
     {

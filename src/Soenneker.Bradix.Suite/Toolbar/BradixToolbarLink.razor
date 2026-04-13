@@ -1,13 +1,13 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixToolbarRovingItem
 @implements IBradixToolbarLink
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <a @ref="_element"
    @onclick="HandleClick"
@@ -57,7 +57,7 @@
 
     protected override void OnInitialized()
     {
-        TabStopId ??= IdGenerator.New("bradix-toolbar-link");
+        TabStopId ??= BlazorIdGenerator.New("bradix-toolbar-link");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -106,6 +106,12 @@
     {
         if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
+
+        if (args.Key is " " or "Spacebar")
+        {
+            await Interop.ClickElement(_element);
+            return;
+        }
 
         await Toolbar.HandleItemKeyDown(this, args);
     }

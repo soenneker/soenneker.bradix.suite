@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixToggleGroupItem
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <BradixToggle @ref="_toggle"
               Id="@Id"
@@ -83,7 +83,7 @@
 
     protected override void OnInitialized()
     {
-        TabStopId ??= IdGenerator.New("bradix-toggle-group-item");
+        TabStopId ??= BlazorIdGenerator.New("bradix-toggle-group-item");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

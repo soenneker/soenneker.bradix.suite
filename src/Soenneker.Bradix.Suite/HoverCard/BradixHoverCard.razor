@@ -1,12 +1,12 @@
 @namespace Soenneker.Bradix
 
 @using System.Threading
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixHoverCard
 
-@inject IBradixIdGenerator IdGenerator
 <BradixPopper>
     <CascadingValue Value="this">
         @ChildContent
@@ -43,11 +43,11 @@
 
     public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    public string ContentId => $"{BaseId}-content";
+    public string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-hover-card");
+        BaseId ??= BlazorIdGenerator.New("bradix-hover-card");
     }
 
     protected override void OnParametersSet()

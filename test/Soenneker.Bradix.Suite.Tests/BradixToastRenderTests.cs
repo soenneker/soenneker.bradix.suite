@@ -37,7 +37,6 @@ public sealed class BradixToastRenderTests : BunitContext
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
-        Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
     }
 
     [Fact]

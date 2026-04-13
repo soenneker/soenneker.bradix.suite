@@ -2,13 +2,13 @@
 
 @using Microsoft.JSInterop
 @using System.Threading
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixMenuRovingItem
 @implements IBradixMenuSubTrigger
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <div @ref="_element"
      @onclick="HandleClick"
@@ -73,7 +73,7 @@
 
     protected override void OnInitialized()
     {
-        TabStopId ??= IdGenerator.New("bradix-menu-sub-trigger");
+        TabStopId ??= BlazorIdGenerator.New("bradix-menu-sub-trigger");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

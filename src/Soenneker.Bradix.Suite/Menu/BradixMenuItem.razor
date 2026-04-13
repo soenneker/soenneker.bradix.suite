@@ -1,13 +1,13 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixMenuRovingItem
 @implements IBradixMenuItem
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 @if (RenderAsLink)
 {
@@ -102,7 +102,7 @@ else
 
     protected override void OnInitialized()
     {
-        TabStopId ??= IdGenerator.New("bradix-menu-item");
+        TabStopId ??= BlazorIdGenerator.New("bradix-menu-item");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

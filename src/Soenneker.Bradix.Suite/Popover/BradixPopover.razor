@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixPopover
 
-@inject IBradixIdGenerator IdGenerator
 <BradixPopper>
     <CascadingValue Value="this">
         @ChildContent
@@ -37,8 +37,8 @@
 
     public bool HasCustomAnchor => _customAnchorCount > 0;
 
-    public string ContentId => $"{BaseId}-content";
-    public string DefaultTriggerId => $"{BaseId}-trigger";
+    public string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
+    public string DefaultTriggerId => BlazorIdGenerator.Child(BaseId!, "trigger");
 
     public ElementReference TriggerElement { get; private set; }
 
@@ -47,7 +47,7 @@
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-popover");
+        BaseId ??= BlazorIdGenerator.New("bradix-popover");
     }
 
     protected override void OnParametersSet()

@@ -1,12 +1,12 @@
 @namespace Soenneker.Bradix
 
 @using System.Threading
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixTooltip
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <BradixPopper>
     <CascadingValue Value="this">
@@ -47,7 +47,7 @@
 
     public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    public string ContentId => $"{BaseId}-content";
+    public string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
 
     public string StateAttribute => CurrentOpen
         ? (_openedWithDelay ? "delayed-open" : "instant-open")
@@ -71,7 +71,7 @@
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-tooltip");
+        BaseId ??= BlazorIdGenerator.New("bradix-tooltip");
     }
 
     protected override void OnParametersSet()

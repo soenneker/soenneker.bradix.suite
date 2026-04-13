@@ -1,13 +1,13 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixSelectCollectionItem
 @implements IBradixSelectItem
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <CascadingValue Value="this">
     <div @ref="_element"
@@ -80,7 +80,9 @@
 
     protected override void OnInitialized()
     {
-        TextId ??= IdGenerator.New("bradix-select-item-text");
+        TextId ??= Select?.BaseId is string bid
+            ? BlazorIdGenerator.Child(BlazorIdGenerator.Child(BlazorIdGenerator.Child(bid, "item"), Value), "text")
+            : BlazorIdGenerator.New("bradix-select-item-text");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

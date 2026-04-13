@@ -22,7 +22,7 @@
                    OnEscapeKeyDown="@OnEscapeKeyDown"
                    OnEscapeKeyDownDetailed="@OnEscapeKeyDownDetailed"
                    OnPointerDownOutside="@OnPointerDownOutside"
-                   OnPointerDownOutsideDetailed="@OnPointerDownOutsideDetailed"
+                   OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
                    OnFocusOutside="@OnFocusOutside"
                    OnFocusOutsideDetailed="@OnFocusOutsideDetailed"
                    OnInteractOutsideDetailed="@HandleInteractOutside"
@@ -38,6 +38,7 @@
     private BradixMenu? Menu { get; set; }
 
     private bool _hasInteractedOutside;
+    private bool _hasPointerDownOutside;
 
     [Parameter]
     public bool ForceMount { get; set; }
@@ -163,7 +164,17 @@
             await Menu.FocusTrigger();
 
         _hasInteractedOutside = false;
+        _hasPointerDownOutside = false;
         args.PreventDefault();
+    }
+
+    private async Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)
+    {
+        if (OnPointerDownOutside.HasDelegate)
+            await OnPointerDownOutside.InvokeAsync();
+
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(args);
     }
 
     private async Task HandleInteractOutside(BradixInteractOutsideEventArgs args)
@@ -175,7 +186,14 @@
             await OnInteractOutsideDetailed.InvokeAsync(args);
 
         if (!args.DefaultPrevented && (DropdownMenu?.Modal == false || IsRightClick(args.PointerDownOutsideEvent)))
+        {
             _hasInteractedOutside = true;
+            if (args.OriginalEventType == "pointerdown")
+                _hasPointerDownOutside = true;
+        }
+
+        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside)
+            args.PreventDefault();
     }
 
     private static bool IsRightClick(BradixDelegatedMouseEvent? args)

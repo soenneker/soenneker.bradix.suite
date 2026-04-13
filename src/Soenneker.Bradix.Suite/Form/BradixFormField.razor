@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixFormField
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     <div @attributes="FieldAttributes">
         @ChildContent
@@ -36,7 +36,7 @@
 
     protected override void OnInitialized()
     {
-        AutoId ??= IdGenerator.New("bradix-form-field");
+        AutoId ??= BlazorIdGenerator.New("bradix-form-field");
     }
 
     private Dictionary<string, object> FieldAttributes => BuildAttributes(

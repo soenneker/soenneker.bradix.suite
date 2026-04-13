@@ -17,8 +17,6 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
-
-        Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }

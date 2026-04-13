@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixDropdownMenu
 
-@inject IBradixIdGenerator IdGenerator
 <BradixMenu Open="@CurrentOpen"
             OpenChanged="HandleMenuOpenChanged"
             Dir="@Dir"
@@ -43,13 +43,15 @@
 
     public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    public string TriggerId => $"{BaseId}-trigger";
+    public string TriggerId => BlazorIdGenerator.Child(BaseId!, "trigger");
 
-    public string ContentId => string.IsNullOrWhiteSpace(ContentIdOverride) ? $"{BaseId}-content" : ContentIdOverride;
+    public string ContentId => string.IsNullOrWhiteSpace(ContentIdOverride)
+        ? BlazorIdGenerator.Child(BaseId!, "content")
+        : ContentIdOverride;
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-dropdown-menu");
+        BaseId ??= BlazorIdGenerator.New("bradix-dropdown-menu");
     }
 
     protected override void OnParametersSet()

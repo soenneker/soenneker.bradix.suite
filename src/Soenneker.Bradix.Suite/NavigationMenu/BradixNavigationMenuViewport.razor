@@ -2,6 +2,7 @@
 
 @using System.Globalization
 @using Microsoft.JSInterop
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
@@ -61,7 +62,7 @@
 
     private string ResolvedViewportId =>
         string.IsNullOrWhiteSpace(Id)
-            ? $"{NavigationMenu?.BaseId}-viewport"
+            ? BlazorIdGenerator.Child(NavigationMenu!.BaseId!, "viewport")
             : Id;
 
     private IReadOnlyDictionary<string, object> ViewportAttributes

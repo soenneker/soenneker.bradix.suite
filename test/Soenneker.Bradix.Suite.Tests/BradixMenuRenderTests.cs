@@ -48,7 +48,6 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
-        Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
     }
 
     [Fact]

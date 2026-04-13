@@ -7,6 +7,16 @@ let originalBodyOverflow = "";
 let originalBodyPaddingRight = "";
 let originalDocumentTouchAction = "";
 
+function invokeDotNetSafely(dotNetRef, methodName, ...args) {
+  try {
+    const invocation = dotNetRef?.invokeMethodAsync?.(methodName, ...args);
+    if (invocation && typeof invocation.catch === "function") {
+      invocation.catch(() => {});
+    }
+  } catch {
+  }
+}
+
 export function registerPresence(element, dotNetRef) {
   if (!element) {
     return;
@@ -16,13 +26,13 @@ export function registerPresence(element, dotNetRef) {
 
   const handleAnimationStart = (event) => {
     if (event.target === element) {
-      dotNetRef.invokeMethodAsync("HandleAnimationStart", event.animationName || "none", getComputedStyle(element).animationName || "none");
+      invokeDotNetSafely(dotNetRef, "HandleAnimationStart", event.animationName || "none", getComputedStyle(element).animationName || "none");
     }
   };
 
   const handleAnimationEnd = (event) => {
     if (event.target === element) {
-      dotNetRef.invokeMethodAsync("HandleAnimationEnd", event.animationName || "none", getComputedStyle(element).animationName || "none");
+      invokeDotNetSafely(dotNetRef, "HandleAnimationEnd", event.animationName || "none", getComputedStyle(element).animationName || "none");
     }
   };
 

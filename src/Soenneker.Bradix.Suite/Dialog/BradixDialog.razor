@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixDialog
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     @ChildContent
 </CascadingValue>
@@ -32,10 +32,10 @@
 
     public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    public string ContentId => $"{BaseId}-content";
-    public string TitleId => $"{BaseId}-title";
-    public string DescriptionId => $"{BaseId}-description";
-    public string DefaultTriggerId => $"{BaseId}-trigger";
+    public string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
+    public string TitleId => BlazorIdGenerator.Child(BaseId!, "title");
+    public string DescriptionId => BlazorIdGenerator.Child(BaseId!, "description");
+    public string DefaultTriggerId => BlazorIdGenerator.Child(BaseId!, "trigger");
     public string? RegisteredTitleId { get; private set; }
     public string? RegisteredDescriptionId { get; private set; }
 
@@ -45,7 +45,7 @@
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-dialog");
+        BaseId ??= BlazorIdGenerator.New("bradix-dialog");
     }
 
     protected override void OnParametersSet()

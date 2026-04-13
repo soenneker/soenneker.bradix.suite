@@ -20,8 +20,6 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
-
-        Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }

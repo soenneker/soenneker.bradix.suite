@@ -1,12 +1,12 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixRadioGroupItem
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <CascadingValue Value="this">
     <button @ref="_element"
@@ -112,7 +112,7 @@
 
     protected override void OnInitialized()
     {
-        TabStopId ??= IdGenerator.New("bradix-radio-group-item");
+        TabStopId ??= BlazorIdGenerator.New("bradix-radio-group-item");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

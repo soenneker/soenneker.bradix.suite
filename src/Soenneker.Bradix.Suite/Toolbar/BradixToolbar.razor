@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixToolbar
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     <div @attributes="RootAttributes">
         @ChildContent
@@ -39,7 +39,7 @@
 
     protected override void OnInitialized()
     {
-        GroupId = IdGenerator.New("bradix-toolbar");
+        GroupId = BlazorIdGenerator.New("bradix-toolbar");
     }
 
     protected override void OnParametersSet()

@@ -9,7 +9,8 @@
 @inject IBradixSuiteInterop Interop
 <BradixMenuAnchor>
     <button @ref="_button"
-            @onclick="HandleClick"
+            @onpointerdown="HandlePointerDown"
+            @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
             @onpointerenter="HandlePointerEnter"
             @onkeydown="HandleKeyDown"
             @onfocus="HandleFocus"
@@ -48,6 +49,7 @@
     bool IBradixMenubarTriggerEntry.Disabled => Disabled;
 
     private bool IsOpen => MenubarMenu?.IsOpen == true;
+    private bool PreventTriggerFocusOnOpen => !Disabled && !IsOpen;
 
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
         ("type", "button"),
@@ -99,7 +101,7 @@
 
     ValueTask IBradixMenubarTriggerEntry.Focus() => _button.FocusAsync();
 
-    private Task HandleClick(MouseEventArgs args)
+    private Task HandlePointerDown(PointerEventArgs args)
     {
         if (Disabled || Menubar is null || MenubarMenu is null || args.Button != 0 || args.CtrlKey)
             return Task.CompletedTask;

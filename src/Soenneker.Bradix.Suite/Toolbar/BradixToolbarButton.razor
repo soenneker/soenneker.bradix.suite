@@ -1,13 +1,13 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixToolbarRovingItem
 @implements IBradixToolbarButton
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <button @ref="_element"
         @onmousedown="HandleMouseDown"
@@ -46,7 +46,7 @@
 
     protected override void OnInitialized()
     {
-        TabStopId ??= IdGenerator.New("bradix-toolbar-button");
+        TabStopId ??= BlazorIdGenerator.New("bradix-toolbar-button");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

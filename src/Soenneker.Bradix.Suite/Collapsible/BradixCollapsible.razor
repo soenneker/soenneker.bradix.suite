@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixCollapsible
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     <div @attributes="RootAttributes">
         @ChildContent
@@ -31,11 +31,11 @@
     [Parameter]
     public EventCallback<bool> OnOpenChange { get; set; }
 
-    public string BaseId => Id.HasContent() ? Id! : _generatedBaseId ??= IdGenerator.New("bradix-collapsible");
+    public string BaseId => Id.HasContent() ? Id! : _generatedBaseId ??= BlazorIdGenerator.New("bradix-collapsible");
 
-    public string TriggerId => $"{BaseId}-trigger";
+    public string TriggerId => BlazorIdGenerator.Child(BaseId, "trigger");
 
-    public string ContentId => $"{BaseId}-content";
+    public string ContentId => BlazorIdGenerator.Child(BaseId, "content");
 
     public bool IsOpen => Open ?? _uncontrolledOpen;
 

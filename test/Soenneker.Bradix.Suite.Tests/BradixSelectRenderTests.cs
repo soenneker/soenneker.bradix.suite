@@ -59,7 +59,6 @@ public sealed class BradixSelectRenderTests : BunitContext
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
-        Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
     }
 
     [Fact]
@@ -152,6 +151,27 @@ public sealed class BradixSelectRenderTests : BunitContext
         cut.WaitForAssertion(() =>
         {
             Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
+        });
+    }
+
+    [Fact]
+    public async Task Open_select_registers_focus_guards_and_remove_scroll()
+    {
+        var cut = Render(CreateSelect());
+        var trigger = cut.FindComponent<BradixSelectTrigger>();
+
+        await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
+        {
+            Button = 0,
+            PageX = 12,
+            PageY = 24,
+            PointerType = "mouse"
+        }));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerFocusGuards");
+            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
         });
     }
 
@@ -287,7 +307,9 @@ public sealed class BradixSelectRenderTests : BunitContext
         {
             var positionWrapper = cut.Find("[data-radix-select-position='item-aligned']");
             var group = cut.Find("[role='group']");
-            var label = cut.Find("div[id^='bradix-select-group-label']");
+            string? labelId = group.GetAttribute("aria-labelledby");
+            Assert.False(string.IsNullOrWhiteSpace(labelId));
+            var label = cut.Find($"#{labelId}");
 
             Assert.NotNull(positionWrapper);
             Assert.Equal(label.Id, group.GetAttribute("aria-labelledby"));

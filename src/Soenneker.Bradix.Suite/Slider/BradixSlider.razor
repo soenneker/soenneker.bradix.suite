@@ -254,9 +254,27 @@
     }
 
     [JSInvokable]
-    public Task HandlePointerCancel()
+    public async Task HandlePointerCancel()
     {
-        return Task.CompletedTask;
+        if (Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
+            return;
+
+        if (_valuesBeforeSlideStart.SequenceEqual(CurrentValues))
+            return;
+
+        IReadOnlyList<double> restoredValues = _valuesBeforeSlideStart.ToArray();
+
+        if (Values is null)
+            _uncontrolledValues = restoredValues.ToList();
+
+        if (ValuesChanged.HasDelegate)
+            await ValuesChanged.InvokeAsync(restoredValues);
+
+        if (OnValuesChange.HasDelegate)
+            await OnValuesChange.InvokeAsync(restoredValues);
+
+        await InvokeAsync(StateHasChanged);
+        await FocusThumb(CurrentThumbIndex);
     }
 
     private async Task UpdateValue(double value, int atIndex, bool commit)

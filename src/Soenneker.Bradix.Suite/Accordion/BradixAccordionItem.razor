@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixAccordionItem
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     <BradixCollapsible Id="@Id"
                        Class="@Class"
@@ -35,7 +35,7 @@
 
     protected override void OnInitialized()
     {
-        TriggerId ??= IdGenerator.New("bradix-accordion-trigger");
+        TriggerId ??= BlazorIdGenerator.New("bradix-accordion-trigger");
     }
 
     private IReadOnlyDictionary<string, object> ItemAttributes

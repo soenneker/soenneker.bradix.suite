@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixTabs
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     <div @attributes="RootAttributes">
         @ChildContent
@@ -56,7 +56,7 @@
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-tabs");
+        BaseId ??= BlazorIdGenerator.New("bradix-tabs");
     }
 
     protected override void OnParametersSet()
@@ -72,9 +72,11 @@
         EnsureCurrentTabStopId();
     }
 
-    internal string MakeTriggerId(string value) => $"{BaseId}-trigger-{value}";
+    internal string MakeTriggerId(string value) =>
+        BlazorIdGenerator.Child(BlazorIdGenerator.Child(BaseId!, "trigger"), value);
 
-    internal string MakeContentId(string value) => $"{BaseId}-content-{value}";
+    internal string MakeContentId(string value) =>
+        BlazorIdGenerator.Child(BlazorIdGenerator.Child(BaseId!, "content"), value);
 
     internal void RegisterTrigger(BradixTabsTrigger trigger)
     {

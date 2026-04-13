@@ -84,13 +84,11 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     const sortedCandidates = getSortedCandidates(backwards);
     const index = sortedCandidates.findIndex((candidate) => candidate === document.activeElement);
     const nextCandidates = sortedCandidates.slice(index + 1);
-    const previous = document.activeElement;
-    focusFirst(nextCandidates, false);
-    if (document.activeElement === previous) {
+    if (focusFirst(nextCandidates, false)) {
+      event.preventDefault();
+    } else {
       focusElement(backwards ? resolvedHeadProxy : resolvedTailProxy, false);
     }
-
-    event.preventDefault();
   };
   const headFocus = (event) => {
     if (!viewport.contains(event.relatedTarget)) {

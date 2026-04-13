@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixRadioGroup
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     <div @attributes="RootAttributes">
         @ChildContent
@@ -67,7 +67,7 @@
 
     protected override void OnInitialized()
     {
-        GroupId = IdGenerator.New("bradix-radio-group");
+        GroupId = BlazorIdGenerator.New("bradix-radio-group");
     }
 
     protected override void OnParametersSet()

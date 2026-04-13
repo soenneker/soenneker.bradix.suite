@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixSelectGroup
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="_context">
     <div role="group"
          aria-labelledby="@_context.LabelId"
@@ -16,8 +16,13 @@
 @code {
     private readonly BradixSelectGroupContext _context = new();
 
+    [CascadingParameter]
+    private BradixSelect? Select { get; set; }
+
     protected override void OnInitialized()
     {
-        _context.RegisterLabelId(IdGenerator.New("bradix-select-group-label"));
+        _context.RegisterLabelId(Select?.BaseId is string bid
+            ? BlazorIdGenerator.Child(bid, "group-label")
+            : BlazorIdGenerator.New("bradix-select-group-label"));
     }
 }

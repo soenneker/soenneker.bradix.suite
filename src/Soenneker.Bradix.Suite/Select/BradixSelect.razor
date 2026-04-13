@@ -1,12 +1,12 @@
 @namespace Soenneker.Bradix
 
 @using System.Linq
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixSelect
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <BradixPopper>
     <CascadingValue Value="this">
@@ -106,7 +106,7 @@
 
     internal bool HasActiveTypeahead => !string.IsNullOrEmpty(_typeahead.CurrentSearch);
 
-    internal string ContentId => $"{BaseId}-content";
+    internal string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
 
     internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
 
@@ -162,7 +162,7 @@
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-select");
+        BaseId ??= BlazorIdGenerator.New("bradix-select");
     }
 
     protected override void OnParametersSet()

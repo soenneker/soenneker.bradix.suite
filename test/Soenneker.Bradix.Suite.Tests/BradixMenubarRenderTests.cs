@@ -46,7 +46,6 @@ public sealed class BradixMenubarRenderTests : BunitContext
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
-        Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
     }
 
     [Fact]
@@ -57,6 +56,26 @@ public sealed class BradixMenubarRenderTests : BunitContext
         string closedControls = Assert.IsType<string>(triggers[0].GetAttribute("aria-controls"));
 
         triggers[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+
+        cut.WaitForAssertion(() =>
+        {
+            var updatedTriggers = cut.FindAll("button[role='menuitem']");
+            var menu = cut.Find("[role='menu']");
+            Assert.Equal("true", updatedTriggers[0].GetAttribute("aria-expanded"));
+            Assert.Equal(closedControls, updatedTriggers[0].GetAttribute("aria-controls"));
+            Assert.Equal(menu.Id, updatedTriggers[0].GetAttribute("aria-controls"));
+            Assert.Equal(updatedTriggers[0].Id, menu.GetAttribute("aria-labelledby"));
+        });
+    }
+
+    [Fact]
+    public void Pointer_down_on_trigger_opens_associated_menu()
+    {
+        var cut = Render(CreateMenubar());
+        var triggers = cut.FindAll("button[role='menuitem']");
+        string closedControls = Assert.IsType<string>(triggers[0].GetAttribute("aria-controls"));
+
+        triggers[0].TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0 });
 
         cut.WaitForAssertion(() =>
         {

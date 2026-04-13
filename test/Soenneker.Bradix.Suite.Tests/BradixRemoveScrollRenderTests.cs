@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,5 +55,23 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
             invocation.Arguments.Count > 0 &&
             invocation.Arguments[0] is bool allowPinchZoom &&
             allowPinchZoom);
+    }
+
+    [Fact]
+    public async Task Remove_scroll_unregisters_interop_on_dispose()
+    {
+        var cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixRemoveScroll>(0);
+            builder.CloseComponent();
+        });
+
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
+
+        await cut.InvokeAsync(() => cut.FindComponent<BradixRemoveScroll>().Instance.DisposeAsync().AsTask());
+
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "unregisterRemoveScroll");
+        Assert.Equal(1, _module.Invocations.Count(invocation => invocation.Identifier == "registerRemoveScroll"));
+        Assert.Equal(1, _module.Invocations.Count(invocation => invocation.Identifier == "unregisterRemoveScroll"));
     }
 }

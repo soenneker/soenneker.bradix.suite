@@ -110,7 +110,7 @@ public sealed class BradixSliderRenderTests : BunitContext
         await slider.Instance.HandlePointerCancel();
 
         Assert.Equal(0, commitCount);
-        Assert.Equal("80", cut.Find("[role='slider']").GetAttribute("aria-valuenow"));
+        Assert.Equal("20", cut.Find("[role='slider']").GetAttribute("aria-valuenow"));
     }
 
     [Fact]

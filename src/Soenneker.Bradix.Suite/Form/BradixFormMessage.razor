@@ -2,9 +2,8 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixFormMessage
-
-@inject IBradixIdGenerator IdGenerator
 
 @if (ShouldDisplay)
 {
@@ -68,7 +67,9 @@
 
     protected override void OnInitialized()
     {
-        AutoId ??= IdGenerator.New("bradix-form-message");
+        AutoId ??= Field is not null && !string.IsNullOrEmpty(Field.FieldId)
+            ? BlazorIdGenerator.Child(Field.FieldId, "message")
+            : BlazorIdGenerator.New("bradix-form-message");
     }
 
     protected override void OnParametersSet()

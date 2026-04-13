@@ -9,14 +9,14 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixToolbarRenderTests : BunitContext
 {
+    private readonly BunitJSModuleInterop _module;
+
     public BradixToolbarRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("registerRovingFocusNavigationKeys", _ => true);
-        module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true);
-        module.SetupVoid("clickElement", _ => true);
-
-        Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
+        _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true);
+        _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true);
+        _module.SetupVoid("clickElement", _ => true);
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
@@ -79,6 +79,17 @@ public sealed class BradixToolbarRenderTests : BunitContext
         buttons = cut.FindAll("button");
 
         Assert.Equal("0", buttons[1].GetAttribute("tabindex"));
+    }
+
+    [Fact]
+    public void Toolbar_link_space_key_invokes_click_interop()
+    {
+        var cut = Render(CreateToolbar());
+
+        var link = cut.Find("a");
+        link.KeyDown(new KeyboardEventArgs { Key = " " });
+
+        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "clickElement");
     }
 
     private static RenderFragment CreateToolbar()

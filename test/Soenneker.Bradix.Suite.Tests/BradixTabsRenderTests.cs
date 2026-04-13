@@ -20,8 +20,6 @@ public sealed class BradixTabsRenderTests : BunitContext
         module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
-
-        Services.AddScoped<IBradixIdGenerator, BradixIdGenerator>();
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
@@ -86,7 +84,7 @@ public sealed class BradixTabsRenderTests : BunitContext
         var tab2Panel = cut.Find("#" + cut.FindAll("button")[1].GetAttribute("aria-controls"));
 
         Assert.False(tab2Panel.HasAttribute("hidden"));
-        Assert.Equal("-1", tab2Panel.GetAttribute("tabindex"));
+        Assert.Equal("0", tab2Panel.GetAttribute("tabindex"));
         Assert.Contains("Content 2", tab2Panel.TextContent);
     }
 

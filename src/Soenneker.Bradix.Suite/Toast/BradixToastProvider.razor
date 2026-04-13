@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixToastProvider
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     @ChildContent
 </CascadingValue>
@@ -34,7 +34,7 @@
 
     protected override void OnInitialized()
     {
-        ViewportId ??= IdGenerator.New("bradix-toast-viewport");
+        ViewportId ??= BlazorIdGenerator.New("bradix-toast-viewport");
     }
 
     protected override void OnParametersSet()

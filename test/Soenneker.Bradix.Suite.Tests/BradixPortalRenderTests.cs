@@ -1,4 +1,5 @@
 using Bunit;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,6 +55,18 @@ public sealed class BradixPortalRenderTests : BunitContext
         {
             Assert.Single(_module.Invocations, invocation => invocation.Identifier == "mountPortal");
         });
+    }
+
+    [Fact]
+    public async Task Portal_unmounts_when_disposed()
+    {
+        var cut = Render(CreatePortal());
+
+        Assert.Single(_module.Invocations, invocation => invocation.Identifier == "mountPortal");
+
+        await cut.InvokeAsync(() => cut.FindComponent<BradixPortal>().Instance.DisposeAsync().AsTask());
+
+        Assert.Single(_module.Invocations, invocation => invocation.Identifier == "unmountPortal");
     }
 
     private static RenderFragment CreatePortal(string? containerSelector = null)

@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixNavigationMenuItem
 
-@inject IBradixIdGenerator IdGenerator
 <CascadingValue Value="this">
     <li @attributes="ItemAttributes">
         @ChildContent
@@ -30,7 +30,7 @@
 
     protected override void OnInitialized()
     {
-        AutoValue ??= IdGenerator.New("bradix-navigation-menu-item");
+        AutoValue ??= BlazorIdGenerator.New("bradix-navigation-menu-item");
     }
 
     private Dictionary<string, object> ItemAttributes => BuildAttributes();

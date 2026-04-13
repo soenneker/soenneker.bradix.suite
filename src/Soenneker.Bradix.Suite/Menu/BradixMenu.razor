@@ -1,12 +1,12 @@
 @namespace Soenneker.Bradix
 
 @using System.Linq
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixMenu
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <BradixPopper @ref="_popper">
     <CascadingValue Name="BradixMenuRoot" Value="RootMenu">
@@ -54,7 +54,7 @@
 
     internal bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    internal string ContentId => $"{BaseId}-content";
+    internal string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
 
     internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
 
@@ -74,7 +74,7 @@
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-menu");
+        BaseId ??= BlazorIdGenerator.New("bradix-menu");
     }
 
     protected override async Task OnParametersSetAsync()

@@ -2,9 +2,9 @@
 
 @inherits BradixComponent
 
+@using Soenneker.Blazor.Utils.Ids
 @implements IBradixMenuSub
 
-@inject IBradixIdGenerator IdGenerator
 <BradixMenu Open="@Open"
             DefaultOpen="DefaultOpen"
             OpenChanged="HandleOpenChanged"
@@ -36,13 +36,13 @@
 
     public string? BaseId { get; private set; }
 
-    internal string TriggerId => $"{BaseId}-trigger";
+    internal string TriggerId => BlazorIdGenerator.Child(BaseId!, "trigger");
 
-    internal string ContentId => $"{BaseId}-content";
+    internal string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
 
     protected override void OnInitialized()
     {
-        BaseId ??= IdGenerator.New("bradix-menu-sub");
+        BaseId ??= BlazorIdGenerator.New("bradix-menu-sub");
     }
 
     private Task HandleOpenChanged(bool open)

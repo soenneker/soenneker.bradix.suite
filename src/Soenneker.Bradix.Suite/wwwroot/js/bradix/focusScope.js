@@ -10,6 +10,18 @@ import {
 const focusScopeHandlers = new WeakMap();
 const focusScopeStack = [];
 
+function invokeDotNetSafely(dotNetRef, methodName, fallbackValue, ...args) {
+  try {
+    const invocation = dotNetRef?.invokeMethodAsync?.(methodName, ...args);
+    if (invocation && typeof invocation.then === "function") {
+      return invocation.catch(() => fallbackValue);
+    }
+    return Promise.resolve(invocation ?? fallbackValue);
+  } catch {
+    return Promise.resolve(fallbackValue);
+  }
+}
+
 function addFocusScopeToStack(scope) {
   const active = focusScopeStack[0];
   if (active && active !== scope) {
@@ -136,12 +148,19 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
   scope.element.addEventListener("keydown", keydown);
   mutationObserver.observe(scope.element, { childList: true, subtree: true });
 
+  const handlers = { scope, focusin, focusout, keydown, mutationObserver };
+  focusScopeHandlers.set(element, handlers);
+
   addFocusScopeToStack(scope);
 
   const previous = scope.previouslyFocusedElement;
   const hasFocusedCandidate = previous && scope.element.contains(previous);
   if (!hasFocusedCandidate) {
-    const mountAutoFocusPrevented = await dotNetRef.invokeMethodAsync("HandleMountAutoFocus");
+    const mountAutoFocusPrevented = await invokeDotNetSafely(dotNetRef, "HandleMountAutoFocus", false);
+    if (focusScopeHandlers.get(element) !== handlers) {
+      return;
+    }
+
     if (!scope.preventMountAutoFocus && !mountAutoFocusPrevented) {
       focusFirst(removeLinks(getTabbableCandidates(scope.element)), true);
       if (document.activeElement === previous) {
@@ -149,8 +168,6 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
       }
     }
   }
-
-  focusScopeHandlers.set(element, { scope, focusin, focusout, keydown, mutationObserver });
 }
 
 export function updateFocusScope(element, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus) {

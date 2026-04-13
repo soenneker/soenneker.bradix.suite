@@ -1,6 +1,7 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
@@ -60,7 +61,7 @@
         ("disabled", Disabled ? true : null),
         ("data-disabled", Disabled ? string.Empty : null),
         ("data-state", IsOpen ? "open" : "closed"),
-        ("data-bradix-roving-group", NavigationMenu is not null ? $"{NavigationMenu.BaseId}-triggers" : null),
+        ("data-bradix-roving-group", NavigationMenu is not null ? BlazorIdGenerator.Child(NavigationMenu.BaseId!, "triggers") : null),
         ("data-bradix-roving-item", string.Empty),
         ("data-bradix-roving-item-id", Item?.ResolvedValue),
         ("data-bradix-roving-orientation", NavigationMenu?.Orientation?.Value),

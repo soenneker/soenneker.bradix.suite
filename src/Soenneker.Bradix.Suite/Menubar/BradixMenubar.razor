@@ -2,12 +2,12 @@
 
 @using Microsoft.JSInterop
 @using System.Linq
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixMenubar
 
-@inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
 <CascadingValue Value="this">
     <div @ref="_element"
@@ -63,7 +63,7 @@
 
     protected override void OnInitialized()
     {
-        MenubarId = IdGenerator.New("bradix-menubar");
+        MenubarId = BlazorIdGenerator.New("bradix-menubar");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

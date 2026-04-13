@@ -12,7 +12,6 @@ public static class BradixSuiteRegistrar
     public static IServiceCollection AddBradixSuiteAsScoped(this IServiceCollection services)
     {
         services.AddModuleImportUtilAsScoped();
-        services.TryAddScoped<IBradixIdGenerator, BradixIdGenerator>();
         services.TryAddScoped<IBradixSuiteInterop, BradixSuiteInterop>();
 
         return services;
