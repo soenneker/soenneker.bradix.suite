@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Soenneker.Playwrights.Session;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwright.Tests;
@@ -21,7 +22,7 @@ public sealed class BradixDemoCatalogPlaywrightTests : FixturedUnitTest
     {
         DemoPageSpec spec = DemoPageSpecs.Get(route);
 
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, spec);

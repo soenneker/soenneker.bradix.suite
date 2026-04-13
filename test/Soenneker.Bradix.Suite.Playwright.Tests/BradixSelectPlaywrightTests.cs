@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Soenneker.Playwrights.Session;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwright.Tests;
@@ -18,7 +19,7 @@ public sealed class BradixSelectPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Select_demo_opens_options_and_updates_current_selection()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.GotoAndWaitForReadyAsync(

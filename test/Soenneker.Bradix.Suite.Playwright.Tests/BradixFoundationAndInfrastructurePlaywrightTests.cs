@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Soenneker.Playwrights.Session;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwright.Tests;
@@ -18,7 +19,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Accessible_icon_demo_exposes_accessible_name_and_toggles_state()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/accessible-icon"));
@@ -34,7 +35,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Collection_demo_updates_active_match_and_respects_reordering()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/collection"));
@@ -56,7 +57,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Label_demo_focuses_input_when_label_is_clicked()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/label"));
@@ -70,7 +71,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Portal_demo_reparents_content_outside_docs_content()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/portal"));
@@ -82,7 +83,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Presence_demo_runs_exit_completion_when_toggled_closed()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/presence"));
@@ -96,7 +97,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Slot_demo_merges_child_attributes_into_target_element()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/slot"));
@@ -111,7 +112,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Visually_hidden_demo_preserves_accessible_name_for_icon_button()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/visually-hidden"));
@@ -122,7 +123,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Dismissable_layer_demo_dismisses_on_outside_click()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/dismissable-layer"));
@@ -142,7 +143,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Focus_scope_demo_loops_focus_back_to_first_item()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/focus-scope"));
@@ -159,7 +160,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Popper_demo_reports_initial_placement()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/popper"));
@@ -170,7 +171,7 @@ public sealed class BradixFoundationAndInfrastructurePlaywrightTests : FixturedU
     [Fact]
     public async Task Remove_scroll_demo_mount_toggle_shows_and_hides_locked_surface()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/remove-scroll"));

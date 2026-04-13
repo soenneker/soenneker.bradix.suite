@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Soenneker.Playwrights.Session;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwright.Tests;
@@ -18,7 +19,7 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Context_menu_demo_opens_from_right_click_and_reveals_submenu()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/context-menu"));
@@ -36,7 +37,7 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Dropdown_menu_demo_opens_and_reveals_submenu_items()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/dropdown-menu"));
@@ -51,7 +52,7 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Menubar_demo_allows_radio_selection_changes()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/menubar"));
@@ -67,7 +68,7 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Menubar_demo_closes_from_single_outside_click()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/menubar"));
@@ -85,7 +86,7 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Menu_demo_updates_selection_from_modal_submenu_item()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/menu"));
@@ -108,7 +109,7 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Navigation_menu_demo_switches_visible_content_between_triggers()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/navigation-menu"));
@@ -130,7 +131,7 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Scroll_area_demo_allows_viewport_scrolling()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/scroll-area"));
@@ -143,7 +144,7 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Tabs_demo_switches_visible_panel_content()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/tabs"));
@@ -158,7 +159,7 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Toolbar_demo_updates_pressed_states_for_toggle_groups()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/toolbar"));

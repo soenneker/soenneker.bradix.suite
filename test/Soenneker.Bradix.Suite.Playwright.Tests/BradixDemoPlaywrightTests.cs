@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Soenneker.Playwrights.Session;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwright.Tests;
@@ -18,7 +19,7 @@ public sealed class BradixDemoPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Overview_page_loads_and_lists_core_demo_links()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.GotoAndWaitForReadyAsync(
@@ -34,7 +35,7 @@ public sealed class BradixDemoPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Dialog_demo_saves_updated_project_details()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.GotoAndWaitForReadyAsync(

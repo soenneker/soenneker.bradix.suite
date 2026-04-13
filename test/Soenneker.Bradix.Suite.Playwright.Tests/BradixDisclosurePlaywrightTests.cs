@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Soenneker.Playwrights.Session;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwright.Tests;
@@ -18,7 +19,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Accordion_demo_switches_visible_content_between_items()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/accordion"));
@@ -37,7 +38,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Alert_dialog_demo_opens_and_closes_from_cancel()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/alert-dialog"));
@@ -53,7 +54,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Collapsible_demo_reveals_additional_repositories_when_opened()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/collapsible"));
@@ -71,7 +72,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Dialog_demo_close_discards_unsaved_changes()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/dialog"));
@@ -87,7 +88,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Hover_card_demo_shows_profile_details_on_hover()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/hover-card"));
@@ -101,7 +102,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Popover_demo_opens_and_closes_from_close_button()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/popover"));
@@ -117,7 +118,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Toast_demo_shows_scheduled_notification()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/toast"));
@@ -131,7 +132,7 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Tooltip_demo_reveals_content_on_hover()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/tooltip"));

@@ -10,9 +10,11 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Soenneker.Playwrights.Session;
+using Soenneker.Utils.Network.Abstract;
+using Soenneker.Utils.Network.Registrars;
 
 namespace Soenneker.Bradix.Suite.Playwright.Tests;
 
@@ -27,11 +29,11 @@ public sealed class Fixture : UnitFixture
     private IPlaywright? _playwright;
     private IBrowser? _browser;
 
-    public string BaseUrl { get; }
+    public string BaseUrl { get; set;  }
 
     public Fixture()
     {
-        BaseUrl = $"http://127.0.0.1:{GetFreePort()}/";
+
         _demoProjectPath = ResolveDemoProjectPath();
     }
 
@@ -44,14 +46,18 @@ public sealed class Fixture : UnitFixture
         if (ServiceProvider is null)
             throw new InvalidOperationException("Service provider was not initialized.");
 
+        var networkUtil = ServiceProvider.GetRequiredService<INetworkUtil>();
+
+        BaseUrl = $"http://127.0.0.1:{networkUtil.GetFreePort()}/";
+
         var playwrightInstallationUtil = ServiceProvider.GetRequiredService<IPlaywrightInstallationUtil>();
 
         await playwrightInstallationUtil.EnsureInstalled();
 
         _playwright = await Microsoft.Playwright.Playwright.CreateAsync();
-        _browser = await LaunchBrowserAsync(ServiceProvider.GetRequiredService<IConfiguration>());
+        _browser = await LaunchBrowser(ServiceProvider.GetRequiredService<IConfiguration>());
 
-        await StartDemoAsync();
+        await StartDemo();
     }
 
     private static void SetupIoC(IServiceCollection services)
@@ -62,12 +68,13 @@ public sealed class Fixture : UnitFixture
         });
 
         services.AddPlaywrightInstallationUtilAsSingleton();
+        services.AddNetworkUtilAsSingleton();
 
         IConfiguration config = TestUtil.BuildConfig();
         services.AddSingleton(config);
     }
 
-    private async Task<IBrowser> LaunchBrowserAsync(IConfiguration configuration)
+    private async Task<IBrowser> LaunchBrowser(IConfiguration configuration)
     {
         if (_playwright is null)
             throw new InvalidOperationException("Playwright has not been initialized.");
@@ -88,7 +95,7 @@ public sealed class Fixture : UnitFixture
         };
     }
 
-    public async Task<BrowserSession> CreateSessionAsync()
+    public async Task<BrowserSession> CreateSession()
     {
         if (_browser is null)
             throw new InvalidOperationException("Browser has not been initialized.");
@@ -145,7 +152,7 @@ public sealed class Fixture : UnitFixture
             throw disposalException;
     }
 
-    private async Task StartDemoAsync()
+    private async Task StartDemo()
     {
         string trimmedBaseUrl = BaseUrl.TrimEnd('/');
 
@@ -175,10 +182,10 @@ public sealed class Fixture : UnitFixture
         _demoProcess.BeginOutputReadLine();
         _demoProcess.BeginErrorReadLine();
 
-        await WaitForDemoReadyAsync();
+        await WaitForDemoReady();
     }
 
-    private async Task WaitForDemoReadyAsync()
+    private async Task WaitForDemoReady()
     {
         for (var attempt = 0; attempt < 120; attempt++)
         {
@@ -259,38 +266,5 @@ public sealed class Fixture : UnitFixture
         }
 
         throw new DirectoryNotFoundException("Could not locate the Bradix suite root.");
-    }
-
-    private static int GetFreePort()
-    {
-        var listener = new TcpListener(System.Net.IPAddress.Loopback, 0);
-        listener.Start();
-
-        try
-        {
-            return ((System.Net.IPEndPoint) listener.LocalEndpoint).Port;
-        }
-        finally
-        {
-            listener.Stop();
-        }
-    }
-}
-
-public sealed class BrowserSession : IAsyncDisposable
-{
-    private readonly IBrowserContext _context;
-
-    public BrowserSession(IBrowserContext context, IPage page)
-    {
-        _context = context;
-        Page = page;
-    }
-
-    public IPage Page { get; }
-
-    public ValueTask DisposeAsync()
-    {
-        return _context.DisposeAsync();
     }
 }

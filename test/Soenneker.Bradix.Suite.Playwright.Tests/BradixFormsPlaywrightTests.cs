@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using Soenneker.Tests.FixturedUnit;
 using System.Threading.Tasks;
+using Soenneker.Playwrights.Session;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwright.Tests;
@@ -18,7 +19,7 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Checkbox_demo_is_checked_by_default_and_can_toggle()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/checkbox"));
@@ -34,7 +35,7 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Form_demo_surfaces_required_and_type_mismatch_messages()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/form"));
@@ -56,7 +57,7 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task One_time_password_demo_distributes_typed_digits_across_slots()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/one-time-password-field"));
@@ -76,7 +77,7 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Progress_demo_exposes_current_value()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/progress"));
@@ -87,7 +88,7 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Radio_group_demo_changes_selected_density()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/radio-group"));
@@ -105,7 +106,7 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Slider_demo_updates_value_from_keyboard_input()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/slider"));
@@ -122,7 +123,7 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Switch_demo_toggles_checked_state()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/switch"));
@@ -138,7 +139,7 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Toggle_demo_updates_pressed_state()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/toggle"));
@@ -154,7 +155,7 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Toggle_group_demo_enforces_single_selection()
     {
-        await using BrowserSession session = await _fixture.CreateSessionAsync();
+        await using BrowserSession session = await _fixture.CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPageAsync(_fixture, DemoPageSpecs.Get("/toggle-group"));
