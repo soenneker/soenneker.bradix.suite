@@ -180,12 +180,12 @@
         _typeahead.Reset();
     }
 
-    internal void SetFocusFirstItemOnOpen(bool value)
+    public void SetFocusFirstItemOnOpen(bool value)
     {
         _focusFirstItemOnOpen = value;
     }
 
-    internal void SetFocusContentOnOpen(bool value)
+    public void SetFocusContentOnOpen(bool value)
     {
         _focusContentOnOpen = value;
     }
@@ -226,7 +226,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    internal void RegisterTrigger(ElementReference element)
+    public void RegisterTrigger(ElementReference element)
     {
         TriggerElement = element;
         HasTrigger = true;
@@ -252,7 +252,7 @@
         HasContentElement = false;
     }
 
-    internal async Task FocusTrigger()
+    public async Task FocusTrigger()
     {
         if (!HasTrigger)
             return;
@@ -271,7 +271,7 @@
         _popper?.RegisterVirtualAnchor(x, y);
     }
 
-    internal async Task SetOpen(bool open)
+    public async Task SetOpen(bool open)
     {
         if (CurrentOpen == open)
             return;
@@ -298,7 +298,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    internal Task ToggleOpen()
+    public Task ToggleOpen()
     {
         return SetOpen(!CurrentOpen);
     }

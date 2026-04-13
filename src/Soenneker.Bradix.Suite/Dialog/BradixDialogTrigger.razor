@@ -24,6 +24,9 @@
     [Parameter]
     public bool Disabled { get; set; }
 
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
     private string ResolvedTriggerId => string.IsNullOrWhiteSpace(Id) ? Dialog?.DefaultTriggerId ?? string.Empty : Id;
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
@@ -56,11 +59,13 @@
         return;
     }
 
-    private Task HandleClick()
+    private async Task HandleClick()
     {
-        return Disabled || Dialog is null || _delegatedInteractionReady
-            ? Task.CompletedTask
-            : Dialog.ToggleOpen();
+        if (!Disabled && Dialog is not null && !_delegatedInteractionReady)
+            await Dialog.ToggleOpen();
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync();
     }
 
     public async ValueTask DisposeAsync()
@@ -77,8 +82,24 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
+    public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
     {
-        return Disabled || Dialog is null ? Task.CompletedTask : Dialog.ToggleOpen();
+        if (!Disabled && Dialog is not null)
+            await Dialog.ToggleOpen();
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(new MouseEventArgs
+            {
+                Detail = args.Detail,
+                Button = args.Button,
+                CtrlKey = args.CtrlKey,
+                ShiftKey = args.ShiftKey,
+                AltKey = args.AltKey,
+                MetaKey = args.MetaKey,
+                PageX = args.PageX,
+                PageY = args.PageY
+            });
+        }
     }
 }

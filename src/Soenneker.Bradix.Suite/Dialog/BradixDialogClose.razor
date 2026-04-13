@@ -27,6 +27,9 @@
     [Parameter]
     public string? AriaLabel { get; set; } = "Close";
 
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
         ("aria-label", AriaLabel));
@@ -51,11 +54,13 @@
         });
     }
 
-    private Task HandleClick()
+    private async Task HandleClick()
     {
-        return Dialog is null || _delegatedInteractionReady
-            ? Task.CompletedTask
-            : Dialog.SetOpen(false);
+        if (Dialog is not null && !_delegatedInteractionReady)
+            await Dialog.SetOpen(false);
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync();
     }
 
     public async ValueTask DisposeAsync()
@@ -72,8 +77,24 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
+    public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
     {
-        return Dialog is null ? Task.CompletedTask : Dialog.SetOpen(false);
+        if (Dialog is not null)
+            await Dialog.SetOpen(false);
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(new MouseEventArgs
+            {
+                Detail = args.Detail,
+                Button = args.Button,
+                CtrlKey = args.CtrlKey,
+                ShiftKey = args.ShiftKey,
+                AltKey = args.AltKey,
+                MetaKey = args.MetaKey,
+                PageX = args.PageX,
+                PageY = args.PageY
+            });
+        }
     }
 }

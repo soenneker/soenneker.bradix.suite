@@ -33,6 +33,12 @@
     [Parameter]
     public bool Disabled { get; set; }
 
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter]
+    public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
+
     // Match Radix trigger semantics: when opening from pointerdown, keep focus
     // off the trigger so the menu content can claim it without competition.
     private bool PreventTriggerFocusOnOpen => !Disabled && DropdownMenu?.CurrentOpen != true;
@@ -52,6 +58,10 @@
         if (firstRender)
         {
             Menu?.RegisterTrigger(_button);
+
+            if (OnElementReferenceCaptured.HasDelegate)
+                await OnElementReferenceCaptured.InvokeAsync(_button);
+
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
@@ -73,12 +83,26 @@
         _dotNetReference?.Dispose();
     }
 
-    private Task HandlePointerDown(PointerEventArgs args)
+    private async Task HandlePointerDown(PointerEventArgs args)
     {
         Menu?.SetFocusFirstItemOnOpen(false);
-        return Disabled || DropdownMenu is null || args.Button != 0 || args.CtrlKey
-            ? Task.CompletedTask
-            : DropdownMenu.ToggleOpen();
+
+        if (!Disabled && DropdownMenu is not null && args.Button == 0 && !args.CtrlKey)
+            await DropdownMenu.ToggleOpen();
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(new MouseEventArgs
+            {
+                Button = args.Button,
+                CtrlKey = args.CtrlKey,
+                ShiftKey = args.ShiftKey,
+                AltKey = args.AltKey,
+                MetaKey = args.MetaKey,
+                PageX = args.PageX,
+                PageY = args.PageY
+            });
+        }
     }
 
     private Task HandleKeyDown(KeyboardEventArgs args)

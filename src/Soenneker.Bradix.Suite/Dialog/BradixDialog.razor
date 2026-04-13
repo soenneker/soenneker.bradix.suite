@@ -57,7 +57,7 @@
         _initialized = true;
     }
 
-    internal async Task SetOpen(bool open)
+    public async Task SetOpen(bool open)
     {
         if (CurrentOpen == open)
             return;
@@ -74,12 +74,12 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    internal Task ToggleOpen()
+    public Task ToggleOpen()
     {
         return SetOpen(!CurrentOpen);
     }
 
-    internal void RegisterTrigger(ElementReference element, string? triggerId = null)
+    public void RegisterTrigger(ElementReference element, string? triggerId = null)
     {
         TriggerElement = element;
         ResolvedTriggerId = string.IsNullOrWhiteSpace(triggerId) ? DefaultTriggerId : triggerId;

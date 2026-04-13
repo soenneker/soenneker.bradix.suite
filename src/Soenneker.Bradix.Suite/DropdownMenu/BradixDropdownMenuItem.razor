@@ -5,6 +5,8 @@
                 Class="@Class"
                 Style="@Style"
                 TextValue="@TextValue"
+                Href="@Href"
+                Target="@Target"
                 Disabled="@Disabled"
                 CloseOnSelect="@CloseOnSelect"
                 OnSelect="@OnSelect"
@@ -25,6 +27,12 @@
 
     [Parameter]
     public string? TextValue { get; set; }
+
+    [Parameter]
+    public string? Href { get; set; }
+
+    [Parameter]
+    public string? Target { get; set; }
 
     [Parameter]
     public bool Disabled { get; set; }

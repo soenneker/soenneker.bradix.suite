@@ -24,6 +24,11 @@ public interface IBradixCollapsibleTrigger : IAsyncDisposable {
     /// </summary>
     string? AriaDisabled { get; set; }
 
+    /// <summary>
+    /// Gets or sets whether this trigger is disabled independently of the root collapsible.
+    /// </summary>
+    bool Disabled { get; set; }
+
 
     /// <summary>
     /// Called when delegated interaction handling is ready on the trigger element.

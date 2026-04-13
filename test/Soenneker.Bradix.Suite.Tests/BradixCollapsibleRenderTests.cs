@@ -45,8 +45,35 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
         Assert.Equal("open", trigger.GetAttribute("data-state"));
         Assert.Equal("region", content.GetAttribute("role"));
+        Assert.Equal(trigger.Id, content.GetAttribute("aria-labelledby"));
         Assert.False(content.HasAttribute("hidden"));
         Assert.Contains("Content", cut.Markup);
+    }
+
+    [Fact]
+    public void Trigger_uses_root_id_prefix_for_aria_wiring()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(rootId: "settings-collapse", open: true));
+
+        IElement trigger = cut.Find("button");
+        IElement content = cut.Find("#settings-collapse-content");
+
+        Assert.Equal("settings-collapse-trigger", trigger.Id);
+        Assert.Equal("settings-collapse-content", trigger.GetAttribute("aria-controls"));
+        Assert.Equal("settings-collapse-trigger", content.GetAttribute("aria-labelledby"));
+    }
+
+    [Fact]
+    public void Disabled_trigger_does_not_toggle_uncontrolled_state()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(triggerDisabled: true));
+
+        IElement trigger = cut.Find("button");
+        trigger.Click();
+
+        Assert.True(trigger.HasAttribute("disabled"));
+        Assert.Equal("closed", trigger.GetAttribute("data-state"));
+        Assert.DoesNotContain("Content", cut.Markup);
     }
 
     [Fact]
@@ -70,11 +97,14 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         Assert.Contains("Content", cut.Markup);
     }
 
-    private static RenderFragment CreateCollapsible(bool? open = null, bool defaultOpen = false, EventCallback<bool> onOpenChange = default)
+    private static RenderFragment CreateCollapsible(bool? open = null, bool defaultOpen = false, EventCallback<bool> onOpenChange = default, string? rootId = null, bool triggerDisabled = false)
     {
         return builder =>
         {
             builder.OpenComponent<BradixCollapsible>(0);
+
+            if (rootId is not null)
+                builder.AddAttribute(10, nameof(BradixCollapsible.Id), rootId);
 
             if (open.HasValue)
                 builder.AddAttribute(1, nameof(BradixCollapsible.Open), open.Value);
@@ -87,6 +117,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
             builder.AddAttribute(4, nameof(BradixCollapsible.ChildContent), (RenderFragment) (contentBuilder =>
             {
                 contentBuilder.OpenComponent<BradixCollapsibleTrigger>(0);
+                contentBuilder.AddAttribute(10, nameof(BradixCollapsibleTrigger.Disabled), triggerDisabled);
                 contentBuilder.AddAttribute(1, nameof(BradixCollapsibleTrigger.ChildContent), (RenderFragment) (triggerBuilder =>
                 {
                     triggerBuilder.AddContent(0, "Trigger");

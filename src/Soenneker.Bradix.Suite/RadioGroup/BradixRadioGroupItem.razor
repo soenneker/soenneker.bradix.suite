@@ -52,6 +52,15 @@
     [Parameter]
     public string? Form { get; set; }
 
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter]
+    public EventCallback<FocusEventArgs> OnFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
     internal string? TabStopId { get; private set; }
 
     internal bool IsDisabled => Group.Disabled || Disabled;
@@ -157,13 +166,22 @@
         return _element.FocusAsync();
     }
 
-    private Task HandleClick()
+    private async Task HandleClick(MouseEventArgs args)
     {
-        return IsDisabled ? Task.CompletedTask : Group.SelectValue(Value);
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
+
+        if (IsDisabled)
+            return;
+
+        await Group.SelectValue(Value);
     }
 
-    private async Task HandleFocus(FocusEventArgs _)
+    private async Task HandleFocus(FocusEventArgs args)
     {
+        if (OnFocus.HasDelegate)
+            await OnFocus.InvokeAsync(args);
+
         if (IsDisabled)
             return;
 
@@ -173,14 +191,18 @@
             await Group.SelectValue(Value);
     }
 
-    private Task HandleKeyDown(KeyboardEventArgs args)
+    private async Task HandleKeyDown(KeyboardEventArgs args)
     {
-        if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
-            return Task.CompletedTask;
+        if (OnKeyDown.HasDelegate)
+            await OnKeyDown.InvokeAsync(args);
 
-        return IsDisabled
-            ? Task.CompletedTask
-            : Group.HandleItemKeyDown(this, args);
+        if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
+            return;
+
+        if (IsDisabled)
+            return;
+
+        await Group.HandleItemKeyDown(this, args);
     }
 
     [JSInvokable]

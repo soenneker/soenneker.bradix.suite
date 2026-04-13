@@ -14,6 +14,7 @@
 @code {
     private bool _initialized;
     private bool _uncontrolledOpen;
+    private string? _generatedBaseId;
 
     [Parameter]
     public bool? Open { get; set; }
@@ -30,7 +31,11 @@
     [Parameter]
     public EventCallback<bool> OnOpenChange { get; set; }
 
-    internal string? ContentId { get; private set; }
+    internal string BaseId => Id.HasContent() ? Id! : _generatedBaseId ??= IdGenerator.New("bradix-collapsible");
+
+    internal string TriggerId => $"{BaseId}-trigger";
+
+    internal string ContentId => $"{BaseId}-content";
 
     internal bool IsOpen => Open ?? _uncontrolledOpen;
 
@@ -40,7 +45,7 @@
 
     protected override void OnInitialized()
     {
-        ContentId ??= IdGenerator.New("bradix-collapsible-content");
+        _ = BaseId;
     }
 
     protected override void OnParametersSet()

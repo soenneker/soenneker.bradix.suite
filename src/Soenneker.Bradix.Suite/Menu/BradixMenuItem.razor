@@ -9,18 +9,36 @@
 
 @inject IBradixIdGenerator IdGenerator
 @inject IBradixSuiteInterop Interop
-<div @ref="_element"
-     @onclick="HandleClick"
-     @onfocus="HandleFocus"
-     @onblur="HandleBlur"
-     @onkeydown="HandleKeyDown"
-     @onpointerdown="HandlePointerDown"
-     @onpointerup="HandlePointerUp"
-     @onpointermove="HandlePointerMove"
-     @onpointerleave="HandlePointerLeave"
-     @attributes="ItemAttributes">
-    @ChildContent
-</div>
+@if (RenderAsLink)
+{
+    <a @ref="_element"
+       @onclick="HandleClick"
+       @onfocus="HandleFocus"
+       @onblur="HandleBlur"
+       @onkeydown="HandleKeyDown"
+       @onpointerdown="HandlePointerDown"
+       @onpointerup="HandlePointerUp"
+       @onpointermove="HandlePointerMove"
+       @onpointerleave="HandlePointerLeave"
+       @attributes="ItemAttributes">
+        @ChildContent
+    </a>
+}
+else
+{
+    <div @ref="_element"
+         @onclick="HandleClick"
+         @onfocus="HandleFocus"
+         @onblur="HandleBlur"
+         @onkeydown="HandleKeyDown"
+         @onpointerdown="HandlePointerDown"
+         @onpointerup="HandlePointerUp"
+         @onpointermove="HandlePointerMove"
+         @onpointerleave="HandlePointerLeave"
+         @attributes="ItemAttributes">
+        @ChildContent
+    </div>
+}
 
 @code {
     private ElementReference _element;
@@ -50,6 +68,12 @@
     public bool CloseOnSelect { get; set; } = true;
 
     [Parameter]
+    public string? Href { get; set; }
+
+    [Parameter]
+    public string? Target { get; set; }
+
+    [Parameter]
     public EventCallback OnSelect { get; set; }
 
     [Parameter]
@@ -65,9 +89,13 @@
         ? _resolvedTextValue ?? string.Empty
         : TextValue;
 
+    private bool RenderAsLink => !string.IsNullOrWhiteSpace(Href);
+
     private Dictionary<string, object> ItemAttributes => BuildAttributes(
         ("role", Role),
         ("tabindex", Menu.IsCurrentTabStop(this) ? 0 : -1),
+        ("href", RenderAsLink ? Href : null),
+        ("target", RenderAsLink ? Target : null),
         ("aria-disabled", Disabled ? "true" : null),
         ("data-disabled", Disabled ? string.Empty : null),
         ("data-highlighted", _isFocused ? string.Empty : null));

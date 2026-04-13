@@ -38,6 +38,9 @@
     [Parameter]
     public bool Disabled { get; set; }
 
+    [Parameter]
+    public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
+
     string IBradixMenubarTriggerEntry.Value => MenubarMenu!.CurrentValue;
 
     string IBradixMenubarTriggerEntry.TriggerId => MenubarMenu!.TriggerId;
@@ -66,6 +69,10 @@
 
         Menubar.RegisterTrigger(this);
         Menu.RegisterTrigger(_button);
+
+        if (OnElementReferenceCaptured.HasDelegate)
+            await OnElementReferenceCaptured.InvokeAsync(_button);
+
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
         {
