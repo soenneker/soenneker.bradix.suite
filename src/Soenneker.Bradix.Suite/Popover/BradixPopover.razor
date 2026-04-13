@@ -31,19 +31,19 @@
     [Parameter]
     public bool Modal { get; set; }
 
-    internal string? BaseId { get; private set; }
+    public string? BaseId { get; private set; }
 
-    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+    public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    internal bool HasCustomAnchor => _customAnchorCount > 0;
+    public bool HasCustomAnchor => _customAnchorCount > 0;
 
-    internal string ContentId => $"{BaseId}-content";
-    internal string DefaultTriggerId => $"{BaseId}-trigger";
+    public string ContentId => $"{BaseId}-content";
+    public string DefaultTriggerId => $"{BaseId}-trigger";
 
-    internal ElementReference TriggerElement { get; private set; }
+    public ElementReference TriggerElement { get; private set; }
 
-    internal bool HasTrigger { get; private set; }
-    internal string ResolvedTriggerId { get; private set; } = string.Empty;
+    public bool HasTrigger { get; private set; }
+    public string ResolvedTriggerId { get; private set; } = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -88,7 +88,7 @@
         HasTrigger = true;
     }
 
-    internal bool ContainsTriggerTarget(string? targetId, IEnumerable<string>? ancestorIds)
+    public bool ContainsTriggerTarget(string? targetId, IEnumerable<string>? ancestorIds)
     {
         if (string.IsNullOrWhiteSpace(ResolvedTriggerId))
             return false;
@@ -108,7 +108,7 @@
         return false;
     }
 
-    internal async Task FocusTrigger()
+    public async Task FocusTrigger()
     {
         if (!HasTrigger)
             return;
@@ -122,12 +122,12 @@
         }
     }
 
-    internal void AddCustomAnchor()
+    public void AddCustomAnchor()
     {
         _customAnchorCount++;
     }
 
-    internal void RemoveCustomAnchor()
+    public void RemoveCustomAnchor()
     {
         if (_customAnchorCount == 0)
             return;

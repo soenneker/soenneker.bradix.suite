@@ -39,11 +39,11 @@
     [Parameter]
     public int CloseDelay { get; set; } = 300;
 
-    internal string? BaseId { get; private set; }
+    public string? BaseId { get; private set; }
 
-    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+    public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    internal string ContentId => $"{BaseId}-content";
+    public string ContentId => $"{BaseId}-content";
 
     protected override void OnInitialized()
     {
@@ -66,58 +66,58 @@
         return ValueTask.CompletedTask;
     }
 
-    internal Task HandleTriggerEnter()
+    public Task HandleTriggerEnter()
     {
         CancelCloseDelay();
         StartOpenDelay();
         return Task.CompletedTask;
     }
 
-    internal Task HandleTriggerLeave()
+    public Task HandleTriggerLeave()
     {
         StartCloseDelay();
         return Task.CompletedTask;
     }
 
-    internal async Task HandleTriggerFocus()
+    public async Task HandleTriggerFocus()
     {
         CancelOpenDelay();
         CancelCloseDelay();
         await SetOpen(true);
     }
 
-    internal Task HandleTriggerBlur()
+    public Task HandleTriggerBlur()
     {
         StartCloseDelay();
         return Task.CompletedTask;
     }
 
-    internal Task HandleContentEnter()
+    public Task HandleContentEnter()
     {
         CancelCloseDelay();
         return Task.CompletedTask;
     }
 
-    internal Task HandleContentLeave()
+    public Task HandleContentLeave()
     {
         StartCloseDelay();
         return Task.CompletedTask;
     }
 
-    internal void NotifyContentPointerDown()
+    public void NotifyContentPointerDown()
     {
         _hasSelection = false;
         _isPointerDownOnContent = true;
         CancelCloseDelay();
     }
 
-    internal void NotifyContentPointerUp(bool hasSelection)
+    public void NotifyContentPointerUp(bool hasSelection)
     {
         _isPointerDownOnContent = false;
         _hasSelection = hasSelection;
     }
 
-    internal async Task Dismiss()
+    public async Task Dismiss()
     {
         CancelOpenDelay();
         CancelCloseDelay();

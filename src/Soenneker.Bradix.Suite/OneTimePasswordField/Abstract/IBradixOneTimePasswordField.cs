@@ -12,6 +12,9 @@ public interface IBradixOneTimePasswordField : IAsyncDisposable{
     /// <summary>Value for the autocomplete attribute on supported inputs.</summary>
     string AutoComplete { get; set; }
 
+    /// <summary>Override for the HTML inputmode used by visible OTP inputs.</summary>
+    string? InputMode { get; set; }
+
     /// <summary>When true, focuses the first input on mount.</summary>
     bool AutoFocus { get; set; }
 
@@ -48,6 +51,9 @@ public interface IBradixOneTimePasswordField : IAsyncDisposable{
     /// <summary>Name submitted with the hidden input.</summary>
     string? Name { get; set; }
 
+    /// <summary>When true, the hidden submission input is marked required.</summary>
+    bool Required { get; set; }
+
     /// <summary>Per-cell placeholder characters.</summary>
     string? Placeholder { get; set; }
 
@@ -59,6 +65,9 @@ public interface IBradixOneTimePasswordField : IAsyncDisposable{
 
     /// <summary>Built-in validation mode (<c>numeric</c>, <c>alpha</c>, etc.).</summary>
     string ValidationType { get; set; }
+
+    /// <summary>Optional pattern override applied to visible OTP inputs.</summary>
+    string? Pattern { get; set; }
 
     /// <summary>Optional custom sanitizer applied when <see cref="ValidationType"/> is <c>none</c>.</summary>
     Func<string, string>? SanitizeValue { get; set; }

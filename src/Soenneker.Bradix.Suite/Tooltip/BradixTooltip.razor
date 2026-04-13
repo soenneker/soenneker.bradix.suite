@@ -41,30 +41,30 @@
     [Parameter]
     public bool? DisableHoverableContent { get; set; }
 
-    internal ElementReference TriggerElement { get; private set; }
+    public ElementReference TriggerElement { get; private set; }
 
-    internal string? BaseId { get; private set; }
+    public string? BaseId { get; private set; }
 
-    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+    public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    internal string ContentId => $"{BaseId}-content";
+    public string ContentId => $"{BaseId}-content";
 
-    internal string StateAttribute => CurrentOpen
+    public string StateAttribute => CurrentOpen
         ? (_openedWithDelay ? "delayed-open" : "instant-open")
         : "closed";
 
-    internal bool EffectiveDisableHoverableContent => DisableHoverableContent ?? Provider?.DisableHoverableContent ?? false;
+    public bool EffectiveDisableHoverableContent => DisableHoverableContent ?? Provider?.DisableHoverableContent ?? false;
 
-    internal int EffectiveDelayDuration => DelayDuration ?? Provider?.DelayDuration ?? 700;
+    public int EffectiveDelayDuration => DelayDuration ?? Provider?.DelayDuration ?? 700;
 
-    internal bool IsPointerInTransit => Provider?.IsPointerInTransit ?? false;
+    public bool IsPointerInTransit => Provider?.IsPointerInTransit ?? false;
 
-    internal void SetPointerInTransit(bool inTransit)
+    public void SetPointerInTransit(bool inTransit)
     {
         Provider?.SetPointerInTransit(inTransit);
     }
 
-    internal void RegisterTrigger(ElementReference triggerElement)
+    public void RegisterTrigger(ElementReference triggerElement)
     {
         TriggerElement = triggerElement;
     }
@@ -89,7 +89,7 @@
         return ValueTask.CompletedTask;
     }
 
-    internal async Task HandleTriggerEnter()
+    public async Task HandleTriggerEnter()
     {
         if ((Provider?.IsOpenDelayed).GetValueOrDefault(true))
         {
@@ -101,7 +101,7 @@
         }
     }
 
-    internal Task HandleTriggerLeave()
+    public Task HandleTriggerLeave()
     {
         if (EffectiveDisableHoverableContent)
             return Close();
@@ -110,37 +110,37 @@
         return Task.CompletedTask;
     }
 
-    internal Task HandleContentEnter()
+    public Task HandleContentEnter()
     {
         return Task.CompletedTask;
     }
 
-    internal Task HandleContentLeave()
+    public Task HandleContentLeave()
     {
         return Task.CompletedTask;
     }
 
-    internal Task HandleTriggerFocus(bool pointerDown)
+    public Task HandleTriggerFocus(bool pointerDown)
     {
         return pointerDown ? Task.CompletedTask : OpenNow(false);
     }
 
-    internal Task HandleTriggerBlur()
+    public Task HandleTriggerBlur()
     {
         return Close();
     }
 
-    internal Task HandleTriggerClick()
+    public Task HandleTriggerClick()
     {
         return Close();
     }
 
-    internal async Task CloseFromProvider()
+    public async Task CloseFromProvider()
     {
         await SetOpen(false, false, false);
     }
 
-    internal async Task Close()
+    public async Task Close()
     {
         CancelOpenDelay();
         await SetOpen(false, false, true);

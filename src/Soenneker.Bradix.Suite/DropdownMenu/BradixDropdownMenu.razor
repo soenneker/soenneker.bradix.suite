@@ -36,13 +36,16 @@
     [Parameter]
     public bool Modal { get; set; } = true;
 
+    [Parameter]
+    public string? ContentIdOverride { get; set; }
+
     public string? BaseId { get; private set; }
 
-    internal bool CurrentOpen => Open ?? _uncontrolledOpen;
+    public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    internal string TriggerId => $"{BaseId}-trigger";
+    public string TriggerId => $"{BaseId}-trigger";
 
-    internal string ContentId => $"{BaseId}-content";
+    public string ContentId => string.IsNullOrWhiteSpace(ContentIdOverride) ? $"{BaseId}-content" : ContentIdOverride;
 
     protected override void OnInitialized()
     {
@@ -58,12 +61,12 @@
         _initialized = true;
     }
 
-    internal Task ToggleOpen()
+    public Task ToggleOpen()
     {
         return SetOpen(!CurrentOpen);
     }
 
-    internal async Task SetOpen(bool open)
+    public async Task SetOpen(bool open)
     {
         if (CurrentOpen == open)
             return;

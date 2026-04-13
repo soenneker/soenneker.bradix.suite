@@ -13,6 +13,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Soenneker.Playwrights.Session;
+using Soenneker.Utils.Dotnet.Abstract;
+using Soenneker.Utils.Dotnet.Registrars;
 using Soenneker.Utils.Network.Abstract;
 using Soenneker.Utils.Network.Registrars;
 
@@ -28,12 +30,13 @@ public sealed class Fixture : UnitFixture
     private Process? _demoProcess;
     private IPlaywright? _playwright;
     private IBrowser? _browser;
+    private IDotnetUtil _dotnetUtil;
+
 
     public string BaseUrl { get; set;  }
 
     public Fixture()
     {
-
         _demoProjectPath = ResolveDemoProjectPath();
     }
 
@@ -45,6 +48,8 @@ public sealed class Fixture : UnitFixture
 
         if (ServiceProvider is null)
             throw new InvalidOperationException("Service provider was not initialized.");
+
+        _dotnetUtil = ServiceProvider.GetRequiredService<IDotnetUtil>();
 
         var networkUtil = ServiceProvider.GetRequiredService<INetworkUtil>();
 
@@ -69,6 +74,7 @@ public sealed class Fixture : UnitFixture
 
         services.AddPlaywrightInstallationUtilAsSingleton();
         services.AddNetworkUtilAsSingleton();
+        services.AddDotnetUtilAsSingleton();
 
         IConfiguration config = TestUtil.BuildConfig();
         services.AddSingleton(config);
@@ -156,31 +162,35 @@ public sealed class Fixture : UnitFixture
     {
         string trimmedBaseUrl = BaseUrl.TrimEnd('/');
 
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "dotnet",
-            Arguments = $"run --project \"{_demoProjectPath}\" --urls {trimmedBaseUrl}",
-            WorkingDirectory = Path.GetDirectoryName(_demoProjectPath)!,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        await _dotnetUtil.Run(_demoProjectPath, urls: trimmedBaseUrl);
 
-        _demoProcess = new Process
-        {
-            StartInfo = startInfo,
-            EnableRaisingEvents = true
-        };
 
-        _demoProcess.OutputDataReceived += (_, args) => AppendDemoOutput(args.Data);
-        _demoProcess.ErrorDataReceived += (_, args) => AppendDemoOutput(args.Data);
 
-        if (!_demoProcess.Start())
-            throw new InvalidOperationException("Failed to start Bradix demo process.");
+        //var startInfo = new ProcessStartInfo
+        //{
+        //    FileName = "dotnet",
+        //    Arguments = $"run --project \"{_demoProjectPath}\" --urls {trimmedBaseUrl}",
+        //    WorkingDirectory = Path.GetDirectoryName(_demoProjectPath)!,
+        //    RedirectStandardOutput = true,
+        //    RedirectStandardError = true,
+        //    UseShellExecute = false,
+        //    CreateNoWindow = true
+        //};
 
-        _demoProcess.BeginOutputReadLine();
-        _demoProcess.BeginErrorReadLine();
+        //_demoProcess = new Process
+        //{
+        //    StartInfo = startInfo,
+        //    EnableRaisingEvents = true
+        //};
+
+        //_demoProcess.OutputDataReceived += (_, args) => AppendDemoOutput(args.Data);
+        //_demoProcess.ErrorDataReceived += (_, args) => AppendDemoOutput(args.Data);
+
+        //if (!_demoProcess.Start())
+        //    throw new InvalidOperationException("Failed to start Bradix demo process.");
+
+        //_demoProcess.BeginOutputReadLine();
+        //_demoProcess.BeginErrorReadLine();
 
         await WaitForDemoReady();
     }

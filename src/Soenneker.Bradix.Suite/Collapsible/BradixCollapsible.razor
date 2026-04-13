@@ -31,13 +31,13 @@
     [Parameter]
     public EventCallback<bool> OnOpenChange { get; set; }
 
-    internal string BaseId => Id.HasContent() ? Id! : _generatedBaseId ??= IdGenerator.New("bradix-collapsible");
+    public string BaseId => Id.HasContent() ? Id! : _generatedBaseId ??= IdGenerator.New("bradix-collapsible");
 
-    internal string TriggerId => $"{BaseId}-trigger";
+    public string TriggerId => $"{BaseId}-trigger";
 
-    internal string ContentId => $"{BaseId}-content";
+    public string ContentId => $"{BaseId}-content";
 
-    internal bool IsOpen => Open ?? _uncontrolledOpen;
+    public bool IsOpen => Open ?? _uncontrolledOpen;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("data-state", DataState(IsOpen)),
@@ -57,12 +57,12 @@
         _initialized = true;
     }
 
-    internal Task Toggle()
+    public Task Toggle()
     {
         return SetOpen(!IsOpen);
     }
 
-    internal async Task SetOpen(bool open)
+    public async Task SetOpen(bool open)
     {
         if (Disabled || open == IsOpen)
             return;
