@@ -5,12 +5,7 @@ using Microsoft.Playwright;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-internal sealed record DemoPageSpec(
-    string Route,
-    string Title,
-    string Heading,
-    string Description,
-    Func<IPage, ILocator> ReadyLocator);
+internal sealed record DemoPageSpec(string Route, string Title, string Heading, string Description, Func<IPage, ILocator> ReadyLocator);
 
 internal static class DemoPageSpecs
 {
@@ -18,7 +13,8 @@ internal static class DemoPageSpecs
     [
         new("/", "Overview", "Bradix primitives", "Simple demos for each primitive, modeled after the straightforward presentation style of the Radix docs.",
             page => page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Bradix primitives", Exact = true })),
-        new("/accessible-icon", "AccessibleIcon", "AccessibleIcon", "Hide decorative glyphs from assistive technology while exposing a reliable accessible name.",
+        new("/accessible-icon", "AccessibleIcon", "AccessibleIcon",
+            "Hide decorative glyphs from assistive technology while exposing a reliable accessible name.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Close panel", Exact = true })),
         new("/aspect-ratio", "AspectRatio", "AspectRatio", "Preserve media proportions with an unstyled wrapper that stays honest to layout constraints.",
             page => page.GetByAltText("Landscape photograph by Tobias Tullius")),
@@ -34,8 +30,7 @@ internal static class DemoPageSpecs
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle presence", Exact = true })),
         new("/separator", "Separator", "Separator", "Render semantic or decorative dividers with correct orientation metadata.",
             page => page.GetByText("Radix Primitives", new PageGetByTextOptions { Exact = true })),
-        new("/slot", "Slot", "Slot", "Merge attributes and event handlers for future `asChild`-style composition.",
-            page => page.Locator("#slot-button")),
+        new("/slot", "Slot", "Slot", "Merge attributes and event handlers for future `asChild`-style composition.", page => page.Locator("#slot-button")),
         new("/visually-hidden", "VisuallyHidden", "VisuallyHidden", "Expose screen-reader-only content without adding visible text to the layout.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Save the file", Exact = true })),
 
@@ -60,14 +55,16 @@ internal static class DemoPageSpecs
             page => page.GetByText("Accept terms and conditions.", new PageGetByTextOptions { Exact = true })),
         new("/form", "Form", "Form", "Compose fields around native constraint validation, custom matchers, and server-invalid handoff.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Post question", Exact = true })),
-        new("/one-time-password-field", "One-Time Password Field", "One-Time Password Field", "Capture segmented one-time codes with paste distribution and keyboard-friendly behavior.",
-            page => page.Locator(".otp-slot").First),
+        new("/one-time-password-field", "One-Time Password Field", "One-Time Password Field",
+            "Capture segmented one-time codes with paste distribution and keyboard-friendly behavior.", page => page.Locator(".otp-slot")
+                .First),
         new("/progress", "Progress", "Progress", "Represent determinate and indeterminate progress with correct ARIA metadata.",
             page => page.GetByRole(AriaRole.Progressbar)),
         new("/radio-group", "RadioGroup", "RadioGroup", "Model single-choice selection with roving focus and hidden input synchronization.",
             page => page.GetByText("Compact", new PageGetByTextOptions { Exact = true })),
-        new("/select", "Select", "Select", "Compose trigger and listbox content with grouping, indicators, and form participation.",
-            page => page.Locator("[role='combobox']").First),
+        new("/select", "Select", "Select", "Compose trigger and listbox content with grouping, indicators, and form participation.", page => page
+            .Locator("[role='combobox']")
+            .First),
         new("/slider", "Slider", "Slider", "Handle single and multiple thumbs, direction, orientation, and keyboard geometry.",
             page => page.GetByRole(AriaRole.Slider, new PageGetByRoleOptions { Name = "Volume", Exact = true })),
         new("/switch", "Switch", "Switch", "Expose binary on-off state with switch semantics and form integration.",

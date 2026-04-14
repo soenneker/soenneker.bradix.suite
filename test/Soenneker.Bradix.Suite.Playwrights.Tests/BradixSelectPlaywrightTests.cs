@@ -1,76 +1,86 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
+using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
-using Soenneker.Tests.FixturedUnit;
+using Soenneker.Playwrights.Tests.Unit;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
-public sealed class BradixSelectPlaywrightTests : FixturedUnitTest
+public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
 {
-    private readonly Fixture _fixture;
-
-    public BradixSelectPlaywrightTests(Fixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixSelectPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
     {
-        _fixture = fixture;
     }
 
     [Fact]
-    public async Task Select_demo_opens_options_and_updates_current_selection()
+    public async ValueTask Select_demo_opens_options_and_updates_current_selection()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReady(
-            $"{_fixture.BaseUrl}select",
-            static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select Demo");
+        await page.GotoAndWaitForReady($"{BaseUrl}select", static p => p.Locator("[role='combobox']")
+                                                                        .First, expectedTitle: "Select Demo");
 
-        ILocator trigger = page.Locator("[role='combobox']").First;
+        ILocator trigger = page.Locator("[role='combobox']")
+                               .First;
 
-        await Assertions.Expect(trigger).ToContainTextAsync("Select a fruit");
+        await Assertions.Expect(trigger)
+                        .ToContainTextAsync("Select a fruit");
 
         await trigger.ClickAsync();
 
-        ILocator listBox = page.Locator("[role='listbox']:visible").First;
-        await Assertions.Expect(listBox).ToBeVisibleAsync();
+        ILocator listBox = page.Locator("[role='listbox']:visible")
+                               .First;
+        await Assertions.Expect(listBox)
+                        .ToBeVisibleAsync();
         ILocator options = listBox.Locator("[role='option']");
-        await Assertions.Expect(options.Nth(0)).ToContainTextAsync("Apple");
-        await Assertions.Expect(options.Nth(1)).ToContainTextAsync("Banana");
-        await Assertions.Expect(options.Nth(2)).ToContainTextAsync("Blueberry");
-        await Assertions.Expect(options.Nth(3)).ToContainTextAsync("Grapes");
+        await Assertions.Expect(options.Nth(0))
+                        .ToContainTextAsync("Apple");
+        await Assertions.Expect(options.Nth(1))
+                        .ToContainTextAsync("Banana");
+        await Assertions.Expect(options.Nth(2))
+                        .ToContainTextAsync("Blueberry");
+        await Assertions.Expect(options.Nth(3))
+                        .ToContainTextAsync("Grapes");
 
         ILocator bananaOption = options.Nth(1);
         await bananaOption.ClickAsync();
 
-        await Assertions.Expect(trigger).ToContainTextAsync("Banana");
-        await Assertions.Expect(listBox).Not.ToBeVisibleAsync();
+        await Assertions.Expect(trigger)
+                        .ToContainTextAsync("Banana");
+        await Assertions.Expect(listBox)
+                        .Not.ToBeVisibleAsync();
     }
 
     [Fact]
-    public async Task Select_demo_single_click_keeps_listbox_open()
+    public async ValueTask Select_demo_single_click_keeps_listbox_open()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReady(
-            $"{_fixture.BaseUrl}select",
-            static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select Demo");
+        await page.GotoAndWaitForReady($"{BaseUrl}select", static p => p.Locator("[role='combobox']")
+                                                                        .First, expectedTitle: "Select Demo");
 
-        ILocator trigger = page.Locator("[role='combobox']").First;
+        ILocator trigger = page.Locator("[role='combobox']")
+                               .First;
 
         await trigger.ClickAsync();
 
-        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(trigger)
+                        .ToHaveAttributeAsync("aria-expanded", "true");
 
-        ILocator listBox = page.Locator("[role='listbox']:visible").First;
-        await Assertions.Expect(listBox).ToBeVisibleAsync();
+        ILocator listBox = page.Locator("[role='listbox']:visible")
+                               .First;
+        await Assertions.Expect(listBox)
+                        .ToBeVisibleAsync();
 
         await page.WaitForTimeoutAsync(250);
 
-        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
-        await Assertions.Expect(listBox).ToBeVisibleAsync();
+        await Assertions.Expect(trigger)
+                        .ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(listBox)
+                        .ToBeVisibleAsync();
     }
 }

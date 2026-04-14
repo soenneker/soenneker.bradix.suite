@@ -1,28 +1,25 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Soenneker.Tests.FixturedUnit;
+using Soenneker.Playwrights.Tests.Unit;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
-public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
+public sealed class BradixFormsPlaywrightTests : PlaywrightUnitTest
 {
-    private readonly Fixture _fixture;
-
-    public BradixFormsPlaywrightTests(Fixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixFormsPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
     {
-        _fixture = fixture;
     }
 
     [Fact]
-    public async Task Checkbox_demo_is_checked_by_default_and_can_toggle()
+    public async ValueTask Checkbox_demo_is_checked_by_default_and_can_toggle()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/checkbox"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
 
         ILocator checkbox = page.GetByRole(AriaRole.Checkbox);
         await Assertions.Expect(checkbox).ToHaveAttributeAsync("aria-checked", "true");
@@ -33,12 +30,12 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Form_demo_surfaces_required_and_type_mismatch_messages()
+    public async ValueTask Form_demo_surfaces_required_and_type_mismatch_messages()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/form"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/form"));
 
         ILocator form = page.Locator("form");
         ILocator submit = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Post question", Exact = true });
@@ -55,12 +52,12 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task One_time_password_demo_distributes_typed_digits_across_slots()
+    public async ValueTask One_time_password_demo_distributes_typed_digits_across_slots()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/one-time-password-field"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/one-time-password-field"));
 
         ILocator slots = page.Locator(".otp-slot");
         await slots.First.ClickAsync();
@@ -75,23 +72,23 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Progress_demo_exposes_current_value()
+    public async ValueTask Progress_demo_exposes_current_value()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/progress"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/progress"));
 
         await Assertions.Expect(page.GetByRole(AriaRole.Progressbar)).ToHaveAttributeAsync("aria-valuenow", "66");
     }
 
     [Fact]
-    public async Task Radio_group_demo_changes_selected_density()
+    public async ValueTask Radio_group_demo_changes_selected_density()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/radio-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radio-group"));
 
         ILocator defaultRadio = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Default", Exact = true });
         ILocator compactRadio = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Compact", Exact = true });
@@ -104,12 +101,12 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Slider_demo_updates_value_from_keyboard_input()
+    public async ValueTask Slider_demo_updates_value_from_keyboard_input()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/slider"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slider"));
 
         ILocator slider = page.GetByRole(AriaRole.Slider, new PageGetByRoleOptions { Name = "Volume", Exact = true });
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "50");
@@ -121,12 +118,12 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Switch_demo_toggles_checked_state()
+    public async ValueTask Switch_demo_toggles_checked_state()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/switch"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switch"));
 
         ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "false");
@@ -137,12 +134,12 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Toggle_demo_updates_pressed_state()
+    public async ValueTask Toggle_demo_updates_pressed_state()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/toggle"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle"));
 
         ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle italic", Exact = true });
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-pressed", "false");
@@ -153,12 +150,12 @@ public sealed class BradixFormsPlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Toggle_group_demo_enforces_single_selection()
+    public async ValueTask Toggle_group_demo_enforces_single_selection()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/toggle-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
 
         ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "L", Exact = true });
         ILocator center = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "C", Exact = true });

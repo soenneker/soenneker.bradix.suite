@@ -1,28 +1,25 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Soenneker.Tests.FixturedUnit;
+using Soenneker.Playwrights.Tests.Unit;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
-public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
+public sealed class BradixDisclosurePlaywrightTests : PlaywrightUnitTest
 {
-    private readonly Fixture _fixture;
-
-    public BradixDisclosurePlaywrightTests(Fixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixDisclosurePlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
     {
-        _fixture = fixture;
     }
 
     [Fact]
-    public async Task Accordion_demo_switches_visible_content_between_items()
+    public async ValueTask Accordion_demo_switches_visible_content_between_items()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/accordion"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordion"));
 
         ILocator accessibleTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Is it accessible?", Exact = true });
         ILocator unstyledTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Is it unstyled?", Exact = true });
@@ -36,12 +33,12 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Alert_dialog_demo_opens_and_closes_from_cancel()
+    public async ValueTask Alert_dialog_demo_opens_and_closes_from_cancel()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/alert-dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alert-dialog"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Delete account", Exact = true }).ClickAsync();
 
@@ -52,12 +49,12 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Collapsible_demo_reveals_additional_repositories_when_opened()
+    public async ValueTask Collapsible_demo_reveals_additional_repositories_when_opened()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/collapsible"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsible"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button);
         await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "false");
@@ -70,12 +67,12 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Dialog_demo_close_discards_unsaved_changes()
+    public async ValueTask Dialog_demo_close_discards_unsaved_changes()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialog"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
         await page.Locator("#dialog-name").FillAsync("Unsaved");
@@ -86,12 +83,12 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Hover_card_demo_shows_profile_details_on_hover()
+    public async ValueTask Hover_card_demo_shows_profile_details_on_hover()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/hover-card"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hover-card"));
 
         await page.GetByAltText("Radix UI").HoverAsync();
 
@@ -100,12 +97,12 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Popover_demo_opens_and_closes_from_close_button()
+    public async ValueTask Popover_demo_opens_and_closes_from_close_button()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/popover"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true }).ClickAsync();
 
@@ -116,12 +113,12 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Toast_demo_shows_scheduled_notification()
+    public async ValueTask Toast_demo_shows_scheduled_notification()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/toast"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toast"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Add to calendar", Exact = true }).ClickAsync();
 
@@ -130,12 +127,12 @@ public sealed class BradixDisclosurePlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Tooltip_demo_reveals_content_on_hover()
+    public async ValueTask Tooltip_demo_reveals_content_on_hover()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/tooltip"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltip"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "+", Exact = true }).HoverAsync();
 

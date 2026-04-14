@@ -1,28 +1,26 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
+using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
-using Soenneker.Tests.FixturedUnit;
+using Soenneker.Playwrights.Tests.Unit;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
-public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
+public sealed class BradixNavigationPlaywrightTests : PlaywrightUnitTest
 {
-    private readonly Fixture _fixture;
-
-    public BradixNavigationPlaywrightTests(Fixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixNavigationPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
     {
-        _fixture = fixture;
     }
 
     [Fact]
     public async Task Context_menu_demo_opens_from_right_click_and_reveals_submenu()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/context-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/context-menu"));
 
         await page.GetByText("Right-click here.", new PageGetByTextOptions { Exact = true }).ClickAsync(new LocatorClickOptions
         {
@@ -37,10 +35,10 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Dropdown_menu_demo_opens_and_reveals_submenu_items()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/dropdown-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdown-menu"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Customise options", Exact = true }).ClickAsync();
 
@@ -52,10 +50,10 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Menubar_demo_allows_radio_selection_changes()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
 
         await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "View", Exact = true }).ClickAsync();
         ILocator dateModified = page.GetByText("Date modified", new PageGetByTextOptions { Exact = true }).Locator("..");
@@ -68,10 +66,10 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Menubar_demo_closes_from_single_outside_click()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
 
         ILocator viewTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "View", Exact = true });
         await viewTrigger.ClickAsync();
@@ -86,10 +84,10 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Menu_demo_updates_selection_from_modal_submenu_item()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menu"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true })
             .ClickAsync(new LocatorClickOptions { Timeout = 2000 });
@@ -109,10 +107,10 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Navigation_menu_demo_switches_visible_content_between_triggers()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -131,10 +129,10 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Scroll_area_demo_allows_viewport_scrolling()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/scroll-area"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scroll-area"));
 
         int scrollTop = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('[data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollTop = 200; return viewport.scrollTop; }");
@@ -144,10 +142,10 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Tabs_demo_switches_visible_panel_content()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/tabs"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
 
         await Assertions.Expect(page.GetByText("Make changes to your account here. Click save when you're done.")).ToBeVisibleAsync();
         await page.GetByRole(AriaRole.Tab, new PageGetByRoleOptions { Name = "Password", Exact = true }).ClickAsync();
@@ -159,10 +157,10 @@ public sealed class BradixNavigationPlaywrightTests : FixturedUnitTest
     [Fact]
     public async Task Toolbar_demo_updates_pressed_states_for_toggle_groups()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(_fixture, DemoPageSpecs.Get("/toolbar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toolbar"));
 
         ILocator bold = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "B", Exact = true }).First;
         ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "L", Exact = true }).First;

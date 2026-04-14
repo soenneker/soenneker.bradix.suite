@@ -1,29 +1,30 @@
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
+using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
-using Soenneker.Tests.FixturedUnit;
+using Soenneker.Playwrights.Tests.Unit;
 using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [Collection("Collection")]
-public sealed class BradixDemoPlaywrightTests : FixturedUnitTest
+public sealed class BradixDemoPlaywrightTests : PlaywrightUnitTest
 {
-    private readonly Fixture _fixture;
-
-    public BradixDemoPlaywrightTests(Fixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixDemoPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
     {
-        _fixture = fixture;
     }
 
     [Fact]
-    public async Task Overview_page_loads_and_lists_core_demo_links()
+    public async ValueTask Overview_page_loads_and_lists_core_demo_links()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        Logger.LogInformation("Initial loading complete");
+
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            _fixture.BaseUrl,
+            BaseUrl,
             static p => p.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Bradix primitives" }),
             expectedTitle: "Bradix Component Library Demo");
 
@@ -33,13 +34,13 @@ public sealed class BradixDemoPlaywrightTests : FixturedUnitTest
     }
 
     [Fact]
-    public async Task Dialog_demo_saves_updated_project_details()
+    public async ValueTask Dialog_demo_saves_updated_project_details()
     {
-        await using BrowserSession session = await _fixture.CreateSession();
+        await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{_fixture.BaseUrl}dialog",
+            $"{BaseUrl}dialog",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }),
             expectedTitle: "Bradix Dialog");
 

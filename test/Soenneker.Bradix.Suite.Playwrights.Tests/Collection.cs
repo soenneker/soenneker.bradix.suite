@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[CollectionDefinition("Collection", DisableParallelization = true)]
-public sealed class Collection : ICollectionFixture<Fixture>
+[CollectionDefinition("Collection")]
+public sealed class Collection : ICollectionFixture<BradixPlaywrightFixture>
 {
 }
