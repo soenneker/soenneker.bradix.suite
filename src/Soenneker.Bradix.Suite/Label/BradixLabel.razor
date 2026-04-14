@@ -8,7 +8,7 @@
 
 @inject IBradixSuiteInterop Interop
 <label @ref="_element"
-       @attributes="LabelAttributes">
+       @attributes="LabelAttributes" >
     @ChildContent
 </label>
 
@@ -22,8 +22,7 @@
     [Parameter]
     public EventCallback<MouseEventArgs> OnMouseDown { get; set; }
 
-    private Dictionary<string, object> LabelAttributes => BuildAttributes(
-        ("for", For));
+    private Dictionary<string, object> LabelAttributes => BuildAttributes(("for", For));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -55,4 +54,5 @@
             })
             : Task.CompletedTask;
     }
+
 }
