@@ -31,10 +31,11 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Restore tests
-        run: |
-          dotnet restore test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --verbosity minimal
-          dotnet restore test/Soenneker.Bradix.Suite.Playwright.Tests/Soenneker.Bradix.Suite.Playwright.Tests.csproj --verbosity minimal
+      - name: Restore bUnit tests
+        run: dotnet restore test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --verbosity minimal
+
+      - name: Restore Playwright tests
+        run: dotnet restore test/Soenneker.Bradix.Suite.Playwrights.Tests/Soenneker.Bradix.Suite.Playwrights.Tests.csproj --verbosity minimal
 
       - name: Build bUnit tests
         run: dotnet build test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-restore --verbosity minimal

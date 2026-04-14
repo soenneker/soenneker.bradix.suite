@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-public class BradixPlaywrightFixture : PlaywrightFixture
+public sealed class BradixPlaywrightFixture : PlaywrightFixture
 {
     protected override PlaywrightFixtureOptions CreateOptions()
     {

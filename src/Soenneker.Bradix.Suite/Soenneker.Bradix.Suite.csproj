@@ -46,9 +46,9 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.6" />
-        <PackageReference Include="Soenneker.Blazor.Extensions.EventCallback" Version="4.0.445" />
+        <PackageReference Include="Soenneker.Blazor.Extensions.EventCallback" Version="4.0.446" />
         <PackageReference Include="Soenneker.Blazor.Utils.Ids" Version="4.0.4" />
-        <PackageReference Include="Soenneker.Blazor.Utils.ModuleImport" Version="4.0.1794" />
+        <PackageReference Include="Soenneker.Blazor.Utils.ModuleImport" Version="4.0.1795" />
         <PackageReference Include="Soenneker.Extensions.String" Version="4.0.665" />
     </ItemGroup>
 </Project>

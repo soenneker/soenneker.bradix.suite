@@ -31,11 +31,10 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
         <PackageReference Include="Soenneker.Playwrights.Extensions.TestPages" Version="4.0.2" />
-        <PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.1" />
-        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.313" />
+        <PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.3" />
+        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.314" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.6" />
         <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.810" />
-        <PackageReference Include="Soenneker.Playwrights.Installation" Version="4.0.3" />
         <PackageReference Include="xunit.v3" Version="3.2.2" />
     </ItemGroup>
 </Project>
