@@ -43,8 +43,8 @@ jobs:
 
       - name: Test
         run: |
-          dotnet test test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
-          dotnet test test/Soenneker.Bradix.Suite.Playwright.Tests/Soenneker.Bradix.Suite.Playwright.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
+          dotnet test --project test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
+          dotnet test --project test/Soenneker.Bradix.Suite.Playwright.Tests/Soenneker.Bradix.Suite.Playwright.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
 
       - name: Pack
         run: dotnet pack src/Soenneker.Bradix.Suite/Soenneker.Bradix.Suite.csproj --configuration Release --no-build --no-restore --output . --verbosity minimal
