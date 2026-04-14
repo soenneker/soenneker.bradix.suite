@@ -8,8 +8,6 @@
         <!-- bUnit WaitForAssertion(Action) requires sync delegates; async lambdas used with awaited TUnit assertions are flagged as async-void. -->
         <NoWarn>$(NoWarn);TUnit0031</NoWarn>
         <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
-        <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
-        <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
     </PropertyGroup>
 
     <ItemGroup>
