@@ -36,15 +36,17 @@ jobs:
           dotnet restore test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --verbosity minimal
           dotnet restore test/Soenneker.Bradix.Suite.Playwright.Tests/Soenneker.Bradix.Suite.Playwright.Tests.csproj --verbosity minimal
 
-      - name: Build tests
-        run: |
-          dotnet build test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-restore --verbosity minimal
-          dotnet build test/Soenneker.Bradix.Suite.Playwright.Tests/Soenneker.Bradix.Suite.Playwright.Tests.csproj --configuration Release --no-restore --verbosity minimal
+      - name: Build bUnit tests
+        run: dotnet build test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-restore --verbosity minimal
 
-      - name: Test
-        run: |
-          dotnet test --project test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
-          dotnet test --project test/Soenneker.Bradix.Suite.Playwright.Tests/Soenneker.Bradix.Suite.Playwright.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
+      - name: bUnit tests
+        run: dotnet test --project test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-build --no-restore --verbosity normal
+
+      - name: Build Playwright tests
+        run: dotnet build test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-restore --verbosity minimal
+
+      - name: Playwright tests
+        run: dotnet test --project test/Soenneker.Bradix.Suite.Playwrights.Tests/Soenneker.Bradix.Suite.Playwrights.Tests.csproj --configuration Release --no-build --no-restore --verbosity normal
 
       - name: Pack
         run: dotnet pack src/Soenneker.Bradix.Suite/Soenneker.Bradix.Suite.csproj --configuration Release --no-build --no-restore --output . --verbosity minimal

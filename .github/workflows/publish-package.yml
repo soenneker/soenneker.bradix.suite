@@ -52,12 +52,17 @@ jobs:
       - name: Restore tests
         run: dotnet restore test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --verbosity minimal
 
-      - name: Build tests
+      - name: Build bUnit tests
         run: dotnet build test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-restore --verbosity minimal
 
-      - name: Test
+      - name: bUnit tests
         run: dotnet test --project test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-build --no-restore --verbosity normal
 
+      - name: Build Playwright tests
+        run: dotnet build test/Soenneker.Bradix.Suite.Playwrights.Tests/Soenneker.Bradix.Suite.Playwrights.Tests.csproj --configuration Release --no-restore --verbosity minimal
+
+      - name: Playwright tests
+        run: dotnet test --project test/Soenneker.Bradix.Suite.Playwrights.Tests/Soenneker.Bradix.Suite.Playwrights.Tests.csproj --configuration Release --no-build --no-restore --verbosity normal
 
       - name: Restore library
         run: dotnet restore src/Soenneker.Bradix.Suite/Soenneker.Bradix.Suite.csproj --verbosity minimal
