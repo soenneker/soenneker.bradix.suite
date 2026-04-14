@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Threading.Tasks;
-using Xunit;
+using AngleSharp.Dom;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -48,79 +49,79 @@ public sealed class BradixMenubarRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Arrow_down_on_trigger_opens_associated_menu()
+    [Test]
+    public async Task Arrow_down_on_trigger_opens_associated_menu()
     {
-        var cut = Render(CreateMenubar());
-        var triggers = cut.FindAll("button[role='menuitem']");
-        string closedControls = Assert.IsType<string>(triggers[0].GetAttribute("aria-controls"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
+        string closedControls = await Assert.That(triggers[0].GetAttribute("aria-controls")).IsTypeOf<string>();
 
-        triggers[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+        await triggers[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedTriggers = cut.FindAll("button[role='menuitem']");
-            var menu = cut.Find("[role='menu']");
-            Assert.Equal("true", updatedTriggers[0].GetAttribute("aria-expanded"));
-            Assert.Equal(closedControls, updatedTriggers[0].GetAttribute("aria-controls"));
-            Assert.Equal(menu.Id, updatedTriggers[0].GetAttribute("aria-controls"));
-            Assert.Equal(updatedTriggers[0].Id, menu.GetAttribute("aria-labelledby"));
+            IReadOnlyList<IElement> updatedTriggers = cut.FindAll("button[role='menuitem']");
+            IElement menu = cut.Find("[role='menu']");
+            await Assert.That(updatedTriggers[0].GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(updatedTriggers[0].GetAttribute("aria-controls")).IsEqualTo(closedControls);
+            await Assert.That(updatedTriggers[0].GetAttribute("aria-controls")).IsEqualTo(menu.Id);
+            await Assert.That(menu.GetAttribute("aria-labelledby")).IsEqualTo(updatedTriggers[0].Id);
         });
     }
 
-    [Fact]
-    public void Pointer_down_on_trigger_opens_associated_menu()
+    [Test]
+    public async Task Pointer_down_on_trigger_opens_associated_menu()
     {
-        var cut = Render(CreateMenubar());
-        var triggers = cut.FindAll("button[role='menuitem']");
-        string closedControls = Assert.IsType<string>(triggers[0].GetAttribute("aria-controls"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
+        string closedControls = await Assert.That(triggers[0].GetAttribute("aria-controls")).IsTypeOf<string>();
 
-        triggers[0].TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0 });
+        await triggers[0].TriggerEventAsync("onpointerdown", new PointerEventArgs { Button = 0 });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedTriggers = cut.FindAll("button[role='menuitem']");
-            var menu = cut.Find("[role='menu']");
-            Assert.Equal("true", updatedTriggers[0].GetAttribute("aria-expanded"));
-            Assert.Equal(closedControls, updatedTriggers[0].GetAttribute("aria-controls"));
-            Assert.Equal(menu.Id, updatedTriggers[0].GetAttribute("aria-controls"));
-            Assert.Equal(updatedTriggers[0].Id, menu.GetAttribute("aria-labelledby"));
+            IReadOnlyList<IElement> updatedTriggers = cut.FindAll("button[role='menuitem']");
+            IElement menu = cut.Find("[role='menu']");
+            await Assert.That(updatedTriggers[0].GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(updatedTriggers[0].GetAttribute("aria-controls")).IsEqualTo(closedControls);
+            await Assert.That(updatedTriggers[0].GetAttribute("aria-controls")).IsEqualTo(menu.Id);
+            await Assert.That(menu.GetAttribute("aria-labelledby")).IsEqualTo(updatedTriggers[0].Id);
         });
     }
 
-    [Fact]
-    public void Trigger_arrow_right_moves_roving_tab_stop()
+    [Test]
+    public async Task Trigger_arrow_right_moves_roving_tab_stop()
     {
-        var cut = Render(CreateMenubar());
-        var triggers = cut.FindAll("button[role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
 
-        triggers[0].KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        await triggers[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedTriggers = cut.FindAll("button[role='menuitem']");
-            Assert.Equal("0", updatedTriggers[1].GetAttribute("tabindex"));
-            Assert.Equal("-1", updatedTriggers[0].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedTriggers = cut.FindAll("button[role='menuitem']");
+            await Assert.That(updatedTriggers[1].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(updatedTriggers[0].GetAttribute("tabindex")).IsEqualTo("-1");
         });
     }
 
-    [Fact]
-    public void Menubar_root_exposes_horizontal_orientation()
+    [Test]
+    public async Task Menubar_root_exposes_horizontal_orientation()
     {
-        var cut = Render(CreateMenubar());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
 
-        Assert.Equal("horizontal", cut.Find("[role='menubar']").GetAttribute("aria-orientation"));
+        await Assert.That(cut.Find("[role='menubar']").GetAttribute("aria-orientation")).IsEqualTo("horizontal");
     }
 
-    [Fact]
+    [Test]
     public async Task Content_arrow_right_opens_adjacent_menu()
     {
-        var cut = Render(CreateMenubar());
-        var triggers = cut.FindAll("button[role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
 
-        triggers[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
-        var content = FindOpenContent(cut);
-        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+        await triggers[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+        IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
+        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -128,23 +129,23 @@ public sealed class BradixMenubarRenderTests : BunitContext
             ClosestMenubarContentId = currentContentId
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedTriggers = cut.FindAll("button[role='menuitem']");
-            Assert.Equal("true", updatedTriggers[1].GetAttribute("aria-expanded"));
-            Assert.Equal("false", updatedTriggers[0].GetAttribute("aria-expanded"));
-            Assert.Equal("0", updatedTriggers[1].GetAttribute("tabindex"));
-            Assert.Equal("-1", updatedTriggers[0].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedTriggers = cut.FindAll("button[role='menuitem']");
+            await Assert.That(updatedTriggers[1].GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(updatedTriggers[0].GetAttribute("aria-expanded")).IsEqualTo("false");
+            await Assert.That(updatedTriggers[1].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(updatedTriggers[0].GetAttribute("tabindex")).IsEqualTo("-1");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Menubar_content_root_character_key_runs_typeahead()
     {
-        var cut = Render(CreateMenubar());
-        cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
-        var content = FindOpenContent(cut);
-        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+        IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
+        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -152,20 +153,20 @@ public sealed class BradixMenubarRenderTests : BunitContext
             TargetId = currentContentId
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
-            Assert.Equal("0", items[1].GetAttribute("tabindex"));
+            IHtmlCollection<IElement> items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
+            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Menubar_interactions_do_not_query_active_element_js()
     {
-        var cut = Render(CreateMenubar());
-        cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
-        var content = FindOpenContent(cut);
-        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+        IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
+        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -173,15 +174,15 @@ public sealed class BradixMenubarRenderTests : BunitContext
             ClosestMenubarContentId = currentContentId
         }));
 
-        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "getActiveElementId");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "getActiveElementId")).IsFalse();
     }
 
-    [Fact]
+    [Test]
     public async Task Menubar_content_arrow_right_ignores_nested_subtrigger_navigation()
     {
-        var cut = Render(CreateMenubar());
-        cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
-        var content = FindOpenContent(cut);
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+        IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -189,26 +190,26 @@ public sealed class BradixMenubarRenderTests : BunitContext
             IsMenubarSubTrigger = true
         }));
 
-        var updatedTriggers = cut.FindAll("button[role='menuitem']");
-        Assert.Equal("true", updatedTriggers[0].GetAttribute("aria-expanded"));
-        Assert.Equal("false", updatedTriggers[1].GetAttribute("aria-expanded"));
+        IReadOnlyList<IElement> updatedTriggers = cut.FindAll("button[role='menuitem']");
+        await Assert.That(updatedTriggers[0].GetAttribute("aria-expanded")).IsEqualTo("true");
+        await Assert.That(updatedTriggers[1].GetAttribute("aria-expanded")).IsEqualTo("false");
     }
 
-    [Fact]
+    [Test]
     public async Task Menubar_content_focus_outside_resets_typeahead_buffer()
     {
-        var cut = Render(CreateMenubar());
-        cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
-        var content = FindOpenContent(cut);
-        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
-        var items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+        IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
+        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        IHtmlCollection<IElement> items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
 
-        items[0].KeyDown(new KeyboardEventArgs { Key = "s" });
+        await items[0].KeyDownAsync(new KeyboardEventArgs { Key = "s" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
             items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
-            Assert.Equal("0", items[1].GetAttribute("tabindex"));
+            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOut(new BradixDelegatedFocusEvent
@@ -218,28 +219,28 @@ public sealed class BradixMenubarRenderTests : BunitContext
         }));
 
         items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
-        items[1].KeyDown(new KeyboardEventArgs { Key = "f" });
+        await items[1].KeyDownAsync(new KeyboardEventArgs { Key = "f" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
             items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
-            Assert.Equal("0", items[0].GetAttribute("tabindex"));
+            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Checkbox_and_radio_wrappers_render_checked_state()
     {
-        var cut = Render(CreateMenubar());
-        cut.FindAll("button[role='menuitem']")[1].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        await cut.FindAll("button[role='menuitem']")[1].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("mixed", cut.Find("[role='menuitemcheckbox']").GetAttribute("aria-checked"));
+            await Assert.That(cut.Find("[role='menuitemcheckbox']").GetAttribute("aria-checked")).IsEqualTo("mixed");
         });
 
-        var content = FindOpenContent(cut);
-        string currentContentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+        IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
+        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -247,34 +248,34 @@ public sealed class BradixMenubarRenderTests : BunitContext
             ClosestMenubarContentId = currentContentId
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var radioItems = cut.FindAll("[role='menuitemradio']");
-            Assert.Contains(radioItems, item => item.GetAttribute("aria-checked") == "true");
-            Assert.Contains(radioItems, item => item.GetAttribute("aria-checked") == "false");
+            IReadOnlyList<IElement> radioItems = cut.FindAll("[role='menuitemradio']");
+            await Assert.That(radioItems.Any(item => item.GetAttribute("aria-checked") == "true")).IsTrue();
+            await Assert.That(radioItems.Any(item => item.GetAttribute("aria-checked") == "false")).IsTrue();
         });
     }
 
-    [Fact]
-    public void Submenu_wrapper_opens_from_sub_trigger()
+    [Test]
+    public async Task Submenu_wrapper_opens_from_sub_trigger()
     {
-        var cut = Render(CreateMenubar());
-        cut.FindAll("button[role='menuitem']")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
-        var subTrigger = cut.Find("[data-radix-menubar-subtrigger]");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+        IElement subTrigger = cut.Find("[data-radix-menubar-subtrigger]");
 
-        subTrigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        await subTrigger.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("true", cut.Find("[data-radix-menubar-subtrigger]").GetAttribute("aria-expanded"));
-            Assert.Contains("Copy link", cut.Markup);
+            await Assert.That(cut.Find("[data-radix-menubar-subtrigger]").GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(cut.Markup).Contains("Copy link");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Detailed_escape_keydown_can_prevent_menubar_content_dismiss()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixMenubar>(0);
             builder.AddAttribute(1, nameof(BradixMenubar.ChildContent), (RenderFragment)(content =>
@@ -309,13 +310,13 @@ public sealed class BradixMenubarRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        cut.Find("button[role='menuitem']").KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        await cut.Find("button[role='menuitem']").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         bool prevented = await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDown());
 
-        Assert.False(prevented);
-        Assert.Single(cut.FindAll("[role='menu']"));
+        await Assert.That(prevented).IsFalse();
+        await Assert.That(cut.FindAll("[role='menu']")).HasSingleItem();
     }
 
     private static RenderFragment CreateMenubar()

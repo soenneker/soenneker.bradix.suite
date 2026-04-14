@@ -1,54 +1,56 @@
 using System.Collections.Generic;
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Xunit;
+using System.Threading.Tasks;
+using AngleSharp.Dom;
+using Bunit.Rendering;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixProgressRenderTests : BunitContext
 {
-    [Fact]
-    public void Progress_renders_loading_state_and_aria_values()
+    [Test]
+    public async Task Progress_renders_loading_state_and_aria_values()
     {
-        var cut = Render(CreateProgress(30, 100));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateProgress(30, 100));
 
-        var root = cut.Find("[role='progressbar']");
-        var indicator = cut.FindAll("div")[1];
+        IElement root = cut.Find("[role='progressbar']");
+        IElement indicator = cut.FindAll("div")[1];
 
-        Assert.Equal("30", root.GetAttribute("aria-valuenow"));
-        Assert.Equal("30%", root.GetAttribute("aria-valuetext"));
-        Assert.Equal("loading", root.GetAttribute("data-state"));
-        Assert.Equal("loading", indicator.GetAttribute("data-state"));
+        await Assert.That(root.GetAttribute("aria-valuenow")).IsEqualTo("30");
+        await Assert.That(root.GetAttribute("aria-valuetext")).IsEqualTo("30%");
+        await Assert.That(root.GetAttribute("data-state")).IsEqualTo("loading");
+        await Assert.That(indicator.GetAttribute("data-state")).IsEqualTo("loading");
     }
 
-    [Fact]
-    public void Progress_renders_indeterminate_when_value_is_invalid()
+    [Test]
+    public async Task Progress_renders_indeterminate_when_value_is_invalid()
     {
-        var cut = Render(CreateProgress(150, 100));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateProgress(150, 100));
 
-        var root = cut.Find("[role='progressbar']");
+        IElement root = cut.Find("[role='progressbar']");
 
-        Assert.Null(root.GetAttribute("aria-valuenow"));
-        Assert.Equal("indeterminate", root.GetAttribute("data-state"));
-        Assert.Null(root.GetAttribute("data-value"));
+        await Assert.That(root.GetAttribute("aria-valuenow")).IsNull();
+        await Assert.That(root.GetAttribute("data-state")).IsEqualTo("indeterminate");
+        await Assert.That(root.GetAttribute("data-value")).IsNull();
     }
 
-    [Fact]
-    public void Progress_renders_complete_when_value_reaches_max()
+    [Test]
+    public async Task Progress_renders_complete_when_value_reaches_max()
     {
-        var cut = Render(CreateProgress(100, 100));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateProgress(100, 100));
 
-        var root = cut.Find("[role='progressbar']");
-        var indicator = cut.FindAll("div")[1];
+        IElement root = cut.Find("[role='progressbar']");
+        IElement indicator = cut.FindAll("div")[1];
 
-        Assert.Equal("complete", root.GetAttribute("data-state"));
-        Assert.Equal("complete", indicator.GetAttribute("data-state"));
+        await Assert.That(root.GetAttribute("data-state")).IsEqualTo("complete");
+        await Assert.That(indicator.GetAttribute("data-state")).IsEqualTo("complete");
     }
 
-    [Fact]
-    public void Progress_allows_consumer_attributes_to_override_semantics_like_radix()
+    [Test]
+    public async Task Progress_allows_consumer_attributes_to_override_semantics_like_radix()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixProgress>(0);
             builder.AddAttribute(1, nameof(BradixProgress.Value), 30d);
@@ -65,9 +67,9 @@ public sealed class BradixProgressRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var root = cut.Find("div");
-        Assert.Equal("Custom label", root.GetAttribute("aria-valuetext"));
-        Assert.Equal("consumer-state", root.GetAttribute("data-state"));
+        IElement root = cut.Find("div");
+        await Assert.That(root.GetAttribute("aria-valuetext")).IsEqualTo("Custom label");
+        await Assert.That(root.GetAttribute("data-state")).IsEqualTo("consumer-state");
     }
 
     private static RenderFragment CreateProgress(double? value, double max)

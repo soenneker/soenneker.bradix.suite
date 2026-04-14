@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -32,23 +34,23 @@ public sealed class BradixFormRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Field_label_and_control_share_generated_relationship_attributes()
+    [Test]
+    public async Task Field_label_and_control_share_generated_relationship_attributes()
     {
-        var cut = RenderForm();
+        IRenderedComponent<BradixForm> cut = RenderForm();
 
-        var label = cut.Find("label");
-        var input = cut.Find("input");
+        IElement label = cut.Find("label");
+        IElement input = cut.Find("input");
 
-        Assert.Equal("email", input.GetAttribute("name"));
-        Assert.Equal(input.Id, label.GetAttribute("for"));
+        await Assert.That(input.GetAttribute("name")).IsEqualTo("email");
+        await Assert.That(label.GetAttribute("for")).IsEqualTo(input.Id);
     }
 
-    [Fact]
+    [Test]
     public async Task Invalid_control_registers_message_id_and_invalid_data_attributes()
     {
-        var cut = RenderForm();
-        var control = cut.FindComponent<BradixFormControl>();
+        IRenderedComponent<BradixForm> cut = RenderForm();
+        IRenderedComponent<BradixFormControl> control = cut.FindComponent<BradixFormControl>();
 
         await control.Instance.HandleValidityChanged(new BradixFormValiditySnapshot
         {
@@ -56,24 +58,24 @@ public sealed class BradixFormRenderTests : BunitContext
             ValueMissing = true
         });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var field = cut.Find("div[data-invalid]");
-            var label = cut.Find("label[data-invalid]");
-            var input = cut.Find("input");
-            var message = cut.Find("span[id]");
+            IElement field = cut.Find("div[data-invalid]");
+            IElement label = cut.Find("label[data-invalid]");
+            IElement input = cut.Find("input");
+            IElement message = cut.Find("span[id]");
 
-            Assert.NotNull(field);
-            Assert.NotNull(label);
-            Assert.Equal(message.Id, input.GetAttribute("aria-describedby"));
-            Assert.Equal("This value is missing", message.TextContent.Trim());
+            await Assert.That(field).IsNotNull();
+            await Assert.That(label).IsNotNull();
+            await Assert.That(input.GetAttribute("aria-describedby")).IsEqualTo(message.Id);
+            await Assert.That(message.TextContent.Trim()).IsEqualTo("This value is missing");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Built_in_message_uses_default_copy_for_matching_validity_state()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixForm>(0);
             builder.AddAttribute(1, nameof(BradixForm.ChildContent), (RenderFragment)(contentBuilder =>
@@ -95,23 +97,23 @@ public sealed class BradixFormRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var control = cut.FindComponent<BradixFormControl>();
+        IRenderedComponent<BradixFormControl> control = cut.FindComponent<BradixFormControl>();
         await control.Instance.HandleValidityChanged(new BradixFormValiditySnapshot
         {
             Valid = false,
             TypeMismatch = true
         });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("This value does not match the required type", cut.Find("span[id]").TextContent.Trim());
+            await Assert.That(cut.Find("span[id]").TextContent.Trim()).IsEqualTo("This value does not match the required type");
         });
     }
 
-    [Fact]
-    public void Submit_renders_submit_button_type()
+    [Test]
+    public async Task Submit_renders_submit_button_type()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixFormSubmit>(0);
             builder.AddAttribute(1, nameof(BradixFormSubmit.ChildContent), (RenderFragment)(contentBuilder =>
@@ -121,20 +123,20 @@ public sealed class BradixFormRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var button = cut.Find("button");
-        Assert.Equal("submit", button.GetAttribute("type"));
-        Assert.Equal("Send", button.TextContent);
+        IElement button = cut.Find("button");
+        await Assert.That(button.GetAttribute("type")).IsEqualTo("submit");
+        await Assert.That(button.TextContent).IsEqualTo("Send");
     }
 
-    [Fact]
+    [Test]
     public async Task Custom_sync_matcher_uses_form_data_and_registers_message_description()
     {
-        var cut = RenderCustomMessageForm(
+        IRenderedComponent<BradixForm> cut = RenderCustomMessageForm(
             (Func<string?, BradixFormDataSnapshot, bool>)((value, formData) =>
                 !string.Equals(value, formData.Get("password"), StringComparison.Ordinal)),
             "Passwords must match.");
 
-        var control = cut.FindComponent<BradixFormControl>();
+        IRenderedComponent<BradixFormControl> control = cut.FindComponent<BradixFormControl>();
 
         await control.Instance.HandleControlStateChanged(CreateControlSnapshot("mismatch", new BradixFormValiditySnapshot(), new Dictionary<string, string[]>
         {
@@ -142,53 +144,53 @@ public sealed class BradixFormRenderTests : BunitContext
             ["confirmPassword"] = ["mismatch"]
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var input = cut.Find("input");
-            var message = cut.Find("span[id]");
+            IElement input = cut.Find("input");
+            IElement message = cut.Find("span[id]");
 
-            Assert.Equal("Passwords must match.", message.TextContent.Trim());
-            Assert.Equal(message.Id, input.GetAttribute("aria-describedby"));
+            await Assert.That(message.TextContent.Trim()).IsEqualTo("Passwords must match.");
+            await Assert.That(input.GetAttribute("aria-describedby")).IsEqualTo(message.Id);
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Custom_async_matcher_displays_default_message_when_matcher_fails()
     {
-        var cut = RenderCustomMessageForm((Func<string?, BradixFormDataSnapshot, Task<bool>>)(async (value, _) =>
+        IRenderedComponent<BradixForm> cut = RenderCustomMessageForm((Func<string?, BradixFormDataSnapshot, Task<bool>>)(async (value, _) =>
         {
             await Task.Yield();
             return string.Equals(value, "taken", StringComparison.Ordinal);
         }));
 
-        var control = cut.FindComponent<BradixFormControl>();
+        IRenderedComponent<BradixFormControl> control = cut.FindComponent<BradixFormControl>();
 
         await control.Instance.HandleControlStateChanged(CreateControlSnapshot("taken", new BradixFormValiditySnapshot(), new Dictionary<string, string[]>
         {
             ["confirmPassword"] = ["taken"]
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("This value is not valid", cut.Find("span[id]").TextContent.Trim());
+            await Assert.That(cut.Find("span[id]").TextContent.Trim()).IsEqualTo("This value is not valid");
         });
     }
 
-    [Fact]
-    public void Reset_clears_custom_validity_through_root_interop()
+    [Test]
+    public async Task Reset_clears_custom_validity_through_root_interop()
     {
-        var cut = RenderForm();
+        IRenderedComponent<BradixForm> cut = RenderForm();
 
-        cut.Find("form").TriggerEvent("onreset", EventArgs.Empty);
+        await cut.Find("form").TriggerEventAsync("onreset", EventArgs.Empty);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "clearFormCustomValidity");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "clearFormCustomValidity")).IsTrue();
         });
     }
 
-    [Fact]
-    public void Server_invalid_control_requests_focus_bridge_on_render()
+    [Test]
+    public async Task Server_invalid_control_requests_focus_bridge_on_render()
     {
         Render<BradixForm>(parameters => parameters
             .Add(form => form.ChildContent, (RenderFragment)(contentBuilder =>
@@ -204,15 +206,15 @@ public sealed class BradixFormRenderTests : BunitContext
                 contentBuilder.CloseComponent();
             })));
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "focusServerInvalidFormControl");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusServerInvalidFormControl")).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Input_event_clears_custom_validity_before_commit()
     {
-        var cut = RenderForm();
-        var control = cut.Find("input");
-        var controlComponent = cut.FindComponent<BradixFormControl>();
+        IRenderedComponent<BradixForm> cut = RenderForm();
+        IElement control = cut.Find("input");
+        IRenderedComponent<BradixFormControl> controlComponent = cut.FindComponent<BradixFormControl>();
 
         await controlComponent.Instance.HandleValidityChanged(new BradixFormValiditySnapshot
         {
@@ -220,37 +222,37 @@ public sealed class BradixFormRenderTests : BunitContext
             ValueMissing = true
         });
 
-        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("span[id]")));
+        await Assert.That(cut.FindAll("span[id]")).HasSingleItem();
 
-        control.Input("hello@example.com");
+        await control.InputAsync("hello@example.com");
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Empty(cut.FindAll("span[id]"));
+            await Assert.That(cut.FindAll("span[id]")).IsEmpty();
         });
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "setFormControlCustomValidity");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "setFormControlCustomValidity")).IsTrue();
     }
 
-    [Fact]
-    public void Force_matched_message_retargets_aria_describedby_when_name_changes()
+    [Test]
+    public async Task Force_matched_message_retargets_aria_describedby_when_name_changes()
     {
-        var cut = Render<TargetedMessageHost>();
-        var inputs = cut.FindAll("input");
-        var message = cut.Find("span[id]");
+        IRenderedComponent<TargetedMessageHost> cut = Render<TargetedMessageHost>();
+        IReadOnlyList<IElement> inputs = cut.FindAll("input");
+        IElement message = cut.Find("span[id]");
 
-        Assert.Equal(message.Id, inputs[0].GetAttribute("aria-describedby"));
-        Assert.Null(inputs[1].GetAttribute("aria-describedby"));
+        await Assert.That(inputs[0].GetAttribute("aria-describedby")).IsEqualTo(message.Id);
+        await Assert.That(inputs[1].GetAttribute("aria-describedby")).IsNull();
 
-        cut.Find("button").Click();
+        await cut.Find("button").ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedInputs = cut.FindAll("input");
-            var updatedMessage = cut.Find("span[id]");
+            IReadOnlyList<IElement> updatedInputs = cut.FindAll("input");
+            IElement updatedMessage = cut.Find("span[id]");
 
-            Assert.Null(updatedInputs[0].GetAttribute("aria-describedby"));
-            Assert.Equal(updatedMessage.Id, updatedInputs[1].GetAttribute("aria-describedby"));
+            await Assert.That(updatedInputs[0].GetAttribute("aria-describedby")).IsNull();
+            await Assert.That(updatedInputs[1].GetAttribute("aria-describedby")).IsEqualTo(updatedMessage.Id);
         });
     }
 

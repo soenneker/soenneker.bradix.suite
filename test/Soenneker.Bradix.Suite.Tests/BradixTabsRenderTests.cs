@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using System.Threading.Tasks;
+using AngleSharp.Dom;
+using Bunit.Rendering;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -11,7 +14,7 @@ public sealed class BradixTabsRenderTests : BunitContext
 {
     public BradixTabsRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
@@ -24,74 +27,74 @@ public sealed class BradixTabsRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Tabs_render_active_trigger_and_panel_relationships()
+    [Test]
+    public async Task Tabs_render_active_trigger_and_panel_relationships()
     {
-        var cut = Render(CreateTabs(defaultValue: "tab1"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1"));
 
-        var buttons = cut.FindAll("button");
-        var tabList = cut.Find("[role='tablist']");
-        var panel = cut.Find("[role='tabpanel']");
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        IElement tabList = cut.Find("[role='tablist']");
+        IElement panel = cut.Find("[role='tabpanel']");
 
-        Assert.Equal("horizontal", tabList.GetAttribute("aria-orientation"));
-        Assert.Equal("true", buttons[0].GetAttribute("aria-selected"));
-        Assert.Equal("active", buttons[0].GetAttribute("data-state"));
-        Assert.Equal(buttons[0].GetAttribute("aria-controls"), panel.Id);
-        Assert.Equal(buttons[0].Id, panel.GetAttribute("aria-labelledby"));
+        await Assert.That(tabList.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(buttons[0].GetAttribute("aria-selected")).IsEqualTo("true");
+        await Assert.That(buttons[0].GetAttribute("data-state")).IsEqualTo("active");
+        await Assert.That(panel.Id).IsEqualTo(buttons[0].GetAttribute("aria-controls"));
+        await Assert.That(panel.GetAttribute("aria-labelledby")).IsEqualTo(buttons[0].Id);
     }
 
-    [Fact]
-    public void Manual_activation_does_not_switch_on_focus_but_does_on_enter()
+    [Test]
+    public async Task Manual_activation_does_not_switch_on_focus_but_does_on_enter()
     {
         string? requestedValue = null;
 
-        var cut = Render(CreateTabs(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(
             defaultValue: "tab1",
             activationMode: BradixTabsActivationMode.Manual,
             onValueChange: EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
 
-        var buttons = cut.FindAll("button");
-        buttons[2].Focus();
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[2].FocusAsync();
 
-        Assert.Contains("Content 1", cut.Markup);
-        Assert.DoesNotContain("Content 3", cut.Markup);
+        await Assert.That(cut.Markup).Contains("Content 1");
+        await Assert.That(cut.Markup).DoesNotContain("Content 3");
 
-        buttons[2].KeyDown(new KeyboardEventArgs { Key = "Enter" });
+        await buttons[2].KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
 
-        Assert.Equal("tab3", requestedValue);
+        await Assert.That(requestedValue).IsEqualTo("tab3");
     }
 
-    [Fact]
-    public void Automatic_activation_switches_on_focus()
+    [Test]
+    public async Task Automatic_activation_switches_on_focus()
     {
         string? requestedValue = null;
 
-        var cut = Render(CreateTabs(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(
             defaultValue: "tab1",
             onValueChange: EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
 
-        var buttons = cut.FindAll("button");
-        buttons[2].Focus();
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[2].FocusAsync();
 
-        Assert.Equal("tab3", requestedValue);
+        await Assert.That(requestedValue).IsEqualTo("tab3");
     }
 
-    [Fact]
-    public void Force_mount_keeps_inactive_panel_present_without_hidden_attribute()
+    [Test]
+    public async Task Force_mount_keeps_inactive_panel_present_without_hidden_attribute()
     {
-        var cut = Render(CreateTabs(defaultValue: "tab1", forceMount: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", forceMount: true));
 
-        var tab2Panel = cut.Find("#" + cut.FindAll("button")[1].GetAttribute("aria-controls"));
+        IElement tab2Panel = cut.Find("#" + cut.FindAll("button")[1].GetAttribute("aria-controls"));
 
-        Assert.False(tab2Panel.HasAttribute("hidden"));
-        Assert.Equal("0", tab2Panel.GetAttribute("tabindex"));
-        Assert.Contains("Content 2", tab2Panel.TextContent);
+        await Assert.That(tab2Panel.HasAttribute("hidden")).IsFalse();
+        await Assert.That(tab2Panel.GetAttribute("tabindex")).IsEqualTo("0");
+        await Assert.That(tab2Panel.TextContent).Contains("Content 2");
     }
 
-    [Fact]
-    public void Inherited_direction_flips_horizontal_roving_focus_intent()
+    [Test]
+    public async Task Inherited_direction_flips_horizontal_roving_focus_intent()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDirectionProvider>(0);
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
@@ -102,20 +105,20 @@ public sealed class BradixTabsRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var buttons = cut.FindAll("button");
-        buttons[0].KeyDown(new KeyboardEventArgs { Key = "ArrowLeft" });
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowLeft" });
         buttons = cut.FindAll("button");
 
-        Assert.Equal("-1", buttons[0].GetAttribute("tabindex"));
-        Assert.Equal("0", buttons[2].GetAttribute("tabindex"));
+        await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");
+        await Assert.That(buttons[2].GetAttribute("tabindex")).IsEqualTo("0");
     }
 
-    [Fact]
-    public void Vertical_tabs_list_exposes_vertical_aria_orientation()
+    [Test]
+    public async Task Vertical_tabs_list_exposes_vertical_aria_orientation()
     {
-        var cut = Render(CreateTabs(defaultValue: "tab1", orientation: BradixOrientation.Vertical));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", orientation: BradixOrientation.Vertical));
 
-        Assert.Equal("vertical", cut.Find("[role='tablist']").GetAttribute("aria-orientation"));
+        await Assert.That(cut.Find("[role='tablist']").GetAttribute("aria-orientation")).IsEqualTo("vertical");
     }
 
     private static RenderFragment CreateTabs(string? defaultValue = null, BradixTabsActivationMode? activationMode = null, EventCallback<string?> onValueChange = default,

@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -35,104 +37,104 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Default_open_hover_card_renders_content()
+    [Test]
+    public async Task Default_open_hover_card_renders_content()
     {
-        var cut = Render(CreateHoverCard(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
 
-        Assert.Contains("Hover card body", cut.Markup);
+        await Assert.That(cut.Markup).Contains("Hover card body");
     }
 
-    [Fact]
-    public void Trigger_uses_non_submitting_button_semantics()
+    [Test]
+    public async Task Trigger_uses_non_submitting_button_semantics()
     {
-        var cut = Render(CreateHoverCard());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard());
 
-        Assert.Equal("button", cut.Find("button").GetAttribute("type"));
+        await Assert.That(cut.Find("button").GetAttribute("type")).IsEqualTo("button");
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_down_outside_dismisses_hover_card()
     {
-        var cut = Render(CreateHoverCard(defaultOpen: true));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.DoesNotContain("Hover card body", cut.Markup);
-            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "unregisterHoverCardSelectionContainment");
+            await Assert.That(cut.Markup).DoesNotContain("Hover card body");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "unregisterHoverCardSelectionContainment")).IsTrue();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Interact_outside_can_prevent_pointer_outside_dismissal()
     {
-        var cut = Render(CreateHoverCard(defaultOpen: true, onInteractOutsideDetailed: args => args.PreventDefault()));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true, onInteractOutsideDetailed: args => args.PreventDefault()));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Hover card body", cut.Markup);
+            await Assert.That(cut.Markup).Contains("Hover card body");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Document_pointerup_tracks_selection_state_and_preserves_content()
     {
-        var cut = Render(CreateHoverCard(defaultOpen: true));
-        var content = cut.FindComponent<BradixHoverCardContent>().Instance;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
+        BradixHoverCardContent content = cut.FindComponent<BradixHoverCardContent>().Instance;
 
-        cut.Find("[data-state='open'] > div").TriggerEvent("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
+        await cut.Find("[data-state='open'] > div").TriggerEventAsync("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
         await content.HandleDocumentPointerUp(true);
 
-        cut.Find("[data-state='open'] > div").TriggerEvent("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
+        await cut.Find("[data-state='open'] > div").TriggerEventAsync("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Hover card body", cut.Markup);
+            await Assert.That(cut.Markup).Contains("Hover card body");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Focus_outside_does_not_dismiss_hover_card()
     {
-        var cut = Render(CreateHoverCard(defaultOpen: true));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandleFocusOutside());
 
-        Assert.Contains("Hover card body", cut.Markup);
+        await Assert.That(cut.Markup).Contains("Hover card body");
     }
 
-    [Fact]
+    [Test]
     public async Task Touch_pointer_leave_does_not_schedule_hover_card_close()
     {
-        var cut = Render(CreateHoverCard(openDelay: 0));
-        var trigger = cut.Find("button");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(openDelay: 0));
+        IElement trigger = cut.Find("button");
 
-        trigger.TriggerEvent("onpointerenter", new Microsoft.AspNetCore.Components.Web.PointerEventArgs { PointerType = "mouse" });
-        await Task.Delay(20, Xunit.TestContext.Current.CancellationToken);
-        cut.WaitForAssertion(() => Assert.Contains("Hover card body", cut.Markup));
+        await trigger.TriggerEventAsync("onpointerenter", new Microsoft.AspNetCore.Components.Web.PointerEventArgs { PointerType = "mouse" });
+        await Task.Delay(20, global::TUnit.Core.TestContext.Current.Execution.CancellationToken);
+        await Assert.That(cut.Markup).Contains("Hover card body");
 
-        trigger.TriggerEvent("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs { PointerType = "touch" });
-        await Task.Delay(350, Xunit.TestContext.Current.CancellationToken);
+        await trigger.TriggerEventAsync("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs { PointerType = "touch" });
+        await Task.Delay(350, global::TUnit.Core.TestContext.Current.Execution.CancellationToken);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Hover card body", cut.Markup);
+            await Assert.That(cut.Markup).Contains("Hover card body");
         });
     }
 
-    [Fact]
-    public void Default_open_hover_card_renders_arrow()
+    [Test]
+    public async Task Default_open_hover_card_renders_arrow()
     {
-        var cut = Render(CreateHoverCard(defaultOpen: true, includeArrow: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true, includeArrow: true));
 
-        Assert.Single(cut.FindAll(".tooltip-arrow-shape"));
+        await Assert.That(cut.FindAll(".tooltip-arrow-shape")).HasSingleItem();
     }
 
     private RenderFragment CreateHoverCard(bool defaultOpen = false, int openDelay = 0, bool includeArrow = false,

@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -39,26 +41,26 @@ public sealed class BradixDialogRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Trigger_click_opens_dialog_and_links_title_and_description()
+    [Test]
+    public async Task Trigger_click_opens_dialog_and_links_title_and_description()
     {
-        var cut = Render(CreateDialog());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDialog());
 
-        cut.Find("button[aria-haspopup='dialog']").Click();
+        await cut.Find("button[aria-haspopup='dialog']").ClickAsync();
 
-        var dialog = cut.Find("[role='dialog']");
-        var title = cut.Find("h2");
-        var description = cut.Find("p");
+        IElement dialog = cut.Find("[role='dialog']");
+        IElement title = cut.Find("h2");
+        IElement description = cut.Find("p");
 
-        Assert.Equal(dialog.Id, cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-controls"));
-        Assert.Equal(title.Id, dialog.GetAttribute("aria-labelledby"));
-        Assert.Equal(description.Id, dialog.GetAttribute("aria-describedby"));
+        await Assert.That(cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-controls")).IsEqualTo(dialog.Id);
+        await Assert.That(dialog.GetAttribute("aria-labelledby")).IsEqualTo(title.Id);
+        await Assert.That(dialog.GetAttribute("aria-describedby")).IsEqualTo(description.Id);
     }
 
-    [Fact]
-    public void Dialog_without_title_or_description_does_not_emit_orphaned_relationship_ids()
+    [Test]
+    public async Task Dialog_without_title_or_description_does_not_emit_orphaned_relationship_ids()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDialog>(0);
             builder.AddAttribute(1, nameof(BradixDialog.DefaultOpen), true);
@@ -75,59 +77,59 @@ public sealed class BradixDialogRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var dialog = cut.Find("[role='dialog']");
-        Assert.Null(dialog.GetAttribute("aria-labelledby"));
-        Assert.Null(dialog.GetAttribute("aria-describedby"));
+        IElement dialog = cut.Find("[role='dialog']");
+        await Assert.That(dialog.GetAttribute("aria-labelledby")).IsNull();
+        await Assert.That(dialog.GetAttribute("aria-describedby")).IsNull();
     }
 
-    [Fact]
-    public void Modal_dialog_renders_overlay_and_sets_aria_modal()
+    [Test]
+    public async Task Modal_dialog_renders_overlay_and_sets_aria_modal()
     {
-        var cut = Render(CreateDialog(defaultOpen: true, modal: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true, modal: true));
 
-        Assert.Single(cut.FindAll(".dialog-overlay"));
-        Assert.Equal("true", cut.Find("[role='dialog']").GetAttribute("aria-modal"));
+        await Assert.That(cut.FindAll(".dialog-overlay")).HasSingleItem();
+        await Assert.That(cut.Find("[role='dialog']").GetAttribute("aria-modal")).IsEqualTo("true");
     }
 
-    [Fact]
-    public void Non_modal_dialog_does_not_render_overlay()
+    [Test]
+    public async Task Non_modal_dialog_does_not_render_overlay()
     {
-        var cut = Render(CreateDialog(defaultOpen: true, modal: false));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true, modal: false));
 
-        Assert.Empty(cut.FindAll(".dialog-overlay"));
+        await Assert.That(cut.FindAll(".dialog-overlay")).IsEmpty();
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_down_outside_closes_dialog()
     {
-        var cut = Render(CreateDialog(defaultOpen: true));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        Assert.Equal("false", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+        await Assert.That(cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded")).IsEqualTo("false");
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_down_on_trigger_does_not_dismiss_non_modal_dialog()
     {
-        var cut = Render(CreateDialog(defaultOpen: true, modal: false));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
-        var trigger = cut.Find("button[aria-haspopup='dialog']");
-        string triggerId = Assert.IsType<string>(trigger.Id);
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true, modal: false));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
+        IElement trigger = cut.Find("button[aria-haspopup='dialog']");
+        string triggerId = await Assert.That(trigger.Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
             AncestorIds = [triggerId]
         }));
 
-        Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
     }
 
-    [Fact]
+    [Test]
     public async Task Detailed_pointer_down_outside_can_prevent_dialog_dismiss()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDialog>(0);
             builder.AddAttribute(1, nameof(BradixDialog.DefaultOpen), true);
@@ -145,36 +147,36 @@ public sealed class BradixDialogRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+        await Assert.That(cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded")).IsEqualTo("true");
     }
 
-    [Fact]
+    [Test]
     public async Task Close_button_keeps_content_mounted_until_exit_animation_finishes()
     {
-        var cut = Render(CreateDialog(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true));
 
-        var closeButton = cut.Find("button[data-dialog-close='true']");
-        Assert.Equal("Close", closeButton.GetAttribute("aria-label"));
-        closeButton.Click();
+        IElement closeButton = cut.Find("button[data-dialog-close='true']");
+        await Assert.That(closeButton.GetAttribute("aria-label")).IsEqualTo("Close");
+        await closeButton.ClickAsync();
 
-        Assert.Single(cut.FindAll("[role='dialog']"));
+        await Assert.That(cut.FindAll("[role='dialog']")).HasSingleItem();
 
-        var presence = cut.FindComponent<BradixPresence>();
+        IRenderedComponent<BradixPresence> presence = cut.FindComponent<BradixPresence>();
         await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-out"));
 
-        Assert.Empty(cut.FindAll("[role='dialog']"));
+        await Assert.That(cut.FindAll("[role='dialog']")).IsEmpty();
     }
 
-    [Fact]
-    public void Modal_dialog_registers_hide_others()
+    [Test]
+    public async Task Modal_dialog_registers_hide_others()
     {
         Render(CreateDialog(defaultOpen: true));
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerHideOthers")).IsTrue();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerRemoveScroll")).IsTrue();
     }
 
     private static RenderFragment CreateDialog(bool defaultOpen = false, bool modal = true)

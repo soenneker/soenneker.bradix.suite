@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -21,34 +21,34 @@ public sealed class BradixAvatarRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Fallback_renders_while_image_is_not_loaded()
+    [Test]
+    public async Task Fallback_renders_while_image_is_not_loaded()
     {
-        var cut = Render(CreateAvatar(delayMs: null));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: null));
 
-        Assert.Contains("JD", cut.Markup);
-        Assert.Empty(cut.FindAll("img"));
+        await Assert.That(cut.Markup).Contains("JD");
+        await Assert.That(cut.FindAll("img")).IsEmpty();
     }
 
-    [Fact]
+    [Test]
     public async Task Loaded_status_renders_image_and_hides_fallback()
     {
-        var cut = Render(CreateAvatar(delayMs: null));
-        var image = cut.FindComponent<BradixAvatarImage>().Instance;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: null));
+        BradixAvatarImage image = cut.FindComponent<BradixAvatarImage>().Instance;
 
         await image.HandleImageLoadingStatusChanged("loaded");
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Single(cut.FindAll("img"));
-            Assert.DoesNotContain("JD", cut.Markup);
+            await Assert.That(cut.FindAll("img")).HasSingleItem();
+            await Assert.That(cut.Markup).DoesNotContain("JD");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Loaded_image_without_alt_renders_empty_alt_attribute()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixAvatar>(0);
             builder.AddAttribute(1, nameof(BradixAvatar.ChildContent), (RenderFragment)(content =>
@@ -63,43 +63,43 @@ public sealed class BradixAvatarRenderTests : BunitContext
             }));
             builder.CloseComponent();
         });
-        var image = cut.FindComponent<BradixAvatarImage>().Instance;
+        BradixAvatarImage image = cut.FindComponent<BradixAvatarImage>().Instance;
 
         await image.HandleImageLoadingStatusChanged("loaded");
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal(string.Empty, cut.Find("img").GetAttribute("alt"));
+            await Assert.That(cut.Find("img").GetAttribute("alt")).IsEqualTo(string.Empty);
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Delayed_fallback_waits_before_rendering()
     {
-        var cut = Render(CreateAvatar(delayMs: 150));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: 150));
 
-        Assert.DoesNotContain("JD", cut.Markup);
+        await Assert.That(cut.Markup).DoesNotContain("JD");
 
-        await Task.Delay(250, Xunit.TestContext.Current.CancellationToken);
+        await Task.Delay(250, global::TUnit.Core.TestContext.Current.Execution.CancellationToken);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("JD", cut.Markup);
+            await Assert.That(cut.Markup).Contains("JD");
         }, TimeSpan.FromSeconds(2));
     }
 
-    [Fact]
+    [Test]
     public async Task Error_status_keeps_fallback_visible()
     {
-        var cut = Render(CreateAvatar(delayMs: null));
-        var image = cut.FindComponent<BradixAvatarImage>().Instance;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: null));
+        BradixAvatarImage image = cut.FindComponent<BradixAvatarImage>().Instance;
 
         await image.HandleImageLoadingStatusChanged("error");
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("JD", cut.Markup);
-            Assert.Empty(cut.FindAll("img"));
+            await Assert.That(cut.Markup).Contains("JD");
+            await Assert.That(cut.FindAll("img")).IsEmpty();
         });
     }
 

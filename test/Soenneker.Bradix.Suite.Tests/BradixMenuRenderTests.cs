@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -50,59 +52,59 @@ public sealed class BradixMenuRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Default_open_menu_renders_content_and_arrow()
+    [Test]
+    public async Task Default_open_menu_renders_content_and_arrow()
     {
-        var cut = Render(CreateMenu(includeArrow: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(includeArrow: true));
 
-        var menu = cut.Find("[role='menu']");
+        IElement menu = cut.Find("[role='menu']");
 
-        Assert.Equal("open", menu.GetAttribute("data-state"));
-        Assert.Equal("vertical", menu.GetAttribute("aria-orientation"));
-        Assert.NotNull(menu.GetAttribute("data-radix-menu-content"));
-        Assert.Single(cut.FindAll(".menu-arrow-shape"));
+        await Assert.That(menu.GetAttribute("data-state")).IsEqualTo("open");
+        await Assert.That(menu.GetAttribute("aria-orientation")).IsEqualTo("vertical");
+        await Assert.That(menu.GetAttribute("data-radix-menu-content")).IsNotNull();
+        await Assert.That(cut.FindAll(".menu-arrow-shape")).HasSingleItem();
     }
 
-    [Fact]
-    public void First_enabled_item_has_tab_stop_and_arrow_navigation_updates_current_item()
+    [Test]
+    public async Task First_enabled_item_has_tab_stop_and_arrow_navigation_updates_current_item()
     {
-        var cut = Render(CreateMenu(disableFirstItem: true));
-        var items = cut.FindAll("[role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(disableFirstItem: true));
+        IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
 
-        Assert.Equal("-1", items[0].GetAttribute("tabindex"));
-        Assert.Equal("0", items[1].GetAttribute("tabindex"));
+        await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("-1");
+        await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
 
-        items[1].KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+        await items[1].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("-1", updatedItems[1].GetAttribute("tabindex"));
-            Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[1].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
-    public void Character_key_typeahead_moves_to_next_match()
+    [Test]
+    public async Task Character_key_typeahead_moves_to_next_match()
     {
-        var cut = Render(CreateMenu());
-        var items = cut.FindAll("[role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
+        IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
 
-        items[0].KeyDown(new KeyboardEventArgs { Key = "b" });
+        await items[0].KeyDownAsync(new KeyboardEventArgs { Key = "b" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Focus_outside_resets_typeahead_buffer()
     {
-        var cut = Render(CreateMenu());
-        var content = cut.FindComponent<BradixMenuContent>();
-        string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
+        IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
+        string contentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -110,10 +112,10 @@ public sealed class BradixMenuRenderTests : BunitContext
             TargetId = contentId
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOut(new BradixDelegatedFocusEvent
@@ -128,19 +130,19 @@ public sealed class BradixMenuRenderTests : BunitContext
             TargetId = contentId
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", updatedItems[0].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[0].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Content_root_home_and_end_keys_move_focus_to_first_and_last_items()
     {
-        var cut = Render(CreateMenu(disableFirstItem: true));
-        var content = cut.FindComponent<BradixMenuContent>();
-        string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(disableFirstItem: true));
+        IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
+        string contentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -148,10 +150,10 @@ public sealed class BradixMenuRenderTests : BunitContext
             TargetId = contentId
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
@@ -160,19 +162,19 @@ public sealed class BradixMenuRenderTests : BunitContext
             TargetId = contentId
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", updatedItems[1].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[1].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Content_root_character_key_runs_typeahead_when_content_has_focus()
     {
-        var cut = Render(CreateMenu());
-        var content = cut.FindComponent<BradixMenuContent>();
-        string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
+        IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
+        string contentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -180,149 +182,149 @@ public sealed class BradixMenuRenderTests : BunitContext
             TargetId = contentId
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
-    public void Touch_pointer_move_does_not_change_menu_tab_stop()
+    [Test]
+    public async Task Touch_pointer_move_does_not_change_menu_tab_stop()
     {
-        var cut = Render(CreateMenu());
-        var items = cut.FindAll("[role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
+        IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
 
-        Assert.Equal("0", items[0].GetAttribute("tabindex"));
-        items[2].TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "touch" });
+        await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("0");
+        await items[2].TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "touch" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", updatedItems[0].GetAttribute("tabindex"));
-            Assert.Equal("-1", updatedItems[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[0].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("-1");
         });
     }
 
-    [Fact]
-    public void Disabled_item_pointer_move_does_not_take_tab_stop()
+    [Test]
+    public async Task Disabled_item_pointer_move_does_not_take_tab_stop()
     {
-        var cut = Render(CreateMenu(disableFirstItem: true));
-        var items = cut.FindAll("[role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(disableFirstItem: true));
+        IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
 
-        items[0].TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await items[0].TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("-1", updatedItems[0].GetAttribute("tabindex"));
-            Assert.Equal("-1", updatedItems[1].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[0].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(updatedItems[1].GetAttribute("tabindex")).IsEqualTo("-1");
         });
     }
 
-    [Fact]
-    public void Pointer_leave_clears_current_menu_item_tab_stop()
+    [Test]
+    public async Task Pointer_leave_clears_current_menu_item_tab_stop()
     {
-        var cut = Render(CreateMenu());
-        var items = cut.FindAll("[role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
+        IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
 
-        items[2].TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await items[2].TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", updatedItems[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
         });
 
-        cut.FindAll("[role='menuitem']")[2].TriggerEvent("onpointerleave", new PointerEventArgs { PointerType = "mouse" });
+        await cut.FindAll("[role='menuitem']")[2].TriggerEventAsync("onpointerleave", new PointerEventArgs { PointerType = "mouse" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedItems = cut.FindAll("[role='menuitem']");
-            Assert.All(updatedItems, item => Assert.Equal("-1", item.GetAttribute("tabindex")));
-        });
-    }
-
-    [Fact]
-    public void Selecting_item_closes_menu_and_invokes_callback()
-    {
-        var selected = false;
-        var cut = Render(CreateMenu(onSelect: () => selected = true));
-
-        cut.FindAll("[role='menuitem']")[2].Click();
-
-        cut.WaitForAssertion(() =>
-        {
-            Assert.True(selected);
-            Assert.Equal("closed", cut.Find("[role='menu']").GetAttribute("data-state"));
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("-1");
         });
     }
 
-    [Fact]
-    public void Pointer_up_on_item_after_pointer_down_on_different_item_selects_it()
+    [Test]
+    public async Task Selecting_item_closes_menu_and_invokes_callback()
     {
         var selected = false;
-        var cut = Render(CreateMenu(onSelect: () => selected = true));
-        var items = cut.FindAll("[role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(onSelect: () => selected = true));
 
-        items[0].TriggerEvent("onpointerdown", new PointerEventArgs { PointerType = "mouse", Button = 0 });
-        items[2].TriggerEvent("onpointerup", new PointerEventArgs { PointerType = "mouse", Button = 0 });
+        await cut.FindAll("[role='menuitem']")[2].ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.True(selected);
-            Assert.Equal("closed", cut.Find("[role='menu']").GetAttribute("data-state"));
+            await Assert.That(selected).IsTrue();
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("closed");
         });
     }
 
-    [Fact]
-    public void Detailed_select_callback_can_prevent_menu_close()
+    [Test]
+    public async Task Pointer_up_on_item_after_pointer_down_on_different_item_selects_it()
     {
         var selected = false;
-        var cut = Render(CreateMenu(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(onSelect: () => selected = true));
+        IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
+
+        await items[0].TriggerEventAsync("onpointerdown", new PointerEventArgs { PointerType = "mouse", Button = 0 });
+        await items[2].TriggerEventAsync("onpointerup", new PointerEventArgs { PointerType = "mouse", Button = 0 });
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(selected).IsTrue();
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("closed");
+        });
+    }
+
+    [Test]
+    public async Task Detailed_select_callback_can_prevent_menu_close()
+    {
+        var selected = false;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(
             onSelect: () => selected = true,
             onSelectDetailed: args => args.PreventDefault()));
 
-        cut.FindAll("[role='menuitem']")[2].Click();
+        await cut.FindAll("[role='menuitem']")[2].ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.True(selected);
-            Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
+            await Assert.That(selected).IsTrue();
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("open");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Detailed_focus_outside_can_prevent_submenu_close()
     {
-        var cut = Render(CreateSubmenuMenu(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu(
             onSubFocusOutsideDetailed: EventCallback.Factory.Create<BradixFocusOutsideEventArgs>(this, args => args.PreventDefault())));
 
-        cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
-        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[role='menu']").Count));
+        await cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        await Assert.That(cut.FindAll("[role='menu']").Count).IsEqualTo(2);
 
-        var layer = cut.FindComponents<BradixDismissableLayer>().Last();
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponents<BradixDismissableLayer>().Last();
         await cut.InvokeAsync(() => layer.Instance.HandleFocusOutside(new BradixDelegatedFocusEvent
         {
             TargetId = "outside-target"
         }));
 
-        Assert.Equal(2, cut.FindAll("[role='menu']").Count);
+        await Assert.That(cut.FindAll("[role='menu']").Count).IsEqualTo(2);
     }
 
-    [Fact]
+    [Test]
     public async Task Submenu_content_keydown_callback_is_invoked()
     {
         string? key = null;
 
-        var cut = Render(CreateSubmenuMenu(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu(
             onSubContentKeyDown: EventCallback.Factory.Create<KeyboardEventArgs>(this, args => key = args.Key)));
 
-        cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
-        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[role='menu']").Count));
+        await cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        await Assert.That(cut.FindAll("[role='menu']").Count).IsEqualTo(2);
 
-        var submenuContent = cut.FindComponents<BradixMenuContent>().Last();
-        string submenuContentId = Assert.IsType<string>(cut.FindAll("[role='menu']").Last().Id);
+        IRenderedComponent<BradixMenuContent> submenuContent = cut.FindComponents<BradixMenuContent>().Last();
+        string submenuContentId = await Assert.That(cut.FindAll("[role='menu']").Last().Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => submenuContent.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -330,136 +332,136 @@ public sealed class BradixMenuRenderTests : BunitContext
             TargetId = submenuContentId
         }));
 
-        Assert.Equal("x", key);
+        await Assert.That(key).IsEqualTo("x");
     }
 
-    [Fact]
-    public void Modal_menu_registers_scroll_lock_and_hide_others()
+    [Test]
+    public async Task Modal_menu_registers_scroll_lock_and_hide_others()
     {
-        var cut = Render(CreateMenu());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
-        Assert.Null(cut.Find("[role='menu']").GetAttribute("aria-modal"));
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerRemoveScroll")).IsTrue();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerHideOthers")).IsTrue();
+        await Assert.That(cut.Find("[role='menu']").GetAttribute("aria-modal")).IsNull();
     }
 
-    [Fact]
+    [Test]
     public async Task Controlled_open_uses_keyboard_focus_path_when_last_input_was_keyboard()
     {
         _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(true);
 
-        var cut = Render(CreateMenu(open: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(open: true));
         int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
-        var focusScope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();
         await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocus());
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
-            Assert.Equal(focusCountBefore + 2, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("open");
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 2);
         });
     }
 
-    [Fact]
-    public void Checkbox_item_renders_checked_semantics_and_indicator()
+    [Test]
+    public async Task Checkbox_item_renders_checked_semantics_and_indicator()
     {
-        var cut = Render(CreateSelectionMenu());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelectionMenu());
 
-        var checkboxItem = cut.Find("[role='menuitemcheckbox']");
+        IElement checkboxItem = cut.Find("[role='menuitemcheckbox']");
 
-        Assert.Equal("mixed", checkboxItem.GetAttribute("aria-checked"));
-        Assert.Equal("indeterminate", checkboxItem.GetAttribute("data-state"));
-        Assert.Equal("indeterminate", cut.Find(".menu-indicator").GetAttribute("data-state"));
+        await Assert.That(checkboxItem.GetAttribute("aria-checked")).IsEqualTo("mixed");
+        await Assert.That(checkboxItem.GetAttribute("data-state")).IsEqualTo("indeterminate");
+        await Assert.That(cut.Find(".menu-indicator").GetAttribute("data-state")).IsEqualTo("indeterminate");
     }
 
-    [Fact]
-    public void Radio_group_can_change_selected_item_without_closing_when_configured()
+    [Test]
+    public async Task Radio_group_can_change_selected_item_without_closing_when_configured()
     {
-        var cut = Render(CreateSelectionMenu());
-        var radioItems = cut.FindAll("[role='menuitemradio']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelectionMenu());
+        IReadOnlyList<IElement> radioItems = cut.FindAll("[role='menuitemradio']");
 
-        radioItems[1].Click();
+        await radioItems[1].ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updated = cut.FindAll("[role='menuitemradio']");
-            Assert.Equal("false", updated[0].GetAttribute("aria-checked"));
-            Assert.Equal("true", updated[1].GetAttribute("aria-checked"));
-            Assert.Equal("checked", updated[1].GetAttribute("data-state"));
+            IReadOnlyList<IElement> updated = cut.FindAll("[role='menuitemradio']");
+            await Assert.That(updated[0].GetAttribute("aria-checked")).IsEqualTo("false");
+            await Assert.That(updated[1].GetAttribute("aria-checked")).IsEqualTo("true");
+            await Assert.That(updated[1].GetAttribute("data-state")).IsEqualTo("checked");
         });
     }
 
-    [Fact]
-    public void Checkbox_item_select_can_prevent_close_while_still_updating_checked_state()
+    [Test]
+    public async Task Checkbox_item_select_can_prevent_close_while_still_updating_checked_state()
     {
-        var cut = Render(CreateSelectionMenu(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelectionMenu(
             onCheckboxSelectDetailed: EventCallback.Factory.Create<BradixMenuItemSelectEventArgs>(this, args => args.PreventDefault())));
 
-        cut.Find("[role='menuitemcheckbox']").Click();
+        await cut.Find("[role='menuitemcheckbox']").ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
-            Assert.Equal("checked", cut.Find("[role='menuitemcheckbox']").GetAttribute("data-state"));
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("open");
+            await Assert.That(cut.Find("[role='menuitemcheckbox']").GetAttribute("data-state")).IsEqualTo("checked");
         });
     }
 
-    [Fact]
-    public void Sub_trigger_opens_submenu_and_exposes_expanded_state()
+    [Test]
+    public async Task Sub_trigger_opens_submenu_and_exposes_expanded_state()
     {
-        var cut = Render(CreateSubmenuMenu());
-        var trigger = cut.Find("[aria-haspopup='menu']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
+        IElement trigger = cut.Find("[aria-haspopup='menu']");
 
-        trigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        await trigger.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
-            Assert.Contains("Copy link", cut.Markup);
+            await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(cut.Markup).Contains("Copy link");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Keyboard_opened_submenu_focuses_content_before_first_item()
     {
-        var cut = Render(CreateSubmenuMenu());
-        var trigger = cut.Find("[aria-haspopup='menu']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
+        IElement trigger = cut.Find("[aria-haspopup='menu']");
         int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
 
-        trigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
-        var focusScope = cut.FindComponents<BradixFocusScope>().Last();
+        await trigger.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponents<BradixFocusScope>().Last();
         await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocus());
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
-            Assert.Equal(focusCountBefore + 2, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
+            await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 2);
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Sub_trigger_pointer_move_opens_after_delay()
     {
-        var cut = Render(CreateSubmenuMenu());
-        var trigger = cut.Find("[aria-haspopup='menu']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
+        IElement trigger = cut.Find("[aria-haspopup='menu']");
 
-        trigger.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
-        Assert.Equal("false", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
+        await trigger.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("false");
 
-        await Task.Delay(150, Xunit.TestContext.Current.CancellationToken);
+        await Task.Delay(150, global::TUnit.Core.TestContext.Current.Execution.CancellationToken);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
+            await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("true");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Space_does_not_open_submenu_while_typeahead_is_active()
     {
-        var cut = Render(CreateSubmenuMenu());
-        var content = cut.FindComponent<BradixMenuContent>();
-        string contentId = Assert.IsType<string>(cut.Find("[role='menu']").Id);
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
+        IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
+        string contentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -467,88 +469,88 @@ public sealed class BradixMenuRenderTests : BunitContext
             TargetId = contentId
         }));
 
-        cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDown(new KeyboardEventArgs { Key = " " });
+        await cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDownAsync(new KeyboardEventArgs { Key = " " });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("false", cut.Find("[aria-haspopup='menu'][role='menuitem']").GetAttribute("aria-expanded"));
-            Assert.Single(cut.FindAll("[role='menu']"));
+            await Assert.That(cut.Find("[aria-haspopup='menu'][role='menuitem']").GetAttribute("aria-expanded")).IsEqualTo("false");
+            await Assert.That(cut.FindAll("[role='menu']")).HasSingleItem();
         });
     }
 
-    [Fact]
-    public void Pointer_grace_keeps_sibling_hover_from_stealing_focus_while_moving_to_open_submenu()
+    [Test]
+    public async Task Pointer_grace_keeps_sibling_hover_from_stealing_focus_while_moving_to_open_submenu()
     {
         _module.Setup<bool>("beginMenuSubmenuPointerGrace", _ => true).SetResult(true);
 
-        var cut = Render(CreateSubmenuMenu());
-        var alphaItem = cut.FindAll("[role='menuitem']")[0];
-        var subTriggerElement = cut.Find("[aria-haspopup='menu']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
+        IElement alphaItem = cut.FindAll("[role='menuitem']")[0];
+        IElement subTriggerElement = cut.Find("[aria-haspopup='menu']");
 
-        subTriggerElement.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
-        cut.WaitForAssertion(() =>
+        await subTriggerElement.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var items = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", items[1].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
+            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
         });
 
-        subTriggerElement.Click();
-        cut.WaitForAssertion(() => Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")));
+        await subTriggerElement.ClickAsync();
+        await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("true");
 
-        subTriggerElement.TriggerEvent("onpointerleave", new PointerEventArgs { PointerType = "mouse", ClientX = 10, ClientY = 10 });
-        alphaItem.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await subTriggerElement.TriggerEventAsync("onpointerleave", new PointerEventArgs { PointerType = "mouse", ClientX = 10, ClientY = 10 });
+        await alphaItem.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var items = cut.FindAll("[role='menuitem']");
-            Assert.Equal("-1", items[0].GetAttribute("tabindex"));
-            Assert.Equal("0", items[1].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
+            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_grace_exit_restores_normal_parent_menu_hover_behavior()
     {
         _module.Setup<bool>("beginMenuSubmenuPointerGrace", _ => true).SetResult(true);
 
-        var cut = Render(CreateSubmenuMenu());
-        var subTrigger = cut.FindComponent<BradixMenuSubTrigger>();
-        var alphaItem = cut.FindAll("[role='menuitem']")[0];
-        var subTriggerElement = cut.Find("[aria-haspopup='menu']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
+        IRenderedComponent<BradixMenuSubTrigger> subTrigger = cut.FindComponent<BradixMenuSubTrigger>();
+        IElement alphaItem = cut.FindAll("[role='menuitem']")[0];
+        IElement subTriggerElement = cut.Find("[aria-haspopup='menu']");
 
-        subTriggerElement.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
-        cut.WaitForAssertion(() =>
+        await subTriggerElement.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var items = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", items[1].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
+            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
         });
 
-        subTriggerElement.Click();
-        cut.WaitForAssertion(() => Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")));
+        await subTriggerElement.ClickAsync();
+        await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("true");
 
-        subTriggerElement.TriggerEvent("onpointerleave", new PointerEventArgs { PointerType = "mouse", ClientX = 10, ClientY = 10 });
+        await subTriggerElement.TriggerEventAsync("onpointerleave", new PointerEventArgs { PointerType = "mouse", ClientX = 10, ClientY = 10 });
         await cut.InvokeAsync(() => subTrigger.Instance.HandlePointerGraceChanged(false));
 
-        alphaItem.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await alphaItem.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var items = cut.FindAll("[role='menuitem']");
-            Assert.Equal("0", items[0].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
+            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Submenu_close_key_closes_submenu_and_returns_trigger_state()
     {
-        var cut = Render(CreateSubmenuMenu());
-        var trigger = cut.Find("[aria-haspopup='menu']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
+        IElement trigger = cut.Find("[aria-haspopup='menu']");
 
-        trigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
-        cut.WaitForAssertion(() => Assert.Equal("true", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")));
+        await trigger.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("true");
 
-        var submenuContent = cut.FindComponents<BradixMenuContent>().Last();
-        string targetId = Assert.IsType<string>(cut.FindAll("[role='menu']").Last().Id);
+        IRenderedComponent<BradixMenuContent> submenuContent = cut.FindComponents<BradixMenuContent>().Last();
+        string targetId = await Assert.That(cut.FindAll("[role='menu']").Last().Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => submenuContent.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -556,9 +558,9 @@ public sealed class BradixMenuRenderTests : BunitContext
             TargetId = targetId
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("false", cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded"));
+            await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("false");
         });
     }
 

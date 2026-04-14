@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using System.Threading.Tasks;
+using AngleSharp.Dom;
+using Bunit.Rendering;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -12,7 +14,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
 {
     public BradixToggleGroupRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
@@ -21,73 +23,73 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Single_group_toggles_between_values_and_radio_semantics()
+    [Test]
+    public async Task Single_group_toggles_between_values_and_radio_semantics()
     {
         string? requestedValue = null;
 
-        var cut = Render(CreateSingleGroup(EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
-        var group = cut.Find("[role='radiogroup']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSingleGroup(EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
+        IElement group = cut.Find("[role='radiogroup']");
 
-        var buttons = cut.FindAll("button");
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
 
-        Assert.Equal("horizontal", group.GetAttribute("aria-orientation"));
-        Assert.Equal("radio", buttons[0].GetAttribute("role"));
-        Assert.Equal("false", buttons[0].GetAttribute("aria-checked"));
+        await Assert.That(group.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(buttons[0].GetAttribute("role")).IsEqualTo("radio");
+        await Assert.That(buttons[0].GetAttribute("aria-checked")).IsEqualTo("false");
 
-        buttons[0].Click();
+        await buttons[0].ClickAsync();
         buttons = cut.FindAll("button");
 
-        Assert.Equal("one", requestedValue);
-        Assert.Equal("true", buttons[0].GetAttribute("aria-checked"));
-        Assert.Equal("on", buttons[0].GetAttribute("data-state"));
+        await Assert.That(requestedValue).IsEqualTo("one");
+        await Assert.That(buttons[0].GetAttribute("aria-checked")).IsEqualTo("true");
+        await Assert.That(buttons[0].GetAttribute("data-state")).IsEqualTo("on");
 
-        buttons[0].Click();
+        await buttons[0].ClickAsync();
 
-        Assert.Equal(string.Empty, requestedValue);
+        await Assert.That(requestedValue).IsEqualTo(string.Empty);
     }
 
-    [Fact]
-    public void Multiple_group_accumulates_values_and_removes_them_independently()
+    [Test]
+    public async Task Multiple_group_accumulates_values_and_removes_them_independently()
     {
         IReadOnlyCollection<string>? requestedValues = null;
 
-        var cut = Render(CreateMultipleGroup(EventCallback.Factory.Create<IReadOnlyCollection<string>>(this, values => requestedValues = values)));
-        Assert.NotNull(cut.Find("[role='group']"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMultipleGroup(EventCallback.Factory.Create<IReadOnlyCollection<string>>(this, values => requestedValues = values)));
+        await Assert.That(cut.Find("[role='group']")).IsNotNull();
 
-        var buttons = cut.FindAll("button");
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
 
-        buttons[0].Click();
-        buttons[1].Click();
+        await buttons[0].ClickAsync();
+        await buttons[1].ClickAsync();
 
-        Assert.Equal(["one", "two"], requestedValues);
+        await Assert.That(string.Join(",", requestedValues!)).IsEqualTo("one,two");
 
         buttons = cut.FindAll("button");
-        buttons[0].Click();
+        await buttons[0].ClickAsync();
 
-        Assert.Equal(["two"], requestedValues);
+        await Assert.That(string.Join(",", requestedValues!)).IsEqualTo("two");
     }
 
-    [Fact]
-    public void Roving_focus_moves_current_tab_stop_with_arrow_keys()
+    [Test]
+    public async Task Roving_focus_moves_current_tab_stop_with_arrow_keys()
     {
-        var cut = Render(CreateSingleGroup());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSingleGroup());
 
-        var buttons = cut.FindAll("button");
-        Assert.Equal("0", buttons[0].GetAttribute("tabindex"));
-        Assert.Equal("-1", buttons[1].GetAttribute("tabindex"));
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("0");
+        await Assert.That(buttons[1].GetAttribute("tabindex")).IsEqualTo("-1");
 
-        buttons[0].KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
         buttons = cut.FindAll("button");
 
-        Assert.Equal("-1", buttons[0].GetAttribute("tabindex"));
-        Assert.Equal("0", buttons[1].GetAttribute("tabindex"));
+        await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");
+        await Assert.That(buttons[1].GetAttribute("tabindex")).IsEqualTo("0");
     }
 
-    [Fact]
-    public void Direction_provider_flips_horizontal_navigation()
+    [Test]
+    public async Task Direction_provider_flips_horizontal_navigation()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDirectionProvider>(0);
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
@@ -98,12 +100,12 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var buttons = cut.FindAll("button");
-        buttons[0].KeyDown(new KeyboardEventArgs { Key = "ArrowLeft" });
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowLeft" });
         buttons = cut.FindAll("button");
 
-        Assert.Equal("-1", buttons[0].GetAttribute("tabindex"));
-        Assert.Equal("0", buttons[1].GetAttribute("tabindex"));
+        await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");
+        await Assert.That(buttons[1].GetAttribute("tabindex")).IsEqualTo("0");
     }
 
     private static RenderFragment CreateSingleGroup(EventCallback<string?> onValueChange = default)

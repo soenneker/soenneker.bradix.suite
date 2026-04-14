@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -27,139 +27,139 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Sequential_input_updates_hidden_value()
+    [Test]
+    public async Task Sequential_input_updates_hidden_value()
     {
-        var cut = RenderOtpField();
+        IRenderedComponent<ContainerFragment> cut = RenderOtpField();
 
-        cut.Find("input[data-index='0']").Input("1");
-        cut.Find("input[data-index='1']").Input("2");
+        await cut.Find("input[data-index='0']").InputAsync("1");
+        await cut.Find("input[data-index='1']").InputAsync("2");
 
-        Assert.Equal("12", cut.Find("input[type='hidden']").GetAttribute("value"));
+        await Assert.That(cut.Find("input[type='hidden']").GetAttribute("value")).IsEqualTo("12");
     }
 
-    [Fact]
+    [Test]
     public async Task Paste_distributes_value_across_inputs()
     {
-        var cut = RenderOtpField();
-        var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
+        IRenderedComponent<ContainerFragment> cut = RenderOtpField();
+        IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
 
         await cut.InvokeAsync(() => input.Instance.HandlePaste("1234"));
 
-        Assert.Equal("1234", cut.Find("input[type='hidden']").GetAttribute("value"));
-        Assert.Equal("4", cut.Find("input[data-index='3']").GetAttribute("value"));
+        await Assert.That(cut.Find("input[type='hidden']").GetAttribute("value")).IsEqualTo("1234");
+        await Assert.That(cut.Find("input[data-index='3']").GetAttribute("value")).IsEqualTo("4");
     }
 
-    [Fact]
+    [Test]
     public async Task Backspace_shifts_remaining_characters_left()
     {
-        var cut = RenderOtpField();
-        var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
+        IRenderedComponent<ContainerFragment> cut = RenderOtpField();
+        IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
         await cut.InvokeAsync(() => input.Instance.HandlePaste("1234"));
 
-        cut.Find("input[data-index='1']").KeyDown("Backspace");
+        await cut.Find("input[data-index='1']").KeyDownAsync("Backspace");
 
-        Assert.Equal("134", cut.Find("input[type='hidden']").GetAttribute("value"));
-        Assert.Equal("3", cut.Find("input[data-index='1']").GetAttribute("value"));
-        Assert.Equal("4", cut.Find("input[data-index='2']").GetAttribute("value"));
+        await Assert.That(cut.Find("input[type='hidden']").GetAttribute("value")).IsEqualTo("134");
+        await Assert.That(cut.Find("input[data-index='1']").GetAttribute("value")).IsEqualTo("3");
+        await Assert.That(cut.Find("input[data-index='2']").GetAttribute("value")).IsEqualTo("4");
     }
 
-    [Fact]
-    public void Invalid_numeric_character_is_rejected()
+    [Test]
+    public async Task Invalid_numeric_character_is_rejected()
     {
         string? invalid = null;
-        var cut = RenderOtpField(onInvalidChange: value => invalid = value);
+        IRenderedComponent<ContainerFragment> cut = RenderOtpField(onInvalidChange: value => invalid = value);
 
-        cut.Find("input[data-index='0']").Input("A");
+        await cut.Find("input[data-index='0']").InputAsync("A");
 
-        Assert.Equal("A", invalid);
-        Assert.Equal(string.Empty, cut.Find("input[type='hidden']").GetAttribute("value"));
+        await Assert.That(invalid).IsEqualTo("A");
+        await Assert.That(cut.Find("input[type='hidden']").GetAttribute("value")).IsEqualTo(string.Empty);
     }
 
-    [Fact]
+    [Test]
     public async Task Completion_triggers_auto_submit_callback_and_form_request()
     {
         string submitted = string.Empty;
-        var cut = RenderOtpField(autoSubmit: true, onAutoSubmit: value => submitted = value);
-        var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
+        IRenderedComponent<ContainerFragment> cut = RenderOtpField(autoSubmit: true, onAutoSubmit: value => submitted = value);
+        IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
 
         await cut.InvokeAsync(() => input.Instance.HandlePaste("1234"));
 
-        Assert.Equal("1234", submitted);
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "requestFormSubmit");
+        await Assert.That(submitted).IsEqualTo("1234");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "requestFormSubmit")).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Form_reset_clears_uncontrolled_value()
     {
-        var cut = RenderOtpField();
-        var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
-        var root = cut.FindComponent<BradixOneTimePasswordField>();
+        IRenderedComponent<ContainerFragment> cut = RenderOtpField();
+        IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
+        IRenderedComponent<BradixOneTimePasswordField> root = cut.FindComponent<BradixOneTimePasswordField>();
 
         await cut.InvokeAsync(() => input.Instance.HandlePaste("1234"));
         await cut.InvokeAsync(() => root.Instance.HandleFormReset());
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal(string.Empty, cut.Find("input[type='hidden']").GetAttribute("value"));
-            Assert.Equal(string.Empty, cut.Find("input[data-index='0']").GetAttribute("value"));
+            await Assert.That(cut.Find("input[type='hidden']").GetAttribute("value")).IsEqualTo(string.Empty);
+            await Assert.That(cut.Find("input[data-index='0']").GetAttribute("value")).IsEqualTo(string.Empty);
         });
     }
 
-    [Fact]
-    public void Inputs_render_radix_accessibility_and_password_manager_attributes()
+    [Test]
+    public async Task Inputs_render_radix_accessibility_and_password_manager_attributes()
     {
-        var cut = RenderOtpField();
+        IRenderedComponent<ContainerFragment> cut = RenderOtpField();
 
-        var first = cut.Find("input[data-index='0']");
-        var second = cut.Find("input[data-index='1']");
-        var hidden = cut.Find("input[type='hidden']");
+        IElement first = cut.Find("input[data-index='0']");
+        IElement second = cut.Find("input[data-index='1']");
+        IElement hidden = cut.Find("input[type='hidden']");
 
-        Assert.Equal("Character 1 of 4", first.GetAttribute("aria-label"));
-        Assert.Equal("one-time-code", first.GetAttribute("autocomplete"));
-        Assert.Equal("4", first.GetAttribute("maxlength"));
-        Assert.True(first.HasAttribute("data-radix-otp-input"));
-        Assert.Equal("0", first.GetAttribute("data-radix-index"));
+        await Assert.That(first.GetAttribute("aria-label")).IsEqualTo("Character 1 of 4");
+        await Assert.That(first.GetAttribute("autocomplete")).IsEqualTo("one-time-code");
+        await Assert.That(first.GetAttribute("maxlength")).IsEqualTo("4");
+        await Assert.That(first.HasAttribute("data-radix-otp-input")).IsTrue();
+        await Assert.That(first.GetAttribute("data-radix-index")).IsEqualTo("0");
 
-        Assert.Equal("off", second.GetAttribute("autocomplete"));
-        Assert.Equal("true", second.GetAttribute("data-1p-ignore"));
-        Assert.Equal("true", second.GetAttribute("data-lpignore"));
-        Assert.Equal("true", second.GetAttribute("data-protonpass-ignore"));
-        Assert.Equal("true", second.GetAttribute("data-bwignore"));
-        Assert.Equal("1", second.GetAttribute("maxlength"));
+        await Assert.That(second.GetAttribute("autocomplete")).IsEqualTo("off");
+        await Assert.That(second.GetAttribute("data-1p-ignore")).IsEqualTo("true");
+        await Assert.That(second.GetAttribute("data-lpignore")).IsEqualTo("true");
+        await Assert.That(second.GetAttribute("data-protonpass-ignore")).IsEqualTo("true");
+        await Assert.That(second.GetAttribute("data-bwignore")).IsEqualTo("true");
+        await Assert.That(second.GetAttribute("maxlength")).IsEqualTo("1");
 
-        Assert.Equal("off", hidden.GetAttribute("autocomplete"));
-        Assert.Equal("off", hidden.GetAttribute("autocapitalize"));
-        Assert.Equal("off", hidden.GetAttribute("autocorrect"));
-        Assert.Equal("off", hidden.GetAttribute("autosave"));
-        Assert.Equal("false", hidden.GetAttribute("spellcheck"));
+        await Assert.That(hidden.GetAttribute("autocomplete")).IsEqualTo("off");
+        await Assert.That(hidden.GetAttribute("autocapitalize")).IsEqualTo("off");
+        await Assert.That(hidden.GetAttribute("autocorrect")).IsEqualTo("off");
+        await Assert.That(hidden.GetAttribute("autosave")).IsEqualTo("off");
+        await Assert.That(hidden.GetAttribute("spellcheck")).IsEqualTo("false");
     }
 
-    [Fact]
+    [Test]
     public async Task Inputs_use_single_roving_tab_stop()
     {
-        var cut = RenderOtpField();
-        var input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
+        IRenderedComponent<ContainerFragment> cut = RenderOtpField();
+        IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
 
-        Assert.Equal("0", cut.Find("input[data-index='0']").GetAttribute("tabindex"));
-        Assert.Equal("-1", cut.Find("input[data-index='1']").GetAttribute("tabindex"));
+        await Assert.That(cut.Find("input[data-index='0']").GetAttribute("tabindex")).IsEqualTo("0");
+        await Assert.That(cut.Find("input[data-index='1']").GetAttribute("tabindex")).IsEqualTo("-1");
 
         await cut.InvokeAsync(() => input.Instance.HandlePaste("12"));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("-1", cut.Find("input[data-index='0']").GetAttribute("tabindex"));
-            Assert.Equal("0", cut.Find("input[data-index='1']").GetAttribute("tabindex"));
-            Assert.Equal("-1", cut.Find("input[data-index='2']").GetAttribute("tabindex"));
+            await Assert.That(cut.Find("input[data-index='0']").GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(cut.Find("input[data-index='1']").GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(cut.Find("input[data-index='2']").GetAttribute("tabindex")).IsEqualTo("-1");
         });
     }
 
-    [Fact]
-    public void Standalone_input_does_not_emit_invalid_character_count_label()
+    [Test]
+    public async Task Standalone_input_does_not_emit_invalid_character_count_label()
     {
-        var cut = Render<BradixOneTimePasswordFieldInput>();
+        IRenderedComponent<BradixOneTimePasswordFieldInput> cut = Render<BradixOneTimePasswordFieldInput>();
 
-        Assert.Null(cut.Find("input").GetAttribute("aria-label"));
+        await Assert.That(cut.Find("input").GetAttribute("aria-label")).IsNull();
     }
 
     private IRenderedComponent<ContainerFragment> RenderOtpField(Action<string>? onInvalidChange = null, bool autoSubmit = false, Action<string>? onAutoSubmit = null)

@@ -6,7 +6,7 @@ using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using System.Threading.Tasks;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -27,69 +27,69 @@ public sealed class BradixAccordionRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Single_mode_keeps_open_item_expanded_until_another_item_opens()
+    [Test]
+    public async ValueTask Single_mode_keeps_open_item_expanded_until_another_item_opens()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSingleAccordion());
 
         IReadOnlyList<IElement> triggers = cut.FindAll("button");
 
-        triggers[0].Click();
+        await triggers[0].ClickAsync();
 
         triggers = cut.FindAll("button");
 
-        Assert.Contains("Content One", cut.Markup);
-        Assert.Equal("true", triggers[0].GetAttribute("aria-expanded"));
-        Assert.Equal("true", triggers[0].GetAttribute("aria-disabled"));
+        await Assert.That(cut.Markup).Contains("Content One");
+        await Assert.That(triggers[0].GetAttribute("aria-expanded")).IsEqualTo("true");
+        await Assert.That(triggers[0].GetAttribute("aria-disabled")).IsEqualTo("true");
 
-        triggers[0].Click();
-
-        triggers = cut.FindAll("button");
-
-        Assert.Contains("Content One", cut.Markup);
-
-        triggers[1].Click();
+        await triggers[0].ClickAsync();
 
         triggers = cut.FindAll("button");
 
-        cut.WaitForAssertion(() =>
+        await Assert.That(cut.Markup).Contains("Content One");
+
+        await triggers[1].ClickAsync();
+
+        triggers = cut.FindAll("button");
+
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.DoesNotContain("Content One", cut.Markup);
-            Assert.Contains("Content Two", cut.Markup);
+            await Assert.That(cut.Markup).DoesNotContain("Content One");
+            await Assert.That(cut.Markup).Contains("Content Two");
         });
-        Assert.Equal("true", triggers[1].GetAttribute("aria-expanded"));
+        await Assert.That(triggers[1].GetAttribute("aria-expanded")).IsEqualTo("true");
     }
 
-    [Fact]
-    public void Multiple_mode_allows_independent_item_state()
+    [Test]
+    public async Task Multiple_mode_allows_independent_item_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMultipleAccordion());
 
         IReadOnlyList<IElement> triggers = cut.FindAll("button");
 
-        triggers[0].Click();
-        triggers[1].Click();
+        await triggers[0].ClickAsync();
+        await triggers[1].ClickAsync();
 
         triggers = cut.FindAll("button");
 
-        Assert.Contains("Content One", cut.Markup);
-        Assert.Contains("Content Two", cut.Markup);
+        await Assert.That(cut.Markup).Contains("Content One");
+        await Assert.That(cut.Markup).Contains("Content Two");
 
-        triggers[0].Click();
+        await triggers[0].ClickAsync();
 
         triggers = cut.FindAll("button");
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async  () =>
         {
-            Assert.DoesNotContain("Content One", cut.Markup);
-            Assert.Contains("Content Two", cut.Markup);
+            await Assert.That(cut.Markup).DoesNotContain("Content One");
+            await Assert.That(cut.Markup).Contains("Content Two");
         });
-        Assert.Equal("false", triggers[0].GetAttribute("aria-expanded"));
-        Assert.Equal("true", triggers[1].GetAttribute("aria-expanded"));
+        await Assert.That(triggers[0].GetAttribute("aria-expanded")).IsEqualTo("false");
+        await Assert.That(triggers[1].GetAttribute("aria-expanded")).IsEqualTo("true");
     }
 
-    [Fact]
-    public void Multiple_mode_preserves_open_order_in_value_callback()
+    [Test]
+    public async Task Multiple_mode_preserves_open_order_in_value_callback()
     {
         IReadOnlyCollection<string>? requestedValues = null;
 
@@ -99,15 +99,15 @@ public sealed class BradixAccordionRenderTests : BunitContext
             onValuesChange: EventCallback.Factory.Create<IReadOnlyCollection<string>>(this, values => requestedValues = values)));
 
         IReadOnlyList<IElement> triggers = cut.FindAll("button");
-        triggers[1].Click();
-        triggers[0].Click();
+        await triggers[1].ClickAsync();
+        await triggers[0].ClickAsync();
 
-        Assert.NotNull(requestedValues);
-        Assert.Equal(new[] { "two", "one" }, requestedValues!.ToArray());
+        await Assert.That(requestedValues).IsNotNull();
+        await Assert.That(string.Join(",", requestedValues!)).IsEqualTo("two,one");
     }
 
-    [Fact]
-    public void Content_style_merging_tolerates_missing_trailing_semicolon()
+    [Test]
+    public async Task Content_style_merging_tolerates_missing_trailing_semicolon()
     {
         IReadOnlyDictionary<string, object> contentAttributes = new Dictionary<string, object>
         {
@@ -119,14 +119,14 @@ public sealed class BradixAccordionRenderTests : BunitContext
             collapsible: true,
             contentAdditionalAttributes: contentAttributes));
 
-        cut.Find("button").Click();
+        await cut.Find("button").ClickAsync();
 
         IElement content = cut.Find("[role='region']");
         string style = content.GetAttribute("style") ?? string.Empty;
 
-        Assert.Contains("--radix-accordion-content-height: 0px;", style);
-        Assert.Contains("--radix-accordion-content-width: var(--radix-collapsible-content-width);", style);
-        Assert.DoesNotContain("0px --radix-accordion-content-height", style);
+        await Assert.That(style).Contains("--radix-accordion-content-height: 0px;");
+        await Assert.That(style).Contains("--radix-accordion-content-width: var(--radix-collapsible-content-width);");
+        await Assert.That(style).DoesNotContain("0px --radix-accordion-content-height");
     }
 
     private static RenderFragment CreateSingleAccordion()

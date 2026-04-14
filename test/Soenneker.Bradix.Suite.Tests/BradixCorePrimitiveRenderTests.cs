@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -13,7 +14,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
 {
     public BradixCorePrimitiveRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerLabelTextSelectionGuard", _ => true);
         module.SetupVoid("unregisterLabelTextSelectionGuard", _ => true);
 
@@ -21,10 +22,10 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Label_renders_native_relationship_attributes()
+    [Test]
+    public async Task Label_renders_native_relationship_attributes()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixLabel>(0);
             builder.AddAttribute(1, "for", "control");
@@ -35,16 +36,16 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var label = cut.Find("label");
-        Assert.Equal("control", label.GetAttribute("for"));
-        Assert.Equal("Label", label.TextContent);
+        IElement label = cut.Find("label");
+        await Assert.That(label.GetAttribute("for")).IsEqualTo("control");
+        await Assert.That(label.TextContent).IsEqualTo("Label");
     }
 
-    [Fact]
+    [Test]
     public async Task Label_forwards_js_mouse_down_to_consumer_callback()
     {
         MouseEventArgs? captured = null;
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixLabel>(0);
             builder.AddAttribute(1, nameof(BradixLabel.OnMouseDown), EventCallback.Factory.Create<MouseEventArgs>(this, args => captured = args));
@@ -62,23 +63,23 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             CtrlKey = true
         });
 
-        Assert.NotNull(captured);
-        Assert.Equal(0, captured!.Button);
-        Assert.Equal(2, captured.Detail);
-        Assert.True(captured.CtrlKey);
+        await Assert.That(captured).IsNotNull();
+        await Assert.That(captured!.Button).IsEqualTo(0);
+        await Assert.That(captured.Detail).IsEqualTo(2);
+        await Assert.That(captured.CtrlKey).IsTrue();
     }
 
-    [Fact]
-    public void Separator_sets_semantic_and_decorative_roles_correctly()
+    [Test]
+    public async Task Separator_sets_semantic_and_decorative_roles_correctly()
     {
-        var semantic = Render(builder =>
+        IRenderedComponent<ContainerFragment> semantic = Render(builder =>
         {
             builder.OpenComponent<BradixSeparator>(0);
             builder.AddAttribute(1, nameof(BradixSeparator.Orientation), (object) BradixOrientation.Vertical);
             builder.CloseComponent();
         });
 
-        var decorative = Render(builder =>
+        IRenderedComponent<ContainerFragment> decorative = Render(builder =>
         {
             builder.OpenComponent<BradixSeparator>(0);
             builder.AddAttribute(1, nameof(BradixSeparator.Orientation), (object) BradixOrientation.Vertical);
@@ -86,16 +87,16 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        Assert.Equal("separator", semantic.Find("div").GetAttribute("role"));
-        Assert.Equal("vertical", semantic.Find("div").GetAttribute("aria-orientation"));
-        Assert.Equal("none", decorative.Find("div").GetAttribute("role"));
-        Assert.Null(decorative.Find("div").GetAttribute("aria-orientation"));
+        await Assert.That(semantic.Find("div").GetAttribute("role")).IsEqualTo("separator");
+        await Assert.That(semantic.Find("div").GetAttribute("aria-orientation")).IsEqualTo("vertical");
+        await Assert.That(decorative.Find("div").GetAttribute("role")).IsEqualTo("none");
+        await Assert.That(decorative.Find("div").GetAttribute("aria-orientation")).IsNull();
     }
 
-    [Fact]
-    public void Separator_as_child_renders_requested_native_element_and_preserves_semantics()
+    [Test]
+    public async Task Separator_as_child_renders_requested_native_element_and_preserves_semantics()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixSeparator>(0);
             builder.AddAttribute(1, nameof(BradixSeparator.AsChild), true);
@@ -108,16 +109,16 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var separator = cut.Find("span[data-test-separator='true']");
-        Assert.Equal("separator", separator.GetAttribute("role"));
-        Assert.Equal("vertical", separator.GetAttribute("aria-orientation"));
-        Assert.Equal("vertical", separator.GetAttribute("data-orientation"));
+        IElement separator = cut.Find("span[data-test-separator='true']");
+        await Assert.That(separator.GetAttribute("role")).IsEqualTo("separator");
+        await Assert.That(separator.GetAttribute("aria-orientation")).IsEqualTo("vertical");
+        await Assert.That(separator.GetAttribute("data-orientation")).IsEqualTo("vertical");
     }
 
-    [Fact]
-    public void Separator_as_child_requires_child_element_name()
+    [Test]
+    public async Task Separator_as_child_requires_child_element_name()
     {
-        Assert.Throws<InvalidOperationException>(() =>
+        await Assert.That(() =>
         {
             Render(builder =>
             {
@@ -125,13 +126,13 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
                 builder.AddAttribute(1, nameof(BradixSeparator.AsChild), true);
                 builder.CloseComponent();
             });
-        });
+        }).Throws<InvalidOperationException>();
     }
 
-    [Fact]
-    public void Aspect_ratio_renders_wrapper_and_absolute_content_slot()
+    [Test]
+    public async Task Aspect_ratio_renders_wrapper_and_absolute_content_slot()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixAspectRatio>(0);
             builder.AddAttribute(1, nameof(BradixAspectRatio.Ratio), 16d / 9d);
@@ -142,18 +143,18 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var wrapper = cut.Find("[data-radix-aspect-ratio-wrapper]");
-        var content = wrapper.Children[0];
+        IElement wrapper = cut.Find("[data-radix-aspect-ratio-wrapper]");
+        IElement content = wrapper.Children[0];
 
-        Assert.Contains("padding-bottom", wrapper.GetAttribute("style"));
-        Assert.Contains("position: absolute", content.GetAttribute("style"));
-        Assert.Equal("content", content.TextContent);
+        await Assert.That(wrapper.GetAttribute("style")).Contains("padding-bottom");
+        await Assert.That(content.GetAttribute("style")).Contains("position: absolute");
+        await Assert.That(content.TextContent).IsEqualTo("content");
     }
 
-    [Fact]
-    public void Visually_hidden_applies_screen_reader_only_styles()
+    [Test]
+    public async Task Visually_hidden_applies_screen_reader_only_styles()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixVisuallyHidden>(0);
             builder.AddAttribute(1, nameof(BradixVisuallyHidden.ChildContent), (RenderFragment) (contentBuilder =>
@@ -163,18 +164,18 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var span = cut.Find("span");
+        IElement span = cut.Find("span");
         string style = span.GetAttribute("style") ?? string.Empty;
 
-        Assert.Contains("position: absolute", style);
-        Assert.Contains("clip: rect(0, 0, 0, 0)", style);
-        Assert.Contains("white-space: nowrap", style);
+        await Assert.That(style).Contains("position: absolute");
+        await Assert.That(style).Contains("clip: rect(0, 0, 0, 0)");
+        await Assert.That(style).Contains("white-space: nowrap");
     }
 
-    [Fact]
-    public void Visually_hidden_as_child_renders_requested_native_element_and_merges_attributes()
+    [Test]
+    public async Task Visually_hidden_as_child_renders_requested_native_element_and_merges_attributes()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixVisuallyHidden>(0);
             builder.AddAttribute(1, nameof(BradixVisuallyHidden.AsChild), true);
@@ -193,32 +194,32 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var label = cut.Find("label");
+        IElement label = cut.Find("label");
         string style = label.GetAttribute("style") ?? string.Empty;
 
-        Assert.Equal("search-box", label.GetAttribute("for"));
-        Assert.Contains("slot-root", label.ClassName);
-        Assert.Contains("slot-child", label.ClassName);
-        Assert.Contains("position: absolute", style);
-        Assert.Contains("color: rebeccapurple;", style);
-        Assert.Equal("Search", label.TextContent);
+        await Assert.That(label.GetAttribute("for")).IsEqualTo("search-box");
+        await Assert.That(label.ClassName).Contains("slot-root");
+        await Assert.That(label.ClassName).Contains("slot-child");
+        await Assert.That(style).Contains("position: absolute");
+        await Assert.That(style).Contains("color: rebeccapurple;");
+        await Assert.That(label.TextContent).IsEqualTo("Search");
     }
 
-    [Fact]
-    public void Visually_hidden_as_child_requires_child_element_name()
+    [Test]
+    public async Task Visually_hidden_as_child_requires_child_element_name()
     {
-        Assert.Throws<InvalidOperationException>(() => Render(builder =>
+        await Assert.That(() => Render(builder =>
         {
             builder.OpenComponent<BradixVisuallyHidden>(0);
             builder.AddAttribute(1, nameof(BradixVisuallyHidden.AsChild), true);
             builder.CloseComponent();
-        }));
+        })).Throws<InvalidOperationException>();
     }
 
-    [Fact]
-    public void Accessible_icon_hides_visual_glyph_and_renders_hidden_label()
+    [Test]
+    public async Task Accessible_icon_hides_visual_glyph_and_renders_hidden_label()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixAccessibleIcon>(0);
             builder.AddAttribute(1, nameof(BradixAccessibleIcon.Label), "Close panel");
@@ -234,17 +235,17 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var spans = cut.FindAll("span");
-        Assert.Equal("true", spans[0].GetAttribute("aria-hidden"));
-        Assert.Equal("false", spans[0].GetAttribute("focusable"));
-        Assert.Contains("Close panel", cut.Markup);
-        Assert.Contains("position: absolute", spans[1].GetAttribute("style"));
+        IReadOnlyList<IElement> spans = cut.FindAll("span");
+        await Assert.That(spans[0].GetAttribute("aria-hidden")).IsEqualTo("true");
+        await Assert.That(spans[0].GetAttribute("focusable")).IsEqualTo("false");
+        await Assert.That(cut.Markup).Contains("Close panel");
+        await Assert.That(spans[1].GetAttribute("style")).Contains("position: absolute");
     }
 
-    [Fact]
-    public void Accessible_icon_requires_non_empty_label()
+    [Test]
+    public async Task Accessible_icon_requires_non_empty_label()
     {
-        Assert.Throws<InvalidOperationException>(() => Render(builder =>
+        await Assert.That(() => Render(builder =>
         {
             builder.OpenComponent<BradixAccessibleIcon>(0);
             builder.AddAttribute(1, nameof(BradixAccessibleIcon.Label), "");
@@ -254,6 +255,6 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
                 contentBuilder.CloseElement();
             }));
             builder.CloseComponent();
-        }));
+        })).Throws<InvalidOperationException>();
     }
 }

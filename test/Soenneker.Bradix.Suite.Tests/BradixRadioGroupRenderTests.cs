@@ -1,9 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using System.Threading.Tasks;
+using AngleSharp.Dom;
+using Bunit.Rendering;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -27,96 +31,96 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Radio_group_renders_checked_state_without_hidden_input_outside_form()
+    [Test]
+    public async Task Radio_group_renders_checked_state_without_hidden_input_outside_form()
     {
-        var cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", required: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", required: true));
 
-        var group = cut.Find("[role='radiogroup']");
-        var buttons = cut.FindAll("button");
+        IElement group = cut.Find("[role='radiogroup']");
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
 
-        Assert.Equal("true", group.GetAttribute("aria-required"));
-        Assert.Equal("true", buttons[0].GetAttribute("aria-checked"));
-        Assert.Equal("checked", buttons[0].GetAttribute("data-state"));
-        Assert.Empty(cut.FindAll("input[type='radio']"));
+        await Assert.That(group.GetAttribute("aria-required")).IsEqualTo("true");
+        await Assert.That(buttons[0].GetAttribute("aria-checked")).IsEqualTo("true");
+        await Assert.That(buttons[0].GetAttribute("data-state")).IsEqualTo("checked");
+        await Assert.That(cut.FindAll("input[type='radio']")).IsEmpty();
     }
 
-    [Fact]
-    public void Radio_item_with_explicit_form_renders_hidden_input_outside_form()
+    [Test]
+    public async Task Radio_item_with_explicit_form_renders_hidden_input_outside_form()
     {
-        var cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", itemForm: "settings-form"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", itemForm: "settings-form"));
 
-        var inputs = cut.FindAll("input[type='radio']");
-        Assert.Equal(3, inputs.Count);
-        Assert.All(inputs, input => Assert.Equal("settings-form", input.GetAttribute("form")));
-        Assert.Contains(_module.Invocations, invocation =>
+        IReadOnlyList<IElement> inputs = cut.FindAll("input[type='radio']");
+        await Assert.That(inputs.Count).IsEqualTo(3);
+        await Assert.That(inputs[0].GetAttribute("form")).IsEqualTo("settings-form");
+        await Assert.That(_module.Invocations.Any(invocation =>
             invocation.Identifier == "isFormControl" &&
             invocation.Arguments.Count > 1 &&
-            Equals(invocation.Arguments[1], "settings-form"));
+            Equals(invocation.Arguments[1], "settings-form"))).IsTrue();
     }
 
-    [Fact]
-    public void Clicking_item_updates_uncontrolled_selection()
+    [Test]
+    public async Task Clicking_item_updates_uncontrolled_selection()
     {
-        var cut = Render(CreateRadioGroup(defaultValue: "one"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one"));
 
-        var buttons = cut.FindAll("button");
-        buttons[2].Click();
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[2].ClickAsync();
         buttons = cut.FindAll("button");
 
-        Assert.Equal("false", buttons[0].GetAttribute("aria-checked"));
-        Assert.Equal("true", buttons[2].GetAttribute("aria-checked"));
+        await Assert.That(buttons[0].GetAttribute("aria-checked")).IsEqualTo("false");
+        await Assert.That(buttons[2].GetAttribute("aria-checked")).IsEqualTo("true");
     }
 
-    [Fact]
-    public void Arrow_navigation_moves_focus_and_selects_target()
+    [Test]
+    public async Task Arrow_navigation_moves_focus_and_selects_target()
     {
         string? requestedValue = null;
 
-        var cut = Render(CreateRadioGroup(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(
             defaultValue: "one",
             onValueChange: EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
 
-        var buttons = cut.FindAll("button");
-        buttons[0].KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
         buttons = cut.FindAll("button");
-        buttons[2].Focus();
+        await buttons[2].FocusAsync();
         buttons = cut.FindAll("button");
 
-        Assert.Equal("three", requestedValue);
-        Assert.Equal("-1", buttons[0].GetAttribute("tabindex"));
-        Assert.Equal("0", buttons[2].GetAttribute("tabindex"));
-        Assert.Equal("true", buttons[2].GetAttribute("aria-checked"));
+        await Assert.That(requestedValue).IsEqualTo("three");
+        await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");
+        await Assert.That(buttons[2].GetAttribute("tabindex")).IsEqualTo("0");
+        await Assert.That(buttons[2].GetAttribute("aria-checked")).IsEqualTo("true");
     }
 
-    [Fact]
-    public void Enter_does_not_change_selection()
+    [Test]
+    public async Task Enter_does_not_change_selection()
     {
         string? requestedValue = null;
 
-        var cut = Render(CreateRadioGroup(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(
             defaultValue: "one",
             onValueChange: EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
 
-        var buttons = cut.FindAll("button");
-        buttons[2].KeyDown(new KeyboardEventArgs { Key = "Enter" });
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[2].KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
 
-        Assert.Null(requestedValue);
-        Assert.Contains("one", cut.Markup);
+        await Assert.That(requestedValue).IsNull();
+        await Assert.That(cut.Markup).Contains("one");
     }
 
-    [Fact]
-    public void Force_mount_renders_all_indicators()
+    [Test]
+    public async Task Force_mount_renders_all_indicators()
     {
-        var cut = Render(CreateRadioGroup(forceMountIndicator: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(forceMountIndicator: true));
 
-        Assert.Equal(3, cut.FindAll("span").Count);
+        await Assert.That(cut.FindAll("span").Count).IsEqualTo(3);
     }
 
-    [Fact]
-    public void Inherited_direction_flips_horizontal_navigation()
+    [Test]
+    public async Task Inherited_direction_flips_horizontal_navigation()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDirectionProvider>(0);
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
@@ -127,13 +131,13 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var buttons = cut.FindAll("button");
-        buttons[0].KeyDown(new KeyboardEventArgs { Key = "ArrowLeft" });
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowLeft" });
         buttons = cut.FindAll("button");
-        buttons[2].Focus();
+        await buttons[2].FocusAsync();
         buttons = cut.FindAll("button");
 
-        Assert.Equal("true", buttons[2].GetAttribute("aria-checked"));
+        await Assert.That(buttons[2].GetAttribute("aria-checked")).IsEqualTo("true");
     }
 
     private static RenderFragment CreateRadioGroup(string? defaultValue = null, string? name = null, bool required = false, EventCallback<string?> onValueChange = default, bool forceMountIndicator = false, bool includeDisabledMiddle = true, string? itemForm = null)

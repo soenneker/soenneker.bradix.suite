@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -42,77 +44,77 @@ public sealed class BradixPopoverRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Trigger_click_opens_content_and_links_it_to_trigger()
+    [Test]
+    public async Task Trigger_click_opens_content_and_links_it_to_trigger()
     {
-        var cut = Render(CreatePopover());
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopover());
 
-        var trigger = cut.Find("button[aria-haspopup='dialog']");
-        trigger.Click();
+        IElement trigger = cut.Find("button[aria-haspopup='dialog']");
+        await trigger.ClickAsync();
 
-        var dialog = cut.Find("[role='dialog']");
-        Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
-        Assert.Equal(dialog.Id, trigger.GetAttribute("aria-controls"));
-        Assert.Equal("open", dialog.GetAttribute("data-state"));
+        IElement dialog = cut.Find("[role='dialog']");
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+        await Assert.That(trigger.GetAttribute("aria-controls")).IsEqualTo(dialog.Id);
+        await Assert.That(dialog.GetAttribute("data-state")).IsEqualTo("open");
     }
 
-    [Fact]
-    public void Modal_popover_registers_modal_infra_and_sets_aria_modal()
+    [Test]
+    public async Task Modal_popover_registers_modal_infra_and_sets_aria_modal()
     {
-        var cut = Render(CreatePopover(defaultOpen: true, modal: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true, modal: true));
 
-        var dialog = cut.Find("[role='dialog']");
-        Assert.Equal("true", dialog.GetAttribute("aria-modal"));
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
+        IElement dialog = cut.Find("[role='dialog']");
+        await Assert.That(dialog.GetAttribute("aria-modal")).IsEqualTo("true");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerRemoveScroll")).IsTrue();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerHideOthers")).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_down_outside_closes_non_modal_popover()
     {
-        var cut = Render(CreatePopover(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true));
 
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        var trigger = cut.Find("button[aria-haspopup='dialog']");
-        Assert.Equal("false", trigger.GetAttribute("aria-expanded"));
+        IElement trigger = cut.Find("button[aria-haspopup='dialog']");
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("false");
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_down_on_trigger_does_not_dismiss_non_modal_popover()
     {
-        var cut = Render(CreatePopover(defaultOpen: true));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
-        var trigger = cut.Find("button[aria-haspopup='dialog']");
-        string triggerId = Assert.IsType<string>(trigger.Id);
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
+        IElement trigger = cut.Find("button[aria-haspopup='dialog']");
+        string triggerId = await Assert.That(trigger.Id).IsTypeOf<string>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
             AncestorIds = [triggerId]
         }));
 
-        Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
     }
 
-    [Fact]
+    [Test]
     public async Task Right_click_outside_does_not_dismiss_non_modal_popover()
     {
-        var cut = Render(CreatePopover(defaultOpen: true));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
             Button = 2
         }));
 
-        Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+        await Assert.That(cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded")).IsEqualTo("true");
     }
 
-    [Fact]
+    [Test]
     public async Task Detailed_pointer_down_outside_can_prevent_popover_dismiss()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixPopover>(0);
             builder.AddAttribute(1, nameof(BradixPopover.DefaultOpen), true);
@@ -130,48 +132,48 @@ public sealed class BradixPopoverRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+        await Assert.That(cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded")).IsEqualTo("true");
     }
 
-    [Fact]
+    [Test]
     public async Task Close_on_escape_can_be_disabled_from_popover_content()
     {
-        var cut = Render(CreatePopover(defaultOpen: true, closeOnEscapeKeyDown: false));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true, closeOnEscapeKeyDown: false));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDown());
 
-        Assert.Equal("true", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+        await Assert.That(cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded")).IsEqualTo("true");
     }
 
-    [Fact]
+    [Test]
     public async Task Close_button_keeps_content_mounted_until_exit_animation_finishes()
     {
-        var cut = Render(CreatePopover(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true));
 
-        cut.Find("button[data-popover-close='true']").Click();
+        await cut.Find("button[data-popover-close='true']").ClickAsync();
 
-        Assert.Single(cut.FindAll("[role='dialog']"));
+        await Assert.That(cut.FindAll("[role='dialog']")).HasSingleItem();
 
-        var presence = cut.FindComponent<BradixPresence>();
+        IRenderedComponent<BradixPresence> presence = cut.FindComponent<BradixPresence>();
         await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-out"));
 
-        Assert.Empty(cut.FindAll("[role='dialog']"));
+        await Assert.That(cut.FindAll("[role='dialog']")).IsEmpty();
     }
 
-    [Fact]
-    public void Custom_anchor_keeps_single_trigger_and_opens_content()
+    [Test]
+    public async Task Custom_anchor_keeps_single_trigger_and_opens_content()
     {
-        var cut = Render(CreatePopover(customAnchor: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(customAnchor: true));
 
-        Assert.Single(cut.FindAll("button[aria-haspopup='dialog']"));
+        await Assert.That(cut.FindAll("button[aria-haspopup='dialog']")).HasSingleItem();
 
-        cut.Find("button[aria-haspopup='dialog']").Click();
+        await cut.Find("button[aria-haspopup='dialog']").ClickAsync();
 
-        Assert.Single(cut.FindAll("[role='dialog']"));
+        await Assert.That(cut.FindAll("[role='dialog']")).HasSingleItem();
     }
 
     private static RenderFragment CreatePopover(bool defaultOpen = false, bool modal = false, bool customAnchor = false, bool closeOnEscapeKeyDown = true)

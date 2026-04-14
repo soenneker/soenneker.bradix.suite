@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -41,59 +42,61 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Trigger_click_opens_alertdialog_with_title_and_description()
+    [Test]
+    public async Task Trigger_click_opens_alertdialog_with_title_and_description()
     {
-        var cut = Render(CreateAlertDialog());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog());
 
-        cut.Find("button[aria-haspopup='dialog']").Click();
+        await cut.Find("button[aria-haspopup='dialog']").ClickAsync();
 
-        var dialog = cut.Find("[role='alertdialog']");
-        var title = cut.Find("h2");
-        var description = cut.Find("p");
+        IElement dialog = cut.Find("[role='alertdialog']");
+        IElement title = cut.Find("h2");
+        IElement description = cut.Find("p");
 
-        Assert.Equal(title.Id, dialog.GetAttribute("aria-labelledby"));
-        Assert.Equal(description.Id, dialog.GetAttribute("aria-describedby"));
+        await Assert.That(dialog.GetAttribute("aria-labelledby")).IsEqualTo(title.Id);
+        await Assert.That(dialog.GetAttribute("aria-describedby")).IsEqualTo(description.Id);
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_down_outside_does_not_close_alertdialog()
     {
-        var cut = Render(CreateAlertDialog(defaultOpen: true));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        Assert.Single(cut.FindAll("[role='alertdialog']"));
+        await Assert.That(cut.FindAll("[role='alertdialog']")).HasSingleItem();
     }
 
-    [Fact]
-    public void Cancel_and_action_buttons_render_and_modal_substrates_register()
+    [Test]
+    public async Task Cancel_and_action_buttons_render_and_modal_substrates_register()
     {
-        var cut = Render(CreateAlertDialog(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true));
 
-        var cancel = cut.Find("button[data-alert-cancel='true']");
-        var action = cut.Find("button[data-alert-action='true']");
-        Assert.Null(cancel.GetAttribute("aria-label"));
-        Assert.Null(action.GetAttribute("aria-label"));
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
+        IElement cancel = cut.Find("button[data-alert-cancel='true']");
+        IElement action = cut.Find("button[data-alert-action='true']");
+
+        await Assert.That(cancel.GetAttribute("aria-label")).IsNull();
+        await Assert.That(action.GetAttribute("aria-label")).IsNull();
+
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerHideOthers")).IsTrue();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerRemoveScroll")).IsTrue();
     }
 
-    [Fact]
-    public void Cancel_button_closes_alertdialog()
+    [Test]
+    public async Task Cancel_button_closes_alertdialog()
     {
-        var cut = Render(CreateAlertDialog(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true));
 
-        cut.Find("button[data-alert-cancel='true']").Click();
+        await cut.Find("button[data-alert-cancel='true']").ClickAsync();
 
-        Assert.Equal("false", cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded"));
+        await Assert.That(cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded")).IsEqualTo("false");
     }
 
-    [Fact]
+    [Test]
     public async Task Detailed_open_auto_focus_can_prevent_alertdialog_cancel_focus()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixAlertDialog>(0);
             builder.AddAttribute(1, nameof(BradixAlertDialog.DefaultOpen), true);
@@ -130,23 +133,23 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var focusScope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();
         bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocus());
 
-        Assert.True(prevented);
+        await Assert.That(prevented).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Open_auto_focus_uses_prevent_scroll_for_cancel_button()
     {
-        var cut = Render(CreateAlertDialog(defaultOpen: true));
-        var focusScope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true));
+        IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();
         int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
 
         bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocus());
 
-        Assert.True(prevented);
-        Assert.Equal(focusCountBefore + 1, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
+        await Assert.That(prevented).IsTrue();
+        await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 1);
     }
 
     private static RenderFragment CreateAlertDialog(bool defaultOpen = false)

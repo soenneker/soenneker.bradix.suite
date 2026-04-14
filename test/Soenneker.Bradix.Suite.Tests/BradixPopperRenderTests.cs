@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -11,7 +11,7 @@ public sealed class BradixPopperRenderTests : BunitContext
 {
     public BradixPopperRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerPopperContent", _ => true);
         module.SetupVoid("updatePopperContent", _ => true);
         module.SetupVoid("unregisterPopperContent", _ => true);
@@ -20,21 +20,21 @@ public sealed class BradixPopperRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Popper_renders_anchor_and_content()
+    [Test]
+    public async Task Popper_renders_anchor_and_content()
     {
-        var cut = Render(CreatePopper());
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopper());
 
-        Assert.Contains("Anchor", cut.Markup);
-        Assert.Contains("Content", cut.Markup);
+        await Assert.That(cut.Markup).Contains("Anchor");
+        await Assert.That(cut.Markup).Contains("Content");
     }
 
-    [Fact]
+    [Test]
     public async Task Position_updates_are_reflected_in_attributes_and_callbacks()
     {
         int placedCount = 0;
 
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixPopper>(0);
             builder.AddAttribute(1, nameof(BradixPopper.ChildContent), (RenderFragment)(content =>
@@ -67,21 +67,21 @@ public sealed class BradixPopperRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var content = cut.FindComponent<BradixPopperContent>();
+        IRenderedComponent<BradixPopperContent> content = cut.FindComponent<BradixPopperContent>();
         await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
 
-        Assert.Contains("data-side=\"top\"", cut.Markup);
-        Assert.Contains("data-align=\"start\"", cut.Markup);
-        Assert.Equal("true", cut.Find("[aria-hidden='true']").GetAttribute("aria-hidden"));
-        Assert.Equal(1, placedCount);
+        await Assert.That(cut.Markup).Contains("data-side=\"top\"");
+        await Assert.That(cut.Markup).Contains("data-align=\"start\"");
+        await Assert.That(cut.Find("[aria-hidden='true']").GetAttribute("aria-hidden")).IsEqualTo("true");
+        await Assert.That(placedCount).IsEqualTo(1);
     }
 
-    [Fact]
+    [Test]
     public async Task Duplicate_position_updates_do_not_trigger_additional_rerenders()
     {
         int placedCount = 0;
 
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixPopper>(0);
             builder.AddAttribute(1, nameof(BradixPopper.ChildContent), (RenderFragment)(content =>
@@ -106,20 +106,20 @@ public sealed class BradixPopperRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var content = cut.FindComponent<BradixPopperContent>();
+        IRenderedComponent<BradixPopperContent> content = cut.FindComponent<BradixPopperContent>();
         await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
         string markup = cut.Markup;
 
         await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
 
-        Assert.Equal(markup, cut.Markup);
-        Assert.Equal(1, placedCount);
+        await Assert.That(cut.Markup).IsEqualTo(markup);
+        await Assert.That(placedCount).IsEqualTo(1);
     }
 
-    [Fact]
-    public void Popper_registers_rtl_direction_in_positioning_options()
+    [Test]
+    public async Task Popper_registers_rtl_direction_in_positioning_options()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerPopperContent", _ => true);
         module.SetupVoid("updatePopperContent", _ => true);
         module.SetupVoid("unregisterPopperContent", _ => true);
@@ -135,11 +135,11 @@ public sealed class BradixPopperRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var invocation = module.Invocations.Single(call => call.Identifier == "registerPopperContent");
-        var options = invocation.Arguments[4];
+        JSRuntimeInvocation invocation = module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+        object? options = invocation.Arguments[4];
         var dir = options?.GetType().GetProperty("dir")?.GetValue(options)?.ToString();
 
-        Assert.Equal("rtl", dir);
+        await Assert.That(dir).IsEqualTo("rtl");
     }
 
     private static RenderFragment CreatePopper()

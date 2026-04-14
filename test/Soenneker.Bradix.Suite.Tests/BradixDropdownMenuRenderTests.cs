@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -46,137 +48,137 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Trigger_arrow_down_opens_content_and_links_ids()
+    [Test]
+    public async Task Trigger_arrow_down_opens_content_and_links_ids()
     {
-        var cut = Render(CreateDropdownMenu());
-        var trigger = cut.Find("button");
-        string closedControls = Assert.IsType<string>(trigger.GetAttribute("aria-controls"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu());
+        IElement trigger = cut.Find("button");
+        string closedControls = await Assert.That(trigger.GetAttribute("aria-controls")).IsTypeOf<string>();
 
-        trigger.KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowDown" });
+        await trigger.KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowDown" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var menu = cut.Find("[role='menu']");
-            Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
-            Assert.Equal(closedControls, trigger.GetAttribute("aria-controls"));
-            Assert.Equal(menu.Id, trigger.GetAttribute("aria-controls"));
-            Assert.Equal(trigger.Id, menu.GetAttribute("aria-labelledby"));
+            IElement menu = cut.Find("[role='menu']");
+            await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(trigger.GetAttribute("aria-controls")).IsEqualTo(closedControls);
+            await Assert.That(trigger.GetAttribute("aria-controls")).IsEqualTo(menu.Id);
+            await Assert.That(menu.GetAttribute("aria-labelledby")).IsEqualTo(trigger.Id);
         });
     }
 
-    [Fact]
-    public void Trigger_pointer_down_opens_content()
+    [Test]
+    public async Task Trigger_pointer_down_opens_content()
     {
-        var cut = Render(CreateDropdownMenu());
-        var trigger = cut.Find("button");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu());
+        IElement trigger = cut.Find("button");
 
-        trigger.TriggerEvent("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs
+        await trigger.TriggerEventAsync("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs
         {
             Button = 0,
             CtrlKey = false
         });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
-            Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
+            await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("open");
         });
     }
 
-    [Fact]
-    public void Opening_dropdown_registers_focus_scope_with_manual_autofocus_flags()
+    [Test]
+    public async Task Opening_dropdown_registers_focus_scope_with_manual_autofocus_flags()
     {
         _ = Render(CreateDropdownMenu(defaultOpen: true));
 
-        var invocation = _module.Invocations.Single(call => call.Identifier == "registerFocusScope");
+        JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerFocusScope");
 
-        Assert.Equal(true, invocation.Arguments[4]);
-        Assert.Equal(true, invocation.Arguments[5]);
+        await Assert.That(invocation.Arguments[4]).IsEqualTo(true);
+        await Assert.That(invocation.Arguments[5]).IsEqualTo(true);
     }
 
-    [Fact]
+    [Test]
     public async Task Detailed_close_auto_focus_can_prevent_dropdown_trigger_refocus()
     {
-        var cut = Render(CreateDropdownMenu(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(
             defaultOpen: true,
             onCloseAutoFocusDetailed: EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, args => args.PreventDefault())));
 
         int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
-        var focusScope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();
 
         bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
-        Assert.True(prevented);
-        Assert.Equal(focusCountBefore, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
+        await Assert.That(prevented).IsTrue();
+        await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore);
     }
 
-    [Fact]
-    public void Checkbox_and_radio_wrappers_render_checked_state()
+    [Test]
+    public async Task Checkbox_and_radio_wrappers_render_checked_state()
     {
-        var cut = Render(CreateDropdownMenu(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var radioItems = cut.FindAll("[role='menuitemradio']");
+            IReadOnlyList<IElement> radioItems = cut.FindAll("[role='menuitemradio']");
 
-            Assert.Equal("mixed", cut.Find("[role='menuitemcheckbox']").GetAttribute("aria-checked"));
-            Assert.Contains(radioItems, item => item.GetAttribute("aria-checked") == "true");
-            Assert.Contains(radioItems, item => item.GetAttribute("aria-checked") == "false");
+            await Assert.That(cut.Find("[role='menuitemcheckbox']").GetAttribute("aria-checked")).IsEqualTo("mixed");
+            await Assert.That(radioItems.Any(item => item.GetAttribute("aria-checked") == "true")).IsTrue();
+            await Assert.That(radioItems.Any(item => item.GetAttribute("aria-checked") == "false")).IsTrue();
         });
     }
 
-    [Fact]
-    public void Submenu_wrapper_opens_from_sub_trigger()
+    [Test]
+    public async Task Submenu_wrapper_opens_from_sub_trigger()
     {
-        var cut = Render(CreateDropdownMenu(defaultOpen: true));
-        var subTrigger = cut.Find("[aria-haspopup='menu'][role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true));
+        IElement subTrigger = cut.Find("[aria-haspopup='menu'][role='menuitem']");
 
-        subTrigger.KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
+        await subTrigger.KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("true", cut.Find("[aria-haspopup='menu'][role='menuitem']").GetAttribute("aria-expanded"));
-            Assert.Contains("Copy link", cut.Markup);
+            await Assert.That(cut.Find("[aria-haspopup='menu'][role='menuitem']").GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(cut.Markup).Contains("Copy link");
         });
     }
 
-    [Fact]
-    public void Selecting_item_closes_dropdown_root()
+    [Test]
+    public async Task Selecting_item_closes_dropdown_root()
     {
-        var cut = Render(CreateDropdownMenu(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true));
 
-        cut.FindAll("[role='menuitem']").First().Click();
+        await cut.FindAll("[role='menuitem']").First().ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("closed", cut.Find("[role='menu']").GetAttribute("data-state"));
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("closed");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Detailed_escape_keydown_can_prevent_dropdown_submenu_close()
     {
-        var cut = Render(CreateDropdownMenu(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(
             defaultOpen: true,
             onSubEscapeKeyDownDetailed: EventCallback.Factory.Create<BradixEscapeKeyDownEventArgs>(this, args => args.PreventDefault())));
 
-        cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
-        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[role='menu']").Count));
+        await cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
+        await Assert.That(cut.FindAll("[role='menu']").Count).IsEqualTo(2);
 
-        var layer = cut.FindComponents<BradixDismissableLayer>().Last();
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponents<BradixDismissableLayer>().Last();
         bool prevented = await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDown());
 
-        Assert.False(prevented);
-        Assert.Equal(2, cut.FindAll("[role='menu']").Count);
+        await Assert.That(prevented).IsFalse();
+        await Assert.That(cut.FindAll("[role='menu']").Count).IsEqualTo(2);
     }
 
-    [Fact]
+    [Test]
     public async Task Modal_right_click_outside_does_not_refocus_dropdown_trigger_on_close()
     {
-        var cut = Render(CreateDropdownMenu(defaultOpen: true, modal: true));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
-        var focusScope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true, modal: true));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();
 
         int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
 
@@ -187,8 +189,8 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
 
         bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
-        Assert.True(prevented);
-        Assert.Equal(focusCountBefore, _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll"));
+        await Assert.That(prevented).IsTrue();
+        await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore);
     }
 
     private static RenderFragment CreateDropdownMenu(

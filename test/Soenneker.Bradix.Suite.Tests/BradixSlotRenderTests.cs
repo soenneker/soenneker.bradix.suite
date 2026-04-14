@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixSlotRenderTests : BunitContext
 {
-    [Fact]
-    public void Slot_merges_class_style_and_child_attribute_precedence()
+    [Test]
+    public async Task Slot_merges_class_style_and_child_attribute_precedence()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixSlot>(0);
             builder.AddAttribute(1, nameof(BradixSlot.ElementName), "button");
@@ -32,25 +34,25 @@ public sealed class BradixSlotRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var button = cut.Find("button");
+        IElement button = cut.Find("button");
         string style = button.GetAttribute("style") ?? string.Empty;
 
-        Assert.Equal("slot-id", button.Id);
-        Assert.Contains("slot-root", button.ClassName);
-        Assert.Contains("child-root", button.ClassName);
-        Assert.Contains("color: steelblue;", style);
-        Assert.Contains("color: rebeccapurple;", style);
-        Assert.Equal("button", button.GetAttribute("type"));
-        Assert.Equal("child title", button.GetAttribute("title"));
-        Assert.Equal("Hello", button.TextContent);
+        await Assert.That(button.Id).IsEqualTo("slot-id");
+        await Assert.That(button.ClassName).Contains("slot-root");
+        await Assert.That(button.ClassName).Contains("child-root");
+        await Assert.That(style).Contains("color: steelblue;");
+        await Assert.That(style).Contains("color: rebeccapurple;");
+        await Assert.That(button.GetAttribute("type")).IsEqualTo("button");
+        await Assert.That(button.GetAttribute("title")).IsEqualTo("child title");
+        await Assert.That(button.TextContent).IsEqualTo("Hello");
     }
 
-    [Fact]
-    public void Slot_composes_child_and_slot_click_handlers_in_child_first_order()
+    [Test]
+    public async Task Slot_composes_child_and_slot_click_handlers_in_child_first_order()
     {
         List<string> calls = [];
 
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixSlot>(0);
             builder.AddAttribute(1, nameof(BradixSlot.ElementName), "button");
@@ -76,19 +78,19 @@ public sealed class BradixSlotRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        cut.Find("button").Click();
+        await cut.Find("button").ClickAsync();
 
-        Assert.Equal(["child", "slot"], calls);
+        await Assert.That(string.Join(",", calls)).IsEqualTo("child,slot");
     }
 
-    [Fact]
-    public void Slot_requires_non_empty_element_name()
+    [Test]
+    public async Task Slot_requires_non_empty_element_name()
     {
-        Assert.Throws<InvalidOperationException>(() => Render(builder =>
+        await Assert.That(() => Render(builder =>
         {
             builder.OpenComponent<BradixSlot>(0);
             builder.AddAttribute(1, nameof(BradixSlot.ElementName), "");
             builder.CloseComponent();
-        }));
+        })).Throws<InvalidOperationException>();
     }
 }

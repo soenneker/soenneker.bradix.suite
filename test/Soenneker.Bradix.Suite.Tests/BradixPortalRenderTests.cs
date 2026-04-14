@@ -1,9 +1,9 @@
 using Bunit;
 using System.Threading.Tasks;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -21,52 +21,52 @@ public sealed class BradixPortalRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Portal_renders_child_content_inside_portal_host()
+    [Test]
+    public async Task Portal_renders_child_content_inside_portal_host()
     {
-        var cut = Render(CreatePortal());
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePortal());
 
-        Assert.Contains("Portaled content", cut.Markup);
-        Assert.DoesNotContain("data-bradix-portal", cut.Markup);
+        await Assert.That(cut.Markup).Contains("Portaled content");
+        await Assert.That(cut.Markup).DoesNotContain("data-bradix-portal");
     }
 
-    [Fact]
-    public void Portal_supports_custom_container_selector_parameter()
+    [Test]
+    public async Task Portal_supports_custom_container_selector_parameter()
     {
-        var cut = Render(CreatePortal("#custom-container"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePortal("#custom-container"));
 
-        Assert.Contains("Portaled content", cut.Markup);
-        Assert.DoesNotContain("data-bradix-portal", cut.Markup);
+        await Assert.That(cut.Markup).Contains("Portaled content");
+        await Assert.That(cut.Markup).DoesNotContain("data-bradix-portal");
     }
 
-    [Fact]
-    public void Portal_does_not_remount_when_rerendered_without_container_change()
+    [Test]
+    public async Task Portal_does_not_remount_when_rerendered_without_container_change()
     {
-        var cut = Render<PortalHost>();
+        IRenderedComponent<PortalHost> cut = Render<PortalHost>();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Single(_module.Invocations, invocation => invocation.Identifier == "mountPortal");
+            await Assert.That(_module.Invocations).HasSingleItem();
         });
 
-        cut.Find("button").Click();
+        await cut.Find("button").ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Single(_module.Invocations, invocation => invocation.Identifier == "mountPortal");
+            await Assert.That(_module.Invocations).HasSingleItem();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Portal_unmounts_when_disposed()
     {
-        var cut = Render(CreatePortal());
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePortal());
 
-        Assert.Single(_module.Invocations, invocation => invocation.Identifier == "mountPortal");
+        await Assert.That(_module.Invocations).HasSingleItem();
 
         await cut.InvokeAsync(() => cut.FindComponent<BradixPortal>().Instance.DisposeAsync().AsTask());
 
-        Assert.Single(_module.Invocations, invocation => invocation.Identifier == "unmountPortal");
+        await Assert.That(_module.Invocations.Count).IsEqualTo(2);
     }
 
     private static RenderFragment CreatePortal(string? containerSelector = null)

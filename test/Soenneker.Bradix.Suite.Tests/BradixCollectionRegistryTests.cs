@@ -1,12 +1,12 @@
 using System.Linq;
-using Xunit;
+using System.Threading.Tasks;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixCollectionRegistryTests
 {
-    [Fact]
-    public void Snapshot_returns_keys_in_registration_order()
+    [Test]
+    public async Task Snapshot_returns_keys_in_registration_order()
     {
         var registry = new BradixCollectionRegistry<DemoItem>();
 
@@ -14,11 +14,11 @@ public sealed class BradixCollectionRegistryTests
         registry.Register("beta", new DemoItem("Beta"));
         registry.Register("blue", new DemoItem("Blue"));
 
-        Assert.Equal(["alpha", "beta", "blue"], registry.Snapshot().Select(entry => entry.Key).ToArray());
+        await Assert.That(string.Join(",", registry.Snapshot().Select(entry => entry.Key))).IsEqualTo("alpha,beta,blue");
     }
 
-    [Fact]
-    public void Insert_repositions_existing_entry_without_duplication()
+    [Test]
+    public async Task Insert_repositions_existing_entry_without_duplication()
     {
         var registry = new BradixCollectionRegistry<DemoItem>();
 
@@ -29,8 +29,7 @@ public sealed class BradixCollectionRegistryTests
 
         BradixCollectionEntry<DemoItem>[] snapshot = [.. registry.Snapshot()];
 
-        Assert.Equal(["blue", "alpha", "beta"], snapshot.Select(entry => entry.Key).ToArray());
-        Assert.Single(snapshot, entry => entry.Key == "blue");
+        await Assert.That(string.Join(",", snapshot.Select(entry => entry.Key))).IsEqualTo("blue,alpha,beta");
     }
 
     private sealed record DemoItem(string TextValue);

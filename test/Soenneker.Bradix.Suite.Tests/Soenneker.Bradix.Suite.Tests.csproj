@@ -5,10 +5,11 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
+        <!-- bUnit WaitForAssertion(Action) requires sync delegates; async lambdas used with awaited TUnit assertions are flagged as async-void. -->
+        <NoWarn>$(NoWarn);TUnit0031</NoWarn>
         <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
         <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
         <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
-        <Features>use-roslyn-tokenizer;$(Features)</Features>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,9 +25,8 @@
     <ItemGroup>
         <PackageReference Include="bunit" Version="2.7.2" />
         <PackageReference Include="Soenneker.Utils.Test" Version="4.0.313" />
-        <PackageReference Include="Soenneker.Tests.FixturedUnit" Version="4.0.2294" />
         <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="4.0.325" />
-        <PackageReference Include="xUnit.v3" Version="3.2.2" />
+        <PackageReference Include="TUnit" Version="1.33.0" />
     </ItemGroup>
 
     <ItemGroup>

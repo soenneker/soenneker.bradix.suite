@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -27,81 +29,81 @@ public sealed class BradixCheckboxRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Checkbox_renders_unchecked_state_by_default()
+    [Test]
+    public async Task Checkbox_renders_unchecked_state_by_default()
     {
-        var cut = Render(CreateCheckbox());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox());
 
-        var button = cut.Find("button");
+        IElement button = cut.Find("button");
 
-        Assert.Equal("false", button.GetAttribute("aria-checked"));
-        Assert.Equal("unchecked", button.GetAttribute("data-state"));
+        await Assert.That(button.GetAttribute("aria-checked")).IsEqualTo("false");
+        await Assert.That(button.GetAttribute("data-state")).IsEqualTo("unchecked");
     }
 
-    [Fact]
-    public void Checkbox_click_cycles_indeterminate_to_checked()
+    [Test]
+    public async Task Checkbox_click_cycles_indeterminate_to_checked()
     {
-        var cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Indeterminate));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Indeterminate));
 
-        var button = cut.Find("button");
-        button.Click();
+        IElement button = cut.Find("button");
+        await button.ClickAsync();
         button = cut.Find("button");
 
-        Assert.Equal("true", button.GetAttribute("aria-checked"));
-        Assert.Equal("checked", button.GetAttribute("data-state"));
+        await Assert.That(button.GetAttribute("aria-checked")).IsEqualTo("true");
+        await Assert.That(button.GetAttribute("data-state")).IsEqualTo("checked");
     }
 
-    [Fact]
-    public void Checkbox_can_render_mixed_state_when_controlled()
+    [Test]
+    public async Task Checkbox_can_render_mixed_state_when_controlled()
     {
-        var cut = Render(CreateCheckbox(checkedState: BradixCheckboxCheckedState.Indeterminate));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(checkedState: BradixCheckboxCheckedState.Indeterminate));
 
-        var button = cut.Find("button");
+        IElement button = cut.Find("button");
 
-        Assert.Equal("mixed", button.GetAttribute("aria-checked"));
-        Assert.Equal("indeterminate", button.GetAttribute("data-state"));
+        await Assert.That(button.GetAttribute("aria-checked")).IsEqualTo("mixed");
+        await Assert.That(button.GetAttribute("data-state")).IsEqualTo("indeterminate");
     }
 
-    [Fact]
-    public void Checkbox_indicator_force_mount_renders_when_unchecked()
+    [Test]
+    public async Task Checkbox_indicator_force_mount_renders_when_unchecked()
     {
-        var cut = Render(CreateCheckbox(forceMountIndicator: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(forceMountIndicator: true));
 
-        var indicator = cut.Find("span");
-        Assert.Contains("pointer-events: none", indicator.GetAttribute("style"));
+        IElement indicator = cut.Find("span");
+        await Assert.That(indicator.GetAttribute("style")).Contains("pointer-events: none");
     }
 
-    [Fact]
-    public void Checkbox_with_name_outside_form_does_not_render_hidden_input()
+    [Test]
+    public async Task Checkbox_with_name_outside_form_does_not_render_hidden_input()
     {
-        var cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Checked, name: "terms"));
-        Assert.Empty(cut.FindAll("input[type='checkbox']"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Checked, name: "terms"));
+        await Assert.That(cut.FindAll("input[type='checkbox']")).IsEmpty();
     }
 
-    [Fact]
-    public void Checkbox_with_explicit_form_renders_hidden_input_outside_form()
+    [Test]
+    public async Task Checkbox_with_explicit_form_renders_hidden_input_outside_form()
     {
-        var cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Checked, name: "terms", form: "settings-form"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Checked, name: "terms", form: "settings-form"));
 
-        var input = cut.Find("input[type='checkbox']");
-        Assert.Equal("settings-form", input.GetAttribute("form"));
-        Assert.Contains(_module.Invocations, invocation =>
+        IElement input = cut.Find("input[type='checkbox']");
+        await Assert.That(input.GetAttribute("form")).IsEqualTo("settings-form");
+        await Assert.That(_module.Invocations.Any(invocation =>
             invocation.Identifier == "registerCheckboxRoot" &&
             invocation.Arguments.Count > 2 &&
-            Equals(invocation.Arguments[2], "settings-form"));
+            Equals(invocation.Arguments[2], "settings-form"))).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Uncontrolled_checkbox_resets_to_initial_state()
     {
-        var cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Indeterminate));
-        var checkbox = cut.FindComponent<BradixCheckbox>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Indeterminate));
+        IRenderedComponent<BradixCheckbox> checkbox = cut.FindComponent<BradixCheckbox>();
 
-        cut.Find("button").Click();
+        await cut.Find("button").ClickAsync();
         await checkbox.Instance.HandleFormReset();
 
-        var button = cut.Find("button");
-        Assert.Equal("mixed", button.GetAttribute("aria-checked"));
+        IElement button = cut.Find("button");
+        await Assert.That(button.GetAttribute("aria-checked")).IsEqualTo("mixed");
     }
 
     private static RenderFragment CreateCheckbox(BradixCheckboxCheckedState? checkedState = null, BradixCheckboxCheckedState? defaultChecked = null, bool forceMountIndicator = false, string? name = null, string? form = null)

@@ -1,9 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -21,49 +25,49 @@ public sealed class BradixToolbarRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Toolbar_renders_role_and_separator_orientation()
+    [Test]
+    public async Task Toolbar_renders_role_and_separator_orientation()
     {
-        var cut = Render(CreateToolbar());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
-        var toolbar = cut.Find("[role='toolbar']");
-        var separator = cut.Find("[data-orientation='vertical']");
+        IElement toolbar = cut.Find("[role='toolbar']");
+        IElement separator = cut.Find("[data-orientation='vertical']");
 
-        Assert.Equal("horizontal", toolbar.GetAttribute("aria-orientation"));
-        Assert.Equal("separator", separator.GetAttribute("role"));
-        Assert.Equal("vertical", separator.GetAttribute("aria-orientation"));
+        await Assert.That(toolbar.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(separator.GetAttribute("role")).IsEqualTo("separator");
+        await Assert.That(separator.GetAttribute("aria-orientation")).IsEqualTo("vertical");
     }
 
-    [Fact]
-    public void Toolbar_roving_focus_skips_disabled_items()
+    [Test]
+    public async Task Toolbar_roving_focus_skips_disabled_items()
     {
-        var cut = Render(CreateToolbar());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
-        var buttons = cut.FindAll("button");
-        buttons[0].KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
 
-        var link = cut.Find("a");
-        Assert.Equal("0", link.GetAttribute("tabindex"));
+        IElement link = cut.Find("a");
+        await Assert.That(link.GetAttribute("tabindex")).IsEqualTo("0");
     }
 
-    [Fact]
-    public void Toolbar_toggle_group_updates_pressed_state()
+    [Test]
+    public async Task Toolbar_toggle_group_updates_pressed_state()
     {
-        var cut = Render(CreateToolbar());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
-        var radios = cut.FindAll("[role='radio']");
-        Assert.Equal("horizontal", cut.Find("[role='radiogroup']").GetAttribute("aria-orientation"));
-        radios[2].Click();
+        IReadOnlyList<IElement> radios = cut.FindAll("[role='radio']");
+        await Assert.That(cut.Find("[role='radiogroup']").GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await radios[2].ClickAsync();
         radios = cut.FindAll("[role='radio']");
 
-        Assert.Equal("false", radios[0].GetAttribute("aria-checked"));
-        Assert.Equal("true", radios[2].GetAttribute("aria-checked"));
+        await Assert.That(radios[0].GetAttribute("aria-checked")).IsEqualTo("false");
+        await Assert.That(radios[2].GetAttribute("aria-checked")).IsEqualTo("true");
     }
 
-    [Fact]
-    public void Inherited_direction_flips_horizontal_navigation()
+    [Test]
+    public async Task Inherited_direction_flips_horizontal_navigation()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDirectionProvider>(0);
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
@@ -74,22 +78,22 @@ public sealed class BradixToolbarRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var buttons = cut.FindAll("button");
-        buttons[0].KeyDown(new KeyboardEventArgs { Key = "ArrowLeft" });
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowLeft" });
         buttons = cut.FindAll("button");
 
-        Assert.Equal("0", buttons[1].GetAttribute("tabindex"));
+        await Assert.That(buttons[1].GetAttribute("tabindex")).IsEqualTo("0");
     }
 
-    [Fact]
-    public void Toolbar_link_space_key_invokes_click_interop()
+    [Test]
+    public async Task Toolbar_link_space_key_invokes_click_interop()
     {
-        var cut = Render(CreateToolbar());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
-        var link = cut.Find("a");
-        link.KeyDown(new KeyboardEventArgs { Key = " " });
+        IElement link = cut.Find("a");
+        await link.KeyDownAsync(new KeyboardEventArgs { Key = " " });
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "clickElement");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "clickElement")).IsTrue();
     }
 
     private static RenderFragment CreateToolbar()

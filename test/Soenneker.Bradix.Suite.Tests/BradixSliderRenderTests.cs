@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -28,116 +30,116 @@ public sealed class BradixSliderRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Slider_renders_track_range_and_thumb_semantics()
+    [Test]
+    public async Task Slider_renders_track_range_and_thumb_semantics()
     {
-        var cut = Render(CreateSlider(defaultValues: [20]));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20]));
 
-        var root = cut.Find("[role='group']");
-        var thumb = cut.Find("[role='slider']");
-        var range = cut.Find(".range");
+        IElement root = cut.Find("[role='group']");
+        IElement thumb = cut.Find("[role='slider']");
+        IElement range = cut.Find(".range");
 
-        Assert.Equal("horizontal", root.GetAttribute("aria-orientation"));
-        Assert.Equal("20", thumb.GetAttribute("aria-valuenow"));
-        Assert.Equal("horizontal", thumb.GetAttribute("aria-orientation"));
-        Assert.Contains("left:", range.GetAttribute("style"));
-        Assert.DoesNotContain("data-bradix-slider-thumb-index", cut.Markup);
+        await Assert.That(root.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(thumb.GetAttribute("aria-valuenow")).IsEqualTo("20");
+        await Assert.That(thumb.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(range.GetAttribute("style")).Contains("left:");
+        await Assert.That(cut.Markup).DoesNotContain("data-bradix-slider-thumb-index");
     }
 
-    [Fact]
-    public void Slider_arrow_key_updates_value()
+    [Test]
+    public async Task Slider_arrow_key_updates_value()
     {
-        var cut = Render(CreateSlider(defaultValues: [20]));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20]));
 
-        var thumb = cut.Find("[role='slider']");
-        thumb.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        IElement thumb = cut.Find("[role='slider']");
+        await thumb.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
         thumb = cut.Find("[role='slider']");
 
-        Assert.Equal("21", thumb.GetAttribute("aria-valuenow"));
+        await Assert.That(thumb.GetAttribute("aria-valuenow")).IsEqualTo("21");
     }
 
-    [Fact]
-    public void Home_and_end_update_first_and_last_thumb_in_multi_thumb_slider()
+    [Test]
+    public async Task Home_and_end_update_first_and_last_thumb_in_multi_thumb_slider()
     {
-        var cut = Render(CreateSlider(defaultValues: [20, 80]));
-        var thumbs = cut.FindAll("[role='slider']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20, 80]));
+        IReadOnlyList<IElement> thumbs = cut.FindAll("[role='slider']");
 
-        thumbs[1].KeyDown(new KeyboardEventArgs { Key = "Home" });
+        await thumbs[1].KeyDownAsync(new KeyboardEventArgs { Key = "Home" });
         thumbs = cut.FindAll("[role='slider']");
-        Assert.Equal("0", thumbs[0].GetAttribute("aria-valuenow"));
-        Assert.Equal("80", thumbs[1].GetAttribute("aria-valuenow"));
+        await Assert.That(thumbs[0].GetAttribute("aria-valuenow")).IsEqualTo("0");
+        await Assert.That(thumbs[1].GetAttribute("aria-valuenow")).IsEqualTo("80");
 
-        thumbs[0].KeyDown(new KeyboardEventArgs { Key = "End" });
+        await thumbs[0].KeyDownAsync(new KeyboardEventArgs { Key = "End" });
         thumbs = cut.FindAll("[role='slider']");
-        Assert.Equal("0", thumbs[0].GetAttribute("aria-valuenow"));
-        Assert.Equal("100", thumbs[1].GetAttribute("aria-valuenow"));
+        await Assert.That(thumbs[0].GetAttribute("aria-valuenow")).IsEqualTo("0");
+        await Assert.That(thumbs[1].GetAttribute("aria-valuenow")).IsEqualTo("100");
     }
 
-    [Fact]
-    public void Slider_respects_min_steps_between_thumbs()
+    [Test]
+    public async Task Slider_respects_min_steps_between_thumbs()
     {
-        var cut = Render(CreateSlider(defaultValues: [20, 30], minStepsBetweenThumbs: 5));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20, 30], minStepsBetweenThumbs: 5));
 
-        var thumbs = cut.FindAll("[role='slider']");
-        thumbs[0].KeyDown(new KeyboardEventArgs { Key = "ArrowRight", ShiftKey = true });
+        IReadOnlyList<IElement> thumbs = cut.FindAll("[role='slider']");
+        await thumbs[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight", ShiftKey = true });
         thumbs = cut.FindAll("[role='slider']");
 
-        Assert.Equal("20", thumbs[0].GetAttribute("aria-valuenow"));
-        Assert.Equal("30", thumbs[1].GetAttribute("aria-valuenow"));
+        await Assert.That(thumbs[0].GetAttribute("aria-valuenow")).IsEqualTo("20");
+        await Assert.That(thumbs[1].GetAttribute("aria-valuenow")).IsEqualTo("30");
     }
 
-    [Fact]
+    [Test]
     public async Task Slider_pointer_bridge_updates_closest_thumb()
     {
-        var cut = Render(CreateSlider(defaultValues: [20, 80]));
-        var slider = cut.FindComponent<BradixSlider>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20, 80]));
+        IRenderedComponent<BradixSlider> slider = cut.FindComponent<BradixSlider>();
 
         await slider.Instance.HandlePointerStart(0.75, 0.5, -1);
 
-        var thumbs = cut.FindAll("[role='slider']");
-        Assert.Equal("75", thumbs[1].GetAttribute("aria-valuenow"));
+        IReadOnlyList<IElement> thumbs = cut.FindAll("[role='slider']");
+        await Assert.That(thumbs[1].GetAttribute("aria-valuenow")).IsEqualTo("75");
     }
 
-    [Fact]
+    [Test]
     public async Task Slider_pointer_cancel_does_not_commit_value()
     {
         int commitCount = 0;
-        var cut = Render(CreateSlider(defaultValues: [20], onValueCommit: () => commitCount++));
-        var slider = cut.FindComponent<BradixSlider>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20], onValueCommit: () => commitCount++));
+        IRenderedComponent<BradixSlider> slider = cut.FindComponent<BradixSlider>();
 
         await slider.Instance.HandlePointerStart(0.75, 0.5, -1);
         await slider.Instance.HandlePointerMove(0.8, 0.5);
         await slider.Instance.HandlePointerCancel();
 
-        Assert.Equal(0, commitCount);
-        Assert.Equal("20", cut.Find("[role='slider']").GetAttribute("aria-valuenow"));
+        await Assert.That(commitCount).IsEqualTo(0);
+        await Assert.That(cut.Find("[role='slider']").GetAttribute("aria-valuenow")).IsEqualTo("20");
     }
 
-    [Fact]
-    public void Slider_with_name_outside_form_does_not_render_bubble_inputs()
+    [Test]
+    public async Task Slider_with_name_outside_form_does_not_render_bubble_inputs()
     {
-        var cut = Render(CreateSlider(defaultValues: [10, 30], name: "price"));
-        Assert.Empty(cut.FindAll("input"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [10, 30], name: "price"));
+        await Assert.That(cut.FindAll("input")).IsEmpty();
     }
 
-    [Fact]
-    public void Slider_with_explicit_form_renders_bubble_inputs_outside_form()
+    [Test]
+    public async Task Slider_with_explicit_form_renders_bubble_inputs_outside_form()
     {
-        var cut = Render(CreateSlider(defaultValues: [10, 30], name: "price", form: "settings-form"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [10, 30], name: "price", form: "settings-form"));
 
-        var inputs = cut.FindAll("input");
-        Assert.Equal(2, inputs.Count);
-        Assert.All(inputs, input => Assert.Equal("settings-form", input.GetAttribute("form")));
-        Assert.Contains(_module.Invocations, invocation =>
+        IReadOnlyList<IElement> inputs = cut.FindAll("input");
+        await Assert.That(inputs.Count).IsEqualTo(2);
+        await Assert.That(inputs[0].GetAttribute("form")).IsEqualTo("settings-form");
+        await Assert.That(_module.Invocations.Any(invocation =>
             invocation.Identifier == "isFormControl" &&
             invocation.Arguments.Count > 1 &&
-            Equals(invocation.Arguments[1], "settings-form"));
+            Equals(invocation.Arguments[1], "settings-form"))).IsTrue();
     }
 
-    [Fact]
-    public void Inherited_direction_flips_horizontal_back_key()
+    [Test]
+    public async Task Inherited_direction_flips_horizontal_back_key()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDirectionProvider>(0);
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
@@ -148,11 +150,11 @@ public sealed class BradixSliderRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var thumb = cut.Find("[role='slider']");
-        thumb.KeyDown(new KeyboardEventArgs { Key = "ArrowLeft" });
+        IElement thumb = cut.Find("[role='slider']");
+        await thumb.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowLeft" });
         thumb = cut.Find("[role='slider']");
 
-        Assert.Equal("21", thumb.GetAttribute("aria-valuenow"));
+        await Assert.That(thumb.GetAttribute("aria-valuenow")).IsEqualTo("21");
     }
 
     private static RenderFragment CreateSlider(IReadOnlyList<double> defaultValues, double minStepsBetweenThumbs = 0, string? name = null, Action? onValueCommit = null, string? form = null)

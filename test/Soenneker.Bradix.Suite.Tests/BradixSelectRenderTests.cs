@@ -1,11 +1,13 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -61,42 +63,41 @@ public sealed class BradixSelectRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Closed_select_defers_content_and_item_interop()
+    [Test]
+    public async Task Closed_select_defers_content_and_item_interop()
     {
         _ = Render(CreateSelect());
 
-        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "registerSelectViewport");
-        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "registerSelectItemAlignedPosition");
-        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "registerSelectWindowDismiss");
-        Assert.DoesNotContain(_module.Invocations, invocation => invocation.Identifier == "getTextContent");
-        Assert.Single(_module.Invocations, invocation => invocation.Identifier == "registerDelegatedInteraction");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerSelectViewport")).IsFalse();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerSelectItemAlignedPosition")).IsFalse();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerSelectWindowDismiss")).IsFalse();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "getTextContent")).IsFalse();
     }
 
-    [Fact]
-    public void Arrow_down_opens_content_and_links_ids()
+    [Test]
+    public async Task Arrow_down_opens_content_and_links_ids()
     {
-        var cut = Render(CreateSelect());
-        var trigger = cut.Find("button[role='combobox']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
+        IElement trigger = cut.Find("button[role='combobox']");
 
-        trigger.KeyDown(new KeyboardEventArgs { Key = "ArrowDown" });
+        await trigger.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var content = cut.Find("[role='listbox']");
-            Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
-            Assert.Equal(content.Id, trigger.GetAttribute("aria-controls"));
-            Assert.Equal("open", content.GetAttribute("data-state"));
+            IElement content = cut.Find("[role='listbox']");
+            await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(trigger.GetAttribute("aria-controls")).IsEqualTo(content.Id);
+            await Assert.That(content.GetAttribute("data-state")).IsEqualTo("open");
         });
 
-        Assert.Equal("listbox", trigger.GetAttribute("aria-haspopup"));
+        await Assert.That(trigger.GetAttribute("aria-haspopup")).IsEqualTo("listbox");
     }
 
-    [Fact]
+    [Test]
     public async Task Primary_mouse_pointer_down_opens_content_from_delegated_trigger_path()
     {
-        var cut = Render(CreateSelect());
-        var trigger = cut.FindComponent<BradixSelectTrigger>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
+        IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
 
         await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
@@ -106,18 +107,18 @@ public sealed class BradixSelectRenderTests : BunitContext
             PointerType = "mouse"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("true", cut.Find("button[role='combobox']").GetAttribute("aria-expanded"));
-            Assert.Equal("open", cut.Find("[role='listbox']").GetAttribute("data-state"));
+            await Assert.That(cut.Find("button[role='combobox']").GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(cut.Find("[role='listbox']").GetAttribute("data-state")).IsEqualTo("open");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Open_select_disables_outside_pointer_events()
     {
-        var cut = Render(CreateSelect());
-        var trigger = cut.FindComponent<BradixSelectTrigger>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
+        IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
 
         await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
@@ -127,18 +128,18 @@ public sealed class BradixSelectRenderTests : BunitContext
             PointerType = "mouse"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var invocation = _module.Invocations.Last(call => call.Identifier == "registerDismissableLayer");
-            Assert.Equal(true, invocation.Arguments[2]);
+            JSRuntimeInvocation invocation = _module.Invocations.Last(call => call.Identifier == "registerDismissableLayer");
+            await Assert.That(invocation.Arguments[2]).IsEqualTo(true);
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Open_select_hides_outside_content()
     {
-        var cut = Render(CreateSelect());
-        var trigger = cut.FindComponent<BradixSelectTrigger>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
+        IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
 
         await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
@@ -148,17 +149,17 @@ public sealed class BradixSelectRenderTests : BunitContext
             PointerType = "mouse"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerHideOthers");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerHideOthers")).IsTrue();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Open_select_registers_focus_guards_and_remove_scroll()
     {
-        var cut = Render(CreateSelect());
-        var trigger = cut.FindComponent<BradixSelectTrigger>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
+        IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
 
         await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
@@ -168,83 +169,83 @@ public sealed class BradixSelectRenderTests : BunitContext
             PointerType = "mouse"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerFocusGuards");
-            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerFocusGuards")).IsTrue();
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerRemoveScroll")).IsTrue();
         });
     }
 
-    [Fact]
-    public void Trigger_typeahead_selects_next_match_while_closed()
+    [Test]
+    public async Task Trigger_typeahead_selects_next_match_while_closed()
     {
-        var cut = Render(CreateSelect(defaultValue: "orange"));
-        var trigger = cut.Find("button[role='combobox']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultValue: "orange"));
+        IElement trigger = cut.Find("button[role='combobox']");
 
-        trigger.KeyDown(new KeyboardEventArgs { Key = "l" });
+        await trigger.KeyDownAsync(new KeyboardEventArgs { Key = "l" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Lime", trigger.TextContent);
-            Assert.True(cut.Find("option[value='lime']").HasAttribute("selected"));
+            await Assert.That(trigger.TextContent).Contains("Lime");
+            await Assert.That(cut.Find("option[value='lime']").HasAttribute("selected")).IsTrue();
         });
     }
 
-    [Fact]
-    public void Selecting_item_updates_value_and_closes_content()
+    [Test]
+    public async Task Selecting_item_updates_value_and_closes_content()
     {
-        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
 
-        var lime = cut.FindAll("[role='option']").First(item => item.TextContent.Contains("Lime"));
+        IElement lime = cut.FindAll("[role='option']").First(item => item.TextContent.Contains("Lime"));
 
-        lime.KeyDown(new KeyboardEventArgs { Key = "Enter" });
+        await lime.KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var trigger = cut.Find("button[role='combobox']");
-            Assert.Contains("Lime", trigger.TextContent);
-            Assert.DoesNotContain("[role='listbox']", cut.Markup);
+            IElement trigger = cut.Find("button[role='combobox']");
+            await Assert.That(trigger.TextContent).Contains("Lime");
+            await Assert.That(cut.Markup).DoesNotContain("[role='listbox']");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Space_does_not_select_item_while_typeahead_is_active()
     {
-        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
-        var content = cut.FindComponent<BradixSelectContent>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        IRenderedComponent<BradixSelectContent> content = cut.FindComponent<BradixSelectContent>();
 
-        var items = cut.FindAll("[role='option']");
+        IReadOnlyList<IElement> items = cut.FindAll("[role='option']");
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "l"
         }));
         items = cut.FindAll("[role='option']");
-        items[1].KeyDown(new KeyboardEventArgs { Key = " " });
+        await items[1].KeyDownAsync(new KeyboardEventArgs { Key = " " });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Orange", cut.Find("button[role='combobox']").TextContent);
-            Assert.NotEmpty(cut.FindAll("[role='listbox']"));
+            await Assert.That(cut.Find("button[role='combobox']").TextContent).Contains("Orange");
+            await Assert.That(cut.FindAll("[role='listbox']")).IsNotEmpty();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Page_up_and_page_down_move_focus_to_first_and_last_items()
     {
-        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
-        var content = cut.FindComponent<BradixSelectContent>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        IRenderedComponent<BradixSelectContent> content = cut.FindComponent<BradixSelectContent>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "PageDown"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var items = cut.FindAll("[role='option']");
-            Assert.Equal("-1", items[0].GetAttribute("tabindex"));
-            Assert.Equal("-1", items[1].GetAttribute("tabindex"));
-            Assert.Equal("0", items[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> items = cut.FindAll("[role='option']");
+            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(items[2].GetAttribute("tabindex")).IsEqualTo("0");
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
@@ -252,145 +253,145 @@ public sealed class BradixSelectRenderTests : BunitContext
             Key = "PageUp"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var items = cut.FindAll("[role='option']");
-            Assert.Equal("0", items[0].GetAttribute("tabindex"));
-            Assert.Equal("-1", items[1].GetAttribute("tabindex"));
-            Assert.Equal("-1", items[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> items = cut.FindAll("[role='option']");
+            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(items[2].GetAttribute("tabindex")).IsEqualTo("-1");
         });
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "scrollElementIntoViewNearest");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "scrollElementIntoViewNearest")).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Content_typeahead_scrolls_newly_focused_item_into_view()
     {
-        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
-        var content = cut.FindComponent<BradixSelectContent>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        IRenderedComponent<BradixSelectContent> content = cut.FindComponent<BradixSelectContent>();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "s"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var items = cut.FindAll("[role='option']");
-            Assert.Equal("-1", items[0].GetAttribute("tabindex"));
-            Assert.Equal("-1", items[1].GetAttribute("tabindex"));
-            Assert.Equal("0", items[2].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> items = cut.FindAll("[role='option']");
+            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(items[2].GetAttribute("tabindex")).IsEqualTo("0");
         });
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "scrollElementIntoViewNearest");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "scrollElementIntoViewNearest")).IsTrue();
     }
 
-    [Fact]
-    public void Hidden_native_select_tracks_selected_option()
+    [Test]
+    public async Task Hidden_native_select_tracks_selected_option()
     {
-        var cut = Render(CreateSelect(defaultValue: "lime"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultValue: "lime"));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var hiddenSelect = cut.Find("select[aria-hidden='true']");
-            Assert.Equal("fruit", hiddenSelect.GetAttribute("name"));
-            Assert.True(cut.Find("option[value='lime']").HasAttribute("selected"));
+            IElement hiddenSelect = cut.Find("select[aria-hidden='true']");
+            await Assert.That(hiddenSelect.GetAttribute("name")).IsEqualTo("fruit");
+            await Assert.That(cut.Find("option[value='lime']").HasAttribute("selected")).IsTrue();
         });
     }
 
-    [Fact]
-    public void Default_content_uses_item_aligned_position_and_group_label_wiring()
+    [Test]
+    public async Task Default_content_uses_item_aligned_position_and_group_label_wiring()
     {
-        var cut = Render(CreateSelect(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var positionWrapper = cut.Find("[data-radix-select-position='item-aligned']");
-            var group = cut.Find("[role='group']");
+            IElement positionWrapper = cut.Find("[data-radix-select-position='item-aligned']");
+            IElement group = cut.Find("[role='group']");
             string? labelId = group.GetAttribute("aria-labelledby");
-            Assert.False(string.IsNullOrWhiteSpace(labelId));
-            var label = cut.Find($"#{labelId}");
+            await Assert.That(string.IsNullOrWhiteSpace(labelId)).IsFalse();
+            IElement label = cut.Find($"#{labelId}");
 
-            Assert.NotNull(positionWrapper);
-            Assert.Equal(label.Id, group.GetAttribute("aria-labelledby"));
-            Assert.Equal("Fruit", label.TextContent);
+            await Assert.That(positionWrapper).IsNotNull();
+            await Assert.That(group.GetAttribute("aria-labelledby")).IsEqualTo(label.Id);
+            await Assert.That(label.TextContent).IsEqualTo("Fruit");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Scroll_buttons_follow_viewport_metrics()
     {
-        var cut = Render(CreateSelect(defaultOpen: true, includeScrollButtons: true));
-        var content = cut.FindComponent<BradixSelectContent>().Instance;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, includeScrollButtons: true));
+        BradixSelectContent content = cut.FindComponent<BradixSelectContent>().Instance;
 
         await content.HandleViewportMetricsChanged(0, 400, 120);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Empty(cut.FindAll("[data-radix-select-scroll-up-button]"));
-            Assert.Single(cut.FindAll("[data-radix-select-scroll-down-button]"));
+            await Assert.That(cut.FindAll("[data-radix-select-scroll-up-button]")).IsEmpty();
+            await Assert.That(cut.FindAll("[data-radix-select-scroll-down-button]")).HasSingleItem();
         });
 
         await content.HandleViewportMetricsChanged(40, 400, 120);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Single(cut.FindAll("[data-radix-select-scroll-up-button]"));
-            Assert.Single(cut.FindAll("[data-radix-select-scroll-down-button]"));
+            await Assert.That(cut.FindAll("[data-radix-select-scroll-up-button]")).HasSingleItem();
+            await Assert.That(cut.FindAll("[data-radix-select-scroll-down-button]")).HasSingleItem();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_guard_suppresses_first_mouse_pointerup_selection()
     {
-        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
-        var content = cut.FindComponent<BradixSelectContent>().Instance;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        BradixSelectContent content = cut.FindComponent<BradixSelectContent>().Instance;
 
         await content.HandleTriggerPointerGuardResult(suppressSelection: true, shouldClose: false);
 
-        cut.FindAll("[role='option']").First(item => item.TextContent.Contains("Lime"))
-            .TriggerEvent("onpointerup", new PointerEventArgs { PointerType = "mouse" });
+        await cut.FindAll("[role='option']").First(item => item.TextContent.Contains("Lime"))
+                 .TriggerEventAsync("onpointerup", new PointerEventArgs { PointerType = "mouse" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Orange", cut.Find("button[role='combobox']").TextContent);
-            Assert.NotEmpty(cut.FindAll("[role='listbox']"));
+            await Assert.That(cut.Find("button[role='combobox']").TextContent).Contains("Orange");
+            await Assert.That(cut.FindAll("[role='listbox']")).IsNotEmpty();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_guard_closes_when_pointerup_occurs_outside_content()
     {
-        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
-        var content = cut.FindComponent<BradixSelectContent>().Instance;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        BradixSelectContent content = cut.FindComponent<BradixSelectContent>().Instance;
 
         await content.HandleTriggerPointerGuardResult(suppressSelection: false, shouldClose: true);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Empty(cut.FindAll("[role='listbox']"));
+            await Assert.That(cut.FindAll("[role='listbox']")).IsEmpty();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Window_dismiss_closes_open_content()
     {
-        var cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
-        var content = cut.FindComponent<BradixSelectContent>().Instance;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
+        BradixSelectContent content = cut.FindComponent<BradixSelectContent>().Instance;
 
         await content.HandleWindowDismiss();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Empty(cut.FindAll("[role='listbox']"));
+            await Assert.That(cut.FindAll("[role='listbox']")).IsEmpty();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Select_can_reopen_after_closing()
     {
-        var cut = Render(CreateSelect(defaultValue: "orange"));
-        var trigger = cut.FindComponent<BradixSelectTrigger>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultValue: "orange"));
+        IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
 
         await cut.InvokeAsync(() => trigger.Instance.HandleDelegatedPointerDown(new BradixDelegatedMouseEvent
         {
@@ -400,17 +401,17 @@ public sealed class BradixSelectRenderTests : BunitContext
             PointerType = "mouse"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Single(cut.FindAll("[role='listbox']"));
+            await Assert.That(cut.FindAll("[role='listbox']")).HasSingleItem();
         });
 
-        var content = cut.FindComponent<BradixSelectContent>().Instance;
+        BradixSelectContent content = cut.FindComponent<BradixSelectContent>().Instance;
         await cut.InvokeAsync(() => content.HandleWindowDismiss());
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Empty(cut.FindAll("[role='listbox']"));
+            await Assert.That(cut.FindAll("[role='listbox']")).IsEmpty();
         });
 
         trigger = cut.FindComponent<BradixSelectTrigger>();
@@ -422,16 +423,16 @@ public sealed class BradixSelectRenderTests : BunitContext
             PointerType = "mouse"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Single(cut.FindAll("[role='listbox']"));
+            await Assert.That(cut.FindAll("[role='listbox']")).HasSingleItem();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Detailed_close_auto_focus_can_prevent_select_trigger_refocus()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixSelect>(0);
             builder.AddAttribute(1, nameof(BradixSelect.DefaultOpen), true);
@@ -463,10 +464,10 @@ public sealed class BradixSelectRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var focusScope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();
         bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
-        Assert.True(prevented);
+        await Assert.That(prevented).IsTrue();
     }
 
     private static RenderFragment CreateSelect(bool defaultOpen = false, string? defaultValue = null, string? position = null, bool includeScrollButtons = false)

@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -39,28 +41,28 @@ public sealed class BradixTooltipRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Focus_opens_tooltip_and_links_trigger_to_content()
+    [Test]
+    public async Task Focus_opens_tooltip_and_links_trigger_to_content()
     {
-        var cut = Render(CreateTooltip());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip());
 
-        var trigger = cut.Find("button");
-        Assert.Equal("button", trigger.GetAttribute("type"));
-        trigger.Focus();
+        IElement trigger = cut.Find("button");
+        await Assert.That(trigger.GetAttribute("type")).IsEqualTo("button");
+        await trigger.FocusAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async  () =>
         {
-            var tooltip = cut.Find("[role='tooltip']");
-            Assert.Equal(tooltip.Id, trigger.GetAttribute("aria-describedby"));
-            Assert.Equal("instant-open", trigger.GetAttribute("data-state"));
-            Assert.DoesNotContain("role", cut.Find(".tooltip-content").Attributes.Select(attribute => attribute.Name));
+            IElement tooltip = cut.Find("[role='tooltip']");
+            await Assert.That(trigger.GetAttribute("aria-describedby")).IsEqualTo(tooltip.Id);
+            await Assert.That(trigger.GetAttribute("data-state")).IsEqualTo("instant-open");
+            await Assert.That(cut.Find(".tooltip-content").Attributes.Select(attribute => attribute.Name)).DoesNotContain("role");
         });
     }
 
-    [Fact]
-    public void Provider_opening_second_tooltip_closes_first()
+    [Test]
+    public async Task Provider_opening_second_tooltip_closes_first()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixTooltipProvider>(0);
             builder.AddAttribute(1, nameof(BradixTooltipProvider.DelayDuration), 0);
@@ -72,102 +74,102 @@ public sealed class BradixTooltipRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var triggers = cut.FindAll("button");
-        triggers[0].Focus();
-        cut.WaitForAssertion(() => Assert.Contains("First tooltip", cut.Markup));
+        IReadOnlyList<IElement> triggers = cut.FindAll("button");
+        await triggers[0].FocusAsync();
+        await Assert.That(cut.Markup).Contains("First tooltip");
 
-        triggers[1].Focus();
-        cut.WaitForAssertion(() =>
+        await triggers[1].FocusAsync();
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.DoesNotContain("First tooltip", cut.Markup);
-            Assert.Contains("Second tooltip", cut.Markup);
-            Assert.Single(cut.FindAll("[role='tooltip']"));
+            await Assert.That(cut.Markup).DoesNotContain("First tooltip");
+            await Assert.That(cut.Markup).Contains("Second tooltip");
+            await Assert.That(cut.FindAll("[role='tooltip']")).HasSingleItem();
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_down_outside_closes_tooltip()
     {
-        var cut = Render(CreateTooltip(defaultOpen: true));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(defaultOpen: true));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        Assert.Empty(cut.FindAll("[role='tooltip']"));
+        await Assert.That(cut.FindAll("[role='tooltip']")).IsEmpty();
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_down_outside_can_be_prevented_by_detailed_callback()
     {
-        var cut = Render(CreateTooltip(defaultOpen: true, onPointerDownOutsideDetailed: args => args.PreventDefault()));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(defaultOpen: true, onPointerDownOutsideDetailed: args => args.PreventDefault()));
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Single(cut.FindAll("[role='tooltip']"));
-            Assert.Contains("Tooltip body", cut.Markup);
+            await Assert.That(cut.FindAll("[role='tooltip']")).HasSingleItem();
+            await Assert.That(cut.Markup).Contains("Tooltip body");
         });
     }
 
-    [Fact]
-    public void Hoverable_content_pointer_leave_does_not_close_before_grace_area_exit()
+    [Test]
+    public async Task Hoverable_content_pointer_leave_does_not_close_before_grace_area_exit()
     {
-        var cut = Render(CreateTooltip(defaultOpen: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(defaultOpen: true));
 
-        cut.Find(".tooltip-content > div").TriggerEvent("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs
+        await cut.Find(".tooltip-content > div").TriggerEventAsync("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs
         {
             PointerType = "mouse"
         });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Single(cut.FindAll("[role='tooltip']"));
-            Assert.Contains("Tooltip body", cut.Markup);
+            await Assert.That(cut.FindAll("[role='tooltip']")).HasSingleItem();
+            await Assert.That(cut.Markup).Contains("Tooltip body");
         });
     }
 
-    [Fact]
-    public void Default_open_tooltip_renders_arrow()
+    [Test]
+    public async Task Default_open_tooltip_renders_arrow()
     {
-        var cut = Render(CreateTooltip(defaultOpen: true, includeArrow: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(defaultOpen: true, includeArrow: true));
 
-        Assert.Single(cut.FindAll(".tooltip-arrow-shape"));
+        await Assert.That(cut.FindAll(".tooltip-arrow-shape")).HasSingleItem();
     }
 
-    [Fact]
-    public void Aria_label_is_rendered_in_hidden_tooltip_node()
+    [Test]
+    public async Task Aria_label_is_rendered_in_hidden_tooltip_node()
     {
-        var cut = Render(CreateTooltip(ariaLabel: "Accessible tooltip"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(ariaLabel: "Accessible tooltip"));
 
-        cut.Find("button").Focus();
+        await cut.Find("button").FocusAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var tooltip = cut.Find("[role='tooltip']");
-            Assert.Equal("Accessible tooltip", tooltip.TextContent.Trim());
-            Assert.Null(cut.Find(".tooltip-content").GetAttribute("aria-label"));
+            IElement tooltip = cut.Find("[role='tooltip']");
+            await Assert.That(tooltip.TextContent.Trim()).IsEqualTo("Accessible tooltip");
+            await Assert.That(cut.Find(".tooltip-content").GetAttribute("aria-label")).IsNull();
         });
     }
 
-    [Fact]
-    public void Toggling_disable_hoverable_content_re_registers_tooltip_content_bridge()
+    [Test]
+    public async Task Toggling_disable_hoverable_content_re_registers_tooltip_content_bridge()
     {
-        var cut = Render<TooltipHoverableToggleHost>();
+        IRenderedComponent<TooltipHoverableToggleHost> cut = Render<TooltipHoverableToggleHost>();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Single(_module.Invocations, invocation => invocation.Identifier == "registerTooltipContent");
-            Assert.Single(cut.FindAll("[role='tooltip']"));
+            await Assert.That(_module.Invocations).HasSingleItem();
+            await Assert.That(cut.FindAll("[role='tooltip']")).HasSingleItem();
         });
 
-        cut.Find("button[data-toggle-hoverable='true']").Click();
+        await cut.Find("button[data-toggle-hoverable='true']").ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal(2, _module.Invocations.Count(invocation => invocation.Identifier == "registerTooltipContent"));
-            Assert.Single(cut.FindAll("[role='tooltip']"));
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "registerTooltipContent")).IsEqualTo(2);
+            await Assert.That(cut.FindAll("[role='tooltip']")).HasSingleItem();
         });
     }
 

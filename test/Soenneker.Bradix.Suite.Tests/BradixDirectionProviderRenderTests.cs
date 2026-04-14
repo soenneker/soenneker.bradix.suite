@@ -1,16 +1,17 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
-using Xunit;
+using System.Threading.Tasks;
+using Bunit.Rendering;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixDirectionProviderRenderTests : BunitContext
 {
-    [Fact]
-    public void Direction_provider_cascades_rtl_value()
+    [Test]
+    public async Task Direction_provider_cascades_rtl_value()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDirectionProvider>(0);
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
@@ -22,13 +23,13 @@ public sealed class BradixDirectionProviderRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        Assert.Equal("rtl", cut.Find("[data-direction-probe]").GetAttribute("data-direction-probe"));
+        await Assert.That(cut.Find("[data-direction-probe]").GetAttribute("data-direction-probe")).IsEqualTo("rtl");
     }
 
-    [Fact]
-    public void Direction_provider_normalizes_invalid_values_to_ltr()
+    [Test]
+    public async Task Direction_provider_normalizes_invalid_values_to_ltr()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDirectionProvider>(0);
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "invalid");
@@ -40,7 +41,7 @@ public sealed class BradixDirectionProviderRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        Assert.Equal("ltr", cut.Find("[data-direction-probe]").GetAttribute("data-direction-probe"));
+        await Assert.That(cut.Find("[data-direction-probe]").GetAttribute("data-direction-probe")).IsEqualTo("ltr");
     }
 
     private sealed class DirectionProbe : ComponentBase

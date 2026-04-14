@@ -1,11 +1,13 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -41,26 +43,26 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Trigger_click_toggles_associated_content_and_links_ids()
+    [Test]
+    public async Task Trigger_click_toggles_associated_content_and_links_ids()
     {
-        var cut = Render(CreateNavigationMenu());
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
-            var content = cut.Find("[aria-labelledby]");
-            Assert.Equal("true", updatedTrigger.GetAttribute("aria-expanded"));
-            Assert.Equal(content.Id, updatedTrigger.GetAttribute("aria-controls"));
-            Assert.Equal(updatedTrigger.Id, content.GetAttribute("aria-labelledby"));
+            IElement updatedTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
+            IElement content = cut.Find("[aria-labelledby]");
+            await Assert.That(updatedTrigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(updatedTrigger.GetAttribute("aria-controls")).IsEqualTo(content.Id);
+            await Assert.That(content.GetAttribute("aria-labelledby")).IsEqualTo(updatedTrigger.Id);
         });
     }
 
-    [Fact]
-    public void Root_navigation_menu_sets_default_label_and_positioning()
+    [Test]
+    public async Task Root_navigation_menu_sets_default_label_and_positioning()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixNavigationMenu>(0);
             builder.AddAttribute(1, nameof(BradixNavigationMenu.DelayDuration), 0);
@@ -76,334 +78,334 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var root = cut.Find("nav");
+        IElement root = cut.Find("nav");
         string style = root.GetAttribute("style") ?? string.Empty;
 
-        Assert.Equal("Main", root.GetAttribute("aria-label"));
-        Assert.Contains("position:relative", style.Replace(" ", string.Empty));
+        await Assert.That(root.GetAttribute("aria-label")).IsEqualTo("Main");
+        await Assert.That(style.Replace(" ", string.Empty)).Contains("position:relative");
     }
 
-    [Fact]
-    public void Root_navigation_menu_list_wraps_items_in_relative_indicator_track()
+    [Test]
+    public async Task Root_navigation_menu_list_wraps_items_in_relative_indicator_track()
     {
-        var cut = Render(CreateNavigationMenu(includeIndicator: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeIndicator: true));
 
-        var track = cut.Find("nav > div");
-        var list = track.QuerySelector("ul");
+        IElement track = cut.Find("nav > div");
+        IElement? list = track.QuerySelector("ul");
 
-        Assert.NotNull(list);
-        Assert.Contains("position:relative", (track.GetAttribute("style") ?? string.Empty).Replace(" ", string.Empty));
+        await Assert.That(list).IsNotNull();
+        await Assert.That((track.GetAttribute("style") ?? string.Empty).Replace(" ", string.Empty)).Contains("position:relative");
     }
 
-    [Fact]
-    public void Arrow_right_moves_roving_tab_stop()
+    [Test]
+    public async Task Arrow_right_moves_roving_tab_stop()
     {
-        var cut = Render(CreateNavigationMenu());
-        var triggers = cut.FindAll("button");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        IReadOnlyList<IElement> triggers = cut.FindAll("button");
 
-        triggers[0].KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        await triggers[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedTriggers = cut.FindAll("button");
-            Assert.Equal("-1", updatedTriggers[0].GetAttribute("tabindex"));
-            Assert.Equal("0", updatedTriggers[1].GetAttribute("tabindex"));
+            IReadOnlyList<IElement> updatedTriggers = cut.FindAll("button");
+            await Assert.That(updatedTriggers[0].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(updatedTriggers[1].GetAttribute("tabindex")).IsEqualTo("0");
         });
     }
 
-    [Fact]
-    public void Triggers_register_roving_key_handlers()
+    [Test]
+    public async Task Triggers_register_roving_key_handlers()
     {
         Render(CreateNavigationMenu());
 
-        Assert.True(_module.Invocations.Count(invocation => invocation.Identifier == "registerRovingFocusNavigationKeys") >= 3);
+        await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "registerRovingFocusNavigationKeys") >= 3).IsTrue();
     }
 
-    [Fact]
-    public void Pointer_move_opens_delayed_content_when_delay_is_zero()
+    [Test]
+    public async Task Pointer_move_opens_delayed_content_when_delay_is_zero()
     {
-        var cut = Render(CreateNavigationMenu());
-        var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        IElement trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
 
-        trigger.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await trigger.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Getting started", cut.Markup);
+            await Assert.That(cut.Markup).Contains("Getting started");
         });
     }
 
-    [Fact]
-    public void Pointer_move_does_not_reopen_immediately_after_click_close()
+    [Test]
+    public async Task Pointer_move_does_not_reopen_immediately_after_click_close()
     {
-        var cut = Render(CreateNavigationMenu());
-        var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        IElement trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
 
-        trigger.Click();
-        cut.WaitForAssertion(() => Assert.Contains("Getting started", cut.Markup));
-
-        trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
-        trigger.Click();
-        cut.WaitForAssertion(() => Assert.DoesNotContain("Getting started", cut.Markup));
+        await trigger.ClickAsync();
+        await Assert.That(cut.Markup).Contains("Getting started");
 
         trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
-        trigger.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await trigger.ClickAsync();
+        await Assert.That(cut.Markup).DoesNotContain("Getting started");
 
-        cut.WaitForAssertion(() => Assert.DoesNotContain("Getting started", cut.Markup));
+        trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        await trigger.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+
+        await Assert.That(cut.Markup).DoesNotContain("Getting started");
     }
 
-    [Fact]
+    [Test]
     public async Task Pointer_move_does_not_reopen_immediately_after_escape_close()
     {
-        var cut = Render(CreateNavigationMenu());
-        var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        IElement trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
 
-        trigger.Click();
-        cut.WaitForAssertion(() => Assert.Contains("Getting started", cut.Markup));
+        await trigger.ClickAsync();
+        await Assert.That(cut.Markup).Contains("Getting started");
 
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
         await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "Escape"
         }));
 
-        cut.WaitForAssertion(() => Assert.DoesNotContain("Getting started", cut.Markup));
+        await Assert.That(cut.Markup).DoesNotContain("Getting started");
 
         trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
-        trigger.TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await trigger.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
 
-        cut.WaitForAssertion(() => Assert.DoesNotContain("Getting started", cut.Markup));
+        await Assert.That(cut.Markup).DoesNotContain("Getting started");
     }
 
-    [Fact]
-    public void Link_click_closes_open_content_and_sets_active_state()
+    [Test]
+    public async Task Link_click_closes_open_content_and_sets_active_state()
     {
-        var cut = Render(CreateNavigationMenu());
-        var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
-        trigger.Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        IElement trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
+        await trigger.ClickAsync();
 
-        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Buttons");
 
-        var link = cut.FindAll("a").First(anchor => anchor.TextContent.Contains("Buttons"));
-        link.Click();
+        IElement link = cut.FindAll("a").First(anchor => anchor.TextContent.Contains("Buttons"));
+        await link.ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.DoesNotContain("Buttons", cut.Markup);
-            Assert.Equal("page", link.GetAttribute("aria-current"));
+            await Assert.That(cut.Markup).DoesNotContain("Buttons");
+            await Assert.That(link.GetAttribute("aria-current")).IsEqualTo("page");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Indicator_updates_position_from_js_callback()
     {
-        var cut = Render(CreateNavigationMenu(includeIndicator: true));
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
-        var indicator = cut.FindComponent<BradixNavigationMenuIndicator>().Instance;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeIndicator: true));
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
+        BradixNavigationMenuIndicator indicator = cut.FindComponent<BradixNavigationMenuIndicator>().Instance;
 
         await indicator.HandleIndicatorPositionChanged(80, 24);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var node = cut.Find("[aria-hidden='true'][data-state='visible']");
-            Assert.Contains("width:80", node.GetAttribute("style"));
-            Assert.Contains("translateX(24", node.GetAttribute("style"));
+            IElement node = cut.Find("[aria-hidden='true'][data-state='visible']");
+            await Assert.That(node.GetAttribute("style")).Contains("width:80");
+            await Assert.That(node.GetAttribute("style")).Contains("translateX(24");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Viewport_renders_active_content_and_updates_size_vars()
     {
-        var cut = Render(CreateNavigationMenu(includeViewport: true));
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
-        var viewport = cut.FindComponent<BradixNavigationMenuViewport>().Instance;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
+        BradixNavigationMenuViewport viewport = cut.FindComponent<BradixNavigationMenuViewport>().Instance;
 
         await viewport.HandleViewportSizeChanged(320, 180);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Buttons", cut.Markup);
-            var viewportNode = cut.FindAll("[data-orientation='horizontal']").First(node =>
+            await Assert.That(cut.Markup).Contains("Buttons");
+            IElement viewportNode = cut.FindAll("[data-orientation='horizontal']").First(node =>
                 (node.GetAttribute("style") ?? string.Empty).Contains("--radix-navigation-menu-viewport-width", System.StringComparison.Ordinal));
             string style = viewportNode.GetAttribute("style") ?? string.Empty;
-            Assert.Contains("--radix-navigation-menu-viewport-width:320px", style);
-            Assert.Contains("--radix-navigation-menu-viewport-height:180px", style);
+            await Assert.That(style).Contains("--radix-navigation-menu-viewport-width:320px");
+            await Assert.That(style).Contains("--radix-navigation-menu-viewport-height:180px");
         });
     }
 
-    [Fact]
-    public void Open_root_item_renders_focus_proxies_and_registers_focus_bridge()
+    [Test]
+    public async Task Open_root_item_renders_focus_proxies_and_registers_focus_bridge()
     {
-        var cut = Render(CreateNavigationMenu());
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerNavigationMenuContentFocusBridge");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerNavigationMenuContentFocusBridge")).IsTrue();
         });
     }
 
-    [Fact]
-    public void Open_content_registers_link_roving_handlers()
+    [Test]
+    public async Task Open_content_registers_link_roving_handlers()
     {
-        var cut = Render(CreateNavigationMenu());
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Buttons", cut.Markup);
-            Assert.True(_module.Invocations.Count(invocation => invocation.Identifier == "registerRovingFocusNavigationKeys") >= 2);
+            await Assert.That(cut.Markup).Contains("Buttons");
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "registerRovingFocusNavigationKeys") >= 2).IsTrue();
         });
     }
 
-    [Fact]
-    public void Inline_content_does_not_emit_viewport_ownership_shim()
+    [Test]
+    public async Task Inline_content_does_not_emit_viewport_ownership_shim()
     {
-        var cut = Render(CreateNavigationMenu());
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Empty(cut.FindAll("[aria-owns]"));
+            await Assert.That(cut.FindAll("[aria-owns]")).IsEmpty();
         });
     }
 
-    [Fact]
-    public void Viewport_content_registers_focus_bridge_against_active_content()
+    [Test]
+    public async Task Viewport_content_registers_focus_bridge_against_active_content()
     {
-        var cut = Render(CreateNavigationMenu(includeViewport: true));
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Buttons", cut.Markup);
-            Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerNavigationMenuContentFocusBridge");
+            await Assert.That(cut.Markup).Contains("Buttons");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerNavigationMenuContentFocusBridge")).IsTrue();
         });
     }
 
-    [Fact]
-    public void Viewport_content_registers_link_roving_handlers()
+    [Test]
+    public async Task Viewport_content_registers_link_roving_handlers()
     {
-        var cut = Render(CreateNavigationMenu(includeViewport: true));
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Buttons", cut.Markup);
-            Assert.True(_module.Invocations.Count(invocation => invocation.Identifier == "registerRovingFocusNavigationKeys") >= 2);
+            await Assert.That(cut.Markup).Contains("Buttons");
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "registerRovingFocusNavigationKeys") >= 2).IsTrue();
         });
     }
 
-    [Fact]
-    public void Viewport_content_emits_trigger_ownership_shim()
+    [Test]
+    public async Task Viewport_content_emits_trigger_ownership_shim()
     {
-        var cut = Render(CreateNavigationMenu(includeViewport: true));
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
+            IElement trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
             string? ownedId = cut.Find("[aria-owns]").GetAttribute("aria-owns");
-            Assert.Equal(trigger.GetAttribute("aria-controls"), ownedId);
+            await Assert.That(ownedId).IsEqualTo(trigger.GetAttribute("aria-controls"));
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Viewport_pointer_down_outside_does_not_dismiss_when_target_is_root_viewport()
     {
-        var cut = Render(CreateNavigationMenu(includeViewport: true));
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Buttons");
 
-        var viewport = cut.Find("[id$='-viewport']");
-        Assert.False(string.IsNullOrWhiteSpace(viewport.Id));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IElement viewport = cut.Find("[id$='-viewport']");
+        await Assert.That(string.IsNullOrWhiteSpace(viewport.Id)).IsFalse();
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
             AncestorIds = [viewport.Id]
         }));
 
-        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Buttons");
     }
 
-    [Fact]
+    [Test]
     public async Task Viewport_focus_outside_does_not_dismiss_when_target_stays_inside_root_menu()
     {
-        var cut = Render(CreateNavigationMenu(includeViewport: true));
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Buttons");
 
-        var root = cut.Find("nav");
-        Assert.False(string.IsNullOrWhiteSpace(root.Id));
-        var layer = cut.FindComponent<BradixDismissableLayer>();
+        IElement root = cut.Find("nav");
+        await Assert.That(string.IsNullOrWhiteSpace(root.Id)).IsFalse();
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandleFocusOutside(new BradixDelegatedFocusEvent
         {
             AncestorIds = [root.Id]
         }));
 
-        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Buttons");
     }
 
-    [Fact]
-    public void Viewport_switch_keeps_previous_content_mounted_for_exit_motion()
+    [Test]
+    public async Task Viewport_switch_keeps_previous_content_mounted_for_exit_motion()
     {
-        var cut = Render(CreateNavigationMenu(includeViewport: true));
-        cut.FindAll("button").First(button => button.TextContent.Contains("Products")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
-        cut.WaitForAssertion(() => Assert.Contains("Buttons", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Buttons");
 
-        cut.FindAll("button").First(button => button.TextContent.Contains("Docs")).Click();
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Docs")).ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Contains("Buttons", cut.Markup);
-            Assert.Contains("Getting started", cut.Markup);
-            Assert.True(cut.FindAll("[data-motion]").Count >= 2);
+            await Assert.That(cut.Markup).Contains("Buttons");
+            await Assert.That(cut.Markup).Contains("Getting started");
+            await Assert.That(cut.FindAll("[data-motion]").Count >= 2).IsTrue();
         });
     }
 
-    [Fact]
-    public void Sub_uses_default_active_item_and_does_not_toggle_closed_on_repeat_click()
+    [Test]
+    public async Task Sub_uses_default_active_item_and_does_not_toggle_closed_on_repeat_click()
     {
-        var cut = Render(CreateNavigationMenuWithSub());
-        cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenuWithSub());
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).ClickAsync();
 
-        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Overview content stays mounted.");
 
-        cut.FindAll("button").First(button => button.TextContent.Contains("Overview")).Click();
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Overview")).ClickAsync();
 
-        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Overview content stays mounted.");
     }
 
-    [Fact]
-    public void Sub_link_click_does_not_dismiss_nested_content()
+    [Test]
+    public async Task Sub_link_click_does_not_dismiss_nested_content()
     {
-        var cut = Render(CreateNavigationMenuWithSub());
-        cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenuWithSub());
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).ClickAsync();
 
-        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Overview content stays mounted.");
 
-        cut.FindAll("a").First(anchor => anchor.TextContent.Contains("Overview content stays mounted.")).Click();
+        await cut.FindAll("a").First(anchor => anchor.TextContent.Contains("Overview content stays mounted.")).ClickAsync();
 
-        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Overview content stays mounted.");
     }
 
-    [Fact]
-    public void Sub_pointer_move_switches_active_content_immediately()
+    [Test]
+    public async Task Sub_pointer_move_switches_active_content_immediately()
     {
-        var cut = Render(CreateNavigationMenuWithSub());
-        cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).Click();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenuWithSub());
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).ClickAsync();
 
-        cut.WaitForAssertion(() => Assert.Contains("Overview content stays mounted.", cut.Markup));
+        await Assert.That(cut.Markup).Contains("Overview content stays mounted.");
 
-        cut.FindAll("button").First(button => button.TextContent.Contains("API"))
-            .TriggerEvent("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+        await cut.FindAll("button").First(button => button.TextContent.Contains("API"))
+                 .TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
 
-        cut.WaitForAssertion(() => Assert.Contains("API content swaps immediately.", cut.Markup));
+        await Assert.That(cut.Markup).Contains("API content swaps immediately.");
     }
 
     private static RenderFragment CreateNavigationMenu(bool includeIndicator = false, bool includeViewport = false)

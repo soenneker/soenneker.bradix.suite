@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -39,81 +39,81 @@ public sealed class BradixToastRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Viewport_renders_region_label_and_open_toast_metadata()
+    [Test]
+    public async Task Viewport_renders_region_label_and_open_toast_metadata()
     {
-        var cut = RenderToast();
+        IRenderedComponent<ContainerFragment> cut = RenderToast();
 
-        var region = cut.Find("[role='region']");
-        var toast = cut.Find("li[data-radix-toast-root]");
+        IElement region = cut.Find("[role='region']");
+        IElement toast = cut.Find("li[data-radix-toast-root]");
 
-        Assert.Equal("Notifications (F8)", region.GetAttribute("aria-label"));
-        Assert.Equal("open", toast.GetAttribute("data-state"));
-        Assert.Equal("right", toast.GetAttribute("data-swipe-direction"));
-        Assert.Null(toast.GetAttribute("role"));
-        Assert.Null(toast.GetAttribute("aria-live"));
+        await Assert.That(region.GetAttribute("aria-label")).IsEqualTo("Notifications (F8)");
+        await Assert.That(toast.GetAttribute("data-state")).IsEqualTo("open");
+        await Assert.That(toast.GetAttribute("data-swipe-direction")).IsEqualTo("right");
+        await Assert.That(toast.GetAttribute("role")).IsNull();
+        await Assert.That(toast.GetAttribute("aria-live")).IsNull();
     }
 
-    [Fact]
+    [Test]
     public async Task Close_button_keeps_toast_mounted_until_exit_animation_finishes()
     {
-        var cut = RenderToast();
+        IRenderedComponent<ContainerFragment> cut = RenderToast();
 
-        Assert.Equal("Close", cut.Find("button[data-toast-close='true']").GetAttribute("aria-label"));
-        cut.Find("button[data-toast-close='true']").Click();
-        Assert.Single(cut.FindAll("li[data-radix-toast-root]"));
+        await Assert.That(cut.Find("button[data-toast-close='true']").GetAttribute("aria-label")).IsEqualTo("Close");
+        await cut.Find("button[data-toast-close='true']").ClickAsync();
+        await Assert.That(cut.FindAll("li[data-radix-toast-root]")).HasSingleItem();
 
-        var presence = cut.FindComponent<BradixPresence>();
+        IRenderedComponent<BradixPresence> presence = cut.FindComponent<BradixPresence>();
         await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("toast-out"));
 
-        Assert.Empty(cut.FindAll("li[data-radix-toast-root]"));
+        await Assert.That(cut.FindAll("li[data-radix-toast-root]")).IsEmpty();
     }
 
-    [Fact]
+    [Test]
     public async Task Viewport_pause_and_resume_invoke_toast_callbacks()
     {
         int pauseCount = 0;
         int resumeCount = 0;
 
-        var cut = RenderToast(onPause: () => pauseCount++, onResume: () => resumeCount++);
-        var viewport = cut.FindComponent<BradixToastViewport>();
+        IRenderedComponent<ContainerFragment> cut = RenderToast(onPause: () => pauseCount++, onResume: () => resumeCount++);
+        IRenderedComponent<BradixToastViewport> viewport = cut.FindComponent<BradixToastViewport>();
 
         await cut.InvokeAsync(() => viewport.Instance.HandlePause());
         await cut.InvokeAsync(() => viewport.Instance.HandleResume());
 
-        Assert.Equal(1, pauseCount);
-        Assert.Equal(1, resumeCount);
+        await Assert.That(pauseCount).IsEqualTo(1);
+        await Assert.That(resumeCount).IsEqualTo(1);
     }
 
-    [Fact]
-    public void Viewport_reregisters_after_toast_proxies_mount()
+    [Test]
+    public async Task Viewport_reregisters_after_toast_proxies_mount()
     {
         _ = RenderToast();
 
-        Assert.True(_module.Invocations.Count(invocation => invocation.Identifier == "registerToastViewport") >= 2);
+        await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "registerToastViewport") >= 2).IsTrue();
     }
 
-    [Fact]
-    public void Toast_renders_hidden_announcement_with_alt_text_excluding_close_label()
+    [Test]
+    public async Task Toast_renders_hidden_announcement_with_alt_text_excluding_close_label()
     {
-        var cut = RenderToast();
+        IRenderedComponent<ContainerFragment> cut = RenderToast();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var announce = cut.Find("span[role='status']");
-            Assert.Equal("assertive", announce.GetAttribute("aria-live"));
-            Assert.Contains("Notification", announce.TextContent);
-            Assert.Contains("Upload complete", announce.TextContent);
-            Assert.Contains("Your asset is ready.", announce.TextContent);
-            Assert.Contains("Open uploads", announce.TextContent);
-            Assert.DoesNotContain("Dismiss", announce.TextContent);
+            IElement announce = cut.Find("span[role='status']");
+            await Assert.That(announce.GetAttribute("aria-live")).IsEqualTo("assertive");
+            await Assert.That(announce.TextContent).Contains("Notification");
+            await Assert.That(announce.TextContent).Contains("Upload complete");
+            await Assert.That(announce.TextContent).Contains("Your asset is ready.");
+            await Assert.That(announce.TextContent).Contains("Open uploads");
+            await Assert.That(announce.TextContent).DoesNotContain("Dismiss");
         });
     }
 
-    [Fact]
-    public void Action_requires_non_empty_alt_text()
+    [Test]
+    public async Task Action_requires_non_empty_alt_text()
     {
-        Assert.Throws<InvalidOperationException>(() =>
+        await Assert.That(() =>
         {
             Render(builder =>
             {
@@ -137,96 +137,100 @@ public sealed class BradixToastRenderTests : BunitContext
                 }));
                 builder.CloseComponent();
             });
-        });
+        }).Throws<InvalidOperationException>();
     }
 
-    [Fact]
-    public void Swipe_sets_end_state_before_close()
+    [Test]
+    public async Task Swipe_sets_end_state_before_close()
     {
-        var cut = RenderToast(swipeThreshold: 10);
-        var toast = cut.Find("li[data-radix-toast-root]");
+        IRenderedComponent<ContainerFragment> cut = RenderToast(swipeThreshold: 10);
+        IElement toast = cut.Find("li[data-radix-toast-root]");
 
-        toast.TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0, PointerId = 7 });
-        toast.TriggerEvent("onpointermove", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 7 });
-        toast.TriggerEvent("onpointerup", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 7 });
+        await toast.TriggerEventAsync("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0, PointerId = 7 });
+        await toast.TriggerEventAsync("onpointermove", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 7 });
+        await toast.TriggerEventAsync("onpointerup", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 7 });
 
-        Assert.Equal("end", cut.Find("li[data-radix-toast-root]").GetAttribute("data-swipe"));
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "capturePointer");
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "releasePointer");
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "suppressNextClick");
-    }
-
-    [Fact]
-    public void Swipe_must_exceed_threshold_before_closing()
-    {
-        var cut = RenderToast(swipeThreshold: 10);
-        var toast = cut.Find("li[data-radix-toast-root]");
-
-        toast.TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0, PointerId = 9 });
-        toast.TriggerEvent("onpointermove", new PointerEventArgs { Button = 0, ClientX = 10, ClientY = 0, PointerId = 9 });
-        toast.TriggerEvent("onpointerup", new PointerEventArgs { Button = 0, ClientX = 10, ClientY = 0, PointerId = 9 });
-
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedToast = cut.Find("li[data-radix-toast-root]");
-            Assert.Equal("open", updatedToast.GetAttribute("data-state"));
-            Assert.Equal("cancel", updatedToast.GetAttribute("data-swipe"));
+            IElement li = cut.Find("li[data-radix-toast-root]");
+            await Assert.That(li.GetAttribute("data-swipe")).IsEqualTo("end");
         });
-
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "suppressNextClick");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "capturePointer")).IsTrue();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "releasePointer")).IsTrue();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "suppressNextClick")).IsTrue();
     }
 
-    [Fact]
-    public void Pointer_cancel_after_swipe_move_sets_cancel_state_without_closing()
+    [Test]
+    public async Task Swipe_must_exceed_threshold_before_closing()
     {
-        var cut = RenderToast(swipeThreshold: 10);
-        var toast = cut.Find("li[data-radix-toast-root]");
+        IRenderedComponent<ContainerFragment> cut = RenderToast(swipeThreshold: 10);
+        IElement toast = cut.Find("li[data-radix-toast-root]");
 
-        toast.TriggerEvent("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0, PointerId = 11 });
-        toast.TriggerEvent("onpointermove", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 11 });
-        toast.TriggerEvent("onpointercancel", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 11 });
+        await toast.TriggerEventAsync("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0, PointerId = 9 });
+        await toast.TriggerEventAsync("onpointermove", new PointerEventArgs { Button = 0, ClientX = 10, ClientY = 0, PointerId = 9 });
+        await toast.TriggerEventAsync("onpointerup", new PointerEventArgs { Button = 0, ClientX = 10, ClientY = 0, PointerId = 9 });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedToast = cut.Find("li[data-radix-toast-root]");
-            Assert.Equal("open", updatedToast.GetAttribute("data-state"));
-            Assert.Equal("cancel", updatedToast.GetAttribute("data-swipe"));
+            IElement updatedToast = cut.Find("li[data-radix-toast-root]");
+            await Assert.That(updatedToast.GetAttribute("data-state")).IsEqualTo("open");
+            await Assert.That(updatedToast.GetAttribute("data-swipe")).IsEqualTo("cancel");
         });
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "releasePointer");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "suppressNextClick")).IsTrue();
     }
 
-    [Fact]
+    [Test]
+    public async Task Pointer_cancel_after_swipe_move_sets_cancel_state_without_closing()
+    {
+        IRenderedComponent<ContainerFragment> cut = RenderToast(swipeThreshold: 10);
+        IElement toast = cut.Find("li[data-radix-toast-root]");
+
+        await toast.TriggerEventAsync("onpointerdown", new PointerEventArgs { Button = 0, ClientX = 0, ClientY = 0, PointerId = 11 });
+        await toast.TriggerEventAsync("onpointermove", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 11 });
+        await toast.TriggerEventAsync("onpointercancel", new PointerEventArgs { Button = 0, ClientX = 20, ClientY = 0, PointerId = 11 });
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IElement updatedToast = cut.Find("li[data-radix-toast-root]");
+            await Assert.That(updatedToast.GetAttribute("data-state")).IsEqualTo("open");
+            await Assert.That(updatedToast.GetAttribute("data-swipe")).IsEqualTo("cancel");
+        });
+
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "releasePointer")).IsTrue();
+    }
+
+    [Test]
     public async Task Escape_closes_toast_through_delegated_keydown()
     {
-        var cut = RenderToast();
-        var toast = cut.FindComponent<BradixToast>();
+        IRenderedComponent<ContainerFragment> cut = RenderToast();
+        IRenderedComponent<BradixToast> toast = cut.FindComponent<BradixToast>();
 
         await cut.InvokeAsync(() => toast.Instance.HandleDelegatedKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "Escape"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("closed", cut.Find("li[data-radix-toast-root]").GetAttribute("data-state"));
+            await Assert.That(cut.Find("li[data-radix-toast-root]").GetAttribute("data-state")).IsEqualTo("closed");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Escape_can_be_prevented_by_detailed_callback()
     {
-        var cut = RenderToast(onEscapeKeyDownDetailed: args => args.PreventDefault());
-        var toast = cut.FindComponent<BradixToast>();
+        IRenderedComponent<ContainerFragment> cut = RenderToast(onEscapeKeyDownDetailed: args => args.PreventDefault());
+        IRenderedComponent<BradixToast> toast = cut.FindComponent<BradixToast>();
 
         await cut.InvokeAsync(() => toast.Instance.HandleDelegatedKeyDown(new BradixDelegatedKeyboardEvent
         {
             Key = "Escape"
         }));
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("open", cut.Find("li[data-radix-toast-root]").GetAttribute("data-state"));
+            await Assert.That(cut.Find("li[data-radix-toast-root]").GetAttribute("data-state")).IsEqualTo("open");
         });
     }
 

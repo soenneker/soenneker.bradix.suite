@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -27,73 +29,73 @@ public sealed class BradixSwitchRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Switch_renders_switch_role_and_unchecked_state()
+    [Test]
+    public async Task Switch_renders_switch_role_and_unchecked_state()
     {
-        var cut = Render(CreateSwitch());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch());
 
-        var button = cut.Find("button");
+        IElement button = cut.Find("button");
 
-        Assert.Equal("switch", button.GetAttribute("role"));
-        Assert.Equal("false", button.GetAttribute("aria-checked"));
-        Assert.Equal("unchecked", button.GetAttribute("data-state"));
+        await Assert.That(button.GetAttribute("role")).IsEqualTo("switch");
+        await Assert.That(button.GetAttribute("aria-checked")).IsEqualTo("false");
+        await Assert.That(button.GetAttribute("data-state")).IsEqualTo("unchecked");
     }
 
-    [Fact]
-    public void Switch_click_toggles_uncontrolled_state()
+    [Test]
+    public async Task Switch_click_toggles_uncontrolled_state()
     {
-        var cut = Render(CreateSwitch());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch());
 
-        cut.Find("button").Click();
-        var button = cut.Find("button");
+        await cut.Find("button").ClickAsync();
+        IElement button = cut.Find("button");
 
-        Assert.Equal("true", button.GetAttribute("aria-checked"));
-        Assert.Equal("checked", button.GetAttribute("data-state"));
+        await Assert.That(button.GetAttribute("aria-checked")).IsEqualTo("true");
+        await Assert.That(button.GetAttribute("data-state")).IsEqualTo("checked");
     }
 
-    [Fact]
-    public void Controlled_switch_respects_checked_parameter()
+    [Test]
+    public async Task Controlled_switch_respects_checked_parameter()
     {
-        var cut = Render(CreateSwitch(checkedState: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(checkedState: true));
 
-        var button = cut.Find("button");
-        var thumb = cut.Find("span");
+        IElement button = cut.Find("button");
+        IElement thumb = cut.Find("span");
 
-        Assert.Equal("true", button.GetAttribute("aria-checked"));
-        Assert.Equal("checked", thumb.GetAttribute("data-state"));
+        await Assert.That(button.GetAttribute("aria-checked")).IsEqualTo("true");
+        await Assert.That(thumb.GetAttribute("data-state")).IsEqualTo("checked");
     }
 
-    [Fact]
-    public void Switch_with_name_outside_form_does_not_render_hidden_input()
+    [Test]
+    public async Task Switch_with_name_outside_form_does_not_render_hidden_input()
     {
-        var cut = Render(CreateSwitch(defaultChecked: true, name: "notifications"));
-        Assert.Empty(cut.FindAll("input[type='checkbox']"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(defaultChecked: true, name: "notifications"));
+        await Assert.That(cut.FindAll("input[type='checkbox']")).IsEmpty();
     }
 
-    [Fact]
-    public void Switch_with_explicit_form_renders_hidden_input_outside_form()
+    [Test]
+    public async Task Switch_with_explicit_form_renders_hidden_input_outside_form()
     {
-        var cut = Render(CreateSwitch(defaultChecked: true, name: "notifications", form: "settings-form"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(defaultChecked: true, name: "notifications", form: "settings-form"));
 
-        var input = cut.Find("input[type='checkbox']");
-        Assert.Equal("settings-form", input.GetAttribute("form"));
-        Assert.Contains(_module.Invocations, invocation =>
+        IElement input = cut.Find("input[type='checkbox']");
+        await Assert.That(input.GetAttribute("form")).IsEqualTo("settings-form");
+        await Assert.That(_module.Invocations.Any(invocation =>
             invocation.Identifier == "registerCheckboxRoot" &&
             invocation.Arguments.Count > 2 &&
-            Equals(invocation.Arguments[2], "settings-form"));
+            Equals(invocation.Arguments[2], "settings-form"))).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Uncontrolled_switch_resets_to_default_state()
     {
-        var cut = Render(CreateSwitch(defaultChecked: true));
-        var component = cut.FindComponent<BradixSwitch>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(defaultChecked: true));
+        IRenderedComponent<BradixSwitch> component = cut.FindComponent<BradixSwitch>();
 
-        cut.Find("button").Click();
+        await cut.Find("button").ClickAsync();
         await component.Instance.HandleFormReset();
 
-        var button = cut.Find("button");
-        Assert.Equal("true", button.GetAttribute("aria-checked"));
+        IElement button = cut.Find("button");
+        await Assert.That(button.GetAttribute("aria-checked")).IsEqualTo("true");
     }
 
     private static RenderFragment CreateSwitch(bool? checkedState = null, bool defaultChecked = false, string? name = null, string? form = null)

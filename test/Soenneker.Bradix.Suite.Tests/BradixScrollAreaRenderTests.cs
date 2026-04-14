@@ -1,8 +1,11 @@
+using System;
+using System.Threading;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -10,7 +13,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
 {
     public BradixScrollAreaRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerScrollAreaRoot", _ => true);
         module.SetupVoid("unregisterScrollAreaRoot", _ => true);
         module.SetupVoid("registerScrollAreaViewport", _ => true);
@@ -22,124 +25,127 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Always_scroll_area_renders_scrollbar_parts()
+    [Test]
+    public async Task Always_scroll_area_renders_scrollbar_parts()
     {
-        var cut = Render(CreateScrollArea(type: BradixScrollAreaType.Always, includeHorizontal: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Always, includeHorizontal: true));
 
-        Assert.Equal(2, cut.FindAll("[data-orientation]").Count);
-        Assert.DoesNotContain("data-bradix-scroll-area-thumb", cut.Markup);
+        await Assert.That(cut.FindAll("[data-orientation]").Count).IsEqualTo(2);
+        await Assert.That(cut.Markup).DoesNotContain("data-bradix-scroll-area-thumb");
     }
 
-    [Fact]
+    [Test]
     public async Task Auto_scroll_area_mounts_scrollbar_when_overflow_detected()
     {
-        var cut = Render(CreateScrollArea(type: BradixScrollAreaType.Auto));
-        var root = cut.FindComponent<BradixScrollArea>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Auto));
+        IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
-        Assert.Empty(cut.FindAll("[data-state='visible']"));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsEmpty();
 
         await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
 
-        Assert.NotEmpty(cut.FindAll("[data-state='visible']"));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsNotEmpty();
     }
 
-    [Fact]
-    public void Auto_scroll_area_keeps_viewport_overflow_hidden_until_scrollbar_is_rendered()
+    [Test]
+    public async Task Auto_scroll_area_keeps_viewport_overflow_hidden_until_scrollbar_is_rendered()
     {
-        var cut = Render(CreateScrollArea(type: BradixScrollAreaType.Auto));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Auto));
 
-        var viewport = cut.Find("[data-radix-scroll-area-viewport]");
+        IElement viewport = cut.Find("[data-radix-scroll-area-viewport]");
 
-        Assert.Contains("overflow-x: hidden", viewport.GetAttribute("style"));
-        Assert.Contains("overflow-y: hidden", viewport.GetAttribute("style"));
+        await Assert.That(viewport.GetAttribute("style")).Contains("overflow-x: hidden");
+        await Assert.That(viewport.GetAttribute("style")).Contains("overflow-y: hidden");
     }
 
-    [Fact]
+    [Test]
     public async Task Hover_scroll_area_shows_scrollbar_on_hover()
     {
-        var cut = Render(CreateScrollArea(type: BradixScrollAreaType.Hover));
-        var root = cut.FindComponent<BradixScrollArea>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Hover));
+        IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
-        Assert.Empty(cut.FindAll("[data-state='visible']"));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsEmpty();
 
         await root.Instance.HandleHoverChanged(true);
-        Assert.NotEmpty(cut.FindAll("[data-state='visible']"));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsNotEmpty();
     }
 
-    [Fact]
+    [Test]
     public async Task Hover_scroll_area_hides_after_scroll_hide_delay_on_pointer_leave()
     {
-        var cut = Render(CreateScrollArea(type: BradixScrollAreaType.Hover, scrollHideDelay: 10));
-        var root = cut.FindComponent<BradixScrollArea>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Hover, scrollHideDelay: 10));
+        IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
         await root.Instance.HandleHoverChanged(true);
 
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-state='visible']")));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsNotEmpty();
 
         await root.Instance.HandleHoverChanged(false);
-        Assert.NotEmpty(cut.FindAll("[data-state='visible']"));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsNotEmpty();
 
-        await Task.Delay(40, Xunit.TestContext.Current.CancellationToken);
+        await Task.Delay(40, CancellationToken.None);
 
-        cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("[data-state='visible']")));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsEmpty();
     }
 
-    [Fact]
+    [Test]
     public async Task Scroll_type_hides_after_scroll_end_and_scroll_hide_delay()
     {
-        var cut = Render(CreateScrollArea(type: BradixScrollAreaType.Scroll, scrollHideDelay: 20));
-        var root = cut.FindComponent<BradixScrollArea>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Scroll, scrollHideDelay: 20));
+        IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 40, 500, 500, 100, 100);
 
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-state='visible']")));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsNotEmpty();
 
-        await Task.Delay(160, Xunit.TestContext.Current.CancellationToken);
+        await Task.Delay(160, CancellationToken.None);
 
-        cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("[data-state='visible']")));
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(cut.FindAll("[data-state='visible']")).IsEmpty();
+        }, TimeSpan.FromSeconds(2));
     }
 
-    [Fact]
+    [Test]
     public async Task Scroll_type_keeps_scrollbar_visible_while_pointer_is_over_it()
     {
-        var cut = Render(CreateScrollArea(type: BradixScrollAreaType.Scroll, scrollHideDelay: 20));
-        var root = cut.FindComponent<BradixScrollArea>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Scroll, scrollHideDelay: 20));
+        IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 40, 500, 500, 100, 100);
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-state='visible']")));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsNotEmpty();
 
-        cut.Find("[data-orientation='vertical']").TriggerEvent("onpointerenter", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
+        await root.Instance.HandleScrollbarPointerChanged("vertical", true);
 
-        await Task.Delay(160, Xunit.TestContext.Current.CancellationToken);
+        await Task.Delay(160, CancellationToken.None);
 
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-state='visible']")));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsNotEmpty();
 
-        cut.Find("[data-orientation='vertical']").TriggerEvent("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
-        await Task.Delay(40, Xunit.TestContext.Current.CancellationToken);
+        await root.Instance.HandleScrollbarPointerChanged("vertical", false);
+        await Task.Delay(40, CancellationToken.None);
 
-        cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("[data-state='visible']")));
+        await Assert.That(cut.FindAll("[data-state='visible']")).IsEmpty();
     }
 
-    [Fact]
+    [Test]
     public async Task Corner_renders_when_both_scrollbars_visible()
     {
-        var cut = Render(CreateScrollArea(type: BradixScrollAreaType.Always, includeHorizontal: true, includeCorner: true));
-        var root = cut.FindComponent<BradixScrollArea>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Always, includeHorizontal: true, includeCorner: true));
+        IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
         await root.Instance.HandleScrollbarMetricsChanged("horizontal", 100, 12, 0, 0);
         await root.Instance.HandleScrollbarMetricsChanged("vertical", 12, 100, 0, 0);
 
-        Assert.Single(cut.FindAll(".corner"));
+        await Assert.That(cut.FindAll(".corner")).HasSingleItem();
     }
 
-    [Fact]
+    [Test]
     public async Task Inherited_direction_sets_root_dir()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDirectionProvider>(0);
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
@@ -150,16 +156,16 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        var root = cut.FindComponent<BradixScrollArea>();
+        IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
         await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
 
-        Assert.Equal("rtl", cut.Find(".root").GetAttribute("dir"));
+        await Assert.That(cut.Find(".root").GetAttribute("dir")).IsEqualTo("rtl");
     }
 
-    [Fact]
-    public void Viewport_forwards_nonce_to_injected_style_tag()
+    [Test]
+    public async Task Viewport_forwards_nonce_to_injected_style_tag()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixScrollArea>(0);
             builder.AddAttribute(1, nameof(BradixScrollArea.ChildContent), (RenderFragment)(contentBuilder =>
@@ -171,7 +177,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        Assert.Equal("csp-nonce", cut.Find("style").GetAttribute("nonce"));
+        await Assert.That(cut.Find("style").GetAttribute("nonce")).IsEqualTo("csp-nonce");
     }
 
     private static RenderFragment CreateScrollArea(BradixScrollAreaType type, bool includeHorizontal = false, bool includeCorner = false, int? scrollHideDelay = null)

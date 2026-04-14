@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -49,99 +51,101 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Right_click_opens_context_menu_and_registers_virtual_anchor()
+    [Test]
+    public async Task Right_click_opens_context_menu_and_registers_virtual_anchor()
     {
-        var cut = Render(CreateContextMenu());
-        var trigger = cut.Find("[data-state='closed']");
-        string closedControls = Assert.IsType<string>(trigger.GetAttribute("aria-controls"));
-        Assert.Equal("menu", trigger.GetAttribute("aria-haspopup"));
-        Assert.Equal("false", trigger.GetAttribute("aria-expanded"));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
+        IElement trigger = cut.Find("[data-state='closed']");
+        string? closedControlsAttr = trigger.GetAttribute("aria-controls");
+        await Assert.That(closedControlsAttr).IsNotNull();
+        string closedControls = closedControlsAttr!;
+        await Assert.That(trigger.GetAttribute("aria-haspopup")).IsEqualTo("menu");
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("false");
 
-        trigger.TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
+        await trigger.TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var updatedTrigger = cut.Find("[aria-haspopup='menu']");
-            Assert.Equal("open", cut.Find("[role='menu']").GetAttribute("data-state"));
-            Assert.Equal("true", updatedTrigger.GetAttribute("aria-expanded"));
-            Assert.Equal(closedControls, updatedTrigger.GetAttribute("aria-controls"));
+            IElement updatedTrigger = cut.Find("[aria-haspopup='menu']");
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("open");
+            await Assert.That(updatedTrigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(updatedTrigger.GetAttribute("aria-controls")).IsEqualTo(closedControls);
         });
 
-        Assert.Contains(_module.Invocations, invocation =>
+        await Assert.That(_module.Invocations.Any(invocation =>
             invocation.Identifier == "registerVirtualPopperContent" &&
             invocation.Arguments.Count >= 5 &&
             invocation.Arguments[3] is double x &&
             invocation.Arguments[4] is double y &&
             x == 120 &&
-            y == 40);
+            y == 40)).IsTrue();
     }
 
-    [Fact]
-    public void Checkbox_and_radio_wrappers_render_checked_state()
+    [Test]
+    public async Task Checkbox_and_radio_wrappers_render_checked_state()
     {
-        var cut = Render(CreateContextMenu());
-        cut.Find("[data-state='closed']").TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
+        IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
+        await cut.Find("[data-state='closed']").TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            var radioItems = cut.FindAll("[role='menuitemradio']");
+            IReadOnlyList<IElement> radioItems = cut.FindAll("[role='menuitemradio']");
 
-            Assert.Equal("mixed", cut.Find("[role='menuitemcheckbox']").GetAttribute("aria-checked"));
-            Assert.Contains(radioItems, item => item.GetAttribute("aria-checked") == "true");
-            Assert.Contains(radioItems, item => item.GetAttribute("aria-checked") == "false");
+            await Assert.That(cut.Find("[role='menuitemcheckbox']").GetAttribute("aria-checked")).IsEqualTo("mixed");
+            await Assert.That(radioItems.Any(item => item.GetAttribute("aria-checked") == "true")).IsTrue();
+            await Assert.That(radioItems.Any(item => item.GetAttribute("aria-checked") == "false")).IsTrue();
         });
     }
 
-    [Fact]
-    public void Submenu_wrapper_opens_from_sub_trigger()
+    [Test]
+    public async Task Submenu_wrapper_opens_from_sub_trigger()
     {
-        var cut = Render(CreateContextMenu());
-        cut.Find("[data-state='closed']").TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
-        var subTrigger = cut.Find("[aria-haspopup='menu'][role='menuitem']");
+        IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
+        await cut.Find("[data-state='closed']").TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
+        IElement subTrigger = cut.Find("[aria-haspopup='menu'][role='menuitem']");
 
-        subTrigger.KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+        await subTrigger.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("true", cut.Find("[aria-haspopup='menu'][role='menuitem']").GetAttribute("aria-expanded"));
-            Assert.Contains("Copy link", cut.Markup);
+            await Assert.That(cut.Find("[aria-haspopup='menu'][role='menuitem']").GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(cut.Markup).Contains("Copy link");
         });
     }
 
-    [Fact]
-    public void Selecting_item_closes_context_menu_root()
+    [Test]
+    public async Task Selecting_item_closes_context_menu_root()
     {
-        var cut = Render(CreateContextMenu());
-        cut.Find("[data-state='closed']").TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
+        IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
+        await cut.Find("[data-state='closed']").TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
 
-        cut.FindAll("[role='menuitem']").First().Click();
+        await cut.FindAll("[role='menuitem']").First().ClickAsync();
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(async () =>
         {
-            Assert.Equal("closed", cut.Find("[role='menu']").GetAttribute("data-state"));
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("closed");
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Non_modal_outside_interaction_prevents_close_auto_focus()
     {
-        var cut = Render(CreateContextMenu(modal: false));
-        cut.Find("[data-state='closed']").TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
+        IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu(modal: false));
+        await cut.Find("[data-state='closed']").TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
 
-        var dismissableLayer = cut.FindComponent<BradixDismissableLayer>();
-        var focusScope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<BradixDismissableLayer> dismissableLayer = cut.FindComponent<BradixDismissableLayer>();
+        IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();
 
         await cut.InvokeAsync(() => dismissableLayer.Instance.HandlePointerDownOutside());
         bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
-        Assert.True(prevented);
+        await Assert.That(prevented).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Detailed_close_auto_focus_can_prevent_context_menu_refocus()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixContextMenu>(0);
             builder.AddAttribute(1, nameof(BradixContextMenu.ChildContent), (RenderFragment)(content =>
@@ -170,12 +174,12 @@ public sealed class BradixContextMenuRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        cut.Find("[data-state='closed']").TriggerEvent("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
+        await cut.Find("[data-state='closed']").TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
 
-        var focusScope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();
         bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleUnmountAutoFocus());
 
-        Assert.True(prevented);
+        await Assert.That(prevented).IsTrue();
     }
 
     private static RenderFragment CreateContextMenu(bool modal = true)

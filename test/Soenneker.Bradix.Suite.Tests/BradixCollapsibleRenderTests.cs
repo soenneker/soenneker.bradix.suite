@@ -3,7 +3,7 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using System.Threading.Tasks;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -24,58 +24,58 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Uncontrolled_toggle_updates_state_and_aria()
+    [Test]
+    public async Task Uncontrolled_toggle_updates_state_and_aria()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible());
 
         IElement trigger = cut.Find("button");
         string contentId = trigger.GetAttribute("aria-controls")!;
 
-        Assert.Equal("false", trigger.GetAttribute("aria-expanded"));
-        Assert.Equal("closed", trigger.GetAttribute("data-state"));
-        Assert.Empty(cut.FindAll($"#{contentId}"));
-        Assert.DoesNotContain("Content", cut.Markup);
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("false");
+        await Assert.That(trigger.GetAttribute("data-state")).IsEqualTo("closed");
+        await Assert.That(cut.FindAll($"#{contentId}")).IsEmpty();
+        await Assert.That(cut.Markup).DoesNotContain("Content");
 
-        trigger.Click();
+        await trigger.ClickAsync();
 
         IElement content = cut.Find($"#{contentId}");
-        Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
-        Assert.Equal("open", trigger.GetAttribute("data-state"));
-        Assert.Equal("region", content.GetAttribute("role"));
-        Assert.Equal(trigger.Id, content.GetAttribute("aria-labelledby"));
-        Assert.False(content.HasAttribute("hidden"));
-        Assert.Contains("Content", cut.Markup);
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+        await Assert.That(trigger.GetAttribute("data-state")).IsEqualTo("open");
+        await Assert.That(content.GetAttribute("role")).IsEqualTo("region");
+        await Assert.That(content.GetAttribute("aria-labelledby")).IsEqualTo(trigger.Id);
+        await Assert.That(content.HasAttribute("hidden")).IsFalse();
+        await Assert.That(cut.Markup).Contains("Content");
     }
 
-    [Fact]
-    public void Trigger_uses_root_id_prefix_for_aria_wiring()
+    [Test]
+    public async Task Trigger_uses_root_id_prefix_for_aria_wiring()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(rootId: "settings-collapse", open: true));
 
         IElement trigger = cut.Find("button");
         IElement content = cut.Find("#settings-collapse-content");
 
-        Assert.Equal("settings-collapse-trigger", trigger.Id);
-        Assert.Equal("settings-collapse-content", trigger.GetAttribute("aria-controls"));
-        Assert.Equal("settings-collapse-trigger", content.GetAttribute("aria-labelledby"));
+        await Assert.That(trigger.Id).IsEqualTo("settings-collapse-trigger");
+        await Assert.That(trigger.GetAttribute("aria-controls")).IsEqualTo("settings-collapse-content");
+        await Assert.That(content.GetAttribute("aria-labelledby")).IsEqualTo("settings-collapse-trigger");
     }
 
-    [Fact]
-    public void Disabled_trigger_does_not_toggle_uncontrolled_state()
+    [Test]
+    public async Task Disabled_trigger_does_not_toggle_uncontrolled_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(triggerDisabled: true));
 
         IElement trigger = cut.Find("button");
-        trigger.Click();
+        await trigger.ClickAsync();
 
-        Assert.True(trigger.HasAttribute("disabled"));
-        Assert.Equal("closed", trigger.GetAttribute("data-state"));
-        Assert.DoesNotContain("Content", cut.Markup);
+        await Assert.That(trigger.HasAttribute("disabled")).IsTrue();
+        await Assert.That(trigger.GetAttribute("data-state")).IsEqualTo("closed");
+        await Assert.That(cut.Markup).DoesNotContain("Content");
     }
 
-    [Fact]
-    public void Controlled_toggle_notifies_parent_without_closing_content()
+    [Test]
+    public async Task Controlled_toggle_notifies_parent_without_closing_content()
     {
         bool? requestedOpen = null;
 
@@ -87,12 +87,12 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         string contentId = trigger.GetAttribute("aria-controls")!;
         IElement content = cut.Find($"#{contentId}");
 
-        trigger.Click();
+        await trigger.ClickAsync();
 
-        Assert.Equal(false, requestedOpen);
-        Assert.Equal("true", trigger.GetAttribute("aria-expanded"));
-        Assert.False(content.HasAttribute("hidden"));
-        Assert.Contains("Content", cut.Markup);
+        await Assert.That(requestedOpen).IsEqualTo(false);
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+        await Assert.That(content.HasAttribute("hidden")).IsFalse();
+        await Assert.That(cut.Markup).Contains("Content");
     }
 
     private static RenderFragment CreateCollapsible(bool? open = null, bool defaultOpen = false, EventCallback<bool> onOpenChange = default, string? rootId = null, bool triggerDisabled = false)

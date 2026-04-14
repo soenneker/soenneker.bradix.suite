@@ -1,9 +1,10 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -22,57 +23,57 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Focus_scope_renders_with_negative_tabindex()
+    [Test]
+    public async Task Focus_scope_renders_with_negative_tabindex()
     {
-        var cut = Render(CreateFocusScope());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope());
 
-        var scope = cut.Find("[tabindex='-1']");
-        Assert.NotNull(scope);
+        IElement scope = cut.Find("[tabindex='-1']");
+        await Assert.That(scope).IsNotNull();
     }
 
-    [Fact]
+    [Test]
     public async Task Focus_scope_mount_callback_can_be_invoked()
     {
-        var cut = Render(CreateFocusScope(EventCallback.Factory.Create(this, () => _mounted = true)));
-        var scope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope(EventCallback.Factory.Create(this, () => _mounted = true)));
+        IRenderedComponent<BradixFocusScope> scope = cut.FindComponent<BradixFocusScope>();
 
         await scope.Instance.HandleMountAutoFocus();
 
-        Assert.True(_mounted);
+        await Assert.That(_mounted).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Focus_scope_unmount_callback_can_be_invoked()
     {
-        var cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => _unmounted = true)));
-        var scope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => _unmounted = true)));
+        IRenderedComponent<BradixFocusScope> scope = cut.FindComponent<BradixFocusScope>();
 
         await scope.Instance.HandleUnmountAutoFocus();
 
-        Assert.True(_unmounted);
+        await Assert.That(_unmounted).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Focus_scope_disposal_invokes_unmount_callback_before_unregistering()
     {
-        var cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => _unmounted = true)));
-        var scope = cut.FindComponent<BradixFocusScope>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => _unmounted = true)));
+        IRenderedComponent<BradixFocusScope> scope = cut.FindComponent<BradixFocusScope>();
 
         await scope.Instance.DisposeAsync();
 
-        Assert.True(_unmounted);
+        await Assert.That(_unmounted).IsTrue();
 
-        var invocation = _module.Invocations.Last(call => call.Identifier == "unregisterFocusScope");
+        JSRuntimeInvocation invocation = _module.Invocations.Last(call => call.Identifier == "unregisterFocusScope");
 
-        Assert.Equal(2, invocation.Arguments.Count);
-        Assert.Equal(false, invocation.Arguments[1]);
+        await Assert.That(invocation.Arguments.Count).IsEqualTo(2);
+        await Assert.That(invocation.Arguments[1]).IsEqualTo(false);
     }
 
-    [Fact]
-    public void Focus_scope_accepts_loop_and_trapped_parameters()
+    [Test]
+    public async Task Focus_scope_accepts_loop_and_trapped_parameters()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixFocusScope>(0);
             builder.AddAttribute(1, nameof(BradixFocusScope.Loop), true);
@@ -86,7 +87,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        Assert.Contains("Focusable", cut.Markup);
+        await Assert.That(cut.Markup).Contains("Focusable");
     }
 
     private bool _mounted;

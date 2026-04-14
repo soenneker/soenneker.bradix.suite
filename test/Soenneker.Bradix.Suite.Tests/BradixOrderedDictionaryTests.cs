@@ -1,12 +1,12 @@
 using System.Linq;
-using Xunit;
+using System.Threading.Tasks;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixOrderedDictionaryTests
 {
-    [Fact]
-    public void Set_preserves_existing_key_position()
+    [Test]
+    public async Task Set_preserves_existing_key_position()
     {
         var dictionary = new BradixOrderedDictionary<string, int>();
 
@@ -14,12 +14,12 @@ public sealed class BradixOrderedDictionaryTests
         dictionary.Set("beta", 2);
         dictionary.Set("alpha", 3);
 
-        Assert.Equal(["alpha", "beta"], dictionary.Keys.ToArray());
-        Assert.Equal(3, dictionary["alpha"]);
+        await Assert.That(string.Join(",", dictionary.Keys)).IsEqualTo("alpha,beta");
+        await Assert.That(dictionary["alpha"]).IsEqualTo(3);
     }
 
-    [Fact]
-    public void Insert_moves_existing_key_to_requested_position()
+    [Test]
+    public async Task Insert_moves_existing_key_to_requested_position()
     {
         var dictionary = new BradixOrderedDictionary<string, int>();
 
@@ -28,12 +28,12 @@ public sealed class BradixOrderedDictionaryTests
         dictionary.Set("blue", 3);
         dictionary.Insert(0, "blue", 30);
 
-        Assert.Equal(["blue", "alpha", "beta"], dictionary.Keys.ToArray());
-        Assert.Equal(30, dictionary["blue"]);
+        await Assert.That(string.Join(",", dictionary.Keys)).IsEqualTo("blue,alpha,beta");
+        await Assert.That(dictionary["blue"]).IsEqualTo(30);
     }
 
-    [Fact]
-    public void Before_after_and_from_follow_current_order()
+    [Test]
+    public async Task Before_after_and_from_follow_current_order()
     {
         var dictionary = new BradixOrderedDictionary<string, int>();
 
@@ -41,9 +41,9 @@ public sealed class BradixOrderedDictionaryTests
         dictionary.Set("beta", 2);
         dictionary.Set("gamma", 3);
 
-        Assert.Equal("alpha", dictionary.Before("beta")?.Key);
-        Assert.Equal("gamma", dictionary.After("beta")?.Key);
-        Assert.Equal(3, dictionary.From("alpha", 2));
-        Assert.Equal(1, dictionary.From("beta", -1));
+        await Assert.That(dictionary.Before("beta")?.Key).IsEqualTo("alpha");
+        await Assert.That(dictionary.After("beta")?.Key).IsEqualTo("gamma");
+        await Assert.That(dictionary.From("alpha", 2)).IsEqualTo(3);
+        await Assert.That(dictionary.From("beta", -1)).IsEqualTo(1);
     }
 }

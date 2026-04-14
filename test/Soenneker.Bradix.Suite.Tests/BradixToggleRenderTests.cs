@@ -1,7 +1,9 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using System.Threading.Tasks;
+using AngleSharp.Dom;
+using Bunit.Rendering;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -9,7 +11,7 @@ public sealed class BradixToggleRenderTests : BunitContext
 {
     public BradixToggleRenderTests()
     {
-        var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerDelegatedInteraction", _ => true);
         module.SetupVoid("unregisterDelegatedInteraction", _ => true);
 
@@ -17,39 +19,39 @@ public sealed class BradixToggleRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Uncontrolled_toggle_updates_pressed_state_metadata()
+    [Test]
+    public async Task Uncontrolled_toggle_updates_pressed_state_metadata()
     {
-        var cut = Render(CreateToggle());
+        IRenderedComponent<ContainerFragment> cut = Render(CreateToggle());
 
-        var button = cut.Find("button");
+        IElement button = cut.Find("button");
 
-        Assert.Equal("false", button.GetAttribute("aria-pressed"));
-        Assert.Equal("off", button.GetAttribute("data-state"));
+        await Assert.That(button.GetAttribute("aria-pressed")).IsEqualTo("false");
+        await Assert.That(button.GetAttribute("data-state")).IsEqualTo("off");
 
-        button.Click();
+        await button.ClickAsync();
         button = cut.Find("button");
 
-        Assert.Equal("true", button.GetAttribute("aria-pressed"));
-        Assert.Equal("on", button.GetAttribute("data-state"));
+        await Assert.That(button.GetAttribute("aria-pressed")).IsEqualTo("true");
+        await Assert.That(button.GetAttribute("data-state")).IsEqualTo("on");
     }
 
-    [Fact]
-    public void Controlled_toggle_notifies_parent_without_changing_pressed_markup()
+    [Test]
+    public async Task Controlled_toggle_notifies_parent_without_changing_pressed_markup()
     {
         bool? requestedPressed = null;
 
-        var cut = Render(CreateToggle(
+        IRenderedComponent<ContainerFragment> cut = Render(CreateToggle(
             pressed: true,
             onPressedChange: EventCallback.Factory.Create<bool>(this, pressed => requestedPressed = pressed)));
 
-        var button = cut.Find("button");
-        button.Click();
+        IElement button = cut.Find("button");
+        await button.ClickAsync();
         button = cut.Find("button");
 
-        Assert.Equal(false, requestedPressed);
-        Assert.Equal("true", button.GetAttribute("aria-pressed"));
-        Assert.Equal("on", button.GetAttribute("data-state"));
+        await Assert.That(requestedPressed).IsEqualTo(false);
+        await Assert.That(button.GetAttribute("aria-pressed")).IsEqualTo("true");
+        await Assert.That(button.GetAttribute("data-state")).IsEqualTo("on");
     }
 
     private static RenderFragment CreateToggle(bool? pressed = null, bool defaultPressed = false, EventCallback<bool> onPressedChange = default)

@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Bunit;
+using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -21,10 +21,10 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
     }
 
-    [Fact]
-    public void Remove_scroll_renders_child_content()
+    [Test]
+    public async Task Remove_scroll_renders_child_content()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixRemoveScroll>(0);
             builder.AddAttribute(1, nameof(BradixRemoveScroll.ChildContent), (RenderFragment)(content =>
@@ -36,12 +36,12 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        Assert.Contains("Locked content", cut.Markup);
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
+        await Assert.That(cut.Markup).Contains("Locked content");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerRemoveScroll")).IsTrue();
     }
 
-    [Fact]
-    public void Remove_scroll_forwards_allow_pinch_zoom_to_interop()
+    [Test]
+    public async Task Remove_scroll_forwards_allow_pinch_zoom_to_interop()
     {
         Render(builder =>
         {
@@ -50,28 +50,28 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        Assert.Contains(_module.Invocations, invocation =>
+        await Assert.That(_module.Invocations.Any(invocation =>
             invocation.Identifier == "registerRemoveScroll" &&
             invocation.Arguments.Count > 0 &&
             invocation.Arguments[0] is bool allowPinchZoom &&
-            allowPinchZoom);
+            allowPinchZoom)).IsTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task Remove_scroll_unregisters_interop_on_dispose()
     {
-        var cut = Render(builder =>
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixRemoveScroll>(0);
             builder.CloseComponent();
         });
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "registerRemoveScroll");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerRemoveScroll")).IsTrue();
 
         await cut.InvokeAsync(() => cut.FindComponent<BradixRemoveScroll>().Instance.DisposeAsync().AsTask());
 
-        Assert.Contains(_module.Invocations, invocation => invocation.Identifier == "unregisterRemoveScroll");
-        Assert.Equal(1, _module.Invocations.Count(invocation => invocation.Identifier == "registerRemoveScroll"));
-        Assert.Equal(1, _module.Invocations.Count(invocation => invocation.Identifier == "unregisterRemoveScroll"));
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "unregisterRemoveScroll")).IsTrue();
+        await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "registerRemoveScroll")).IsEqualTo(1);
+        await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "unregisterRemoveScroll")).IsEqualTo(1);
     }
 }

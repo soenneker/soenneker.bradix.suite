@@ -1,12 +1,12 @@
 using System;
-using Xunit;
+using System.Threading.Tasks;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixTypeaheadTests
 {
-    [Fact]
-    public void Buffer_expires_after_idle_timeout()
+    [Test]
+    public async Task Buffer_expires_after_idle_timeout()
     {
         var timeProvider = new ManualTimeProvider(new DateTimeOffset(2026, 4, 9, 12, 0, 0, TimeSpan.Zero));
         var buffer = new BradixTypeaheadBuffer(timeProvider);
@@ -14,31 +14,31 @@ public sealed class BradixTypeaheadTests
         buffer.Append("a");
         timeProvider.Advance(TimeSpan.FromMilliseconds(999));
 
-        Assert.Equal("a", buffer.CurrentSearch);
+        await Assert.That(buffer.CurrentSearch).IsEqualTo("a");
 
         timeProvider.Advance(TimeSpan.FromMilliseconds(1));
 
-        Assert.Equal(string.Empty, buffer.CurrentSearch);
+        await Assert.That(buffer.CurrentSearch).IsEqualTo(string.Empty);
     }
 
-    [Fact]
-    public void Single_character_search_skips_the_current_match()
+    [Test]
+    public async Task Single_character_search_skips_the_current_match()
     {
         string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "a", "Alpha");
 
-        Assert.Equal("Amber", next);
+        await Assert.That(next).IsEqualTo("Amber");
     }
 
-    [Fact]
-    public void Multi_character_search_can_leave_focus_on_current_match()
+    [Test]
+    public async Task Multi_character_search_can_leave_focus_on_current_match()
     {
         string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "al", "Alpha");
 
-        Assert.Null(next);
+        await Assert.That(next).IsNull();
     }
 
-    [Fact]
-    public void Generic_matcher_returns_next_item_in_wrapped_order()
+    [Test]
+    public async Task Generic_matcher_returns_next_item_in_wrapped_order()
     {
         DemoItem[] items =
         [
@@ -49,7 +49,7 @@ public sealed class BradixTypeaheadTests
 
         DemoItem? next = BradixTypeaheadMatcher.FindNextItem(items, "b", items[1], item => item.TextValue);
 
-        Assert.Equal("Blue", next?.TextValue);
+        await Assert.That(next?.TextValue).IsEqualTo("Blue");
     }
 
     private sealed record DemoItem(string TextValue);

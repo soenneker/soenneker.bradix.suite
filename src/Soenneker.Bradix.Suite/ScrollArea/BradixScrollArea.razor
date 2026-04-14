@@ -295,7 +295,7 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    internal Task HandleScrollbarPointerChanged(string orientation, bool entering)
+    public Task HandleScrollbarPointerChanged(string orientation, bool entering)
     {
         bool horizontal = orientation == "horizontal";
 

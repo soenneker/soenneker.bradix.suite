@@ -90,7 +90,7 @@
             return;
         }
 
-        var options = CurrentOptions;
+        (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir) options = CurrentOptions;
         bool hasArrow = !string.IsNullOrEmpty(_arrow.Id);
 
         if (firstRender)
