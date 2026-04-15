@@ -19,3 +19,43 @@
         </BradixTooltipProvider>
     </section>
 </section>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixTooltipProvider>
+            <BradixDialog>
+                <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
+                    Open tooltip dialog
+                </BradixDialogTrigger>
+
+                <BradixDialogPortal>
+                    <BradixDialogOverlay Class="dialog-demo__overlay" />
+
+                    <BradixDialogContent Class="dialog-demo__content"
+                                         aria-label="Tooltip dialog">
+                        <BradixDialogTitle Class="dialog-demo__title">Tooltip dialog</BradixDialogTitle>
+                        <BradixDialogDescription Class="dialog-demo__description">
+                            Hover the nested trigger to expose tooltip content inside the modal dialog.
+                        </BradixDialogDescription>
+
+                        <BradixTooltip>
+                            <BradixTooltipTrigger Class="tooltip-demo__button"
+                                                  aria-label="Show nested tooltip">
+                                ?
+                            </BradixTooltipTrigger>
+                            <BradixTooltipPortal>
+                                <BradixTooltipContent Class="tooltip-demo__content"
+                                                      SideOffset="5">
+                                    Nested tooltip
+                                    <BradixTooltipArrow>
+                                        <span class="tooltip-arrow-shape"></span>
+                                    </BradixTooltipArrow>
+                                </BradixTooltipContent>
+                            </BradixTooltipPortal>
+                        </BradixTooltip>
+                    </BradixDialogContent>
+                </BradixDialogPortal>
+            </BradixDialog>
+        </BradixTooltipProvider>
+    </section>
+</section>

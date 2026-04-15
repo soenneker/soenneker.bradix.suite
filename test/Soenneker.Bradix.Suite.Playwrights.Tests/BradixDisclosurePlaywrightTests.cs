@@ -379,6 +379,28 @@ public sealed class BradixDisclosurePlaywrightTests : PlaywrightUnitTest
         await Assertions.Expect(page.GetByRole(AriaRole.Tooltip, new PageGetByRoleOptions { Name = "Add to library", Exact = true })).ToBeVisibleAsync();
     }
 
+    [Fact]
+    public async ValueTask Tooltip_demo_supports_nested_tooltip_inside_modal_dialog()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltip"));
+
+        ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open tooltip dialog", Exact = true });
+        await dialogTrigger.ClickAsync();
+
+        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Tooltip dialog", Exact = true });
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+
+        ILocator tooltipTrigger = dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Show nested tooltip", Exact = true });
+        await tooltipTrigger.HoverAsync();
+
+        ILocator tooltip = page.GetByRole(AriaRole.Tooltip, new PageGetByRoleOptions { Name = "Nested tooltip", Exact = true });
+        await Assertions.Expect(tooltip).ToBeVisibleAsync();
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+    }
+
     private static Task<bool> FocusIsWithinAsync(ILocator dialog)
     {
         return dialog.EvaluateAsync<bool>("element => element.contains(document.activeElement)");
