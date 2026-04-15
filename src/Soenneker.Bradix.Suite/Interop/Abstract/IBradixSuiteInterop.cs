@@ -76,6 +76,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask SelectInputText(ElementReference element, CancellationToken cancellationToken = default);
 
+    ValueTask<bool> IsDirectionRtl(ElementReference element, CancellationToken cancellationToken = default);
+
     ValueTask RegisterSliderPointerBridge(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     ValueTask UnregisterSliderPointerBridge(ElementReference element, CancellationToken cancellationToken = default);

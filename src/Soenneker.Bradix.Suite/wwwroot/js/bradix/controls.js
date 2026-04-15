@@ -97,6 +97,14 @@ export function selectInputText(element) {
   element.select();
 }
 
+export function isDirectionRtl(element) {
+  if (!element || typeof window.getComputedStyle !== "function") {
+    return false;
+  }
+
+  return window.getComputedStyle(element).direction === "rtl";
+}
+
 export function registerSliderPointerBridge(element, dotNetRef) {
   if (!element) {
     return;

@@ -197,6 +197,12 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("selectInputText", cancellationToken, element);
     }
 
+    public async ValueTask<bool> IsDirectionRtl(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        return await module.InvokeAsync<bool>("isDirectionRtl", cancellationToken, element);
+    }
+
     public async ValueTask RegisterSliderPointerBridge(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
