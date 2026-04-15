@@ -52,10 +52,12 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
                         .ToContainTextAsync("Banana");
         await Assertions.Expect(listBox)
                         .Not.ToBeVisibleAsync();
+        await Assertions.Expect(trigger)
+                        .ToBeFocusedAsync();
     }
 
     [Fact]
-    public async ValueTask Select_demo_single_click_keeps_listbox_open()
+    public async ValueTask Select_demo_portals_content_and_closes_on_outside_click()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -70,17 +72,73 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
 
         await Assertions.Expect(trigger)
                         .ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(trigger)
+                        .ToHaveAttributeAsync("data-state", "open");
 
         ILocator listBox = page.Locator("[role='listbox']:visible")
                                .First;
         await Assertions.Expect(listBox)
                         .ToBeVisibleAsync();
+        await Assertions.Expect(listBox)
+                        .ToHaveAttributeAsync("data-state", "open");
 
-        await page.WaitForTimeoutAsync(250);
+        bool renderedOutsideMain = await page.EvaluateAsync<bool>(
+            "() => {" +
+            "const listbox = document.querySelector('[role=\"listbox\"][data-state=\"open\"]');" +
+            "const main = document.querySelector('main');" +
+            "return !!listbox && document.body.contains(listbox) && !!main && !main.contains(listbox);" +
+            "}");
+
+        Assert.True(renderedOutsideMain);
+
+        await ClickJustOutsideAsync(page, listBox);
 
         await Assertions.Expect(trigger)
-                        .ToHaveAttributeAsync("aria-expanded", "true");
+                        .ToHaveAttributeAsync("aria-expanded", "false");
         await Assertions.Expect(listBox)
-                        .ToBeVisibleAsync();
+                        .Not.ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async ValueTask Select_demo_marks_disabled_items_and_checked_selection_correctly()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.GotoAndWaitForReady($"{BaseUrl}select", static p => p.Locator("[role='combobox']")
+                                                                        .First, expectedTitle: "Select Demo");
+
+        ILocator trigger = page.Locator("[role='combobox']")
+                               .First;
+
+        await trigger.ClickAsync();
+
+        ILocator carrotOption = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Carrot", Exact = true });
+        await Assertions.Expect(carrotOption)
+                        .ToHaveAttributeAsync("aria-disabled", "true");
+        await Assertions.Expect(carrotOption)
+                        .ToHaveAttributeAsync("data-disabled", "");
+        await Assertions.Expect(carrotOption)
+                        .ToHaveAttributeAsync("data-state", "unchecked");
+
+        ILocator bananaOption = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Banana", Exact = true });
+        await bananaOption.ClickAsync();
+
+        await trigger.ClickAsync();
+
+        ILocator selectedBanana = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Banana", Exact = true });
+        await Assertions.Expect(selectedBanana)
+                        .ToHaveAttributeAsync("data-state", "checked");
+        await Assertions.Expect(selectedBanana)
+                        .ToHaveAttributeAsync("aria-selected", "true");
+    }
+
+    private static async Task ClickJustOutsideAsync(IPage page, ILocator locator)
+    {
+        var box = await locator.BoundingBoxAsync();
+        Assert.NotNull(box);
+        float x = box.X > 40 ? box.X - 20 : box.X + box.Width + 20;
+        float y = box.Y > 40 ? box.Y - 20 : box.Y + 20;
+        await page.Mouse.ClickAsync(x, y);
     }
 }

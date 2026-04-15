@@ -31,14 +31,47 @@
             </BradixAlertDialogPortal>
         </BradixAlertDialog>
     </section>
+
+    <section class="card website-demo-card">
+        <BradixAlertDialog Open="@_guardEscapeOpen"
+                           OpenChanged="HandleGuardEscapeOpenChanged">
+            <BradixAlertDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
+                Guard escape dismissal
+            </BradixAlertDialogTrigger>
+
+            <BradixAlertDialogPortal>
+                <BradixAlertDialogOverlay Class="dialog-demo__overlay" />
+
+                <BradixAlertDialogContent Class="dialog-demo__content"
+                                          CloseOnEscapeKeyDown="false">
+                    <BradixAlertDialogTitle Class="dialog-demo__title">Stay open on escape</BradixAlertDialogTitle>
+                    <BradixAlertDialogDescription Class="dialog-demo__description">
+                        Escape should not dismiss this alert dialog.
+                    </BradixAlertDialogDescription>
+
+                    <div class="dialog-demo__actions">
+                        <BradixAlertDialogCancel Class="dialog-demo__button dialog-demo__button--mauve">Cancel</BradixAlertDialogCancel>
+                        <BradixAlertDialogAction Class="dialog-demo__button dialog-demo__button--red">Continue</BradixAlertDialogAction>
+                    </div>
+                </BradixAlertDialogContent>
+            </BradixAlertDialogPortal>
+        </BradixAlertDialog>
+    </section>
 </section>
 
 @code {
     private bool _open;
+    private bool _guardEscapeOpen;
 
     private Task HandleOpenChanged(bool open)
     {
         _open = open;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleGuardEscapeOpenChanged(bool open)
+    {
+        _guardEscapeOpen = open;
         return Task.CompletedTask;
     }
 

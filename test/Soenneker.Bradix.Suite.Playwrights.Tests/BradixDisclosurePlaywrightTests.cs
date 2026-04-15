@@ -122,6 +122,28 @@ public sealed class BradixDisclosurePlaywrightTests : PlaywrightUnitTest
     }
 
     [Fact]
+    public async ValueTask Alert_dialog_demo_can_disable_escape_dismissal()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alert-dialog"));
+
+        await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Guard escape dismissal", Exact = true }).ClickAsync();
+
+        ILocator dialog = page.GetByRole(AriaRole.Alertdialog, new PageGetByRoleOptions { Name = "Stay open on escape", Exact = true });
+        await Assertions.Expect(dialog).ToHaveAttributeAsync("data-state", "open");
+
+        await page.Keyboard.PressAsync("Escape");
+
+        await Assertions.Expect(dialog).ToHaveAttributeAsync("data-state", "open");
+
+        await dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Cancel", Exact = true }).ClickAsync();
+
+        await Assertions.Expect(dialog).Not.ToBeVisibleAsync();
+    }
+
+    [Fact]
     public async ValueTask Collapsible_demo_reveals_additional_repositories_when_opened()
     {
         await using BrowserSession session = await CreateSession();
