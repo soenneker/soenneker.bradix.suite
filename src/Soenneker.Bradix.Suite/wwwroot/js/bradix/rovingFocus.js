@@ -105,11 +105,13 @@ function isRovingFocusableElement(element) {
     return false;
   }
 
+  const ignoreAriaDisabled = element.getAttribute("data-bradix-roving-ignore-aria-disabled") === "true";
+
   if (element.hasAttribute("disabled")) {
     return false;
   }
 
-  if (element.getAttribute("aria-disabled") === "true") {
+  if (!ignoreAriaDisabled && element.getAttribute("aria-disabled") === "true") {
     return false;
   }
 

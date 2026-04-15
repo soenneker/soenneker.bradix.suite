@@ -3,7 +3,7 @@
 <PageTitle>Bradix Accordion</PageTitle>
 
 <section class="website-demo-page">
-    <section class="card website-demo-card">
+    <section class="card website-demo-card" aria-label="Single accordion demo">
         <BradixAccordion Class="accordion-demo__root"
                          Type="@BradixSelectionMode.Single"
                          DefaultValue="item-1"
@@ -51,4 +51,145 @@
             </BradixAccordionItem>
         </BradixAccordion>
     </section>
+
+    <section class="card website-demo-card" aria-label="Multiple accordion demo">
+        <BradixAccordion Class="accordion-demo__root"
+                         Type="@BradixSelectionMode.Multiple"
+                         DefaultValues="@MultipleDefaultValues">
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-1">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Can I open more than one item?</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Multiple mode keeps previously expanded content available while you open another item.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-2">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Will the first item stay open?</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Yes. Radix keeps earlier items expanded until you explicitly close them.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-3">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Do data attributes stay accurate?</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Each trigger and content panel still reports the correct open or closed state.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+        </BradixAccordion>
+    </section>
+
+    <section class="card website-demo-card" aria-label="Disabled accordion demo">
+        <BradixAccordion Class="accordion-demo__root"
+                         Type="@BradixSelectionMode.Single"
+                         Collapsible>
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-1">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Can I access account history?</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Account history is available from your dashboard whenever the item is enabled.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-2" Disabled>
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Premium features</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Disabled items should not open or receive roving focus.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-3">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>How do I update my email?</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Keyboard navigation should move directly to the next enabled trigger.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+        </BradixAccordion>
+    </section>
+
+    <section class="card website-demo-card" aria-label="Horizontal RTL accordion demo">
+        <BradixAccordion Class="accordion-demo__root"
+                         Type="@BradixSelectionMode.Single"
+                         Orientation="@BradixOrientation.Horizontal"
+                         Dir="rtl"
+                         Collapsible>
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-1">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>First horizontal item</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        In RTL, ArrowLeft should advance focus and ArrowRight should move back.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-2">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Second horizontal item</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Horizontal accordions use left and right arrow keys instead of up and down.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-3">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Third horizontal item</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content">
+                    <div class="accordion-demo__content-text">
+                        Focus should wrap at the ends just like the Radix primitive reference.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+        </BradixAccordion>
+    </section>
 </section>
+
+@code {
+    private static readonly string[] MultipleDefaultValues = ["item-1"];
+}

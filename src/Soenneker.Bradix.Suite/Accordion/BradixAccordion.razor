@@ -1,5 +1,7 @@
 @namespace Soenneker.Bradix
 
+@using Soenneker.Blazor.Utils.Ids
+
 @inherits BradixComponent
 
 @implements IBradixAccordion
@@ -12,6 +14,7 @@
 @code {
     private readonly List<BradixAccordionTrigger> _triggers = [];
     private bool _initialized;
+    private string? _groupId;
     private string? _uncontrolledValue;
     private List<string> _uncontrolledValues = [];
 
@@ -58,6 +61,7 @@
     public EventCallback<IReadOnlyCollection<string>> OnValuesChange { get; set; }
 
     internal bool IsCollapsible => Type == BradixSelectionMode.Multiple || Collapsible;
+    internal string GroupId => _groupId ??= BlazorIdGenerator.New("bradix-accordion-group");
     internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
 
     private bool IsSingle => Type == BradixSelectionMode.Single;

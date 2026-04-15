@@ -20,7 +20,7 @@
 
 @code {
     private BradixCollapsibleTrigger? _trigger;
-    private bool _delegatedInteractionReady;
+    private bool _rovingFocusBridgeReady;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -47,7 +47,13 @@
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : [];
 
-            attributes["data-orientation"] = Accordion.Orientation;
+            attributes["data-orientation"] = Accordion.Orientation.Value;
+            attributes["data-bradix-roving-group"] = Accordion.GroupId;
+            attributes["data-bradix-roving-item"] = string.Empty;
+            attributes["data-bradix-roving-orientation"] = Accordion.Orientation.Value;
+            attributes["data-bradix-roving-dir"] = Accordion.ResolvedDirection;
+            attributes["data-bradix-roving-loop"] = "true";
+            attributes["data-bradix-roving-ignore-aria-disabled"] = "true";
 
             return attributes;
         }
@@ -63,16 +69,7 @@
         if (_trigger is not null)
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterDelegatedInteraction(_trigger.Element, _dotNetReference, new
-            {
-                readyMethod = nameof(HandleDelegatedInteractionReady),
-                keydown = new
-                {
-                    method = nameof(HandleDelegatedKeyDown),
-                    keys = new[] { "Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight" },
-                    preventDefault = true
-                }
-            });
+            await Interop.RegisterRovingFocusNavigationKeys(_trigger.Element, _dotNetReference);
         }
     }
 
@@ -84,7 +81,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_trigger is not null)
-            await Interop.UnregisterDelegatedInteraction(_trigger.Element);
+            await Interop.UnregisterRovingFocusNavigationKeys(_trigger.Element);
 
         _dotNetReference?.Dispose();
     }
@@ -99,7 +96,10 @@
         if (OnKeyDown.HasDelegate)
             await OnKeyDown.InvokeAsync(args);
 
-        if (_delegatedInteractionReady)
+        if (IsDisabled)
+            return;
+
+        if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 
         await Accordion.HandleTriggerKeyDown(this, args);
@@ -108,14 +108,20 @@
     [JSInvokable]
     public Task HandleDelegatedInteractionReady()
     {
-        _delegatedInteractionReady = true;
+        return HandleRovingFocusBridgeReady();
+    }
+
+    [JSInvokable]
+    public Task HandleRovingFocusBridgeReady()
+    {
+        _rovingFocusBridgeReady = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
     public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
     {
-        return Accordion.HandleTriggerKeyDown(this, new KeyboardEventArgs
+        return HandleKeyDown(new KeyboardEventArgs
         {
             Key = args.Key,
             Code = args.Code,
