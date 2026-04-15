@@ -1,5 +1,6 @@
-﻿using Soenneker.Playwrights.Fixtures;
+using Soenneker.Playwrights.Fixtures;
 using Soenneker.Playwrights.TestEnvironment;
+using Soenneker.Playwrights.TestEnvironment.Options;
 using System.IO;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;

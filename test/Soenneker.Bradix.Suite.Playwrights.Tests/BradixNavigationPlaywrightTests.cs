@@ -48,6 +48,67 @@ public sealed class BradixNavigationPlaywrightTests : PlaywrightUnitTest
     }
 
     [Fact]
+    public async Task Dropdown_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdown-menu"));
+
+        await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Customise options", Exact = true }).ClickAsync();
+
+        ILocator menu = page.VisibleMenu();
+        ILocator bookmarks = menu.Locator("[role='menuitemcheckbox']").Filter(new LocatorFilterOptions { HasText = "Show Bookmarks" });
+        ILocator urls = menu.Locator("[role='menuitemcheckbox']").Filter(new LocatorFilterOptions { HasText = "Show Full URLs" });
+        ILocator pedro = menu.Locator("[role='menuitemradio']").Filter(new LocatorFilterOptions { HasText = "Pedro Duarte" });
+        ILocator colm = menu.Locator("[role='menuitemradio']").Filter(new LocatorFilterOptions { HasText = "Colm Tuite" });
+
+        await Assertions.Expect(bookmarks).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(urls).ToHaveAttributeAsync("aria-checked", "false");
+        await Assertions.Expect(pedro).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(colm).ToHaveAttributeAsync("aria-checked", "false");
+
+        await urls.ClickAsync();
+
+        await Assertions.Expect(menu).ToBeVisibleAsync();
+        await Assertions.Expect(urls).ToHaveAttributeAsync("aria-checked", "true");
+
+        await colm.ClickAsync();
+
+        await Assertions.Expect(menu).ToBeVisibleAsync();
+        await Assertions.Expect(colm).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(pedro).ToHaveAttributeAsync("aria-checked", "false");
+    }
+
+    [Fact]
+    public async Task Dropdown_menu_demo_supports_nested_menu_inside_modal_dialog()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdown-menu"));
+
+        ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open dropdown dialog", Exact = true });
+        await dialogTrigger.ClickAsync();
+
+        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Dropdown dialog", Exact = true });
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+
+        ILocator menuTrigger = dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Open nested dropdown menu", Exact = true });
+        await menuTrigger.ClickAsync();
+
+        ILocator menu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "More options" });
+        await Assertions.Expect(menuTrigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(menu).ToBeVisibleAsync();
+
+        await menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "More options", Exact = true }).ClickAsync();
+
+        ILocator submenu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "Create shortcut" });
+        await Assertions.Expect(submenu).ToBeVisibleAsync();
+        await Assertions.Expect(submenu).ToContainTextAsync("Save page");
+    }
+
+    [Fact]
     public async Task Menubar_demo_allows_radio_selection_changes()
     {
         await using BrowserSession session = await CreateSession();

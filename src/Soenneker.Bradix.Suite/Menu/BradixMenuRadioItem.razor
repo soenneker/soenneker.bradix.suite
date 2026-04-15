@@ -9,11 +9,13 @@
                     Style="@Style"
                     TextValue="@TextValue"
                     Role="menuitemradio"
+                    AriaChecked="@(IsChecked ? "true" : "false")"
+                    DataState="@(IsChecked ? "checked" : "unchecked")"
                     Disabled="IsDisabled"
                     CloseOnSelect="CloseOnSelect"
                     OnSelect="HandleSelect"
                     OnSelectDetailed="@HandleSelectDetailed"
-                    AdditionalAttributes="@ItemAttributes">
+                    AdditionalAttributes="@AdditionalAttributes">
         @ChildContent
     </BradixMenuItem>
 </CascadingValue>
@@ -49,21 +51,6 @@
         CheckedState = IsChecked ? BradixCheckboxCheckedState.Checked : BradixCheckboxCheckedState.Unchecked,
         Disabled = IsDisabled
     };
-
-    private IReadOnlyDictionary<string, object> ItemAttributes
-    {
-        get
-        {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
-                ? new Dictionary<string, object>(AdditionalAttributes)
-                : new Dictionary<string, object>();
-
-            attributes["aria-checked"] = IsChecked ? "true" : "false";
-            attributes["data-state"] = IsChecked ? "checked" : "unchecked";
-
-            return attributes;
-        }
-    }
 
     private async Task HandleSelect()
     {

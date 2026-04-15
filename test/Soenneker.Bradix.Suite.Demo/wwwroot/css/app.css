@@ -670,6 +670,11 @@ input[type="radio"] {
         0 10px 20px -15px rgba(22, 23, 24, 0.2);
 }
 
+.select-surface {
+    position: relative;
+    z-index: 1002;
+}
+
 .menu-surface [role="menuitem"],
 .menu-surface [role="menuitemcheckbox"],
 .menu-surface [role="menuitemradio"],

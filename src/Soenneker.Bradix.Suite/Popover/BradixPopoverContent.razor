@@ -142,8 +142,16 @@
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
-            attributes["role"] = "dialog";
-            attributes["aria-modal"] = Popover?.Modal == true ? "true" : "false";
+            bool hasExplicitRole = attributes.ContainsKey("role");
+
+            if (!hasExplicitRole)
+                attributes["role"] = "dialog";
+
+            string resolvedRole = attributes["role"]?.ToString() ?? "dialog";
+
+            if (!attributes.ContainsKey("aria-modal") && string.Equals(resolvedRole, "dialog", StringComparison.Ordinal))
+                attributes["aria-modal"] = Popover?.Modal == true ? "true" : "false";
+
             attributes["data-state"] = Popover?.CurrentOpen == true ? "open" : "closed";
 
             return attributes;

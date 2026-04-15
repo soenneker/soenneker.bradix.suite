@@ -59,6 +59,53 @@
     </section>
 </section>
 
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixDialog>
+            <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
+                Open dropdown dialog
+            </BradixDialogTrigger>
+
+            <BradixDialogPortal>
+                <BradixDialogOverlay Class="dialog-demo__overlay" />
+
+                <BradixDialogContent Class="dialog-demo__content"
+                                     aria-label="Dropdown dialog">
+                    <BradixDialogTitle Class="dialog-demo__title">Dropdown dialog</BradixDialogTitle>
+                    <BradixDialogDescription Class="dialog-demo__description">
+                        Open the nested dropdown without hiding its menu content from assistive technology.
+                    </BradixDialogDescription>
+
+                    <BradixDropdownMenu>
+                        <BradixDropdownMenuTrigger Class="dialog-demo__button dialog-demo__button--violet"
+                                                   aria-label="Open nested dropdown menu">
+                            Open nested dropdown menu
+                        </BradixDropdownMenuTrigger>
+
+                        <BradixDropdownMenuPortal>
+                            <BradixDropdownMenuContent Class="menu-surface stack stack--compact"
+                                                       SideOffset="5">
+                                <BradixDropdownMenuItem TextValue="Copy">Copy</BradixDropdownMenuItem>
+                                <BradixDropdownMenuItem TextValue="Cut">Cut</BradixDropdownMenuItem>
+                                <BradixDropdownMenuSub>
+                                    <BradixDropdownMenuSubTrigger TextValue="More options">More options</BradixDropdownMenuSubTrigger>
+                                    <BradixDropdownMenuPortal>
+                                        <BradixDropdownMenuSubContent Class="menu-surface stack stack--compact"
+                                                                      SideOffset="2">
+                                            <BradixDropdownMenuItem TextValue="Save page">Save page</BradixDropdownMenuItem>
+                                            <BradixDropdownMenuItem TextValue="Create shortcut">Create shortcut</BradixDropdownMenuItem>
+                                        </BradixDropdownMenuSubContent>
+                                    </BradixDropdownMenuPortal>
+                                </BradixDropdownMenuSub>
+                            </BradixDropdownMenuContent>
+                        </BradixDropdownMenuPortal>
+                    </BradixDropdownMenu>
+                </BradixDialogContent>
+            </BradixDialogPortal>
+        </BradixDialog>
+    </section>
+</section>
+
 @code {
     private BradixCheckboxCheckedState _bookmarks = BradixCheckboxCheckedState.Checked;
     private BradixCheckboxCheckedState _urls = BradixCheckboxCheckedState.Unchecked;

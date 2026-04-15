@@ -133,6 +133,35 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
                         .ToHaveAttributeAsync("aria-selected", "true");
     }
 
+    [Fact]
+    public async ValueTask Select_demo_supports_nested_select_inside_modal_dialog()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.GotoAndWaitForReady($"{BaseUrl}select", static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true }),
+            expectedTitle: "Select Demo");
+
+        ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true });
+        await dialogTrigger.ClickAsync();
+
+        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Select dialog", Exact = true });
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+
+        ILocator trigger = dialog.GetByRole(AriaRole.Combobox, new LocatorGetByRoleOptions { Name = "Open nested select", Exact = true });
+        await trigger.ClickAsync();
+
+        ILocator listBox = page.GetByRole(AriaRole.Listbox);
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(listBox).ToBeVisibleAsync();
+
+        ILocator remix = listBox.GetByRole(AriaRole.Option, new LocatorGetByRoleOptions { Name = "Remix", Exact = true });
+        await remix.ClickAsync();
+
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+        await Assertions.Expect(trigger).ToContainTextAsync("Remix");
+    }
+
     private static async Task ClickJustOutsideAsync(IPage page, ILocator locator)
     {
         var box = await locator.BoundingBoxAsync();

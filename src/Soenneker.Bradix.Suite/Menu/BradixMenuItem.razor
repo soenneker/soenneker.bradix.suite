@@ -65,6 +65,12 @@ else
     public string Role { get; set; } = "menuitem";
 
     [Parameter]
+    public string? AriaChecked { get; set; }
+
+    [Parameter]
+    public string? DataState { get; set; }
+
+    [Parameter]
     public bool CloseOnSelect { get; set; } = true;
 
     [Parameter]
@@ -93,11 +99,13 @@ else
 
     private Dictionary<string, object> ItemAttributes => BuildAttributes(
         ("role", Role),
+        ("aria-checked", AriaChecked),
         ("tabindex", Menu.IsCurrentTabStop(this) ? 0 : -1),
         ("href", RenderAsLink ? Href : null),
         ("target", RenderAsLink ? Target : null),
         ("aria-disabled", Disabled ? "true" : null),
         ("data-disabled", Disabled ? string.Empty : null),
+        ("data-state", DataState),
         ("data-highlighted", _isFocused ? string.Empty : null));
 
     protected override void OnInitialized()

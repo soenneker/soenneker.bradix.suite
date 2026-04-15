@@ -230,6 +230,9 @@
     {
         TriggerElement = element;
         HasTrigger = true;
+
+        if (_popper is not null && !_popper.HasAnchor && !_popper.HasVirtualAnchor)
+            _popper.RegisterAnchor(element);
     }
 
     internal void RegisterAnchor(ElementReference element)

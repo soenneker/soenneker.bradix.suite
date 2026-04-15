@@ -334,6 +334,7 @@ function positionSelectItemAligned(wrapper, content, viewport, trigger, valueNod
   wrapper.style.right = "";
   wrapper.style.bottom = "";
   wrapper.style.left = "";
+  wrapper.style.zIndex = window.getComputedStyle(content).zIndex;
 
   if (!isRtl) {
     const itemTextOffset = itemTextRect.left - contentRect.left;

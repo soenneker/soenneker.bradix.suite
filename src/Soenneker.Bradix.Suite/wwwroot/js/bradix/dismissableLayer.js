@@ -182,6 +182,10 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
+    if (!topLayer.isFocusOutsideEnabled) {
+      return;
+    }
+
     if (topLayer.isFocusInside) {
       return;
     }
@@ -252,6 +256,7 @@ export function registerDismissableLayer(element, dotNetRef, disableOutsidePoint
     isPointerInside: false,
     isFocusInside: false,
     isPointerDownOutsideEnabled: false,
+    isFocusOutsideEnabled: false,
     handlePointerDownCapture,
     handleFocusInCapture,
     handleFocusOutCapture,
@@ -260,6 +265,12 @@ export function registerDismissableLayer(element, dotNetRef, disableOutsidePoint
       const layer = dismissableLayers.find((item) => item.element === element);
       if (layer) {
         layer.isPointerDownOutsideEnabled = true;
+      }
+    }, 0),
+    focusOutsideTimer: window.setTimeout(() => {
+      const layer = dismissableLayers.find((item) => item.element === element);
+      if (layer) {
+        layer.isFocusOutsideEnabled = true;
       }
     }, 0)
   });
@@ -292,6 +303,10 @@ export function unregisterDismissableLayer(element) {
 
   if (typeof layer?.pointerDownOutsideTimer === "number") {
     clearTimeout(layer.pointerDownOutsideTimer);
+  }
+
+  if (typeof layer?.focusOutsideTimer === "number") {
+    clearTimeout(layer.focusOutsideTimer);
   }
 
   if (element) {

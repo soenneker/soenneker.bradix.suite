@@ -49,6 +49,47 @@
     </section>
 </section>
 
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixDialog>
+            <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
+                Open nested overlay dialog
+            </BradixDialogTrigger>
+
+            <BradixDialogPortal>
+                <BradixDialogOverlay Class="dialog-demo__overlay" />
+
+                <BradixDialogContent Class="dialog-demo__content"
+                                     aria-label="Nested overlay dialog">
+                    <BradixDialogTitle Class="dialog-demo__title">Nested overlay dialog</BradixDialogTitle>
+                    <BradixDialogDescription Class="dialog-demo__description">
+                        Open the inner popover and verify dismissal stays scoped to the correct layer.
+                    </BradixDialogDescription>
+
+                    <BradixPopover>
+                        <BradixPopoverTrigger Class="dialog-demo__button dialog-demo__button--violet"
+                                              aria-label="Open nested popover">
+                            Open nested popover
+                        </BradixPopoverTrigger>
+
+                        <BradixPopoverPortal>
+                            <BradixPopoverContent Class="popover-demo__content"
+                                                  SideOffset="5"
+                                                  aria-label="Nested popover">
+                                <div class="popover-demo__fields">
+                                    <p class="popover-demo__text popover-demo__text--heading">Popover in dialog</p>
+                                    <p class="popover-demo__text">This popover should open without closing the dialog.</p>
+                                </div>
+                                <BradixPopoverClose Class="popover-demo__close" aria-label="Close nested popover">×</BradixPopoverClose>
+                            </BradixPopoverContent>
+                        </BradixPopoverPortal>
+                    </BradixPopover>
+                </BradixDialogContent>
+            </BradixDialogPortal>
+        </BradixDialog>
+    </section>
+</section>
+
 @code {
     private bool _open;
     private string _name = "Pedro Duarte";

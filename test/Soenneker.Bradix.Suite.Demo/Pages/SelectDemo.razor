@@ -92,14 +92,76 @@
     </section>
 </section>
 
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixDialog>
+            <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
+                Open select dialog
+            </BradixDialogTrigger>
+
+            <BradixDialogPortal>
+                <BradixDialogOverlay Class="dialog-demo__overlay" />
+
+                <BradixDialogContent Class="dialog-demo__content"
+                                     aria-label="Select dialog">
+                    <BradixDialogTitle Class="dialog-demo__title">Select dialog</BradixDialogTitle>
+                    <BradixDialogDescription Class="dialog-demo__description">
+                        Open the nested select without hiding its listbox from assistive technology.
+                    </BradixDialogDescription>
+
+                    <BradixSelect Value="@_dialogSelectedValue"
+                                  ValueChanged="HandleDialogSelectedValueChanged">
+                        <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit select-demo__trigger"
+                                             aria-label="Open nested select">
+                            <BradixSelectValue Placeholder="@_dialogPlaceholder" />
+                            <BradixSelectIcon />
+                        </BradixSelectTrigger>
+
+                        <BradixSelectPortal>
+                            <BradixSelectContent Class="select-surface stack stack--compact"
+                                                 SideOffset="6">
+                                <BradixSelectViewport Class="stack">
+                                    <BradixSelectGroup>
+                                        <BradixSelectLabel>Frameworks</BradixSelectLabel>
+                                        <BradixSelectItem Value="astro" TextValue="Astro">
+                                            <BradixSelectItemText>Astro</BradixSelectItemText>
+                                            <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                                        </BradixSelectItem>
+                                        <BradixSelectItem Value="remix" TextValue="Remix">
+                                            <BradixSelectItemText>Remix</BradixSelectItemText>
+                                            <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                                        </BradixSelectItem>
+                                        <BradixSelectItem Value="sveltekit" TextValue="SvelteKit">
+                                            <BradixSelectItemText>SvelteKit</BradixSelectItemText>
+                                            <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                                        </BradixSelectItem>
+                                    </BradixSelectGroup>
+                                </BradixSelectViewport>
+                            </BradixSelectContent>
+                        </BradixSelectPortal>
+                    </BradixSelect>
+                </BradixDialogContent>
+            </BradixDialogPortal>
+        </BradixDialog>
+    </section>
+</section>
+
 @code {
     private string _selectedValue = string.Empty;
+    private string _dialogSelectedValue = string.Empty;
 
     private RenderFragment _placeholder => builder => builder.AddContent(0, "Select a fruit…");
+    private RenderFragment _dialogPlaceholder => builder => builder.AddContent(0, "Select a framework…");
 
     private Task HandleSelectedValueChanged(string? value)
     {
         _selectedValue = value ?? _selectedValue;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleDialogSelectedValueChanged(string? value)
+    {
+        _dialogSelectedValue = value ?? _dialogSelectedValue;
         return Task.CompletedTask;
     }
 }

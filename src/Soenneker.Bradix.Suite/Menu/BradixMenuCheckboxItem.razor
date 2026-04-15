@@ -9,11 +9,13 @@
                     Style="@Style"
                     TextValue="@TextValue"
                     Role="menuitemcheckbox"
+                    AriaChecked="@AriaChecked"
+                    DataState="@DataState"
                     Disabled="Disabled"
                     CloseOnSelect="CloseOnSelect"
                     OnSelect="HandleSelect"
                     OnSelectDetailed="@HandleSelectDetailed"
-                    AdditionalAttributes="@ItemAttributes">
+                    AdditionalAttributes="@AdditionalAttributes">
         @ChildContent
     </BradixMenuItem>
 </CascadingValue>
@@ -57,24 +59,13 @@
         Disabled = Disabled
     };
 
-    private IReadOnlyDictionary<string, object> ItemAttributes
-    {
-        get
-        {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
-                ? new Dictionary<string, object>(AdditionalAttributes)
-                : new Dictionary<string, object>();
+    private string AriaChecked => CurrentChecked == BradixCheckboxCheckedState.Indeterminate
+        ? "mixed"
+        : CurrentChecked == BradixCheckboxCheckedState.Checked
+            ? "true"
+            : "false";
 
-            attributes["aria-checked"] = CurrentChecked == BradixCheckboxCheckedState.Indeterminate
-                ? "mixed"
-                : CurrentChecked == BradixCheckboxCheckedState.Checked
-                    ? "true"
-                    : "false";
-            attributes["data-state"] = GetDataState(CurrentChecked);
-
-            return attributes;
-        }
-    }
+    private string DataState => GetDataState(CurrentChecked);
 
     protected override void OnParametersSet()
     {

@@ -3,7 +3,9 @@
 @implements IBradixSelectPortal
 <BradixPortal ContainerSelector="@ContainerSelector"
               Container="@Container">
-    @ChildContent
+    <BradixDismissableLayerBranch>
+        @ChildContent
+    </BradixDismissableLayerBranch>
 </BradixPortal>
 
 @code {
