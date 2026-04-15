@@ -83,6 +83,52 @@ public sealed class BradixDisclosurePlaywrightTests : PlaywrightUnitTest
     }
 
     [Fact]
+    public async ValueTask Dialog_demo_traps_focus_and_restores_trigger_focus_after_escape()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialog"));
+
+        ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true });
+        await trigger.ClickAsync();
+
+        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Edit profile", Exact = true });
+
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+        await Assertions.Expect(dialog).ToHaveAttributeAsync("aria-modal", "true");
+
+        for (var i = 0; i < 4; i++)
+        {
+            await page.Keyboard.PressAsync("Tab");
+            Assert.True(await FocusIsWithinAsync(dialog));
+        }
+
+        await page.Keyboard.PressAsync("Escape");
+
+        await Assertions.Expect(dialog).Not.ToBeVisibleAsync();
+        await Assertions.Expect(trigger).ToBeFocusedAsync();
+    }
+
+    [Fact]
+    public async ValueTask Dialog_demo_dismisses_from_overlay_click()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialog"));
+
+        await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
+
+        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Edit profile", Exact = true });
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+
+        await ClickJustOutsideActiveDialogAsync(page, dialog);
+
+        await Assertions.Expect(dialog).Not.ToBeVisibleAsync();
+    }
+
+    [Fact]
     public async ValueTask Hover_card_demo_shows_profile_details_on_hover()
     {
         await using BrowserSession session = await CreateSession();
@@ -137,5 +183,19 @@ public sealed class BradixDisclosurePlaywrightTests : PlaywrightUnitTest
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "+", Exact = true }).HoverAsync();
 
         await Assertions.Expect(page.GetByRole(AriaRole.Tooltip, new PageGetByRoleOptions { Name = "Add to library", Exact = true })).ToBeVisibleAsync();
+    }
+
+    private static Task<bool> FocusIsWithinAsync(ILocator dialog)
+    {
+        return dialog.EvaluateAsync<bool>("element => element.contains(document.activeElement)");
+    }
+
+    private static async Task ClickJustOutsideActiveDialogAsync(IPage page, ILocator dialog)
+    {
+        var box = await dialog.BoundingBoxAsync();
+        Assert.NotNull(box);
+        float x = box.X > 40 ? box.X - 20 : box.X + box.Width + 20;
+        float y = box.Y > 40 ? box.Y - 20 : box.Y + 20;
+        await page.Mouse.ClickAsync(x, y);
     }
 }
