@@ -101,6 +101,58 @@ public sealed class BradixFormsPlaywrightTests : PlaywrightUnitTest
     }
 
     [Fact]
+    public async ValueTask Radio_group_demo_disabled_item_does_not_change_selection()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radio-group"));
+
+        ILocator disabledSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Disabled" });
+        ILocator starterRadio = disabledSection.GetByRole(AriaRole.Radio).Nth(0);
+        ILocator proRadio = disabledSection.GetByRole(AriaRole.Radio).Nth(1);
+        ILocator enterpriseRadio = disabledSection.GetByRole(AriaRole.Radio).Nth(2);
+
+        await Assertions.Expect(starterRadio).ToHaveAttributeAsync("disabled", "");
+        await Assertions.Expect(proRadio).ToHaveAttributeAsync("aria-checked", "true");
+
+        await starterRadio.ClickAsync(new LocatorClickOptions { Force = true });
+
+        await Assertions.Expect(starterRadio).ToHaveAttributeAsync("aria-checked", "false");
+        await Assertions.Expect(proRadio).ToHaveAttributeAsync("aria-checked", "true");
+
+        await enterpriseRadio.ClickAsync();
+
+        await Assertions.Expect(enterpriseRadio).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(proRadio).ToHaveAttributeAsync("aria-checked", "false");
+    }
+
+    [Fact]
+    public async ValueTask Radio_group_demo_controlled_buttons_and_clicks_stay_in_sync()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radio-group"));
+
+        ILocator controlledSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Controlled" });
+        ILocator weeklyRadio = controlledSection.GetByRole(AriaRole.Radio).Nth(0);
+        ILocator monthlyRadio = controlledSection.GetByRole(AriaRole.Radio).Nth(1);
+
+        await Assertions.Expect(weeklyRadio).ToHaveAttributeAsync("aria-checked", "true");
+
+        await controlledSection.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Select monthly", Exact = true }).ClickAsync();
+
+        await Assertions.Expect(monthlyRadio).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(weeklyRadio).ToHaveAttributeAsync("aria-checked", "false");
+
+        await weeklyRadio.ClickAsync();
+
+        await Assertions.Expect(weeklyRadio).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(monthlyRadio).ToHaveAttributeAsync("aria-checked", "false");
+    }
+
+    [Fact]
     public async ValueTask Slider_demo_updates_value_from_keyboard_input()
     {
         await using BrowserSession session = await CreateSession();
@@ -166,5 +218,74 @@ public sealed class BradixFormsPlaywrightTests : PlaywrightUnitTest
 
         await Assertions.Expect(left).ToHaveAttributeAsync("aria-checked", "true");
         await Assertions.Expect(center).ToHaveAttributeAsync("aria-checked", "false");
+    }
+
+    [Fact]
+    public async ValueTask Toggle_group_demo_preserves_multiple_selection_state()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
+
+        ILocator section = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Multiple selection" });
+        ILocator bold = section.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Bold", Exact = true });
+        ILocator italic = section.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Italic", Exact = true });
+
+        await Assertions.Expect(bold).ToHaveAttributeAsync("aria-pressed", "true");
+        await Assertions.Expect(italic).ToHaveAttributeAsync("aria-pressed", "false");
+
+        await italic.ClickAsync();
+
+        await Assertions.Expect(bold).ToHaveAttributeAsync("aria-pressed", "true");
+        await Assertions.Expect(italic).ToHaveAttributeAsync("aria-pressed", "true");
+        await Assertions.Expect(bold).ToHaveAttributeAsync("data-state", "on");
+        await Assertions.Expect(italic).ToHaveAttributeAsync("data-state", "on");
+    }
+
+    [Fact]
+    public async ValueTask Toggle_group_demo_vertical_navigation_skips_disabled_item()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
+
+        ILocator section = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Vertical with disabled item" });
+        ILocator top = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Top", Exact = true });
+        ILocator middle = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Middle", Exact = true });
+        ILocator bottom = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Bottom", Exact = true });
+
+        await Assertions.Expect(top).ToHaveAttributeAsync("tabindex", "0");
+        await Assertions.Expect(middle).ToHaveAttributeAsync("disabled", "");
+
+        await top.FocusAsync();
+        await page.Keyboard.PressAsync("ArrowDown");
+
+        await Assertions.Expect(bottom).ToBeFocusedAsync();
+        await Assertions.Expect(bottom).ToHaveAttributeAsync("tabindex", "0");
+        await Assertions.Expect(top).ToHaveAttributeAsync("tabindex", "-1");
+    }
+
+    [Fact]
+    public async ValueTask Toggle_group_demo_disabled_group_does_not_change_pressed_state()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
+
+        ILocator section = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Disabled group" });
+        ILocator left = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Left", Exact = true });
+        ILocator right = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Right", Exact = true });
+
+        await Assertions.Expect(left).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(right).ToHaveAttributeAsync("aria-checked", "false");
+        await Assertions.Expect(right).ToHaveAttributeAsync("disabled", "");
+
+        await right.ClickAsync(new LocatorClickOptions { Force = true });
+
+        await Assertions.Expect(left).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(right).ToHaveAttributeAsync("aria-checked", "false");
     }
 }

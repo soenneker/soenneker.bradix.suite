@@ -4,7 +4,9 @@
 <CascadingValue Name="BradixTooltipPortalForceMount" Value="ForceMount">
     <BradixPortal ContainerSelector="@ContainerSelector"
                   Container="@Container">
-        @ChildContent
+        <BradixDismissableLayerBranch>
+            @ChildContent
+        </BradixDismissableLayerBranch>
     </BradixPortal>
 </CascadingValue>
 

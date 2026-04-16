@@ -61,6 +61,49 @@
     </section>
 </section>
 
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixDialog>
+            <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
+                Open context menu dialog
+            </BradixDialogTrigger>
+
+            <BradixDialogPortal>
+                <BradixDialogOverlay Class="dialog-demo__overlay" />
+
+                <BradixDialogContent Class="dialog-demo__content"
+                                     aria-label="Context menu dialog">
+                    <BradixDialogTitle Class="dialog-demo__title">Context menu dialog</BradixDialogTitle>
+                    <BradixDialogDescription Class="dialog-demo__description">
+                        Right-click the nested surface to expose context menu actions without collapsing the dialog.
+                    </BradixDialogDescription>
+
+                    <BradixContextMenu>
+                        <BradixContextMenuTrigger>
+                            <span class="context-target">Right-click dialog surface.</span>
+                        </BradixContextMenuTrigger>
+
+                        <BradixContextMenuPortal>
+                            <BradixContextMenuContent Class="menu-surface stack stack--compact" SideOffset="5" Align="@BradixAlignment.End">
+                                <BradixContextMenuItem TextValue="Pin panel">Pin panel</BradixContextMenuItem>
+                                <BradixContextMenuSub>
+                                    <BradixContextMenuSubTrigger TextValue="More actions">More actions</BradixContextMenuSubTrigger>
+                                    <BradixContextMenuPortal>
+                                        <BradixContextMenuSubContent Class="menu-surface stack stack--compact" SideOffset="2">
+                                            <BradixContextMenuItem TextValue="Duplicate view">Duplicate view</BradixContextMenuItem>
+                                            <BradixContextMenuItem TextValue="Developer Tools">Developer Tools</BradixContextMenuItem>
+                                        </BradixContextMenuSubContent>
+                                    </BradixContextMenuPortal>
+                                </BradixContextMenuSub>
+                            </BradixContextMenuContent>
+                        </BradixContextMenuPortal>
+                    </BradixContextMenu>
+                </BradixDialogContent>
+            </BradixDialogPortal>
+        </BradixDialog>
+    </section>
+</section>
+
 @code {
     private BradixCheckboxCheckedState _bookmarks = BradixCheckboxCheckedState.Checked;
     private BradixCheckboxCheckedState _urls = BradixCheckboxCheckedState.Unchecked;

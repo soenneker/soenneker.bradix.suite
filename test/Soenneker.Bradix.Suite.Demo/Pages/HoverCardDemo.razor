@@ -44,3 +44,42 @@
         </BradixHoverCard>
     </section>
 </section>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixDialog>
+            <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
+                Open hover card dialog
+            </BradixDialogTrigger>
+
+            <BradixDialogPortal>
+                <BradixDialogOverlay Class="dialog-demo__overlay" />
+
+                <BradixDialogContent Class="dialog-demo__content"
+                                     aria-label="Hover card dialog">
+                    <BradixDialogTitle Class="dialog-demo__title">Hover card dialog</BradixDialogTitle>
+                    <BradixDialogDescription Class="dialog-demo__description">
+                        Hover the nested trigger to expose hover card content inside the modal dialog.
+                    </BradixDialogDescription>
+
+                    <BradixHoverCard SideOffset="5">
+                        <BradixHoverCardTrigger Class="dialog-demo__button"
+                                                aria-label="Show nested hover card">
+                            Hover for preview
+                        </BradixHoverCardTrigger>
+                        <BradixHoverCardPortal>
+                            <BradixHoverCardContent Class="hover-card-demo__content">
+                                <div class="hover-card-demo__content-inner">
+                                    <div class="hover-card-demo__details">
+                                        <div class="hover-card-demo__text hover-card-demo__text--bold">Nested preview</div>
+                                        <div class="hover-card-demo__text hover-card-demo__text--faded">Hover card content inside dialog</div>
+                                    </div>
+                                </div>
+                            </BradixHoverCardContent>
+                        </BradixHoverCardPortal>
+                    </BradixHoverCard>
+                </BradixDialogContent>
+            </BradixDialogPortal>
+        </BradixDialog>
+    </section>
+</section>

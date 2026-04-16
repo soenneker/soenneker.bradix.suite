@@ -43,4 +43,70 @@
             </BradixTabsContent>
         </BradixTabs>
     </section>
+
+    <section class="card website-demo-card">
+        <h2>Disabled tabs</h2>
+        <p>Disabled triggers should not become selected, and enabled siblings should still activate normally.</p>
+        <BradixTabs Class="tabs-root" DefaultValue="overview-disabled">
+            <BradixTabsList Class="tabs-list" aria-label="Disabled tabs example">
+                <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="overview-disabled">Overview</BradixTabsTrigger>
+                <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="disabled-tab" Disabled="true">Disabled</BradixTabsTrigger>
+                <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="details-disabled">Details</BradixTabsTrigger>
+            </BradixTabsList>
+            <BradixTabsContent Class="tabs-content" Value="overview-disabled">
+                <p>Overview tab content.</p>
+            </BradixTabsContent>
+            <BradixTabsContent Class="tabs-content" Value="disabled-tab">
+                <p>Disabled tab content should remain unreachable.</p>
+            </BradixTabsContent>
+            <BradixTabsContent Class="tabs-content" Value="details-disabled">
+                <p>Details tab content.</p>
+            </BradixTabsContent>
+        </BradixTabs>
+    </section>
+
+    <section class="card website-demo-card">
+        <h2>Controlled tabs</h2>
+        <p>External controls should keep the selected trigger and visible panel in sync.</p>
+        <div class="stack">
+            <BradixTabs Class="tabs-root" Value="@_controlledTab" ValueChanged="HandleControlledTabChanged">
+                <BradixTabsList Class="tabs-list" aria-label="Controlled tabs example">
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="overview-controlled">Overview</BradixTabsTrigger>
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="activity-controlled">Activity</BradixTabsTrigger>
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="settings-controlled">Settings</BradixTabsTrigger>
+                </BradixTabsList>
+                <BradixTabsContent Class="tabs-content" Value="overview-controlled">
+                    <p>Controlled overview content.</p>
+                </BradixTabsContent>
+                <BradixTabsContent Class="tabs-content" Value="activity-controlled">
+                    <p>Controlled activity content.</p>
+                </BradixTabsContent>
+                <BradixTabsContent Class="tabs-content" Value="settings-controlled">
+                    <p>Controlled settings content.</p>
+                </BradixTabsContent>
+            </BradixTabs>
+
+            <div class="dialog-demo__save-row">
+                <button class="dialog-demo__button" type="button" @onclick='() => SetControlledTab("overview-controlled")'>Overview</button>
+                <button class="dialog-demo__button" type="button" @onclick='() => SetControlledTab("activity-controlled")'>Activity</button>
+                <button class="dialog-demo__button" type="button" @onclick='() => SetControlledTab("settings-controlled")'>Settings</button>
+            </div>
+        </div>
+    </section>
 </section>
+
+@code {
+    private string _controlledTab = "overview-controlled";
+
+    private Task HandleControlledTabChanged(string? value)
+    {
+        _controlledTab = value ?? _controlledTab;
+        return Task.CompletedTask;
+    }
+
+    private Task SetControlledTab(string value)
+    {
+        _controlledTab = value;
+        return Task.CompletedTask;
+    }
+}

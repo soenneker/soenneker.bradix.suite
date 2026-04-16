@@ -272,6 +272,28 @@ public sealed class BradixDisclosurePlaywrightTests : PlaywrightUnitTest
     }
 
     [Fact]
+    public async ValueTask Hover_card_demo_supports_nested_hover_card_inside_modal_dialog()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hover-card"));
+
+        ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open hover card dialog", Exact = true });
+        await dialogTrigger.ClickAsync();
+
+        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Hover card dialog", Exact = true });
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+
+        ILocator hoverCardTrigger = dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Show nested hover card", Exact = true });
+        await hoverCardTrigger.HoverAsync();
+
+        ILocator hoverCard = page.GetByText("Hover card content inside dialog", new PageGetByTextOptions { Exact = true });
+        await Assertions.Expect(hoverCard).ToBeVisibleAsync();
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+    }
+
+    [Fact]
     public async ValueTask Popover_demo_opens_and_closes_from_close_button()
     {
         await using BrowserSession session = await CreateSession();

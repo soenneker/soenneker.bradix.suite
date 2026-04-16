@@ -33,6 +33,71 @@ public sealed class BradixNavigationPlaywrightTests : PlaywrightUnitTest
     }
 
     [Fact]
+    public async Task Context_menu_demo_supports_nested_menu_inside_modal_dialog()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/context-menu"));
+
+        ILocator dialogTrigger = page.Locator("button.dialog-demo__button").Filter(new LocatorFilterOptions { HasText = "Open context menu dialog" });
+        await dialogTrigger.ClickAsync();
+
+        ILocator dialog = page.Locator(".dialog-demo__content[role='dialog'][data-state='open']").Filter(new LocatorFilterOptions { HasText = "Context menu dialog" });
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+
+        ILocator contextSurface = dialog.GetByText("Right-click dialog surface.", new LocatorGetByTextOptions { Exact = true });
+        await contextSurface.ClickAsync(new LocatorClickOptions { Button = MouseButton.Right });
+
+        ILocator menu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "Pin panel" });
+        await Assertions.Expect(menu).ToBeVisibleAsync();
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+
+        await menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "More actions", Exact = true }).ClickAsync();
+
+        ILocator submenu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "Duplicate view" });
+        await Assertions.Expect(submenu).ToBeVisibleAsync();
+        await Assertions.Expect(submenu).ToContainTextAsync("Developer Tools");
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async Task Context_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/context-menu"));
+
+        await page.GetByText("Right-click here.", new PageGetByTextOptions { Exact = true }).ClickAsync(new LocatorClickOptions
+        {
+            Button = MouseButton.Right
+        });
+
+        ILocator menu = page.VisibleMenu();
+        ILocator bookmarks = menu.Locator("[role='menuitemcheckbox']").Filter(new LocatorFilterOptions { HasText = "Show Bookmarks" });
+        ILocator urls = menu.Locator("[role='menuitemcheckbox']").Filter(new LocatorFilterOptions { HasText = "Show Full URLs" });
+        ILocator pedro = menu.Locator("[role='menuitemradio']").Filter(new LocatorFilterOptions { HasText = "Pedro Duarte" });
+        ILocator colm = menu.Locator("[role='menuitemradio']").Filter(new LocatorFilterOptions { HasText = "Colm Tuite" });
+
+        await Assertions.Expect(bookmarks).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(urls).ToHaveAttributeAsync("aria-checked", "false");
+        await Assertions.Expect(pedro).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(colm).ToHaveAttributeAsync("aria-checked", "false");
+
+        await urls.ClickAsync();
+
+        await Assertions.Expect(menu).ToBeVisibleAsync();
+        await Assertions.Expect(urls).ToHaveAttributeAsync("aria-checked", "true");
+
+        await colm.ClickAsync();
+
+        await Assertions.Expect(menu).ToBeVisibleAsync();
+        await Assertions.Expect(colm).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(pedro).ToHaveAttributeAsync("aria-checked", "false");
+    }
+
+    [Fact]
     public async Task Dropdown_menu_demo_opens_and_reveals_submenu_items()
     {
         await using BrowserSession session = await CreateSession();
@@ -125,6 +190,31 @@ public sealed class BradixNavigationPlaywrightTests : PlaywrightUnitTest
     }
 
     [Fact]
+    public async Task Menubar_demo_keeps_checkbox_menu_open_when_close_on_select_is_disabled()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+
+        ILocator editTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Edit", Exact = true });
+        await editTrigger.ClickAsync();
+
+        ILocator menu = page.VisibleMenu();
+        ILocator lineNumbers = menu.Locator("[role='menuitemcheckbox']").Filter(new LocatorFilterOptions { HasText = "Show line numbers" });
+        ILocator wordWrap = menu.Locator("[role='menuitemcheckbox']").Filter(new LocatorFilterOptions { HasText = "Word wrap" });
+
+        await Assertions.Expect(lineNumbers).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(wordWrap).ToHaveAttributeAsync("aria-checked", "false");
+
+        await wordWrap.ClickAsync();
+
+        await Assertions.Expect(menu).ToBeVisibleAsync();
+        await Assertions.Expect(wordWrap).ToHaveAttributeAsync("aria-checked", "true");
+        await Assertions.Expect(lineNumbers).ToHaveAttributeAsync("aria-checked", "true");
+    }
+
+    [Fact]
     public async Task Menubar_demo_closes_from_single_outside_click()
     {
         await using BrowserSession session = await CreateSession();
@@ -188,6 +278,27 @@ public sealed class BradixNavigationPlaywrightTests : PlaywrightUnitTest
     }
 
     [Fact]
+    public async Task Navigation_menu_demo_closes_from_single_outside_click()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+
+        ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
+        ILocator viewport = page.Locator(".nav-menu-viewport");
+
+        await learnTrigger.ClickAsync(new LocatorClickOptions { Force = true, Timeout = 1000 });
+        await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
+        await Assertions.Expect(viewport).ToContainTextAsync("Radix Primitives", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
+
+        await page.Locator(".demo-page-intro h1").ClickAsync();
+
+        await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
+        await Assertions.Expect(viewport).ToHaveCountAsync(0, new LocatorAssertionsToHaveCountOptions { Timeout = 3000 });
+    }
+
+    [Fact]
     public async Task Scroll_area_demo_allows_viewport_scrolling()
     {
         await using BrowserSession session = await CreateSession();
@@ -213,6 +324,56 @@ public sealed class BradixNavigationPlaywrightTests : PlaywrightUnitTest
 
         await Assertions.Expect(page.GetByText("Change your password here. After saving, you'll be logged out.")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByLabel("Current password")).ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async Task Tabs_demo_disabled_trigger_stays_inactive_while_enabled_sibling_can_activate()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
+
+        ILocator disabledList = page.GetByLabel("Disabled tabs example", new PageGetByLabelOptions { Exact = true });
+        ILocator overview = disabledList.GetByRole(AriaRole.Tab, new LocatorGetByRoleOptions { Name = "Overview", Exact = true });
+        ILocator disabled = disabledList.GetByRole(AriaRole.Tab, new LocatorGetByRoleOptions { Name = "Disabled", Exact = true });
+        ILocator details = disabledList.GetByRole(AriaRole.Tab, new LocatorGetByRoleOptions { Name = "Details", Exact = true });
+
+        await Assertions.Expect(overview).ToHaveAttributeAsync("aria-selected", "true");
+        await Assertions.Expect(disabled).ToBeDisabledAsync();
+
+        await disabled.ClickAsync(new LocatorClickOptions { Force = true });
+
+        await Assertions.Expect(overview).ToHaveAttributeAsync("aria-selected", "true");
+        await Assertions.Expect(page.GetByText("Disabled tab content should remain unreachable.", new PageGetByTextOptions { Exact = true })).Not.ToBeVisibleAsync();
+
+        await details.ClickAsync();
+
+        await Assertions.Expect(details).ToHaveAttributeAsync("aria-selected", "true");
+        await Assertions.Expect(page.GetByText("Details tab content.", new PageGetByTextOptions { Exact = true })).ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async Task Tabs_demo_controlled_buttons_sync_selected_trigger_and_panel()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
+
+        ILocator controlledList = page.GetByLabel("Controlled tabs example", new PageGetByLabelOptions { Exact = true });
+        ILocator overview = controlledList.GetByRole(AriaRole.Tab, new LocatorGetByRoleOptions { Name = "Overview", Exact = true });
+        ILocator activity = controlledList.GetByRole(AriaRole.Tab, new LocatorGetByRoleOptions { Name = "Activity", Exact = true });
+        ILocator settings = controlledList.GetByRole(AriaRole.Tab, new LocatorGetByRoleOptions { Name = "Settings", Exact = true });
+
+        await Assertions.Expect(overview).ToHaveAttributeAsync("aria-selected", "true");
+        await Assertions.Expect(page.GetByText("Controlled overview content.", new PageGetByTextOptions { Exact = true })).ToBeVisibleAsync();
+
+        await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Settings", Exact = true }).First.ClickAsync();
+
+        await Assertions.Expect(settings).ToHaveAttributeAsync("aria-selected", "true");
+        await Assertions.Expect(activity).ToHaveAttributeAsync("aria-selected", "false");
+        await Assertions.Expect(page.GetByText("Controlled settings content.", new PageGetByTextOptions { Exact = true })).ToBeVisibleAsync();
     }
 
     [Fact]

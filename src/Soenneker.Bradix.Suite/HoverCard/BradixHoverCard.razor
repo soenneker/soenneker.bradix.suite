@@ -7,13 +7,14 @@
 
 @implements IBradixHoverCard
 
-<BradixPopper>
+<BradixPopper @ref="_popper">
     <CascadingValue Value="this">
         @ChildContent
     </CascadingValue>
 </BradixPopper>
 
 @code {
+    private BradixPopper? _popper;
     private bool _initialized;
     private bool _uncontrolledOpen;
     private CancellationTokenSource? _openDelayTokenSource;
@@ -44,6 +45,11 @@
     public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
     public string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
+
+    public void RegisterAnchor(ElementReference element)
+    {
+        _popper?.RegisterAnchor(element);
+    }
 
     protected override void OnInitialized()
     {
