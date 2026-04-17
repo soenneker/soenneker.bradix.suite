@@ -4,9 +4,22 @@
 
 <section class="website-demo-page">
     <section class="card website-demo-card">
-        <BradixProgress Class="progress-demo__root" Value="@_progress">
+        <BradixProgress Id="progress-loading" Class="progress-demo__root" Value="@_progress">
             <BradixProgressIndicator Class="progress-demo__indicator"
                                      Style="@IndicatorStyle" />
+        </BradixProgress>
+    </section>
+
+    <section class="card website-demo-card">
+        <BradixProgress Id="progress-complete" Class="progress-demo__root" Value="100">
+            <BradixProgressIndicator Class="progress-demo__indicator"
+                                     Style="transform: translateX(0%);" />
+        </BradixProgress>
+    </section>
+
+    <section class="card website-demo-card">
+        <BradixProgress Id="progress-indeterminate" Class="progress-demo__root">
+            <BradixProgressIndicator Class="progress-demo__indicator" />
         </BradixProgress>
     </section>
 </section>

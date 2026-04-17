@@ -132,10 +132,10 @@
         }
     }
 
-    private Task HandleCloseAutoFocus(BradixAutoFocusEventArgs args)
+    private async Task HandleCloseAutoFocus(BradixAutoFocusEventArgs args)
     {
+        await SubMenu.FocusTrigger();
         args.PreventDefault();
-        return Task.CompletedTask;
     }
 
     private async Task HandleFocusOutside(BradixFocusOutsideEventArgs args)
@@ -170,7 +170,16 @@
             return;
 
         args.PreventDefault();
-        await RootMenu.SetOpen(false);
+
+        if (SubMenu.CurrentOpen)
+        {
+            await SubMenu.SetOpen(false);
+            await SubMenu.FocusTrigger();
+            return;
+        }
+
+        await ParentMenu.SetOpen(false);
+        await ParentMenu.FocusTrigger();
     }
 
     private async Task HandleContentKeyDown(KeyboardEventArgs args)

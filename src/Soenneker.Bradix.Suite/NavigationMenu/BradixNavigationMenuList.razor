@@ -7,7 +7,7 @@
 @if (NavigationMenu?.IsRootMenu == true)
 {
     <div @ref="_trackElement"
-         style="position:relative;">
+         style="position:relative;z-index:60;">
         <ul @attributes="ListAttributes">
             @ChildContent
         </ul>

@@ -134,6 +134,93 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
     }
 
     [Fact]
+    public async ValueTask Select_demo_home_and_end_keys_move_focus_to_first_and_last_enabled_options()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.GotoAndWaitForReady(
+            $"{BaseUrl}select",
+            static p => p.Locator("[role='combobox']").First,
+            expectedTitle: "Select Demo");
+
+        ILocator trigger = page.Locator("[role='combobox']").First;
+        await trigger.ClickAsync();
+
+        ILocator listbox = page.Locator("[role='listbox']:visible").First;
+        ILocator apple = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Apple", Exact = true });
+        ILocator pork = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Pork", Exact = true });
+
+        await Assertions.Expect(apple).ToHaveAttributeAsync("data-highlighted", string.Empty);
+
+        await listbox.FocusAsync();
+        await page.Keyboard.PressAsync("End");
+
+        await Assertions.Expect(pork).ToHaveAttributeAsync("data-highlighted", string.Empty);
+
+        await listbox.FocusAsync();
+        await page.Keyboard.PressAsync("Home");
+
+        await Assertions.Expect(apple).ToHaveAttributeAsync("data-highlighted", string.Empty);
+    }
+
+    [Fact]
+    public async ValueTask Select_demo_typeahead_moves_focus_to_matching_enabled_option()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.GotoAndWaitForReady(
+            $"{BaseUrl}select",
+            static p => p.Locator("[role='combobox']").First,
+            expectedTitle: "Select Demo");
+
+        ILocator trigger = page.Locator("[role='combobox']").First;
+        await trigger.ClickAsync();
+
+        string? contentId = await trigger.GetAttributeAsync("aria-controls");
+        Assert.False(string.IsNullOrWhiteSpace(contentId));
+
+        ILocator listbox = page.Locator($"#{contentId}");
+        ILocator highlightedGrapes = listbox.Locator("[role='option'][data-highlighted]").Filter(new LocatorFilterOptions { HasText = "Grapes" });
+
+        await listbox.FocusAsync();
+        await page.Keyboard.PressAsync("g");
+
+        Assert.True(await highlightedGrapes.CountAsync() > 0, "Expected a highlighted Grapes option after typeahead.");
+    }
+
+    [Fact]
+    public async ValueTask Select_demo_typeahead_skips_disabled_matching_option()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.GotoAndWaitForReady(
+            $"{BaseUrl}select",
+            static p => p.Locator("[role='combobox']").First,
+            expectedTitle: "Select Demo");
+
+        ILocator trigger = page.Locator("[role='combobox']").First;
+        await trigger.ClickAsync();
+
+        string? contentId = await trigger.GetAttributeAsync("aria-controls");
+        Assert.False(string.IsNullOrWhiteSpace(contentId));
+
+        ILocator listbox = page.Locator($"#{contentId}");
+        ILocator carrot = listbox.Locator("[role='option']:visible").Filter(new LocatorFilterOptions { HasText = "Carrot" }).First;
+        ILocator highlightedCourgette = listbox.Locator("[role='option'][data-highlighted]").Filter(new LocatorFilterOptions { HasText = "Courgette" });
+
+        await Assertions.Expect(carrot).ToHaveAttributeAsync("aria-disabled", "true");
+
+        await listbox.FocusAsync();
+        await page.Keyboard.PressAsync("c");
+
+        Assert.True(await highlightedCourgette.CountAsync() > 0, "Expected a highlighted Courgette option after typeahead.");
+        await Assertions.Expect(carrot).Not.ToHaveAttributeAsync("data-highlighted", string.Empty);
+    }
+
+    [Fact]
     public async ValueTask Select_demo_supports_nested_select_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();
@@ -162,6 +249,43 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await Assertions.Expect(trigger).ToContainTextAsync("Remix");
     }
 
+    [Fact]
+    public async ValueTask Select_demo_native_form_requires_selection_and_submits_selected_value()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.GotoAndWaitForReady(
+            $"{BaseUrl}select",
+            static p => p.GetByTestId("select-native-form-result"),
+            expectedTitle: "Select Demo");
+
+        ILocator form = page.GetByTestId("select-native-form");
+        ILocator result = page.GetByTestId("select-native-form-result");
+        ILocator hiddenSelect = page.Locator("select[name='framework']");
+
+        await Assertions.Expect(result).ToContainTextAsync("No submission yet.");
+        await Assertions.Expect(hiddenSelect).ToHaveAttributeAsync("required", string.Empty);
+        bool isInitiallyValid = await hiddenSelect.EvaluateAsync<bool>("element => element.checkValidity()");
+        Assert.False(isInitiallyValid);
+        ILocator trigger = form.GetByRole(AriaRole.Combobox, new LocatorGetByRoleOptions { Name = "Select framework", Exact = true });
+        await trigger.ClickAsync();
+        ILocator listBox = page.Locator("[role='listbox']:visible").First;
+        await Assertions.Expect(listBox).ToBeVisibleAsync();
+        ILocator astroOption = listBox.GetByRole(AriaRole.Option, new LocatorGetByRoleOptions { Name = "Astro", Exact = true });
+        await astroOption.FocusAsync();
+        await Assertions.Expect(astroOption).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Enter");
+
+        await Assertions.Expect(trigger).ToContainTextAsync("Astro");
+        await Assertions.Expect(hiddenSelect).ToHaveValueAsync("astro");
+        bool isValidAfterSelection = await hiddenSelect.EvaluateAsync<bool>("element => element.checkValidity()");
+        Assert.True(isValidAfterSelection);
+
+        await form.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Submit native form", Exact = true }).ClickAsync();
+        await Assertions.Expect(result).ToContainTextAsync("framework=astro");
+    }
+
     private static async Task ClickJustOutsideAsync(IPage page, ILocator locator)
     {
         var box = await locator.BoundingBoxAsync();
@@ -171,3 +295,4 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await page.Mouse.ClickAsync(x, y);
     }
 }
+

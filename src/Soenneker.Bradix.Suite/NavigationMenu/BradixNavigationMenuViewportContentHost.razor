@@ -69,13 +69,13 @@
             if (!string.IsNullOrWhiteSpace(Registration.Class))
                 attributes["class"] = Registration.Class;
 
-            if (!string.IsNullOrWhiteSpace(Registration.Style))
-                attributes["style"] = Registration.Style;
+            attributes["style"] = BradixComponent.MergeStyleValues(Registration.Style, "position:static;left:auto;right:auto;top:auto;");
 
             attributes["id"] = Registration.ContentId;
             attributes["aria-labelledby"] = Registration.TriggerId;
             attributes["data-state"] = IsOpen ? "open" : "closed";
             attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? BradixOrientation.Horizontal.Value;
+            attributes["data-viewport-hosted"] = "true";
             attributes["tabindex"] = -1;
             attributes["onpointerenter"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerEnter);
             attributes["onpointerleave"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerLeave);
@@ -93,10 +93,10 @@
         {
             NavigationMenu?.RegisterContent(Registration.Value, _contentElement);
             _contentCaptured = true;
-
-            if (OnContentElementCaptured.HasDelegate)
-                await OnContentElementCaptured.InvokeAsync(_contentElement);
         }
+
+        if (OnContentElementCaptured.HasDelegate)
+            await OnContentElementCaptured.InvokeAsync(_contentElement);
 
         if (NavigationMenu is not null &&
             NavigationMenu.TryGetFocusProxy(Registration.Value, out ElementReference startProxy) &&

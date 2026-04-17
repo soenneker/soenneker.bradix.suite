@@ -1,7 +1,7 @@
 import { getAncestorIds } from "./dom.js";
 
 export function createDelegatedEventSnapshot(type, event) {
-  if (type === "click" || type === "mousedown" || type === "pointerdown") {
+  if (type === "click" || type === "mousedown" || type === "pointerdown" || type === "mouseover" || type === "mouseenter" || type === "pointermove" || type === "pointerover") {
     return {
       button: typeof event.button === "number" ? event.button : 0,
       pointerId: typeof event.pointerId === "number" ? event.pointerId : 0,

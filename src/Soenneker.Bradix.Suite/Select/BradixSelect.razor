@@ -1,11 +1,13 @@
 @namespace Soenneker.Bradix
 
 @using System.Linq
+@using Microsoft.JSInterop
 @using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
 @implements IBradixSelect
+@implements IAsyncDisposable
 
 @inject IBradixSuiteInterop Interop
 <BradixPopper>
@@ -17,19 +19,24 @@
 @if (ShouldRenderBubbleSelect)
 {
     <select @ref="_bubbleSelectElement"
-            @onchange="HandleNativeChange"
             @attributes="BubbleSelectAttributes">
         @if (string.IsNullOrWhiteSpace(CurrentValue))
         {
-            <option value="" selected="true"></option>
+            <option value=""></option>
         }
 
         @foreach (BradixCollectionEntry<IBradixSelectCollectionItem> entry in _items.Snapshot())
         {
             <option value="@entry.Item.Value"
-                    disabled="@entry.Item.Disabled"
-                    selected="@string.Equals(entry.Item.Value, CurrentValue, StringComparison.Ordinal)">
+                    disabled="@entry.Item.Disabled">
                 @entry.Item.TextValue
+            </option>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(CurrentValue) && !_items.Snapshot().Any(entry => string.Equals(entry.Item.Value, CurrentValue, StringComparison.Ordinal)))
+        {
+            <option value="@CurrentValue">
+                @CurrentText
             </option>
         }
     </select>
@@ -42,16 +49,19 @@
     private bool _refreshQueued;
     private bool _uncontrolledOpen;
     private string? _uncontrolledValue;
+    private bool _hasPendingControlledValue;
+    private string? _pendingControlledValue;
     private ElementReference _bubbleSelectElement;
     private bool _hasBubbleSelectElement;
+    private bool _bubbleSelectRegistered;
     private bool _bubbleSelectValueInitialized;
     private string? _lastBubbleSelectValue;
     private bool _isFormControl = true;
     private bool _formControlStateResolved;
     private string? _lastResolvedForm;
     private (double X, double Y)? _triggerPointerDownPosition;
-    private bool _suppressNextMouseUpSelection;
     private string? _currentText;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -102,7 +112,7 @@
 
     internal bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    internal string? CurrentValue => Value ?? _uncontrolledValue;
+    internal string? CurrentValue => _hasPendingControlledValue ? _pendingControlledValue : Value ?? _uncontrolledValue;
 
     internal bool HasActiveTypeahead => !string.IsNullOrEmpty(_typeahead.CurrentSearch);
 
@@ -174,6 +184,20 @@
             _initialized = true;
         }
 
+        if (_hasPendingControlledValue)
+        {
+            if (string.Equals(Value, _pendingControlledValue, StringComparison.Ordinal))
+            {
+                _hasPendingControlledValue = false;
+                _pendingControlledValue = null;
+            }
+            else
+            {
+                _hasPendingControlledValue = false;
+                _pendingControlledValue = null;
+            }
+        }
+
         UpdateCurrentText();
     }
 
@@ -196,14 +220,29 @@
         if (ShouldRenderBubbleSelect)
         {
             RegisterBubbleSelect(_bubbleSelectElement);
+            await EnsureBubbleSelectRegistration();
             await SyncBubbleSelectValue();
         }
         else
         {
+            if (_bubbleSelectRegistered)
+            {
+                await Interop.UnregisterSelectBubbleInput(_bubbleSelectElement);
+                _bubbleSelectRegistered = false;
+            }
+
             _hasBubbleSelectElement = false;
             _bubbleSelectValueInitialized = false;
             _lastBubbleSelectValue = null;
         }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_bubbleSelectRegistered)
+            await Interop.UnregisterSelectBubbleInput(_bubbleSelectElement);
+
+        _dotNetReference?.Dispose();
     }
 
     internal void RegisterItem(IBradixSelectCollectionItem item)
@@ -267,8 +306,15 @@
 
         UpdateCurrentText(GetItemText(value));
 
-        if (Value is null)
+        bool isControlled = ValueChanged.HasDelegate;
+
+        if (!isControlled)
             _uncontrolledValue = value;
+        else
+        {
+            _pendingControlledValue = value;
+            _hasPendingControlledValue = true;
+        }
 
         if (ValueChanged.HasDelegate)
             await ValueChanged.InvokeAsync(value);
@@ -291,7 +337,6 @@
         {
             _typeahead.Reset();
             _triggerPointerDownPosition = null;
-            _suppressNextMouseUpSelection = false;
         }
 
         if (OpenChanged.HasDelegate)
@@ -330,7 +375,9 @@
         if (string.Equals(CurrentFocusedItemValue, value, StringComparison.Ordinal))
             return;
 
+        string? previousValue = CurrentFocusedItemValue;
         CurrentFocusedItemValue = value;
+        _ = RefreshFocusedItems(previousValue, value);
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -469,26 +516,29 @@
             _currentText = resolvedText;
     }
 
-    internal void SuppressNextMouseUpSelection()
-    {
-        _suppressNextMouseUpSelection = true;
-    }
-
     private async Task FocusItem(IBradixSelectCollectionItem item)
     {
+        string? previousValue = CurrentFocusedItemValue;
         CurrentFocusedItemValue = item.Value;
+        await RefreshFocusedItems(previousValue, item.Value);
+        await InvokeAsync(StateHasChanged);
+        await Task.Yield();
         await item.ScrollIntoView();
         await item.Focus();
-        await InvokeAsync(StateHasChanged);
     }
 
-    internal bool TryConsumeSuppressedMouseUpSelection()
+    private async Task RefreshFocusedItems(string? previousValue, string? nextValue)
     {
-        if (!_suppressNextMouseUpSelection)
-            return false;
+        foreach (BradixCollectionEntry<IBradixSelectCollectionItem> entry in _items.Snapshot())
+        {
+            bool wasFocused = string.Equals(entry.Item.Value, previousValue, StringComparison.Ordinal);
+            bool isFocused = string.Equals(entry.Item.Value, nextValue, StringComparison.Ordinal);
 
-        _suppressNextMouseUpSelection = false;
-        return true;
+            if (!wasFocused && !isFocused)
+                continue;
+
+            await entry.Item.Refresh();
+        }
     }
 
     internal IBradixSelectCollectionItem? GetSelectedOrFirstEnabledItem()
@@ -505,9 +555,9 @@
             .FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
     }
 
-    private Task HandleNativeChange(ChangeEventArgs args)
+    [JSInvokable]
+    public Task HandleNativeChangeFromScript(string? value)
     {
-        string? value = args.Value?.ToString();
         return SetValue(string.IsNullOrEmpty(value) ? null : value);
     }
 
@@ -531,6 +581,16 @@
             .Select(entry => entry.Item)
             .Where(item => !item.Disabled)
             .ToList();
+    }
+
+    private async Task EnsureBubbleSelectRegistration()
+    {
+        if (!_hasBubbleSelectElement || _bubbleSelectRegistered)
+            return;
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await Interop.RegisterSelectBubbleInput(_bubbleSelectElement, _dotNetReference);
+        _bubbleSelectRegistered = true;
     }
 
     private async Task SyncBubbleSelectValue()

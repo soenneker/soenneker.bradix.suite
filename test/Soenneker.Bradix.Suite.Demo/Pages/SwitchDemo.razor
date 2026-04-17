@@ -4,6 +4,7 @@
 
 <section class="website-demo-page">
     <section class="card website-demo-card">
+        <h2>Default</h2>
         <form>
             <div class="website-demo-row">
                 <BradixLabel Class="switch-demo__label" For="airplane-mode">Airplane mode</BradixLabel>
@@ -13,4 +14,63 @@
             </div>
         </form>
     </section>
+
+    <section class="card website-demo-card">
+        <h2>Controlled</h2>
+        <div class="website-demo-row">
+            <BradixLabel Class="switch-demo__label" For="sync-mode">Sync mode</BradixLabel>
+            <BradixSwitch Class="switch-root"
+                          Id="sync-mode"
+                          Checked="@_syncEnabled"
+                          CheckedChanged="HandleSyncChanged">
+                <BradixSwitchThumb Class="switch-thumb" />
+            </BradixSwitch>
+        </div>
+        <div class="website-demo-actions">
+            <button type="button" @onclick="() => SetSyncMode(true)">Enable sync</button>
+            <button type="button" @onclick="() => SetSyncMode(false)">Disable sync</button>
+        </div>
+        <p><strong>State:</strong> @(_syncEnabled ? "checked" : "unchecked")</p>
+    </section>
+
+    <section class="card website-demo-card">
+        <h2>Form reset</h2>
+        <form>
+            <div class="website-demo-row">
+                <BradixLabel Class="switch-demo__label" For="marketing-switch">Marketing emails</BradixLabel>
+                <BradixSwitch Class="switch-root"
+                              Id="marketing-switch"
+                              Name="marketing-switch"
+                              DefaultChecked="true">
+                    <BradixSwitchThumb Class="switch-thumb" />
+                </BradixSwitch>
+            </div>
+
+            <div class="website-demo-row">
+                <BradixLabel Class="switch-demo__label" For="product-switch">Product updates</BradixLabel>
+                <BradixSwitch Class="switch-root"
+                              Id="product-switch"
+                              Name="product-switch">
+                    <BradixSwitchThumb Class="switch-thumb" />
+                </BradixSwitch>
+            </div>
+
+            <button type="reset">Reset form</button>
+        </form>
+    </section>
 </section>
+
+@code {
+    private bool _syncEnabled = true;
+
+    private Task HandleSyncChanged(bool value)
+    {
+        _syncEnabled = value;
+        return Task.CompletedTask;
+    }
+
+    private void SetSyncMode(bool value)
+    {
+        _syncEnabled = value;
+    }
+}

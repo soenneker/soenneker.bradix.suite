@@ -47,6 +47,7 @@ else
     private bool _isPointerDown;
     private string? _resolvedTextValue;
     private bool _delegatedInteractionRegistered;
+    private bool _rovingFocusBridgeReady;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -101,6 +102,12 @@ else
         ("role", Role),
         ("aria-checked", AriaChecked),
         ("tabindex", Menu.IsCurrentTabStop(this) ? 0 : -1),
+        ("data-bradix-roving-group", Menu.BaseId),
+        ("data-bradix-roving-item", string.Empty),
+        ("data-bradix-roving-item-id", TabStopId),
+        ("data-bradix-roving-orientation", "vertical"),
+        ("data-bradix-roving-dir", Menu.ResolvedDirection),
+        ("data-bradix-roving-loop", "true"),
         ("href", RenderAsLink ? Href : null),
         ("target", RenderAsLink ? Target : null),
         ("aria-disabled", Disabled ? "true" : null),
@@ -120,6 +127,7 @@ else
             Menu.RegisterItem(this);
             _registered = true;
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
             await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
             {
                 keydown = new
@@ -144,6 +152,8 @@ else
     {
         if (_delegatedInteractionRegistered)
             await Interop.UnregisterDelegatedInteraction(_element);
+
+        await Interop.UnregisterRovingFocusNavigationKeys(_element);
 
         if (_registered)
             Menu.UnregisterItem(this);
@@ -213,6 +223,9 @@ else
         if (Disabled || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
+        if (_rovingFocusBridgeReady && args.Key is "Home" or "End" or "PageUp" or "PageDown")
+            return;
+
         if (args.Key is " " or "Spacebar")
         {
             if (Menu.IsTypeaheadActive)
@@ -249,5 +262,12 @@ else
         return string.Equals(args.PointerType, "mouse", StringComparison.Ordinal)
             ? Content.HandleItemLeave()
             : Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleRovingFocusBridgeReady()
+    {
+        _rovingFocusBridgeReady = true;
+        return Task.CompletedTask;
     }
 }

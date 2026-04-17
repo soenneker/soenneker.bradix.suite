@@ -188,6 +188,26 @@
             </BradixAccordionItem>
         </BradixAccordion>
     </section>
+
+    <section class="card website-demo-card" aria-label="Force mounted accordion demo">
+        <BradixAccordion Class="accordion-demo__root"
+                         Type="@BradixSelectionMode.Single"
+                         Collapsible>
+            <BradixAccordionItem Class="accordion-demo__item" Value="item-1">
+                <BradixAccordionHeader Class="accordion-demo__header">
+                    <BradixAccordionTrigger Class="accordion-demo__trigger">
+                        <span>Keep details mounted for animation</span>
+                    </BradixAccordionTrigger>
+                </BradixAccordionHeader>
+                <BradixAccordionContent Class="accordion-demo__content accordion-demo__force-mount-content"
+                                        ForceMount>
+                    <div class="accordion-demo__content-text">
+                        Force mounted accordion details remain in the DOM while closed.
+                    </div>
+                </BradixAccordionContent>
+            </BradixAccordionItem>
+        </BradixAccordion>
+    </section>
 </section>
 
 @code {

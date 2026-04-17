@@ -44,6 +44,9 @@
     public EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
 
     [Parameter]
+    public bool PreventMountAutoFocus { get; set; }
+
+    [Parameter]
     public EventCallback OnCloseAutoFocus { get; set; }
 
     [Parameter]
@@ -72,6 +75,9 @@
 
     [Parameter]
     public EventCallback<BradixInteractOutsideEventArgs> OnInteractOutsideDetailed { get; set; }
+
+    [Parameter]
+    public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
 
     [Parameter]
     public string Role { get; set; } = "dialog";
@@ -146,6 +152,9 @@
             await Interop.RegisterHideOthers(_contentElement);
             _hideOthersRegistered = true;
         }
+
+        if (OnElementReferenceCaptured.HasDelegate)
+            await OnElementReferenceCaptured.InvokeAsync(element);
     }
 
     private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
@@ -285,6 +294,7 @@ ResetState:
     private RenderFragment RenderContentTree() => @<BradixFocusGuards>
         <BradixFocusScope Loop
                           Trapped="ShouldTrapFocus"
+                          PreventMountAutoFocus="PreventMountAutoFocus"
                           PreventUnmountAutoFocus="true"
                           OnMountAutoFocusDetailed="HandleOpenAutoFocus"
                           OnUnmountAutoFocusDetailed="HandleCloseAutoFocus">

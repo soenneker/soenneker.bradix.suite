@@ -84,6 +84,7 @@ else
 
 @code {
     private bool _didFocusOpenItem;
+    private bool _pendingOpenAutoFocus;
     private bool _hasContentElement;
     private bool _hasViewportElement;
     private bool _itemAlignedRegistered;
@@ -194,6 +195,9 @@ else
             if (UseItemAlignedPosition)
                 await UpdateItemAlignedPosition();
 
+            if (_pendingOpenAutoFocus)
+                await ApplyOpenAutoFocus();
+
             await EnsurePointerTracker();
             await EnsureWindowDismiss();
             await EnsureHideOthers();
@@ -201,6 +205,7 @@ else
         else
         {
             _didFocusOpenItem = false;
+            _pendingOpenAutoFocus = false;
             _shouldRepositionOnScrollButton = true;
 
             StopAutoScroll();
@@ -340,9 +345,6 @@ else
     [JSInvokable]
     public async Task HandleTriggerPointerGuardResult(bool suppressSelection, bool shouldClose)
     {
-        if (suppressSelection)
-            Select?.SuppressNextMouseUpSelection();
-
         Select?.ClearTriggerPointerDownPosition();
 
         if (shouldClose && Select is not null)
@@ -362,7 +364,7 @@ else
     {
         _contentElement = element;
         _hasContentElement = true;
-        return EnsureDelegatedInteraction();
+        return HandleContentElementCapturedInternal();
     }
 
     private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs args)
@@ -394,8 +396,8 @@ else
         if (_didFocusOpenItem || Select is null || args.DefaultPrevented)
             return;
 
-        _didFocusOpenItem = true;
-        await Select.FocusSelectedOrFirstItem();
+        _pendingOpenAutoFocus = true;
+        await ApplyOpenAutoFocus();
     }
 
     private async Task HandleCloseAutoFocus(BradixAutoFocusEventArgs args)
@@ -531,6 +533,27 @@ else
 
         await Interop.RegisterHideOthers(_contentElement);
         _hideOthersRegistered = true;
+    }
+
+    private async Task HandleContentElementCapturedInternal()
+    {
+        await EnsureDelegatedInteraction();
+
+        if (_pendingOpenAutoFocus && Select?.CurrentOpen == true)
+            await ApplyOpenAutoFocus();
+    }
+
+    private async Task ApplyOpenAutoFocus()
+    {
+        if (_didFocusOpenItem || !_hasContentElement || Select is null)
+            return;
+
+        if (Select.GetSelectedOrFirstEnabledItem() is null)
+            return;
+
+        _pendingOpenAutoFocus = false;
+        _didFocusOpenItem = true;
+        await Select.FocusSelectedOrFirstItem();
     }
 
 }

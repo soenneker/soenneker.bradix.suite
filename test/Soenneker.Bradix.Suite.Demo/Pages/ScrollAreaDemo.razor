@@ -23,10 +23,78 @@
             <BradixScrollAreaCorner Class="scroll-area-corner" />
         </BradixScrollArea>
     </section>
+
+    <section class="card website-demo-card">
+        <div class="stack stack--compact">
+            <h2>Horizontal releases</h2>
+            <p>Horizontal overflow should scroll inside the viewport without introducing vertical movement.</p>
+        </div>
+
+        <BradixScrollArea Class="scroll-area-root scroll-area-demo__horizontal" Type="@BradixScrollAreaType.Always" Style="width: 18rem;">
+            <BradixScrollAreaViewport Class="scroll-area-viewport">
+                <div style="display: flex; width: max-content; gap: 0.75rem; padding: 0.75rem;">
+                    @foreach (var release in Releases)
+                    {
+                        <article style="width: 11rem; flex: 0 0 auto; border: 1px solid var(--gray-a6); border-radius: 0.75rem; padding: 0.75rem; background: white;">
+                            <div style="font-weight: 600;">@release.Title</div>
+                            <div style="font-size: 0.875rem; color: var(--gray-11);">@release.Description</div>
+                        </article>
+                    }
+                </div>
+            </BradixScrollAreaViewport>
+            <BradixScrollAreaScrollbar Class="scroll-area-scrollbar scroll-area-scrollbar--horizontal" Orientation="@BradixOrientation.Horizontal">
+                <BradixScrollAreaThumb Class="scroll-area-thumb" />
+            </BradixScrollAreaScrollbar>
+        </BradixScrollArea>
+    </section>
+
+    <section class="card website-demo-card">
+        <div class="stack stack--compact">
+            <h2>RTL notes</h2>
+            <p>Scroll areas should also preserve natural right-to-left reading flow while remaining vertically scrollable.</p>
+        </div>
+
+        <BradixDirectionProvider Dir="rtl">
+            <BradixScrollArea Class="scroll-area-root" Type="@BradixScrollAreaType.Always" Style="width: 18rem; height: 14rem;" dir="rtl">
+                <BradixScrollAreaViewport Class="scroll-area-viewport" style="text-align: right;">
+                    <div class="scroll-area-demo__content">
+                        @foreach (var note in ArabicNotes)
+                        {
+                            <article style="padding: 0.75rem 0; border-bottom: 1px solid var(--gray-a5);">
+                                <div style="font-weight: 600;">@note.Title</div>
+                                <div style="font-size: 0.875rem; color: var(--gray-11);">@note.Description</div>
+                            </article>
+                        }
+                    </div>
+                </BradixScrollAreaViewport>
+                <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="@BradixOrientation.Vertical">
+                    <BradixScrollAreaThumb Class="scroll-area-thumb" />
+                </BradixScrollAreaScrollbar>
+            </BradixScrollArea>
+        </BradixDirectionProvider>
+    </section>
 </section>
 
 @code {
     private static readonly string[] Tags = Enumerable.Range(1, 50)
         .Select(index => $"v1.2.0-beta.{51 - index}")
         .ToArray();
+
+    private static readonly (string Title, string Description)[] Releases =
+    [
+        ("v3.2.0", "Sidebar improvements"),
+        ("v3.1.4", "Dialog polish"),
+        ("v3.1.0", "Command menu refresh"),
+        ("v3.0.7", "Input group updates"),
+        ("v3.0.0", "Navigation redesign")
+    ];
+
+    private static readonly (string Title, string Description)[] ArabicNotes =
+    [
+        ("المصادقة", "تمت إضافة حماية إعادة تشغيل الجلسة وتدوير السر الافتراضي للكوكيز."),
+        ("الفوترة", "تم تحسين تذكيرات الفواتير وآليات إعادة المحاولة للبطاقات المنتهية."),
+        ("عمليات النشر", "تم تبسيط الموافقات وإضافة ملخص إنتاج أكثر هدوءًا."),
+        ("المراقبة", "تم توسيع تصفية السجلات لتقليل ضوضاء الوظائف الخلفية."),
+        ("المحرر", "تم تقليل تكلفة العرض الأولي للجداول الكبيرة وقوائم الأوامر.")
+    ];
 }

@@ -88,11 +88,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_hasElement && !_observing)
-        {
-            await Interop.ObserveCollapsibleContent(_element);
-            _observing = true;
-        }
+        await EnsureObservation();
     }
 
     public async ValueTask DisposeAsync()
@@ -101,12 +97,12 @@
             await Interop.UnobserveCollapsibleContent(_element);
     }
 
-    private Task HandleElementCaptured(ElementReference element)
+    private async Task HandleElementCaptured(ElementReference element)
     {
         _element = element;
         _hasElement = true;
         _observing = false;
-        return Task.CompletedTask;
+        await EnsureObservation();
     }
 
     private async Task HandleExitComplete()
@@ -125,5 +121,14 @@
     private string? BuildMergedStyle(string? additionalStyle)
     {
         return MergeStyleValues(additionalStyle, Style);
+    }
+
+    private async Task EnsureObservation()
+    {
+        if (!_hasElement || _observing)
+            return;
+
+        await Interop.ObserveCollapsibleContent(_element);
+        _observing = true;
     }
 }

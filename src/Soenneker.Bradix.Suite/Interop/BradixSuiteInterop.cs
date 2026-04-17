@@ -191,10 +191,22 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("clickElement", cancellationToken, element);
     }
 
+    public async ValueTask FocusElementDeferred(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("focusElementDeferred", cancellationToken, element);
+    }
+
     public async ValueTask SelectInputText(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("selectInputText", cancellationToken, element);
+    }
+
+    public async ValueTask SyncInputValue(ElementReference element, string? value, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("syncInputValue", cancellationToken, element, value);
     }
 
     public async ValueTask<bool> IsDirectionRtl(ElementReference element, CancellationToken cancellationToken = default)
@@ -219,6 +231,19 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("syncSliderBubbleInputValue", cancellationToken, element, value, dispatchEvent);
+    }
+
+    public async ValueTask RegisterSelectBubbleInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("registerSelectBubbleInput", cancellationToken, element, dotNetReference);
+    }
+
+    public async ValueTask UnregisterSelectBubbleInput(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("unregisterSelectBubbleInput", cancellationToken, element);
     }
 
     public async ValueTask SyncSelectBubbleInputValue(ElementReference element, string? value, bool dispatchEvent, CancellationToken cancellationToken = default)
@@ -327,6 +352,12 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("focusElementPreventScroll", cancellationToken, element);
+    }
+
+    public async ValueTask<bool> FocusFirstMatchingDescendant(ElementReference element, string selector, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        return await module.InvokeAsync<bool>("focusFirstMatchingDescendant", cancellationToken, element, selector);
     }
 
     public async ValueTask ScrollElementIntoViewNearest(ElementReference element, CancellationToken cancellationToken = default)

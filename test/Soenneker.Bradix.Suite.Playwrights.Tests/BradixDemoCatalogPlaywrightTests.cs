@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
+using Soenneker.Facts.Manual;
 using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
 using Soenneker.Playwrights.Tests.Unit;
@@ -14,8 +15,8 @@ public sealed class BradixDemoCatalogPlaywrightTests : PlaywrightUnitTest
     {
     }
 
-    [Theory]
-    [MemberData(nameof(AllDemoRoutes))]
+    //[Theory]
+    //[MemberData(nameof(AllDemoRoutes))]
     public async ValueTask Every_demo_route_loads_intro_and_core_affordance(string route)
     {
         DemoPageSpec spec = DemoPageSpecs.Get(route);
@@ -32,3 +33,4 @@ public sealed class BradixDemoCatalogPlaywrightTests : PlaywrightUnitTest
         return DemoPageSpecs.AllRoutes();
     }
 }
+

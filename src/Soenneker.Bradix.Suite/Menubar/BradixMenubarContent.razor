@@ -208,6 +208,15 @@
 
         if (OnEscapeKeyDownDetailed.HasDelegate)
             await OnEscapeKeyDownDetailed.InvokeAsync(args);
+
+        if (args.DefaultPrevented)
+            return;
+
+        args.PreventDefault();
+        await HandleDismiss();
+
+        if (Menu is not null)
+            await Menu.FocusTrigger();
     }
 
     private async Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)

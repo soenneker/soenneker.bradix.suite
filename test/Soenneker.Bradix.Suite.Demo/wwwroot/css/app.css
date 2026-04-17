@@ -806,9 +806,21 @@ input[type="radio"] {
     width: auto;
 }
 
+.nav-menu-content--learn {
+    width: 520px;
+    max-width: min(520px, calc(100vw - 3rem));
+}
+
+.nav-menu-content--overview {
+    width: 600px;
+    max-width: min(600px, calc(100vw - 3rem));
+}
+
 .nav-menu-viewport {
     position: relative;
-    width: 100%;
+    width: var(--radix-navigation-menu-viewport-width);
+    min-width: 12rem;
+    height: var(--radix-navigation-menu-viewport-height);
     margin-top: 10px;
     overflow: hidden;
     border-radius: 6px;
@@ -816,6 +828,7 @@ input[type="radio"] {
     box-shadow:
         hsl(206 22% 7% / 35%) 0 10px 38px -10px,
         hsl(206 22% 7% / 20%) 0 10px 20px -15px;
+    transition: width 250ms ease, height 250ms ease;
 }
 
 .nav-menu-indicator {

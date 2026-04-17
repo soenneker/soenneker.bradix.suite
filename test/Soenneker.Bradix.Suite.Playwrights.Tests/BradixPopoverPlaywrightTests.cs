@@ -1,0 +1,152 @@
+using System.Threading.Tasks;
+using Microsoft.Playwright;
+using Soenneker.Playwrights.Session;
+using Xunit;
+
+namespace Soenneker.Bradix.Suite.Playwrights.Tests;
+
+[Collection("Collection")]
+public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
+{
+    public BradixPopoverPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    {
+    }
+
+[Fact]
+    public async ValueTask Popover_demo_preserves_explicit_content_role_over_dialog_default()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+
+        ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open custom listbox", Exact = true });
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
+
+        var popupState = await page.EvaluateAsync<PopoverRoleProbe>(
+            @"() => {
+                const popup = document.querySelector('[role=""listbox""][aria-label=""Framework choices""]');
+                const astro = popup?.querySelector('[role=""option""][aria-selected=""true""]');
+
+                return {
+                    role: popup?.getAttribute('role'),
+                    ariaLabel: popup?.getAttribute('aria-label'),
+                    dataState: popup?.getAttribute('data-state'),
+                    selectedText: astro?.textContent?.trim()
+                };
+            }");
+
+        Assert.NotNull(popupState);
+        Assert.Equal("listbox", popupState.role);
+        Assert.Equal("Framework choices", popupState.ariaLabel);
+        Assert.Equal("open", popupState.dataState);
+        Assert.Equal("Astro", popupState.selectedText);
+        await Assertions.Expect(page.GetByRole(AriaRole.Dialog)).ToHaveCountAsync(0);
+    }
+
+[Fact]
+    public async ValueTask Popover_demo_closes_from_escape_after_opening_from_trigger()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+
+        ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true });
+        await trigger.ClickAsync();
+
+        ILocator content = page.Locator(".popover-demo__content[data-state='open']").Filter(new LocatorFilterOptions { HasText = "Dimensions" });
+        ILocator widthInput = page.Locator("#popover-width");
+
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(content).ToBeVisibleAsync();
+        await Assertions.Expect(widthInput).ToBeFocusedAsync();
+
+        await widthInput.PressAsync("Escape");
+
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "false");
+        await Assertions.Expect(content).Not.ToBeVisibleAsync();
+    }
+
+[Fact]
+    public async ValueTask Popover_demo_opens_and_closes_from_close_button()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+
+        await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true }).ClickAsync();
+
+        await Assertions.Expect(page.GetByText("Dimensions", new PageGetByTextOptions { Exact = true })).ToBeVisibleAsync();
+        await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Close", Exact = true }).ClickAsync();
+
+        await Assertions.Expect(page.GetByText("Dimensions", new PageGetByTextOptions { Exact = true })).Not.ToBeVisibleAsync();
+    }
+
+[Fact]
+    public async Task Popover_demo_positions_content_relative_to_the_trigger()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+
+        ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true });
+        await trigger.ClickAsync();
+
+        ILocator content = page.GetByRole(AriaRole.Dialog).Filter(new LocatorFilterOptions { HasText = "Dimensions" }).First;
+        await Assertions.Expect(content).ToBeVisibleAsync();
+        await page.WaitForFunctionAsync(
+            "element => { const box = element.getBoundingClientRect(); return box.y > 0 && box.width >= 240; }",
+            await content.ElementHandleAsync());
+
+        LocatorBoundingBoxResult? triggerBox = await trigger.BoundingBoxAsync();
+        LocatorBoundingBoxResult? contentBox = await content.BoundingBoxAsync();
+
+        Assert.NotNull(triggerBox);
+        Assert.NotNull(contentBox);
+        Assert.True(contentBox.Y > 0, $"Expected popover top ({contentBox.Y}) to remain inside the viewport.");
+        Assert.True(System.Math.Abs(contentBox.X - triggerBox.X) <= 200,
+            $"Expected popover X ({contentBox.X}) to stay anchored near the trigger X ({triggerBox.X}).");
+        Assert.True(contentBox.Width >= 240, $"Expected popover content width to be measurable, but was {contentBox.Width}.");
+    }
+
+[Fact]
+    public async ValueTask Popover_demo_closes_from_outside_click_after_opening_from_trigger()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+
+        ILocator customRoleTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open custom listbox", Exact = true });
+        await Assertions.Expect(customRoleTrigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await customRoleTrigger.ClickAsync();
+        await Assertions.Expect(customRoleTrigger).ToHaveAttributeAsync("aria-expanded", "false");
+
+        ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true });
+        await trigger.ClickAsync();
+
+        ILocator content = page.Locator(".popover-demo__content[data-state='open']").Filter(new LocatorFilterOptions { HasText = "Dimensions" });
+
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(content).ToBeVisibleAsync();
+
+        ILocator main = page.Locator(".docs-shell__main");
+        var mainBox = await main.BoundingBoxAsync();
+        Assert.NotNull(mainBox);
+        await page.Mouse.ClickAsync(mainBox.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);
+
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "false");
+        await Assertions.Expect(content).Not.ToBeVisibleAsync();
+    }
+    private sealed class PopoverRoleProbe
+    {
+        public string? role { get; set; }
+        public string? ariaLabel { get; set; }
+        public string? dataState { get; set; }
+        public string? selectedText { get; set; }
+    }
+}
+

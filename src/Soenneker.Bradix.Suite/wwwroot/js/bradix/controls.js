@@ -2,6 +2,8 @@ import { focusElement } from "./core/focus.js";
 
 const sliderPointerHandlers = new WeakMap();
 const oneTimePasswordInputHandlers = new WeakMap();
+const selectBubbleInputHandlers = new WeakMap();
+const selectBubbleInputSyncing = new WeakSet();
 
 export function syncCheckboxBubbleInputState(element, isChecked, isIndeterminate, dispatchEvent, bubbles = true) {
   if (!element) {
@@ -77,8 +79,50 @@ export function syncSelectBubbleInputValue(element, value, dispatchEvent) {
   }
 
   if (dispatchEvent) {
-    element.dispatchEvent(new Event("change", { bubbles: true }));
+    selectBubbleInputSyncing.add(element);
+
+    try {
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    } finally {
+      selectBubbleInputSyncing.delete(element);
+    }
   }
+}
+
+export function registerSelectBubbleInput(element, dotNetRef) {
+  if (!element || !dotNetRef) {
+    return;
+  }
+
+  unregisterSelectBubbleInput(element);
+
+  const change = () => {
+    if (selectBubbleInputSyncing.has(element)) {
+      return;
+    }
+
+    const value = element.value === "" ? null : element.value;
+    dotNetRef.invokeMethodAsync("HandleNativeChangeFromScript", value).catch(() => {});
+  };
+
+  element.addEventListener("change", change);
+  selectBubbleInputHandlers.set(element, { change });
+}
+
+export function unregisterSelectBubbleInput(element) {
+  if (!element) {
+    return;
+  }
+
+  const handlers = selectBubbleInputHandlers.get(element);
+
+  if (!handlers) {
+    return;
+  }
+
+  element.removeEventListener("change", handlers.change);
+  selectBubbleInputHandlers.delete(element);
+  selectBubbleInputSyncing.delete(element);
 }
 
 export function clickElement(element) {
@@ -89,12 +133,40 @@ export function clickElement(element) {
   element.click();
 }
 
+export function focusElementDeferred(element) {
+  if (!element || typeof element.focus !== "function") {
+    return;
+  }
+
+  window.setTimeout(() => {
+    element.focus();
+  }, 0);
+}
+
 export function selectInputText(element) {
   if (!element || typeof element.select !== "function") {
     return;
   }
 
   element.select();
+}
+
+export function syncInputValue(element, value) {
+  if (!element) {
+    return;
+  }
+
+  const next = value ?? "";
+
+  if (element.value !== next) {
+    element.value = next;
+  }
+
+  if (next === "") {
+    element.removeAttribute("value");
+  } else {
+    element.setAttribute("value", next);
+  }
 }
 
 export function isDirectionRtl(element) {
@@ -111,7 +183,7 @@ export function registerSliderPointerBridge(element, dotNetRef) {
   }
 
   unregisterSliderPointerBridge(element);
-
+  let suppressClickUntil = 0;
   const getFractions = (event) => {
     const rect = element.getBoundingClientRect();
     const x = rect.width <= 0 ? 0 : (event.clientX - rect.left) / rect.width;
@@ -123,11 +195,20 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     };
   };
 
-  const pointerdown = (event) => {
+  const getThumbIndex = (event) => {
+    const thumb = event.target && typeof event.target.closest === "function"
+      ? event.target.closest('[role="slider"]')
+      : null;
+    const sliderThumbs = Array.from(element.querySelectorAll('[role="slider"]'));
+    return thumb ? sliderThumbs.indexOf(thumb) : -1;
+  };
+
+  const pointerdown = async (event) => {
     if (event.button !== 0) {
       return;
     }
 
+    suppressClickUntil = window.performance.now() + 500;
     event.preventDefault();
     if (typeof element.setPointerCapture === "function") {
       try {
@@ -136,21 +217,17 @@ export function registerSliderPointerBridge(element, dotNetRef) {
       }
     }
 
-    const thumb = event.target && typeof event.target.closest === "function"
-      ? event.target.closest('[role="slider"]')
-      : null;
-    const sliderThumbs = Array.from(element.querySelectorAll('[role="slider"]'));
-    const thumbIndex = thumb ? sliderThumbs.indexOf(thumb) : -1;
+    const thumbIndex = getThumbIndex(event);
     const fractions = getFractions(event);
 
-    dotNetRef.invokeMethodAsync("HandlePointerStart", fractions.x, fractions.y, thumbIndex);
+    await dotNetRef.invokeMethodAsync("HandlePointerStart", fractions.x, fractions.y, thumbIndex);
 
-    const pointermove = (moveEvent) => {
+    const pointermove = async (moveEvent) => {
       const moveFractions = getFractions(moveEvent);
-      dotNetRef.invokeMethodAsync("HandlePointerMove", moveFractions.x, moveFractions.y);
+      await dotNetRef.invokeMethodAsync("HandlePointerMove", moveFractions.x, moveFractions.y);
     };
 
-    const pointerup = () => {
+    const pointerup = async () => {
       document.removeEventListener("pointermove", pointermove);
       document.removeEventListener("pointerup", pointerup);
       document.removeEventListener("pointercancel", pointercancel);
@@ -163,10 +240,10 @@ export function registerSliderPointerBridge(element, dotNetRef) {
         } catch {
         }
       }
-      dotNetRef.invokeMethodAsync("HandlePointerEnd");
+      await dotNetRef.invokeMethodAsync("HandlePointerEnd");
     };
 
-    const pointercancel = () => {
+    const pointercancel = async () => {
       document.removeEventListener("pointermove", pointermove);
       document.removeEventListener("pointerup", pointerup);
       document.removeEventListener("pointercancel", pointercancel);
@@ -179,7 +256,7 @@ export function registerSliderPointerBridge(element, dotNetRef) {
         } catch {
         }
       }
-      dotNetRef.invokeMethodAsync("HandlePointerCancel");
+      await dotNetRef.invokeMethodAsync("HandlePointerCancel");
     };
 
     document.addEventListener("pointermove", pointermove);
@@ -194,8 +271,24 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     }
   };
 
-  sliderPointerHandlers.set(element, { pointerdown, pointermove: null, pointerup: null, pointercancel: null });
+  const click = async (event) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    if (window.performance.now() < suppressClickUntil) {
+      return;
+    }
+
+    const fractions = getFractions(event);
+    const thumbIndex = getThumbIndex(event);
+    await dotNetRef.invokeMethodAsync("HandlePointerStart", fractions.x, fractions.y, thumbIndex);
+    await dotNetRef.invokeMethodAsync("HandlePointerEnd");
+  };
+
+  sliderPointerHandlers.set(element, { pointerdown, click, pointermove: null, pointerup: null, pointercancel: null });
   element.addEventListener("pointerdown", pointerdown);
+  element.addEventListener("click", click);
 }
 
 export function unregisterSliderPointerBridge(element) {
@@ -206,6 +299,7 @@ export function unregisterSliderPointerBridge(element) {
   }
 
   element.removeEventListener("pointerdown", handlers.pointerdown);
+  element.removeEventListener("click", handlers.click);
 
   if (handlers.pointermove) {
     document.removeEventListener("pointermove", handlers.pointermove);
@@ -268,6 +362,32 @@ export function focusElementPreventScroll(element) {
   focusElement(element, false);
 }
 
+export async function focusFirstMatchingDescendant(element, selector) {
+  if (!element || !selector) {
+    return false;
+  }
+
+  const tryFocus = () => {
+    const target = element.querySelector(selector);
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    focusElement(target, false);
+    return document.activeElement === target;
+  };
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (tryFocus()) {
+      return true;
+    }
+
+    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  return false;
+}
+
 export function scrollElementIntoViewNearest(element) {
   if (!element || typeof element.scrollIntoView !== "function") {
     return;
@@ -283,6 +403,39 @@ export function registerOneTimePasswordInput(element, dotNetRef) {
 
   unregisterOneTimePasswordInput(element);
 
+  const keydown = async (event) => {
+    if (event.target !== element) {
+      return;
+    }
+
+    switch (event.key) {
+      case "Home":
+      case "End":
+      case "Backspace":
+      case "Delete":
+      case "Clear":
+      case "Enter":
+      case "ArrowLeft":
+      case "ArrowRight":
+      case "ArrowUp":
+      case "ArrowDown":
+        event.preventDefault();
+        if (dotNetRef) {
+          await dotNetRef.invokeMethodAsync(
+            "HandleManagedKeyDown",
+            event.key,
+            event.metaKey,
+            event.ctrlKey,
+            event.altKey,
+            event.shiftKey
+          );
+        }
+        return;
+      default:
+        return;
+    }
+  };
+
   const paste = (event) => {
     if (!dotNetRef) {
       return;
@@ -292,8 +445,10 @@ export function registerOneTimePasswordInput(element, dotNetRef) {
     dotNetRef.invokeMethodAsync("HandlePaste", event.clipboardData?.getData("Text") || "");
   };
 
+  element.addEventListener("keydown", keydown);
   element.addEventListener("paste", paste);
-  oneTimePasswordInputHandlers.set(element, { paste });
+  oneTimePasswordInputHandlers.set(element, { keydown, paste });
+  dotNetRef?.invokeMethodAsync("HandleManagedKeyBridgeReady").catch(() => {});
 }
 
 export function unregisterOneTimePasswordInput(element) {
@@ -303,6 +458,7 @@ export function unregisterOneTimePasswordInput(element) {
     return;
   }
 
+  element.removeEventListener("keydown", handlers.keydown);
   element.removeEventListener("paste", handlers.paste);
   oneTimePasswordInputHandlers.delete(element);
 }

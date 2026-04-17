@@ -74,7 +74,11 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask ClickElement(ElementReference element, CancellationToken cancellationToken = default);
 
+    ValueTask FocusElementDeferred(ElementReference element, CancellationToken cancellationToken = default);
+
     ValueTask SelectInputText(ElementReference element, CancellationToken cancellationToken = default);
+
+    ValueTask SyncInputValue(ElementReference element, string? value, CancellationToken cancellationToken = default);
 
     ValueTask<bool> IsDirectionRtl(ElementReference element, CancellationToken cancellationToken = default);
 
@@ -83,6 +87,10 @@ public interface IBradixSuiteInterop : IAsyncDisposable
     ValueTask UnregisterSliderPointerBridge(ElementReference element, CancellationToken cancellationToken = default);
 
     ValueTask SyncSliderBubbleInputValue(ElementReference element, double value, bool dispatchEvent, CancellationToken cancellationToken = default);
+
+    ValueTask RegisterSelectBubbleInput(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
+
+    ValueTask UnregisterSelectBubbleInput(ElementReference element, CancellationToken cancellationToken = default);
 
     ValueTask SyncSelectBubbleInputValue(ElementReference element, string? value, bool dispatchEvent, CancellationToken cancellationToken = default);
 
@@ -121,6 +129,8 @@ public interface IBradixSuiteInterop : IAsyncDisposable
     ValueTask FocusElementById(string? elementId, CancellationToken cancellationToken = default);
 
     ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default);
+
+    ValueTask<bool> FocusFirstMatchingDescendant(ElementReference element, string selector, CancellationToken cancellationToken = default);
 
     ValueTask ScrollElementIntoViewNearest(ElementReference element, CancellationToken cancellationToken = default);
 

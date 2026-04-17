@@ -93,6 +93,55 @@
 </section>
 
 <section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
+        <h2>Native form</h2>
+        <p>Verify the hidden select participates in native required validation and form submission.</p>
+
+        <form data-testid="select-native-form" @onsubmit="HandleNativeFormSubmit" @onsubmit:preventDefault="true">
+            <BradixSelect Name="framework"
+                          Required="true"
+                          Value="@_nativeFormValue"
+                          ValueChanged="HandleNativeFormValueChanged">
+                <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit select-demo__trigger"
+                                     aria-label="Select framework">
+                    <BradixSelectValue Placeholder="@_nativeFormPlaceholder" />
+                    <BradixSelectIcon />
+                </BradixSelectTrigger>
+
+                <BradixSelectPortal>
+                    <BradixSelectContent Class="select-surface stack stack--compact"
+                                         Position="BradixSelectPosition.Popper"
+                                         SideOffset="6">
+                        <BradixSelectViewport Class="stack">
+                            <BradixSelectGroup>
+                                <BradixSelectLabel>Frameworks</BradixSelectLabel>
+                                <BradixSelectItem Value="astro" TextValue="Astro">
+                                    <BradixSelectItemText>Astro</BradixSelectItemText>
+                                    <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                                </BradixSelectItem>
+                                <BradixSelectItem Value="next" TextValue="Next.js">
+                                    <BradixSelectItemText>Next.js</BradixSelectItemText>
+                                    <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                                </BradixSelectItem>
+                                <BradixSelectItem Value="sveltekit" TextValue="SvelteKit">
+                                    <BradixSelectItemText>SvelteKit</BradixSelectItemText>
+                                    <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                                </BradixSelectItem>
+                            </BradixSelectGroup>
+                        </BradixSelectViewport>
+                    </BradixSelectContent>
+                </BradixSelectPortal>
+            </BradixSelect>
+
+            <div class="stack stack--compact">
+                <button class="dialog-demo__button dialog-demo__button--violet" type="submit">Submit native form</button>
+                <pre data-testid="select-native-form-result">@_nativeFormSubmission</pre>
+            </div>
+        </form>
+    </section>
+</section>
+
+<section class="website-demo-page">
     <section class="card website-demo-card">
         <BradixDialog>
             <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
@@ -148,9 +197,12 @@
 
 @code {
     private string _selectedValue = string.Empty;
+    private string _nativeFormValue = string.Empty;
     private string _dialogSelectedValue = string.Empty;
+    private string _nativeFormSubmission = "No submission yet.";
 
     private RenderFragment _placeholder => builder => builder.AddContent(0, "Select a fruit…");
+    private RenderFragment _nativeFormPlaceholder => builder => builder.AddContent(0, "Select a framework…");
     private RenderFragment _dialogPlaceholder => builder => builder.AddContent(0, "Select a framework…");
 
     private Task HandleSelectedValueChanged(string? value)
@@ -162,6 +214,18 @@
     private Task HandleDialogSelectedValueChanged(string? value)
     {
         _dialogSelectedValue = value ?? _dialogSelectedValue;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleNativeFormValueChanged(string? value)
+    {
+        _nativeFormValue = value ?? string.Empty;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleNativeFormSubmit()
+    {
+        _nativeFormSubmission = $"framework={_nativeFormValue}";
         return Task.CompletedTask;
     }
 }

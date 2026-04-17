@@ -181,7 +181,7 @@
 
         BradixRadioGroupItem target = focusableItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
-        _selectOnFocusAfterNavigation = true;
+        _selectOnFocusAfterNavigation = args.Key is "ArrowUp" or "ArrowDown" or "ArrowLeft" or "ArrowRight";
         await target.Focus();
         await InvokeAsync(StateHasChanged);
     }

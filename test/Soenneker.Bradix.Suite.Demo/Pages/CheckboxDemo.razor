@@ -4,9 +4,11 @@
 
 <section class="website-demo-page">
     <section class="card website-demo-card">
+        <h2>Default</h2>
         <form>
             <div class="website-demo-row">
                 <BradixCheckbox Class="checkbox-demo__root"
+                                Name="terms"
                                 DefaultChecked="@BradixCheckboxCheckedState.Checked"
                                 Id="terms-checkbox">
                     <BradixCheckboxIndicator Class="checkbox-demo__indicator">
@@ -19,4 +21,67 @@
             </div>
         </form>
     </section>
+
+    <section class="card website-demo-card">
+        <h2>Indeterminate</h2>
+        <div class="website-demo-row">
+            <BradixCheckbox Class="checkbox-demo__root"
+                            Id="ownership-checkbox"
+                            Checked="@_ownershipState"
+                            CheckedChanged="HandleOwnershipChanged">
+                <BradixCheckboxIndicator Class="checkbox-demo__indicator">
+                    <span aria-hidden="true">@(_ownershipState == BradixCheckboxCheckedState.Indeterminate ? "−" : "✓")</span>
+                </BradixCheckboxIndicator>
+            </BradixCheckbox>
+            <BradixLabel Class="checkbox-demo__label" For="ownership-checkbox">
+                Project ownership
+            </BradixLabel>
+        </div>
+        <p><strong>State:</strong> @_ownershipState.Value</p>
+    </section>
+
+    <section class="card website-demo-card">
+        <h2>Form reset</h2>
+        <form>
+            <div class="website-demo-row">
+                <BradixCheckbox Class="checkbox-demo__root"
+                                Name="email-updates"
+                                DefaultChecked="@BradixCheckboxCheckedState.Checked"
+                                Id="email-updates-checkbox">
+                    <BradixCheckboxIndicator Class="checkbox-demo__indicator">
+                        <span aria-hidden="true">✓</span>
+                    </BradixCheckboxIndicator>
+                </BradixCheckbox>
+                <BradixLabel Class="checkbox-demo__label" For="email-updates-checkbox">
+                    Email updates
+                </BradixLabel>
+            </div>
+
+            <div class="website-demo-row">
+                <BradixCheckbox Class="checkbox-demo__root"
+                                Name="project-permissions"
+                                DefaultChecked="@BradixCheckboxCheckedState.Indeterminate"
+                                Id="project-permissions-checkbox">
+                    <BradixCheckboxIndicator Class="checkbox-demo__indicator">
+                        <span aria-hidden="true">−</span>
+                    </BradixCheckboxIndicator>
+                </BradixCheckbox>
+                <BradixLabel Class="checkbox-demo__label" For="project-permissions-checkbox">
+                    Project permissions
+                </BradixLabel>
+            </div>
+
+            <button type="reset">Reset form</button>
+        </form>
+    </section>
 </section>
+
+@code {
+    private BradixCheckboxCheckedState _ownershipState = BradixCheckboxCheckedState.Indeterminate;
+
+    private Task HandleOwnershipChanged(BradixCheckboxCheckedState state)
+    {
+        _ownershipState = state;
+        return Task.CompletedTask;
+    }
+}

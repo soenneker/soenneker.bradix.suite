@@ -1,7 +1,6 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
-@using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
 
@@ -9,9 +8,14 @@
 
 @inject IBradixSuiteInterop Interop
 <button @ref="_button"
+        @onpointerover="HandlePointerOver"
         @onpointerenter="HandlePointerEnter"
         @onpointermove="HandlePointerMove"
         @onpointerleave="HandlePointerLeave"
+        @onmouseover="HandleMouseOver"
+        @onmouseenter="HandleMouseEnter"
+        @onmousemove="HandleMouseMove"
+        @onmouseleave="HandleMouseLeave"
         @onclick="HandleClick"
         @onfocus="HandleFocus"
         @onkeydown="HandleKeyDown"
@@ -61,7 +65,7 @@
         ("disabled", Disabled ? true : null),
         ("data-disabled", Disabled ? string.Empty : null),
         ("data-state", IsOpen ? "open" : "closed"),
-        ("data-bradix-roving-group", NavigationMenu is not null ? BlazorIdGenerator.Child(NavigationMenu.BaseId!, "triggers") : null),
+        ("data-bradix-roving-group", NavigationMenu?.TriggerRovingGroupId),
         ("data-bradix-roving-item", string.Empty),
         ("data-bradix-roving-item-id", Item?.ResolvedValue),
         ("data-bradix-roving-orientation", NavigationMenu?.Orientation?.Value),
@@ -81,8 +85,29 @@
             await Interop.RegisterRovingFocusNavigationKeys(_button, _dotNetReference);
             await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
+                mouseenter = new
+                {
+                    method = nameof(HandleDelegatedMouseEnter),
+                    currentTargetOnly = false
+                },
+                mouseover = new
+                {
+                    method = nameof(HandleDelegatedMouseOver),
+                    currentTargetOnly = false
+                },
+                pointermove = new
+                {
+                    method = nameof(HandleDelegatedPointerMove),
+                    currentTargetOnly = false
+                },
+                pointerover = new
+                {
+                    method = nameof(HandleDelegatedPointerOver),
+                    currentTargetOnly = false
+                },
                 keydown = new
                 {
+                    method = nameof(HandleDelegatedKeyDown),
                     currentTargetOnly = true,
                     preventDefaultKeys = new[] { "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End" }
                 }
@@ -121,14 +146,27 @@
             NavigationMenu?.UnregisterTrigger(_registration);
     }
 
-    private Task HandlePointerEnter(PointerEventArgs _)
+    private async Task HandlePointerEnter(PointerEventArgs args)
     {
         _wasClickClose = false;
+
+        if (NavigationMenu is not null)
+            NavigationMenu.HandleTriggerPointerEnter();
 
         if (NavigationMenu is not null && Item is not null)
             NavigationMenu.ClearEscapeClosed(Item.ResolvedValue);
 
-        return Task.CompletedTask;
+        if (args.PointerType == "touch" ||
+            Disabled ||
+            NavigationMenu is null ||
+            Item is null ||
+            _hasPointerMoveOpened ||
+            !NavigationMenu.HasOpenItem ||
+            IsOpen)
+            return;
+
+        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
+        _hasPointerMoveOpened = true;
     }
 
     private async Task HandlePointerMove(PointerEventArgs args)
@@ -146,9 +184,82 @@
         _hasPointerMoveOpened = true;
     }
 
+    private Task HandlePointerOver(PointerEventArgs args)
+    {
+        return HandlePointerMove(args);
+    }
+
+    private Task HandleMouseEnter()
+    {
+        return HandleHoverEnter();
+    }
+
+    private Task HandleMouseMove()
+    {
+        return HandleHoverMove();
+    }
+
+    private Task HandleMouseOver()
+    {
+        return HandleHoverMove();
+    }
+
+    private Task HandleMouseLeave()
+    {
+        return HandleHoverLeave();
+    }
+
     private async Task HandlePointerLeave(PointerEventArgs args)
     {
         if (args.PointerType == "touch" || Disabled || NavigationMenu is null)
+            return;
+
+        await HandleHoverLeave();
+    }
+
+    private async Task HandleHoverEnter()
+    {
+        if (Disabled)
+            return;
+
+        if (NavigationMenu is not null)
+            NavigationMenu.HandleTriggerPointerEnter();
+
+        _wasClickClose = false;
+
+        if (NavigationMenu is not null && Item is not null)
+            NavigationMenu.ClearEscapeClosed(Item.ResolvedValue);
+
+        if (NavigationMenu is null ||
+            Item is null ||
+            _hasPointerMoveOpened ||
+            !NavigationMenu.HasOpenItem ||
+            IsOpen)
+        {
+            return;
+        }
+
+        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
+        _hasPointerMoveOpened = true;
+    }
+
+    private async Task HandleHoverMove()
+    {
+        if (Disabled ||
+            NavigationMenu is null ||
+            Item is null ||
+            _wasClickClose ||
+            NavigationMenu.WasEscapeClosed(Item.ResolvedValue) ||
+            _hasPointerMoveOpened)
+            return;
+
+        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
+        _hasPointerMoveOpened = true;
+    }
+
+    private async Task HandleHoverLeave()
+    {
+        if (Disabled || NavigationMenu is null)
             return;
 
         _hasPointerMoveOpened = false;
@@ -189,7 +300,7 @@
 
         if (args.Key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown" or "Home" or "End")
         {
-            if (_rovingFocusBridgeReady && args.Key is "ArrowLeft" or "ArrowRight" or "Home" or "End")
+            if (_rovingFocusBridgeReady && args.Key is "ArrowLeft" or "ArrowRight")
                 return;
 
             if (_registration is not null)
@@ -200,6 +311,51 @@
 
         if (args.Key is "Enter" or " " or "Spacebar")
             await NavigationMenu.ToggleItem(Item.ResolvedValue);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedMouseEnter(BradixDelegatedMouseEvent _)
+    {
+        return HandleHoverEnter();
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedMouseOver(BradixDelegatedMouseEvent _)
+    {
+        return HandleHoverMove();
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedPointerMove(BradixDelegatedMouseEvent args)
+    {
+        if (string.Equals(args.PointerType, "touch", StringComparison.Ordinal))
+            return Task.CompletedTask;
+
+        return HandleHoverMove();
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedPointerOver(BradixDelegatedMouseEvent args)
+    {
+        if (string.Equals(args.PointerType, "touch", StringComparison.Ordinal))
+            return Task.CompletedTask;
+
+        return HandleHoverEnter();
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
+    {
+        return HandleKeyDown(new KeyboardEventArgs
+        {
+            Key = args.Key,
+            Code = args.Code,
+            CtrlKey = args.CtrlKey,
+            ShiftKey = args.ShiftKey,
+            AltKey = args.AltKey,
+            MetaKey = args.MetaKey,
+            Repeat = args.Repeat
+        });
     }
 
     [JSInvokable]

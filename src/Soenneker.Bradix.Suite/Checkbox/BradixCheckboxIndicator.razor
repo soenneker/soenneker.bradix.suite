@@ -4,7 +4,7 @@
 
 @implements IBradixCheckboxIndicator
 
-@if (ForceMount || Checkbox.CurrentChecked != BradixCheckboxCheckedState.Unchecked)
+@if (ForceMount || !IsUncheckedState(Checkbox.CurrentChecked))
 {
     <span @attributes="IndicatorAttributes">
         @ChildContent
@@ -22,6 +22,11 @@
         ("data-state", GetDataState(Checkbox.CurrentChecked)),
         ("data-disabled", Checkbox.IsDisabled ? string.Empty : null),
         ("style", "pointer-events: none;"));
+
+    private static bool IsUncheckedState(BradixCheckboxCheckedState state)
+    {
+        return string.Equals(state.Value, BradixCheckboxCheckedState.UncheckedValue, StringComparison.Ordinal);
+    }
 
     private static string GetDataState(BradixCheckboxCheckedState state)
     {

@@ -10,10 +10,12 @@
                          AdditionalAttributes="@AdditionalAttributes"
                          ForceMount="ForceMount"
                          Role="alertdialog"
+                         PreventMountAutoFocus="true"
                          CloseOnEscapeKeyDown="CloseOnEscapeKeyDown"
                          CloseOnPointerDownOutside="false"
                          CloseOnFocusOutside="false"
                          OnOpenAutoFocusDetailed="@HandleOpenAutoFocus"
+                         OnElementReferenceCaptured="@HandleContentElementCaptured"
                          OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
                          OnInteractOutsideDetailed="@HandleInteractOutside"
                          OnCloseAutoFocus="OnCloseAutoFocus"
@@ -28,7 +30,13 @@
 
 @code {
     private ElementReference _cancelElement;
+    private ElementReference _contentElement;
     private bool _hasCancelElement;
+    private bool _pendingCancelFocus;
+    private bool _didFocusCancelForCurrentOpen;
+
+    [CascadingParameter]
+    private BradixDialog? Dialog { get; set; }
 
     [Parameter]
     public string? Id { get; set; }
@@ -79,6 +87,17 @@
     {
         _cancelElement = element;
         _hasCancelElement = true;
+        _ = InvokeAsync(async () =>
+        {
+            await FocusCancelIfPendingAsync();
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private Task HandleContentElementCaptured(ElementReference element)
+    {
+        _contentElement = element;
+        return Task.CompletedTask;
     }
 
     private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
@@ -89,28 +108,92 @@
         if (OnOpenAutoFocusDetailed.HasDelegate)
             await OnOpenAutoFocusDetailed.InvokeAsync(args);
 
-        if (args.DefaultPrevented || !_hasCancelElement)
+        if (args.DefaultPrevented)
+            return;
+
+        args.PreventDefault();
+        _pendingCancelFocus = true;
+        await FocusCancelIfPendingAsync();
+    }
+
+    private Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)
+    {
+        args.PreventDefault();
+        _pendingCancelFocus = true;
+        _ = InvokeAsync(FocusCancelIfPendingAsync);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleInteractOutside(BradixInteractOutsideEventArgs args)
+    {
+        args.PreventDefault();
+        _pendingCancelFocus = true;
+        _ = InvokeAsync(FocusCancelIfPendingAsync);
+        return Task.CompletedTask;
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            if (Dialog?.CurrentOpen == true && !_didFocusCancelForCurrentOpen)
+                _ = InvokeAsync(FocusCancelForOpenAsync);
+            else if (Dialog?.CurrentOpen != true)
+                _didFocusCancelForCurrentOpen = false;
+        }
+
+        if (_pendingCancelFocus)
+            _ = InvokeAsync(FocusCancelIfPendingAsync);
+
+        return Task.CompletedTask;
+    }
+
+    private async Task FocusCancelIfPendingAsync()
+    {
+        if (!_pendingCancelFocus)
             return;
 
         try
         {
-            await Interop.FocusElementPreventScroll(_cancelElement);
-            args.PreventDefault();
+            await Task.Yield();
+            if (await TryFocusCancelAsync())
+            {
+                _pendingCancelFocus = false;
+                _didFocusCancelForCurrentOpen = true;
+            }
         }
         catch
         {
         }
     }
 
-    private static Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)
+    private async Task FocusCancelForOpenAsync()
     {
-        args.PreventDefault();
-        return Task.CompletedTask;
+        if (Dialog?.CurrentOpen != true)
+            return;
+
+        try
+        {
+            await Task.Yield();
+            if (await TryFocusCancelAsync())
+                _didFocusCancelForCurrentOpen = true;
+        }
+        catch
+        {
+        }
     }
 
-    private static Task HandleInteractOutside(BradixInteractOutsideEventArgs args)
+    private async Task<bool> TryFocusCancelAsync()
     {
-        args.PreventDefault();
-        return Task.CompletedTask;
+        if (await Interop.FocusFirstMatchingDescendant(_contentElement, "[data-bradix-alert-dialog-cancel]"))
+            return true;
+
+        if (_hasCancelElement)
+        {
+            await Interop.FocusElementPreventScroll(_cancelElement);
+            return true;
+        }
+
+        return await Interop.FocusFirstMatchingDescendant(_contentElement, "[autofocus]");
     }
 }

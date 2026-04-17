@@ -154,13 +154,17 @@
 
     private Task HandleContentCaptured(string value, ElementReference element)
     {
-        if (string.Equals(value, ActiveViewportValue, StringComparison.Ordinal))
-        {
-            _contentElement = element;
-            _hasContentElement = true;
-        }
+        if (!string.Equals(value, ActiveViewportValue, StringComparison.Ordinal))
+            return Task.CompletedTask;
 
-        return Task.CompletedTask;
+        _contentElement = element;
+
+        if (_hasContentElement)
+            return Task.CompletedTask;
+
+        _hasContentElement = true;
+        return InvokeAsync(StateHasChanged);
+
     }
 
     private EventCallback<ElementReference> CreateContentCapturedCallback(string value)

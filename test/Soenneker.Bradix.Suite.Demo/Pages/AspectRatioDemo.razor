@@ -14,4 +14,38 @@
             </div>
         </div>
     </section>
+
+    <section class="card website-demo-card">
+        <div class="stack stack--compact">
+            <h2>Square profile</h2>
+            <p>A 1:1 frame keeps avatars and thumbnails consistently cropped.</p>
+        </div>
+
+        <div class="aspect-demo" style="max-width: 16rem;">
+            <div class="aspect-demo__container">
+                <BradixAspectRatio Ratio="1">
+                    <img class="aspect-demo__image"
+                         src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&dpr=2&q=80"
+                         alt="Square sample image" />
+                </BradixAspectRatio>
+            </div>
+        </div>
+    </section>
+
+    <section class="card website-demo-card">
+        <div class="stack stack--compact">
+            <h2>Portrait poster</h2>
+            <p>A 9:16 frame keeps taller media constrained without extra wrappers.</p>
+        </div>
+
+        <div class="aspect-demo" style="max-width: 16rem;">
+            <div class="aspect-demo__container">
+                <BradixAspectRatio Ratio="@(9d / 16d)">
+                    <img class="aspect-demo__image"
+                         src="https://images.unsplash.com/photo-1494526585095-c41746248156?w=700&dpr=2&q=80"
+                         alt="Portrait sample image" />
+                </BradixAspectRatio>
+            </div>
+        </div>
+    </section>
 </section>

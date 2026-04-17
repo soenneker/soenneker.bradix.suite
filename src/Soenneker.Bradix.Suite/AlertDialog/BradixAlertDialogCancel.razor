@@ -1,10 +1,11 @@
 @namespace Soenneker.Bradix
 
 @implements IBradixAlertDialogCancel
+@inject IBradixSuiteInterop Interop
 <BradixDialogClose Class="@Class"
                    AriaLabel="@((string?)null)"
                    Style="@Style"
-                   AdditionalAttributes="@AdditionalAttributes"
+                   AdditionalAttributes="@ResolvedAttributes"
                    OnElementReferenceCaptured="@HandleElementCaptured">
     @ChildContent
 </BradixDialogClose>
@@ -12,6 +13,11 @@
 @code {
     [CascadingParameter]
     private BradixAlertDialogContent? Content { get; set; }
+
+    [CascadingParameter]
+    private BradixDialog? Dialog { get; set; }
+
+    private ElementReference _element;
 
     [Parameter]
     public string? Class { get; set; }
@@ -25,9 +31,43 @@
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    private IReadOnlyDictionary<string, object>? ResolvedAttributes
+    {
+        get
+        {
+            var attributes = new Dictionary<string, object>(AdditionalAttributes ?? new Dictionary<string, object>())
+            {
+                ["data-bradix-alert-dialog-cancel"] = "true"
+            };
+
+            if (!attributes.ContainsKey("autofocus"))
+                attributes["autofocus"] = true;
+
+            return attributes;
+        }
+    }
+
     private Task HandleElementCaptured(ElementReference element)
     {
+        _element = element;
         Content?.RegisterCancelElement(element);
         return Task.CompletedTask;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (!firstRender || Dialog?.CurrentOpen != true)
+            return;
+
+        try
+        {
+            await Task.Yield();
+            await Interop.FocusElementPreventScroll(_element);
+        }
+        catch
+        {
+        }
     }
 }

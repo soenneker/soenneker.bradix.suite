@@ -3,7 +3,7 @@
 <PageTitle>Menubar</PageTitle>
 
 <section class="website-demo-page">
-    <section class="card website-demo-card">
+    <section class="card website-demo-card" data-testid="bradix-menubar-demo">
         <BradixMenubar Value="@_currentMenu" ValueChanged="HandleCurrentMenuChanged">
                 <BradixMenubarMenu Value="file">
                     <BradixMenubarTrigger>File</BradixMenubarTrigger>
@@ -73,6 +73,28 @@
                     </BradixMenubarPortal>
                 </BradixMenubarMenu>
             </BradixMenubar>
+    </section>
+
+    <section class="card website-demo-card" data-testid="bradix-menubar-rtl-demo">
+        <BradixMenubar Dir="rtl" Class="stack">
+            <BradixMenubarMenu Value="file-rtl">
+                <BradixMenubarTrigger>ملف</BradixMenubarTrigger>
+                <BradixMenubarPortal>
+                    <BradixMenubarContent Class="card stack" SideOffset="6">
+                        <BradixMenubarItem TextValue="علامة تبويب جديدة">علامة تبويب جديدة</BradixMenubarItem>
+                    </BradixMenubarContent>
+                </BradixMenubarPortal>
+            </BradixMenubarMenu>
+
+            <BradixMenubarMenu Value="view-rtl">
+                <BradixMenubarTrigger>عرض</BradixMenubarTrigger>
+                <BradixMenubarPortal>
+                    <BradixMenubarContent Class="card stack" SideOffset="6">
+                        <BradixMenubarItem TextValue="إظهار الشريط الجانبي">إظهار الشريط الجانبي</BradixMenubarItem>
+                    </BradixMenubarContent>
+                </BradixMenubarPortal>
+            </BradixMenubarMenu>
+        </BradixMenubar>
     </section>
 </section>
 

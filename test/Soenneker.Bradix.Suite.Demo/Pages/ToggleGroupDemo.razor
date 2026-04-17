@@ -52,4 +52,19 @@
             <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="right">Right</BradixToggleGroupItem>
         </BradixToggleGroup>
     </section>
+
+    <section class="card website-demo-card">
+        <h1>RTL single selection</h1>
+        <div dir="rtl">
+            <BradixToggleGroup Class="toggle-group"
+                               Type="@BradixSelectionMode.Single"
+                               DefaultValue="center"
+                               Dir="rtl"
+                               aria-label="RTL alignment">
+                <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="right">Right</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="center">Center</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="left">Left</BradixToggleGroupItem>
+            </BradixToggleGroup>
+        </div>
+    </section>
 </section>

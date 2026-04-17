@@ -1,5 +1,4 @@
 using Soenneker.Playwrights.Fixtures;
-using Soenneker.Playwrights.TestEnvironment;
 using Soenneker.Playwrights.TestEnvironment.Options;
 using System.IO;
 
@@ -13,7 +12,11 @@ public sealed class BradixPlaywrightFixture : PlaywrightFixture
         {
             SolutionFileName = "Soenneker.Bradix.Suite.slnx",
             ProjectRelativePath = Path.Combine("test", "Soenneker.Bradix.Suite.Demo", "Soenneker.Bradix.Suite.Demo.csproj"),
-            ApplicationName = "Bradix demo"
+            ApplicationName = "Bradix demo",
+            Restore = false,
+            BuildConfiguration = "Debug",
+            ReuseBrowserContextAcrossSessions = false,
+            ReusePageAcrossSessions = false
         };
     }
 }

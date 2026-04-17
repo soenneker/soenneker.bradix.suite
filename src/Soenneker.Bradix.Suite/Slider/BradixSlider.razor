@@ -84,6 +84,7 @@
         ("role", "group"),
         ("aria-orientation", Orientation.Value),
         ("data-orientation", Orientation.Value),
+        ("data-js-ready", _registered ? "true" : "false"),
         ("data-disabled", Disabled ? string.Empty : null),
         ("aria-disabled", Disabled ? "true" : null),
         ("dir", ResolvedDirection));
@@ -110,6 +111,7 @@
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await Interop.RegisterSliderPointerBridge(_element, _dotNetReference);
         _registered = true;
+        await InvokeAsync(StateHasChanged);
     }
 
     public async ValueTask DisposeAsync()

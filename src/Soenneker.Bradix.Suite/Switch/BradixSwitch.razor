@@ -29,6 +29,7 @@
     private bool _registered;
     private bool _formControlStateResolved;
     private bool _hasSyncedBubbleInput;
+    private bool _hasUserInteracted;
     private bool _initialUncheckedState;
     private bool _uncontrolledChecked;
     private bool _lastRenderedState;
@@ -111,13 +112,21 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (!_initialized)
+        {
+            _initialUncheckedState = DefaultChecked;
+            _uncontrolledChecked = DefaultChecked;
+            _lastRenderedState = CurrentChecked;
+            _initialized = true;
             return;
+        }
 
-        _initialUncheckedState = DefaultChecked;
-        _uncontrolledChecked = DefaultChecked;
-        _lastRenderedState = CurrentChecked;
-        _initialized = true;
+        if (Checked is null && !_hasUserInteracted && DefaultChecked != _initialUncheckedState)
+        {
+            _initialUncheckedState = DefaultChecked;
+            _uncontrolledChecked = DefaultChecked;
+            _lastRenderedState = CurrentChecked;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -141,6 +150,15 @@
                 }
             });
             _registered = true;
+        }
+
+        if (Checked is null && !_hasUserInteracted && DefaultChecked != _uncontrolledChecked)
+        {
+            _initialUncheckedState = DefaultChecked;
+            _uncontrolledChecked = DefaultChecked;
+            _lastRenderedState = CurrentChecked;
+            await InvokeAsync(StateHasChanged);
+            return;
         }
 
         if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
@@ -215,7 +233,10 @@
     private async Task SetChecked(bool value)
     {
         if (Checked is null)
+        {
             _uncontrolledChecked = value;
+            _hasUserInteracted = true;
+        }
 
         if (CheckedChanged.HasDelegate)
             await CheckedChanged.InvokeAsync(value);

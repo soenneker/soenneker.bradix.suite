@@ -29,6 +29,7 @@
     private bool _registered;
     private bool _formControlStateResolved;
     private bool _hasSyncedBubbleInput;
+    private bool _hasUserInteracted;
     private BradixCheckboxCheckedState _initialUncheckedState = BradixCheckboxCheckedState.Unchecked;
     private BradixCheckboxCheckedState _uncontrolledChecked = BradixCheckboxCheckedState.Unchecked;
     private BradixCheckboxCheckedState _lastRenderedState = BradixCheckboxCheckedState.Unchecked;
@@ -68,9 +69,9 @@
 
     internal bool IsDisabled => Disabled;
 
-    internal bool IsChecked => CurrentChecked == BradixCheckboxCheckedState.Checked;
+    internal bool IsChecked => IsCheckedState(CurrentChecked);
 
-    internal bool IsIndeterminate => CurrentChecked == BradixCheckboxCheckedState.Indeterminate;
+    internal bool IsIndeterminate => IsIndeterminateState(CurrentChecked);
 
     private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Form);
 
@@ -112,13 +113,21 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (!_initialized)
+        {
+            _initialUncheckedState = DefaultChecked;
+            _uncontrolledChecked = DefaultChecked;
+            _lastRenderedState = CurrentChecked;
+            _initialized = true;
             return;
+        }
 
-        _initialUncheckedState = DefaultChecked;
-        _uncontrolledChecked = DefaultChecked;
-        _lastRenderedState = CurrentChecked;
-        _initialized = true;
+        if (Checked is null && !_hasUserInteracted && !StatesEqual(DefaultChecked, _initialUncheckedState))
+        {
+            _initialUncheckedState = DefaultChecked;
+            _uncontrolledChecked = DefaultChecked;
+            _lastRenderedState = CurrentChecked;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -142,6 +151,15 @@
                 }
             });
             _registered = true;
+        }
+
+        if (Checked is null && !_hasUserInteracted && !StatesEqual(_uncontrolledChecked, DefaultChecked))
+        {
+            _initialUncheckedState = DefaultChecked;
+            _uncontrolledChecked = DefaultChecked;
+            _lastRenderedState = CurrentChecked;
+            await InvokeAsync(StateHasChanged);
+            return;
         }
 
         if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
@@ -210,7 +228,10 @@
     private async Task SetChecked(BradixCheckboxCheckedState state)
     {
         if (Checked is null)
+        {
             _uncontrolledChecked = state;
+            _hasUserInteracted = true;
+        }
 
         if (CheckedChanged.HasDelegate)
             await CheckedChanged.InvokeAsync(state);
@@ -223,11 +244,26 @@
 
     private static BradixCheckboxCheckedState GetNextState(BradixCheckboxCheckedState state)
     {
-        return state == BradixCheckboxCheckedState.Indeterminate
+        return IsIndeterminateState(state)
             ? BradixCheckboxCheckedState.Checked
-            : state == BradixCheckboxCheckedState.Checked
+            : IsCheckedState(state)
                 ? BradixCheckboxCheckedState.Unchecked
                 : BradixCheckboxCheckedState.Checked;
+    }
+
+    private static bool IsCheckedState(BradixCheckboxCheckedState state)
+    {
+        return StatesEqual(state, BradixCheckboxCheckedState.Checked);
+    }
+
+    private static bool IsIndeterminateState(BradixCheckboxCheckedState state)
+    {
+        return StatesEqual(state, BradixCheckboxCheckedState.Indeterminate);
+    }
+
+    private static bool StatesEqual(BradixCheckboxCheckedState left, BradixCheckboxCheckedState right)
+    {
+        return string.Equals(left.Value, right.Value, StringComparison.Ordinal);
     }
 
     private static string GetDataState(BradixCheckboxCheckedState state)

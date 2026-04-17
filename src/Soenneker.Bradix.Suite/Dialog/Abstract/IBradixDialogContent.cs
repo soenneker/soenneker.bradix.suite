@@ -23,6 +23,11 @@ public interface IBradixDialogContent : IAsyncDisposable {
     EventCallback<BradixAutoFocusEventArgs> OnOpenAutoFocusDetailed { get; set; }
 
     /// <summary>
+    /// Gets or sets whether the dialog suppresses default mount autofocus behavior.
+    /// </summary>
+    bool PreventMountAutoFocus { get; set; }
+
+    /// <summary>
     /// Gets or sets the callback invoked when focus should return after the dialog closes.
     /// </summary>
     EventCallback OnCloseAutoFocus { get; set; }

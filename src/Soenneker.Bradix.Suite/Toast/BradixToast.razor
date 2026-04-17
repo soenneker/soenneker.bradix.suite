@@ -448,7 +448,7 @@
         _swipeMoveY = 0;
         _swipeEndX = 0;
         _swipeEndY = 0;
-        return TryCapturePointer(args.PointerId);
+        return Task.CompletedTask;
     }
 
     private async Task HandlePointerMove(PointerEventArgs args)
@@ -477,6 +477,7 @@
             }
 
             _swipeState = "start";
+            await TryCapturePointer(args.PointerId);
 
             if (OnSwipeStart.HasDelegate)
                 await OnSwipeStart.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = clampedX, DeltaY = clampedY });

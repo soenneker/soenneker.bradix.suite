@@ -36,6 +36,9 @@
     [CascadingParameter]
     private BradixPopover? Popover { get; set; }
 
+    [CascadingParameter]
+    private BradixPopper? Popper { get; set; }
+
     [Parameter]
     public bool Disabled { get; set; }
 
@@ -59,6 +62,8 @@
         if (firstRender)
         {
             Popover?.RegisterTrigger(_button, ResolvedTriggerId);
+            if (Popover?.HasCustomAnchor != true)
+                Popper?.RegisterAnchor(_button);
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {

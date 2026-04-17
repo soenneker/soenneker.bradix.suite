@@ -274,6 +274,13 @@
 
         if (OnEscapeKeyDownDetailed.HasDelegate)
             await OnEscapeKeyDownDetailed.InvokeAsync(_);
+
+        if (_.DefaultPrevented || Menu is null)
+            return;
+
+        _.PreventDefault();
+        await Menu.SetOpen(false);
+        await Menu.FocusTrigger();
     }
 
     [JSInvokable]

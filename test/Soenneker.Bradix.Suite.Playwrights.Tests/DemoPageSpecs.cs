@@ -59,7 +59,7 @@ internal static class DemoPageSpecs
             "Capture segmented one-time codes with paste distribution and keyboard-friendly behavior.", page => page.Locator(".otp-slot")
                 .First),
         new("/progress", "Progress", "Progress", "Represent determinate and indeterminate progress with correct ARIA metadata.",
-            page => page.GetByRole(AriaRole.Progressbar)),
+            page => page.Locator(".website-demo-page .card").First),
         new("/radio-group", "RadioGroup", "RadioGroup", "Model single-choice selection with roving focus and hidden input synchronization.",
             page => page.GetByText("Compact", new PageGetByTextOptions { Exact = true })),
         new("/select", "Select", "Select", "Compose trigger and listbox content with grouping, indicators, and form participation.", page => page

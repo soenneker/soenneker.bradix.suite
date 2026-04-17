@@ -93,6 +93,69 @@
             </div>
         </div>
     </section>
+
+    <section class="card website-demo-card">
+        <h2>Manual activation</h2>
+        <p>Arrow keys should move focus without changing selection until Space or Enter activates the focused tab.</p>
+        <BradixTabs Class="tabs-root"
+                    DefaultValue="manual-account"
+                    ActivationMode="@BradixTabsActivationMode.Manual">
+            <BradixTabsList Class="tabs-list" aria-label="Manual tabs example">
+                <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="manual-account">Manual Account</BradixTabsTrigger>
+                <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="manual-password">Manual Password</BradixTabsTrigger>
+            </BradixTabsList>
+            <BradixTabsContent Class="tabs-content" Value="manual-account">
+                <p>Manual panel A.</p>
+            </BradixTabsContent>
+            <BradixTabsContent Class="tabs-content" Value="manual-password">
+                <p>Manual panel B.</p>
+            </BradixTabsContent>
+        </BradixTabs>
+    </section>
+
+    <section class="card website-demo-card" data-testid="bradix-tabs-vertical-demo">
+        <h2>Vertical tabs</h2>
+        <p>Vertical tabs should use up and down arrows to move focus and selection.</p>
+        <BradixTabs Class="tabs-root"
+                    DefaultValue="vertical-account"
+                    Orientation="@BradixOrientation.Vertical">
+            <BradixTabsList Class="tabs-list" aria-label="Vertical tabs example">
+                <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="vertical-account">Vertical Account</BradixTabsTrigger>
+                <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="vertical-password">Vertical Password</BradixTabsTrigger>
+                <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="vertical-notifications">Vertical Notifications</BradixTabsTrigger>
+            </BradixTabsList>
+            <BradixTabsContent Class="tabs-content" Value="vertical-account">
+                <p>Vertical panel A.</p>
+            </BradixTabsContent>
+            <BradixTabsContent Class="tabs-content" Value="vertical-password">
+                <p>Vertical panel B.</p>
+            </BradixTabsContent>
+            <BradixTabsContent Class="tabs-content" Value="vertical-notifications">
+                <p>Vertical panel C.</p>
+            </BradixTabsContent>
+        </BradixTabs>
+    </section>
+
+    <section class="card website-demo-card" data-testid="bradix-tabs-rtl-demo">
+        <h2>RTL tabs</h2>
+        <p>Horizontal tabs should reverse left and right arrow behavior in RTL.</p>
+        <BradixDirectionProvider Dir="rtl">
+            <BradixTabs Class="tabs-root"
+                        DefaultValue="rtl-account"
+                        Dir="rtl">
+                <BradixTabsList Class="tabs-list" aria-label="RTL tabs example">
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="rtl-account">الحساب</BradixTabsTrigger>
+                    <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="rtl-password">كلمة المرور</BradixTabsTrigger>
+                </BradixTabsList>
+                <BradixTabsContent Class="tabs-content" Value="rtl-account">
+                    <p>RTL panel A.</p>
+                </BradixTabsContent>
+                <BradixTabsContent Class="tabs-content" Value="rtl-password">
+                    <p>RTL panel B.</p>
+                </BradixTabsContent>
+            </BradixTabs>
+        </BradixDirectionProvider>
+    </section>
 </section>
 
 @code {

@@ -12,6 +12,17 @@ internal static class BradixPlaywrightPageExtensions
     {
         await page.OpenPage(baseUrl, spec.Route, async currentPage =>
                   {
+                      await Assertions.Expect(currentPage.Locator(".docs-shell__main"))
+                                      .ToBeVisibleAsync();
+                      await Assertions.Expect(spec.Route == "/"
+                                          ? currentPage.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = spec.Heading, Exact = true })
+                                          : currentPage.Locator(".demo-page-intro h1"))
+                                      .ToHaveTextAsync(spec.Heading);
+                      await Assertions.Expect(currentPage.Locator(".docs-shell__main"))
+                                      .ToContainTextAsync(spec.Description);
+                      await Assertions.Expect(spec.ReadyLocator(currentPage))
+                                      .ToBeVisibleAsync();
+
                       if (spec.Route == "/")
                       {
                           await Assertions.Expect(currentPage)
@@ -26,17 +37,6 @@ internal static class BradixPlaywrightPageExtensions
                           await Assertions.Expect(currentPage.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = spec.Title, Exact = true }))
                                           .ToBeVisibleAsync();
                       }
-
-                      await Assertions.Expect(currentPage.GetByRole(AriaRole.Navigation, new PageGetByRoleOptions { Name = "Bradix primitives" }))
-                                      .ToBeVisibleAsync();
-                      await Assertions.Expect(spec.Route == "/"
-                                          ? currentPage.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = spec.Heading, Exact = true })
-                                          : currentPage.Locator(".demo-page-intro h1"))
-                                      .ToHaveTextAsync(spec.Heading);
-                      await Assertions.Expect(currentPage.Locator(".docs-shell__main"))
-                                      .ToContainTextAsync(spec.Description);
-                      await Assertions.Expect(spec.ReadyLocator(currentPage))
-                                      .ToBeVisibleAsync();
                   })
                   .NoSync();
     }

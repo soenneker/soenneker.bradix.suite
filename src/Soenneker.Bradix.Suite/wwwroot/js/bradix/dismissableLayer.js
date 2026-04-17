@@ -27,6 +27,22 @@ function isRegisteredLayer(layer) {
   return !!layer && dismissableLayers.includes(layer);
 }
 
+function getTopmostLayerForTarget(target) {
+  if (!target) {
+    return dismissableLayers[dismissableLayers.length - 1];
+  }
+
+  for (let index = dismissableLayers.length - 1; index >= 0; index -= 1) {
+    const layer = dismissableLayers[index];
+
+    if (layer?.element?.contains?.(target)) {
+      return layer;
+    }
+  }
+
+  return dismissableLayers[dismissableLayers.length - 1];
+}
+
 function isBranchTarget(target) {
   if (!target) {
     return false;
@@ -202,7 +218,7 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
-    const topLayer = dismissableLayers[dismissableLayers.length - 1];
+    const topLayer = getTopmostLayerForTarget(event.target);
     if (!topLayer) {
       return;
     }

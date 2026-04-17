@@ -28,6 +28,44 @@
             </BradixCollapsibleContent>
         </BradixCollapsible>
     </section>
+
+    <section class="card website-demo-card">
+        <h2 class="website-demo-card__title">Disabled</h2>
+        <BradixCollapsible Class="collapsible-demo__root"
+                           DefaultOpen="true"
+                           Disabled="true">
+            <div class="collapsible-demo__header-row">
+                <span class="collapsible-demo__text">Production deployment</span>
+                <BradixCollapsibleTrigger Class="collapsible-demo__icon-button">
+                    <span aria-hidden="true">Locked</span>
+                </BradixCollapsibleTrigger>
+            </div>
+
+            <BradixCollapsibleContent>
+                <div class="collapsible-demo__repository">
+                    <span class="collapsible-demo__text">Deployment notes stay visible while the panel is locked.</span>
+                </div>
+            </BradixCollapsibleContent>
+        </BradixCollapsible>
+    </section>
+
+    <section class="card website-demo-card">
+        <h2 class="website-demo-card__title">Force mount</h2>
+        <BradixCollapsible Class="collapsible-demo__root">
+            <div class="collapsible-demo__header-row">
+                <span class="collapsible-demo__text">Animation-ready content</span>
+                <BradixCollapsibleTrigger Class="collapsible-demo__icon-button">
+                    <span aria-hidden="true">+</span>
+                </BradixCollapsibleTrigger>
+            </div>
+
+            <BradixCollapsibleContent ForceMount="true" Class="collapsible-demo__force-mount-content">
+                <div class="collapsible-demo__repository">
+                    <span class="collapsible-demo__text">Force mounted details remain in the DOM while closed.</span>
+                </div>
+            </BradixCollapsibleContent>
+        </BradixCollapsible>
+    </section>
 </section>
 
 @code {

@@ -332,6 +332,8 @@ ResetState:
                                      AvoidCollisions="AvoidCollisions"
                                      CollisionPadding="CollisionPadding"
                                      HideWhenDetached="HideWhenDetached"
+                                     Anchor="@Popover.TriggerElement"
+                                     UseAnchor="@(Popover?.HasTrigger == true)"
                                      Style="@PositionerStyle"
                                      OnPlaced="@OnPlaced">
                     <BradixPresence Present="IsPresent"

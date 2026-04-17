@@ -67,7 +67,7 @@
                 keydown = new
                 {
                     currentTargetOnly = true,
-                    preventDefaultKeys = new[] { " ", "Spacebar", "Enter", "ArrowUp", "ArrowDown" }
+                    preventDefaultKeys = new[] { " ", "Spacebar", "Enter", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown" }
                 }
             });
             _delegatedInteractionRegistered = true;
@@ -117,6 +117,21 @@
         {
             await Select.HandleTriggerTypeahead(args.Key);
             return;
+        }
+
+        if (Select.CurrentOpen)
+        {
+            if (args.Key.Length == 1)
+            {
+                await Select.HandleContentTypeahead(args.Key);
+                return;
+            }
+
+            if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
+            {
+                await Select.HandleContentNavigation(args.Key);
+                return;
+            }
         }
 
         if (args.Key is " " or "Spacebar" or "Enter" or "ArrowUp" or "ArrowDown")

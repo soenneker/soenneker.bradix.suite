@@ -4,8 +4,44 @@
 
 <section class="website-demo-page">
     <section class="card website-demo-card">
+        <h1>Uncontrolled toggle</h1>
         <BradixToggle Class="toggle-demo__button" aria-label="Toggle italic">
             <span class="toggle-demo__icon" aria-hidden="true">I</span>
         </BradixToggle>
     </section>
+
+    <section class="card website-demo-card">
+        <h1>Controlled toggle</h1>
+        <div class="stack-sm">
+            <div class="row-sm">
+                <button id="toggle-controlled-on" class="primitive__trigger" type="button" @onclick="() => _controlledPressed = true">Set on</button>
+                <button id="toggle-controlled-off" class="primitive__trigger" type="button" @onclick="() => _controlledPressed = false">Set off</button>
+            </div>
+            <BradixToggle id="toggle-controlled"
+                          Class="toggle-demo__button"
+                          aria-label="Toggle notifications"
+                          Pressed="@_controlledPressed"
+                          PressedChanged="HandleControlledPressedChanged">
+                <span class="toggle-demo__icon" aria-hidden="true">N</span>
+            </BradixToggle>
+            <p id="toggle-controlled-state">Pressed: @_controlledPressed.ToString().ToLowerInvariant()</p>
+        </div>
+    </section>
+
+    <section class="card website-demo-card">
+        <h1>Disabled toggle</h1>
+        <BradixToggle id="toggle-disabled" Class="toggle-demo__button" aria-label="Toggle disabled italic" Disabled="true">
+            <span class="toggle-demo__icon" aria-hidden="true">D</span>
+        </BradixToggle>
+    </section>
 </section>
+
+@code {
+    private bool _controlledPressed = true;
+
+    private Task HandleControlledPressedChanged(bool pressed)
+    {
+        _controlledPressed = pressed;
+        return Task.CompletedTask;
+    }
+}

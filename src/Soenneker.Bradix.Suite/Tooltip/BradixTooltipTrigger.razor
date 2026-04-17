@@ -12,6 +12,9 @@
             @onclick="HandleClick"
             @onpointermove="HandlePointerMove"
             @onpointerleave="HandlePointerLeave"
+            @onmouseenter="HandleMouseEnter"
+            @onmousemove="HandleMouseMove"
+            @onmouseleave="HandleMouseLeave"
             @onpointerdown="HandlePointerDown"
             @onpointerup="HandlePointerUp"
             @onfocus="HandleFocus"
@@ -58,6 +61,30 @@
 
         _hasPointerMoveOpened = true;
         return Tooltip.HandleTriggerEnter();
+    }
+
+    private Task HandleMouseEnter()
+    {
+        return HandleMouseMove();
+    }
+
+    private Task HandleMouseMove()
+    {
+        if (Tooltip is null || _hasPointerMoveOpened || Tooltip.IsPointerInTransit)
+            return Task.CompletedTask;
+
+        _hasPointerMoveOpened = true;
+        return Tooltip.HandleTriggerEnter();
+    }
+
+    private Task HandleMouseLeave()
+    {
+        _hasPointerMoveOpened = false;
+
+        if (Tooltip is null)
+            return Task.CompletedTask;
+
+        return Tooltip.HandleTriggerLeave();
     }
 
     private Task HandlePointerLeave(PointerEventArgs args)

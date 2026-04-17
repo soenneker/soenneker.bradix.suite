@@ -4,6 +4,7 @@
 
 <section class="website-demo-page">
     <section class="card website-demo-card">
+        <h2>Default</h2>
         <form>
             <BradixSlider Class="slider-root"
                           Values="@_singleValue"
@@ -17,14 +18,124 @@
             </BradixSlider>
         </form>
     </section>
+
+    <section class="card website-demo-card">
+        <h2>Controlled</h2>
+        <BradixSlider Class="slider-root"
+                      Values="@_controlledValues"
+                      Max="100"
+                      Step="10"
+                      ValuesChanged="HandleControlledChange">
+            <BradixSliderTrack Class="slider-track">
+                <BradixSliderRange Class="slider-range" />
+            </BradixSliderTrack>
+            <BradixSliderThumb Class="slider-thumb" AriaLabel="Controlled volume" />
+        </BradixSlider>
+
+        <div class="website-demo-actions">
+            <button type="button" @onclick="() => SetControlledValue(20)">Set 20</button>
+            <button type="button" @onclick="() => SetControlledValue(80)">Set 80</button>
+        </div>
+
+        <p><strong>Value:</strong> @_controlledValues[0]</p>
+    </section>
+
+    <section class="card website-demo-card">
+        <h2>Minimum spacing</h2>
+        <BradixSlider Class="slider-root"
+                      Values="@_spacingValues"
+                      Min="0"
+                      Max="100"
+                      Step="10"
+                      MinStepsBetweenThumbs="2"
+                      ValuesChanged="HandleSpacingChange">
+            <BradixSliderTrack Class="slider-track">
+                <BradixSliderRange Class="slider-range" />
+            </BradixSliderTrack>
+            <BradixSliderThumb Class="slider-thumb" AriaLabel="Minimum" />
+            <BradixSliderThumb Class="slider-thumb" AriaLabel="Maximum" />
+        </BradixSlider>
+
+        <p><strong>Values:</strong> @string.Join(", ", _spacingValues)</p>
+    </section>
+
+    <section class="card website-demo-card">
+        <h2>Vertical</h2>
+        <div style="display:flex;align-items:center;gap:2rem;min-height:14rem;">
+            <BradixSlider Class="slider-root slider-root--vertical"
+                          Values="@_verticalValues"
+                          Orientation="@BradixOrientation.Vertical"
+                          Max="100"
+                          Step="5"
+                          OnValuesChange="HandleVerticalChange">
+                <BradixSliderTrack Class="slider-track slider-track--vertical">
+                    <BradixSliderRange Class="slider-range" />
+                </BradixSliderTrack>
+                <BradixSliderThumb Class="slider-thumb" AriaLabel="Vertical volume" />
+            </BradixSlider>
+        </div>
+
+        <p><strong>Value:</strong> @_verticalValues[0]</p>
+    </section>
+
+    <section class="card website-demo-card">
+        <h2>RTL</h2>
+        <BradixDirectionProvider Dir="rtl">
+            <BradixSlider Class="slider-root"
+                          Values="@_rtlValues"
+                          Max="100"
+                          Step="5"
+                          OnValuesChange="HandleRtlChange">
+                <BradixSliderTrack Class="slider-track">
+                    <BradixSliderRange Class="slider-range" />
+                </BradixSliderTrack>
+                <BradixSliderThumb Class="slider-thumb" AriaLabel="RTL volume" />
+            </BradixSlider>
+        </BradixDirectionProvider>
+
+        <p><strong>Value:</strong> @_rtlValues[0]</p>
+    </section>
 </section>
 
 @code {
     private IReadOnlyList<double> _singleValue = [50];
+    private IReadOnlyList<double> _controlledValues = [40];
+    private IReadOnlyList<double> _spacingValues = [20, 60];
+    private IReadOnlyList<double> _verticalValues = [35];
+    private IReadOnlyList<double> _rtlValues = [75];
 
     private Task HandleSingleChange(IReadOnlyList<double> values)
     {
         _singleValue = values;
         return Task.CompletedTask;
+    }
+
+    private Task HandleControlledChange(IReadOnlyList<double> values)
+    {
+        _controlledValues = values;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSpacingChange(IReadOnlyList<double> values)
+    {
+        _spacingValues = values;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleVerticalChange(IReadOnlyList<double> values)
+    {
+        _verticalValues = values;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleRtlChange(IReadOnlyList<double> values)
+    {
+        _rtlValues = values;
+        return Task.CompletedTask;
+    }
+
+    private void SetControlledValue(double value)
+    {
+        _controlledValues = [value];
     }
 }

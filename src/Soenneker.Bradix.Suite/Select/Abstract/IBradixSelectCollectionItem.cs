@@ -23,4 +23,6 @@ internal interface IBradixSelectCollectionItem
     ValueTask ScrollIntoView();
 
     ValueTask Focus();
+
+    ValueTask Refresh();
 }

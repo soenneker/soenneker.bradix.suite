@@ -1,6 +1,5 @@
 @namespace Soenneker.Bradix
 
-@using Microsoft.JSInterop
 @using Soenneker.Blazor.Utils.Ids
 
 @inherits BradixComponent
@@ -32,8 +31,6 @@
     private string? _resolvedTextValue;
     private ElementReference _itemTextElement;
     private bool _hasItemTextElement;
-    private bool _delegatedInteractionRegistered;
-    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     private BradixSelect? Select { get; set; }
@@ -68,13 +65,15 @@
 
     internal bool IsSelected => string.Equals(Select?.CurrentValue, Value, StringComparison.Ordinal);
 
+    private bool IsHighlighted => !Disabled && (Select?.IsFocusedItem(this) == true || _isFocused);
+
     private Dictionary<string, object> ItemAttributes => BuildAttributes(
         ("role", "option"),
         ("aria-labelledby", TextId),
-        ("aria-selected", IsSelected && _isFocused ? "true" : "false"),
+        ("aria-selected", IsSelected && IsHighlighted ? "true" : "false"),
         ("aria-disabled", Disabled ? "true" : null),
         ("data-state", IsSelected ? "checked" : "unchecked"),
-        ("data-highlighted", _isFocused ? string.Empty : null),
+        ("data-highlighted", IsHighlighted ? string.Empty : null),
         ("data-disabled", Disabled ? string.Empty : null),
         ("tabindex", Disabled ? null : Select?.IsFocusedItem(this) == true ? 0 : -1));
 
@@ -96,25 +95,6 @@
             _registered = true;
         }
 
-        if (Select?.CurrentOpen == true && !_delegatedInteractionRegistered)
-        {
-            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
-            {
-                keydown = new
-                {
-                    currentTargetOnly = true,
-                    preventDefaultKeys = new[] { " ", "Spacebar" }
-                }
-            });
-            _delegatedInteractionRegistered = true;
-        }
-        else if (Select?.CurrentOpen != true && _delegatedInteractionRegistered)
-        {
-            await Interop.UnregisterDelegatedInteraction(_element);
-            _delegatedInteractionRegistered = false;
-        }
-
         if (string.IsNullOrWhiteSpace(TextValue) && !_hasItemTextElement && string.IsNullOrWhiteSpace(_resolvedTextValue))
         {
             string textContent = await Interop.GetTextContent(_element);
@@ -131,18 +111,16 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_delegatedInteractionRegistered)
-            await Interop.UnregisterDelegatedInteraction(_element);
-
         if (_registered)
             Select?.UnregisterItem(this);
 
-        _dotNetReference?.Dispose();
     }
 
     ValueTask IBradixSelectCollectionItem.Focus() => Interop.FocusElementPreventScroll(_element);
 
     ValueTask IBradixSelectCollectionItem.ScrollIntoView() => Interop.ScrollElementIntoViewNearest(_element);
+
+    ValueTask IBradixSelectCollectionItem.Refresh() => new(InvokeAsync(StateHasChanged));
 
     internal async Task NotifyResolvedText(string? text)
     {
@@ -205,6 +183,14 @@
             return;
         }
 
+        if (args.Key.Length == 1)
+        {
+            await Select.HandleContentTypeahead(args.Key);
+            return;
+        }
+
+        if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
+            await Select.HandleContentNavigation(args.Key);
     }
 
     private Task HandlePointerDown(PointerEventArgs args)
@@ -216,9 +202,6 @@
     private async Task HandlePointerUp(PointerEventArgs _)
     {
         if (Disabled || Select is null || _pointerType != "mouse")
-            return;
-
-        if (Select.TryConsumeSuppressedMouseUpSelection())
             return;
 
         await Select.SetValue(Value);

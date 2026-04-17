@@ -38,6 +38,8 @@
     private bool _hasViewport;
     private bool _hasIndicatorTrack;
     private string? _uncontrolledValue;
+    private string? _pendingControlledValue;
+    private bool _hasPendingControlledValue;
     private string _previousValue = string.Empty;
     private string _lastObservedValue = string.Empty;
     private string? _viewportId;
@@ -45,6 +47,7 @@
     private CancellationTokenSource? _closeDelayTokenSource;
     private CancellationTokenSource? _skipDelayTokenSource;
     private bool _isOpenDelayed = true;
+    private bool _pointerOverTrigger;
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -78,7 +81,9 @@
 
     internal string? BaseId { get; private set; }
 
-    internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
+    internal string CurrentValue => _hasPendingControlledValue ? _pendingControlledValue ?? string.Empty : Value ?? _uncontrolledValue ?? string.Empty;
+
+    internal string TriggerRovingGroupId => BlazorIdGenerator.Child(BaseId!, "triggers");
 
     internal string PreviousValue => _previousValue;
 
@@ -120,6 +125,12 @@
             _uncontrolledValue = DefaultValue;
             _lastObservedValue = CurrentValue;
             _initialized = true;
+        }
+
+        if (_hasPendingControlledValue)
+        {
+            _hasPendingControlledValue = false;
+            _pendingControlledValue = null;
         }
 
         if (!string.Equals(_lastObservedValue, CurrentValue, StringComparison.Ordinal))
@@ -413,8 +424,16 @@
         return values;
     }
 
+    internal void HandleTriggerPointerEnter()
+    {
+        _pointerOverTrigger = true;
+        CancelCloseDelay();
+    }
+
     internal async Task HandleTriggerPointerMove(string value)
     {
+        _pointerOverTrigger = true;
+
         if (!IsRootMenu)
         {
             await OpenValue(value);
@@ -436,6 +455,8 @@
 
     internal Task HandleTriggerPointerLeave()
     {
+        _pointerOverTrigger = false;
+
         if (!IsRootMenu)
             return Task.CompletedTask;
 
@@ -452,6 +473,9 @@
 
     internal Task HandleContentPointerLeave()
     {
+        if (_pointerOverTrigger)
+            return Task.CompletedTask;
+
         if (!IsRootMenu)
             return Task.CompletedTask;
 
@@ -601,6 +625,11 @@
 
         if (Value is null)
             _uncontrolledValue = nextValue;
+        else
+        {
+            _pendingControlledValue = nextValue;
+            _hasPendingControlledValue = true;
+        }
 
         if (!string.IsNullOrWhiteSpace(nextValue))
         {

@@ -34,6 +34,10 @@ function ensureDelegatedInteractionListeners() {
   document.addEventListener("click", (event) => dispatchDelegatedInteraction("click", event));
   document.addEventListener("mousedown", (event) => dispatchDelegatedInteraction("mousedown", event));
   document.addEventListener("pointerdown", (event) => dispatchDelegatedInteraction("pointerdown", event));
+  document.addEventListener("mouseover", (event) => dispatchDelegatedInteraction("mouseover", event));
+  document.addEventListener("mouseenter", (event) => dispatchDelegatedInteraction("mouseenter", event), true);
+  document.addEventListener("pointermove", (event) => dispatchDelegatedInteraction("pointermove", event));
+  document.addEventListener("pointerover", (event) => dispatchDelegatedInteraction("pointerover", event));
   document.addEventListener("keydown", (event) => dispatchDelegatedInteraction("keydown", event));
   document.addEventListener("focusin", (event) => dispatchDelegatedInteraction("focusin", event));
   document.addEventListener("focusout", (event) => dispatchDelegatedInteraction("focusout", event));
