@@ -19,7 +19,7 @@
 @code {
     private readonly BradixCollectionRegistry<IBradixMenubarTriggerEntry> _triggers = new();
     private ElementReference _element;
-    private DotNetObjectReference<object>? _dotNetReference;
+    private DotNetObjectReference<BradixMenubar>? _dotNetReference;
     private bool _documentDismissRegistered;
     private bool _initialized;
     private string? _uncontrolledValue;
@@ -71,7 +71,7 @@
         if (!firstRender)
             return;
 
-        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        _dotNetReference = DotNetObjectReference.Create(this);
         await Interop.RegisterMenubarDocumentDismiss(_element, _dotNetReference, MenubarId);
         _documentDismissRegistered = true;
     }

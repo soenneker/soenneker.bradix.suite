@@ -816,6 +816,17 @@ input[type="radio"] {
     max-width: min(600px, calc(100vw - 3rem));
 }
 
+.nav-menu-inline {
+    min-height: 14rem;
+}
+
+.nav-menu-inline .nav-menu-content {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    left: 0;
+    z-index: 20;
+}
+
 .nav-menu-viewport {
     position: relative;
     width: var(--radix-navigation-menu-viewport-width);

@@ -28,7 +28,7 @@
     private bool _hasPointerMoveOpened;
     private bool _pointerDown;
     private ElementReference _triggerElement;
-    private DotNetObjectReference<object>? _dotNetReference;
+    private DotNetObjectReference<BradixTooltipTrigger>? _dotNetReference;
 
     [CascadingParameter]
     private BradixTooltip? Tooltip { get; set; }
@@ -44,7 +44,7 @@
             return;
 
         Tooltip.RegisterTrigger(_triggerElement);
-        _dotNetReference = DotNetObjectReference.Create<object>(this);
+        _dotNetReference = DotNetObjectReference.Create(this);
         await Interop.RegisterTooltipTrigger(_triggerElement, _dotNetReference);
     }
 

@@ -31,6 +31,7 @@
     private readonly Dictionary<string, ElementReference> _focusProxyElements = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<IBradixNavigationMenuFocusGroupItem>> _focusGroups = new(StringComparer.Ordinal);
     private readonly Dictionary<string, BradixNavigationMenuViewportRegistration> _viewportContents = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> _debugTriggerDisposeCounts = new(StringComparer.Ordinal);
     private readonly HashSet<string> _escapeClosedValues = new(StringComparer.Ordinal);
     private ElementReference _rootElement;
     private ElementReference _indicatorTrackElement;
@@ -38,8 +39,6 @@
     private bool _hasViewport;
     private bool _hasIndicatorTrack;
     private string? _uncontrolledValue;
-    private string? _pendingControlledValue;
-    private bool _hasPendingControlledValue;
     private string _previousValue = string.Empty;
     private string _lastObservedValue = string.Empty;
     private string? _viewportId;
@@ -81,7 +80,7 @@
 
     internal string? BaseId { get; private set; }
 
-    internal string CurrentValue => _hasPendingControlledValue ? _pendingControlledValue ?? string.Empty : Value ?? _uncontrolledValue ?? string.Empty;
+    internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
 
     internal string TriggerRovingGroupId => BlazorIdGenerator.Child(BaseId!, "triggers");
 
@@ -94,6 +93,8 @@
     internal bool HasOpenItem => !string.IsNullOrWhiteSpace(CurrentValue);
 
     internal bool HasViewport => _hasViewport;
+
+    internal string? ViewportId => _viewportId;
 
     internal ElementReference RootElement => _rootElement;
 
@@ -125,12 +126,6 @@
             _uncontrolledValue = DefaultValue;
             _lastObservedValue = CurrentValue;
             _initialized = true;
-        }
-
-        if (_hasPendingControlledValue)
-        {
-            _hasPendingControlledValue = false;
-            _pendingControlledValue = null;
         }
 
         if (!string.Equals(_lastObservedValue, CurrentValue, StringComparison.Ordinal))
@@ -224,6 +219,19 @@
         return false;
     }
 
+    internal void RecordTriggerDisposed(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        _debugTriggerDisposeCounts[value] = _debugTriggerDisposeCounts.TryGetValue(value, out int count) ? count + 1 : 1;
+    }
+
+    internal int GetDebugTriggerDisposeCount(string? value)
+    {
+        return !string.IsNullOrWhiteSpace(value) && _debugTriggerDisposeCounts.TryGetValue(value, out int count) ? count : 0;
+    }
+
     internal void RegisterTrigger(IBradixNavigationMenuRegisteredTrigger trigger)
     {
         _triggers.Register(trigger.Value, trigger);
@@ -241,11 +249,23 @@
     internal void RegisterContent(string value, ElementReference element)
     {
         _contentElements[value] = element;
+
+        if (IsRootMenu &&
+            HasViewport &&
+            string.Equals(CurrentValue, value, StringComparison.Ordinal))
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
     }
 
     internal void UnregisterContent(string value)
     {
         _contentElements.Remove(value);
+    }
+
+    internal bool TryGetContent(string value, out ElementReference element)
+    {
+        return _contentElements.TryGetValue(value, out element);
     }
 
     internal void RegisterFocusProxy(string value, ElementReference element)
@@ -616,6 +636,7 @@
     private async Task SetValue(string? value)
     {
         string nextValue = value ?? string.Empty;
+        bool isControlled = ValueChanged.HasDelegate;
 
         if (string.Equals(CurrentValue, nextValue, StringComparison.Ordinal))
             return;
@@ -623,13 +644,8 @@
         _previousValue = CurrentValue;
         _lastObservedValue = nextValue;
 
-        if (Value is null)
+        if (!isControlled)
             _uncontrolledValue = nextValue;
-        else
-        {
-            _pendingControlledValue = nextValue;
-            _hasPendingControlledValue = true;
-        }
 
         if (!string.IsNullOrWhiteSpace(nextValue))
         {
@@ -648,7 +664,8 @@
         if (OnValueChange.HasDelegate)
             await OnValueChange.InvokeAsync(nextValue);
 
-        await InvokeAsync(StateHasChanged);
+        if (!isControlled)
+            await InvokeAsync(StateHasChanged);
     }
 
     private void EnsureCurrentTabStopValue()

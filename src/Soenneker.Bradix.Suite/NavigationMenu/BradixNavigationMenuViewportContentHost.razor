@@ -17,9 +17,7 @@
         <div @ref="_contentElement"
              tabindex="-1"
              @attributes="ContentAttributes">
-            <CascadingValue Name="BradixNavigationMenuFocusGroupId" Value="@Registration.Value">
-                @Registration.ChildContent
-            </CascadingValue>
+            @Registration.ChildContent
         </div>
         <span @ref="_exitProxyElement"
               aria-hidden="true"

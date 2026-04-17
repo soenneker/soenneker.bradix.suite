@@ -20,14 +20,20 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dismissable-layer"));
 
-        await page.Locator(".docs-shell__main").ClickAsync(new LocatorClickOptions
-        {
-            Position = new Position
-            {
-                X = 12,
-                Y = 12
-            }
-        });
+        await page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "BradixDismissableLayer", Exact = true }).ClickAsync();
+
+        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Dismissed: True");
+    }
+
+[Fact]
+    public async Task Dismissable_layer_demo_dismisses_on_escape()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dismissable-layer"));
+
+        await page.Keyboard.PressAsync("Escape");
 
         await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Dismissed: True");
     }

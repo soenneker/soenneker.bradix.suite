@@ -20,7 +20,7 @@
     private bool _isExiting;
     private bool _hasInteractedOutside;
     private ElementReference _contentElement;
-    private DotNetObjectReference<object>? _dotNetReference;
+    private DotNetObjectReference<BradixMenubarContent>? _dotNetReference;
     private bool _delegatedInteractionRegistered;
     private RenderFragment? _contentTree;
 
@@ -346,7 +346,7 @@
 
         if (!_delegatedInteractionRegistered)
         {
-            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            _dotNetReference ??= DotNetObjectReference.Create(this);
             await Interop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
             {
                 focusout = new

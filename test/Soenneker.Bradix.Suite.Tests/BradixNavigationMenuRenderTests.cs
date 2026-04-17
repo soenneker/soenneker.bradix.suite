@@ -155,6 +155,86 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Pointer_opened_root_item_does_not_close_on_following_click()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
+        IElement productsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
+        IElement docsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+
+        await productsTrigger.ClickAsync();
+        await Assert.That(cut.Markup).Contains("Buttons");
+
+        docsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        await docsTrigger.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(cut.Markup).Contains("Getting started");
+            await Assert.That(cut.Markup).DoesNotContain("Buttons");
+        });
+
+        docsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        await docsTrigger.ClickAsync();
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IElement updatedDocsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+            await Assert.That(updatedDocsTrigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(cut.Markup).Contains("Getting started");
+        });
+    }
+
+    [Test]
+    public async Task Controlled_root_menu_switches_between_triggers_on_click()
+    {
+        string? value = null;
+
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixNavigationMenu>(0);
+            builder.AddAttribute(1, nameof(BradixNavigationMenu.DelayDuration), 0);
+            builder.AddAttribute(2, nameof(BradixNavigationMenu.Value), value);
+            builder.AddAttribute(3, nameof(BradixNavigationMenu.ValueChanged),
+                EventCallback.Factory.Create<string?>(this, next => value = string.IsNullOrWhiteSpace(next) ? null : next));
+            builder.AddAttribute(4, nameof(BradixNavigationMenu.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixNavigationMenuList>(0);
+                content.AddAttribute(1, nameof(BradixNavigationMenuList.ChildContent), (RenderFragment)(list =>
+                {
+                    BuildItem(list, 0, "products", "Products", ("Buttons", "buttons"));
+                    BuildItem(list, 100, "docs", "Docs", ("Getting started", "getting-started"));
+                }));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixNavigationMenuViewport>(10);
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IElement productsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
+            await Assert.That(productsTrigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(value).IsEqualTo("products");
+        });
+
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Docs")).ClickAsync();
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IElement productsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
+            IElement docsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+            await Assert.That(productsTrigger.GetAttribute("aria-expanded")).IsEqualTo("false");
+            await Assert.That(docsTrigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(value).IsEqualTo("docs");
+            await Assert.That(cut.Markup).Contains("Getting started");
+        });
+    }
+
+    [Test]
     public async Task Pointer_move_does_not_reopen_immediately_after_escape_close()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());

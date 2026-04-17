@@ -6,42 +6,24 @@
 
 @inject IBradixSuiteInterop Interop
 
-@if (ShouldRenderInline && (ForceMount || IsOpen))
+@if (ShouldRenderContent)
 {
-    <BradixPresence Present="ForceMount || IsOpen"
-                    Tag="div"
-                    Id="@Item?.ContentId"
-                    Class="@Class"
-                    Style="@Style"
-                    AdditionalAttributes="@ContentAttributes">
-        <BradixDismissableLayer DisableOutsidePointerEvents="false"
-                                DismissOnEscapeKeyDown="false"
-                                DismissOnPointerDownOutside="false"
-                                DismissOnFocusOutside="false"
-                                OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
-                                OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
-                                OnFocusOutsideDetailed="@HandleFocusOutside">
-            <div @ref="_contentElement"
-                 tabindex="-1"
-                 @onpointerenter="HandlePointerEnter"
-                 @onpointerleave="HandlePointerLeave">
-                <CascadingValue Name="BradixNavigationMenuFocusGroupId" Value="@(Item?.ResolvedValue)">
-                    @ChildContent
-                </CascadingValue>
-            </div>
-            <span @ref="_exitProxyElement"
-                  aria-hidden="true"
-                  tabindex="0"
-                  style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" />
-        </BradixDismissableLayer>
-    </BradixPresence>
+    @if (ShouldUseViewport)
+    {
+        <BradixPortal ContainerSelector="@ViewportSelector">
+            @ContentBody
+        </BradixPortal>
+    }
+    else
+    {
+        @ContentBody
+    }
 }
 
 @code {
     private ElementReference _contentElement;
     private ElementReference _exitProxyElement;
     private bool _registered;
-    private bool _viewportContentRegistered;
     private bool _focusBridgeRegistered;
 
     [CascadingParameter]
@@ -57,26 +39,47 @@
 
     private bool ShouldRenderInline => NavigationMenu?.IsRootMenu != true || NavigationMenu.HasViewport != true;
 
+    private bool ShouldUseViewport =>
+        NavigationMenu?.IsRootMenu == true &&
+        NavigationMenu.HasViewport &&
+        !string.IsNullOrWhiteSpace(NavigationMenu.ViewportId);
+
+    private bool ShouldRenderContent =>
+        (ForceMount || IsOpen) &&
+        (!ShouldUseViewport || !string.IsNullOrWhiteSpace(ViewportSelector));
+
+    private string? ViewportSelector => !string.IsNullOrWhiteSpace(NavigationMenu?.ViewportId)
+        ? $"#{NavigationMenu.ViewportId}"
+        : null;
+
+    private RenderFragment ContentBody => @<BradixPresence Present="ForceMount || IsOpen"
+                                                           Tag="div">
+        <BradixDismissableLayer DisableOutsidePointerEvents="false"
+                                DismissOnEscapeKeyDown="false"
+                                DismissOnPointerDownOutside="false"
+                                DismissOnFocusOutside="false"
+                                OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
+                                OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
+                                OnFocusOutsideDetailed="@HandleFocusOutside">
+            <div @ref="_contentElement"
+                 tabindex="-1"
+                 @attributes="ContentAttributes"
+                 @onpointerenter="HandlePointerEnter"
+                 @onpointerleave="HandlePointerLeave">
+                <CascadingValue Name="BradixNavigationMenuInContent" Value="true" IsFixed="true">
+                    @ChildContent
+                </CascadingValue>
+            </div>
+            <span @ref="_exitProxyElement"
+                  aria-hidden="true"
+                  tabindex="0"
+                  style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" />
+        </BradixDismissableLayer>
+    </BradixPresence>;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!ShouldRenderInline && !_viewportContentRegistered && NavigationMenu is not null && Item is not null)
-        {
-            NavigationMenu.RegisterViewportContent(new BradixNavigationMenuViewportRegistration
-            {
-                Value = Item.ResolvedValue,
-                TriggerId = Item.TriggerId,
-                ContentId = Item.ContentId,
-                Class = Class,
-                Style = Style,
-                AdditionalAttributes = AdditionalAttributes,
-                ChildContent = ChildContent,
-                ForceMount = ForceMount
-            });
-
-            _viewportContentRegistered = true;
-        }
-
-        if (!ShouldRenderInline || !(ForceMount || IsOpen))
+        if (!ShouldRenderContent)
         {
             if (_focusBridgeRegistered)
             {
@@ -118,9 +121,23 @@
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
+            if (!string.IsNullOrWhiteSpace(Item?.ContentId))
+                attributes["id"] = Item.ContentId;
+
+            if (!string.IsNullOrWhiteSpace(Class))
+                attributes["class"] = Class;
+
+            if (!string.IsNullOrWhiteSpace(Style))
+                attributes["style"] = Style;
+
             attributes["data-state"] = IsOpen ? "open" : "closed";
             attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? BradixOrientation.Horizontal.Value;
             attributes["aria-labelledby"] = Item?.TriggerId ?? string.Empty;
+
+            string motion = ResolveMotion();
+            if (!string.IsNullOrWhiteSpace(motion))
+                attributes["data-motion"] = motion;
+
             return attributes;
         }
     }
@@ -132,9 +149,6 @@
 
         if (_registered && Item is not null)
             NavigationMenu?.UnregisterContent(Item.ResolvedValue);
-
-        if (Item is not null)
-            NavigationMenu?.UnregisterViewportContent(Item.ResolvedValue);
     }
 
     private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs _)
@@ -190,5 +204,38 @@
             return Task.CompletedTask;
 
         return NavigationMenu?.HandleContentPointerLeave() ?? Task.CompletedTask;
+    }
+
+    private string ResolveMotion()
+    {
+        if (!ShouldUseViewport ||
+            NavigationMenu is null ||
+            Item is null ||
+            string.IsNullOrWhiteSpace(NavigationMenu.PreviousValue))
+        {
+            return string.Empty;
+        }
+
+        List<string> values = NavigationMenu.GetOrderedTriggerValues();
+        int index = values.IndexOf(NavigationMenu.CurrentValue);
+        int previousIndex = values.IndexOf(NavigationMenu.PreviousValue);
+        int activeIndex = values.IndexOf(Item.ResolvedValue);
+
+        bool isSelected = Item.ResolvedValue == NavigationMenu.CurrentValue;
+        bool wasSelected = activeIndex == previousIndex;
+
+        if (!isSelected && !wasSelected)
+            return string.Empty;
+
+        if (index != previousIndex)
+        {
+            if (isSelected && previousIndex != -1)
+                return index > previousIndex ? "from-end" : "from-start";
+
+            if (wasSelected && index != -1)
+                return index > previousIndex ? "to-start" : "to-end";
+        }
+
+        return string.Empty;
     }
 }

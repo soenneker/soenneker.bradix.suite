@@ -113,6 +113,30 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Fact]
+    public async Task Menubar_demo_trigger_closes_checkbox_menu_after_non_closing_selection()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+
+        ILocator editTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Edit", Exact = true });
+        await editTrigger.ClickAsync();
+
+        ILocator wordWrap = page.VisibleMenu()
+            .Locator("[role='menuitemcheckbox']")
+            .Filter(new LocatorFilterOptions { HasText = "Word wrap" });
+
+        await wordWrap.ClickAsync();
+        await Assertions.Expect(editTrigger).ToHaveAttributeAsync("aria-expanded", "true");
+
+        await editTrigger.ClickAsync();
+
+        await Assertions.Expect(editTrigger).ToHaveAttributeAsync("aria-expanded", "false");
+        await Assertions.Expect(page.Locator("[role='menu']:visible")).ToHaveCountAsync(0);
+    }
+
+[Fact]
     public async Task Menubar_rtl_demo_inverts_horizontal_roving_focus_between_top_level_triggers()
     {
         await using BrowserSession session = await CreateSession();
@@ -146,6 +170,27 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await dateModified.ClickAsync();
 
         await Assertions.Expect(dateModified).ToHaveAttributeAsync("data-state", "checked");
+    }
+
+[Fact]
+    public async Task Menubar_demo_trigger_closes_radio_menu_after_non_closing_selection()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+
+        ILocator viewTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "View", Exact = true });
+        await viewTrigger.ClickAsync();
+
+        ILocator dateModified = page.GetByText("Date modified", new PageGetByTextOptions { Exact = true }).Locator("..");
+        await dateModified.ClickAsync();
+        await Assertions.Expect(viewTrigger).ToHaveAttributeAsync("aria-expanded", "true");
+
+        await viewTrigger.ClickAsync();
+
+        await Assertions.Expect(viewTrigger).ToHaveAttributeAsync("aria-expanded", "false");
+        await Assertions.Expect(page.Locator("[role='menu']:visible")).ToHaveCountAsync(0);
     }
 
 [Fact]

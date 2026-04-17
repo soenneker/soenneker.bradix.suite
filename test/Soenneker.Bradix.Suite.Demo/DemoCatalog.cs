@@ -76,7 +76,10 @@ public static class DemoCatalog
             new DemoPageLink("/dropdown-menu", "DropdownMenu", "Navigation And Menus", "Trigger layered menu content with checkbox, radio, and submenu composition."),
             new DemoPageLink("/menubar", "Menubar", "Navigation And Menus", "Coordinate top-level application menus with cross-menu arrow navigation."),
             new DemoPageLink("/menu", "Menu", "Navigation And Menus", "Validate the shared menu substrate with grouping, typeahead, and roving focus."),
+            new DemoPageLink("/navigation-menu-inline", "NavigationMenu Inline", "Navigation And Menus", "Exercise navigation menu switching without the shared viewport so inline content stays in the item subtree."),
+            new DemoPageLink("/navigation-menu-minimal", "NavigationMenu Minimal", "Navigation And Menus", "Exercise navigation menu switching with plain content only to isolate viewport and content-host behavior."),
             new DemoPageLink("/navigation-menu", "NavigationMenu", "Navigation And Menus", "Build top navigation flyouts, viewport-backed panels, and nested submenu flows."),
+            new DemoPageLink("/navigation-menu-uncontrolled", "NavigationMenu Uncontrolled", "Navigation And Menus", "Exercise the same top navigation flyout composition without external value binding to isolate primitive behavior."),
             new DemoPageLink("/scroll-area", "ScrollArea", "Navigation And Menus", "Replace default scrollbars with custom viewport, thumb, and corner primitives."),
             new DemoPageLink("/tabs", "Tabs", "Navigation And Menus", "Compose tablists, triggers, and content with automatic or manual activation."),
             new DemoPageLink("/toolbar", "Toolbar", "Navigation And Menus", "Provide keyboard-friendly grouped controls with embedded toggle groups and separators.")

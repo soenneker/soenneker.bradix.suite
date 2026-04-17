@@ -1,7 +1,9 @@
+import { createDelegatedEventSnapshot } from "./core/eventSnapshots.js";
 import { getTabbableCandidates, focusFirst, focusElement } from "./core/focus.js";
 
 const navigationMenuIndicatorHandlers = new WeakMap();
 const navigationMenuContentFocusBridgeHandlers = new WeakMap();
+const navigationMenuTriggerInteractionHandlers = new WeakMap();
 const navigationMenuViewportHandlers = new WeakMap();
 
 export function registerNavigationMenuIndicator(indicator, activeTrigger, track, dotNetRef, orientation) {
@@ -154,6 +156,64 @@ export function unregisterNavigationMenuContentFocusBridge(content) {
   handlers.endProxy.removeEventListener("focus", handlers.handleEndProxyFocus);
   content.removeEventListener("keydown", handlers.handleContentKeydown);
   navigationMenuContentFocusBridgeHandlers.delete(content);
+}
+
+export function registerNavigationMenuTriggerInteraction(trigger, dotNetRef) {
+  if (!trigger || !dotNetRef) {
+    return;
+  }
+
+  unregisterNavigationMenuTriggerInteraction(trigger);
+
+  const handleClick = (event) => {
+    event.stopPropagation();
+    dotNetRef.invokeMethodAsync("HandleDirectClick").catch(() => {});
+  };
+
+  const handleFocus = () => {
+    dotNetRef.invokeMethodAsync("HandleDirectFocus").catch(() => {});
+  };
+
+  const handleKeyDown = (event) => {
+    if ([
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Home",
+      "End",
+      "Enter",
+      " ",
+      "Spacebar"
+    ].includes(event.key)) {
+      event.preventDefault();
+    }
+
+    event.stopPropagation();
+    dotNetRef.invokeMethodAsync("HandleDirectKeyDown", createDelegatedEventSnapshot("keydown", event)).catch(() => {});
+  };
+
+  trigger.addEventListener("click", handleClick);
+  trigger.addEventListener("focus", handleFocus);
+  trigger.addEventListener("keydown", handleKeyDown);
+
+  navigationMenuTriggerInteractionHandlers.set(trigger, {
+    handleClick,
+    handleFocus,
+    handleKeyDown
+  });
+}
+
+export function unregisterNavigationMenuTriggerInteraction(trigger) {
+  const handlers = navigationMenuTriggerInteractionHandlers.get(trigger);
+  if (!handlers) {
+    return;
+  }
+
+  trigger.removeEventListener("click", handlers.handleClick);
+  trigger.removeEventListener("focus", handlers.handleFocus);
+  trigger.removeEventListener("keydown", handlers.handleKeyDown);
+  navigationMenuTriggerInteractionHandlers.delete(trigger);
 }
 
 export function registerNavigationMenuViewport(viewport, content, dotNetRef) {

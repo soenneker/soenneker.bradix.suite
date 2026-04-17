@@ -25,7 +25,7 @@
     private bool _registered;
     private bool _isFocused;
     private bool _delegatedInteractionRegistered;
-    private DotNetObjectReference<object>? _dotNetReference;
+    private DotNetObjectReference<BradixMenubarTrigger>? _dotNetReference;
 
     [CascadingParameter]
     private BradixMenubar? Menubar { get; set; }
@@ -75,7 +75,7 @@
         if (OnElementReferenceCaptured.HasDelegate)
             await OnElementReferenceCaptured.InvokeAsync(_button);
 
-        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        _dotNetReference ??= DotNetObjectReference.Create(this);
         await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
         {
             keydown = new
@@ -107,7 +107,9 @@
             return Task.CompletedTask;
 
         MenubarMenu.ResetKeyboardTriggerOpen();
-        return Menubar.OpenMenu(MenubarMenu.CurrentValue);
+        return IsOpen
+            ? Menubar.CloseMenu()
+            : Menubar.OpenMenu(MenubarMenu.CurrentValue);
     }
 
     private async Task HandlePointerEnter(PointerEventArgs _)

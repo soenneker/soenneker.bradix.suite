@@ -118,74 +118,16 @@ function ensureDismissableLayerListeners() {
         return;
       }
 
-      topLayer.lastPointerDownWasOutside = false;
-
       if (!topLayer.isPointerInside) {
         if (isBranchTarget(event.target)) {
           topLayer.isPointerInside = false;
           return;
         }
 
-        if (event.pointerType === "touch") {
-          if (topLayer.handleDocumentClick) {
-            document.removeEventListener("click", topLayer.handleDocumentClick);
-          }
-
-          const originalPointerEvent = event;
-          topLayer.handleDocumentClick = () => {
-            if (!isRegisteredLayer(topLayer) || dismissableLayers[dismissableLayers.length - 1] !== topLayer) {
-              return;
-            }
-
-            dispatchPointerDownOutside(topLayer, originalPointerEvent);
-          };
-          document.addEventListener("click", topLayer.handleDocumentClick, { once: true });
-        } else {
-          if (topLayer.handleDocumentClick) {
-            document.removeEventListener("click", topLayer.handleDocumentClick);
-            topLayer.handleDocumentClick = null;
-          }
-
-          topLayer.lastPointerDownWasOutside = true;
-          dispatchPointerDownOutside(topLayer, event);
-        }
-      } else {
-        if (topLayer.handleDocumentClick) {
-          document.removeEventListener("click", topLayer.handleDocumentClick);
-        }
+        dispatchPointerDownOutside(topLayer, event);
       }
 
       topLayer.isPointerInside = false;
-      if (event.pointerType !== "touch") {
-        topLayer.handleDocumentClick = null;
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      const topLayer = dismissableLayers[dismissableLayers.length - 1];
-
-      if (!topLayer || !event.target) {
-        return;
-      }
-
-      if (!topLayer.isPointerDownOutsideEnabled) {
-        return;
-      }
-
-      if (topLayer.lastPointerDownWasOutside) {
-        topLayer.lastPointerDownWasOutside = false;
-        return;
-      }
-
-      if (topLayer.element.contains(event.target)) {
-        return;
-      }
-
-      if (isBranchTarget(event.target)) {
-        return;
-      }
-
-      dispatchPointerDownOutside(topLayer, event);
     });
 
     dismissableLayerPointerDownListenerRegistered = true;
@@ -268,27 +210,13 @@ export function registerDismissableLayer(element, dotNetRef, disableOutsidePoint
     element,
     dotNetRef,
     disableOutsidePointerEvents: !!disableOutsidePointerEvents,
-    lastPointerDownWasOutside: false,
     isPointerInside: false,
     isFocusInside: false,
-    isPointerDownOutsideEnabled: false,
-    isFocusOutsideEnabled: false,
+    isPointerDownOutsideEnabled: true,
+    isFocusOutsideEnabled: true,
     handlePointerDownCapture,
     handleFocusInCapture,
-    handleFocusOutCapture,
-    handleDocumentClick: null,
-    pointerDownOutsideTimer: window.setTimeout(() => {
-      const layer = dismissableLayers.find((item) => item.element === element);
-      if (layer) {
-        layer.isPointerDownOutsideEnabled = true;
-      }
-    }, 0),
-    focusOutsideTimer: window.setTimeout(() => {
-      const layer = dismissableLayers.find((item) => item.element === element);
-      if (layer) {
-        layer.isFocusOutsideEnabled = true;
-      }
-    }, 0)
+    handleFocusOutCapture
   });
   updateDismissableLayerPointerEvents();
 }
@@ -312,18 +240,6 @@ export function unregisterDismissableLayer(element) {
   }
 
   const [layer] = dismissableLayers.splice(index, 1);
-
-  if (layer?.handleDocumentClick) {
-    document.removeEventListener("click", layer.handleDocumentClick);
-  }
-
-  if (typeof layer?.pointerDownOutsideTimer === "number") {
-    clearTimeout(layer.pointerDownOutsideTimer);
-  }
-
-  if (typeof layer?.focusOutsideTimer === "number") {
-    clearTimeout(layer.focusOutsideTimer);
-  }
 
   if (element) {
     element.removeEventListener("pointerdown", layer.handlePointerDownCapture, true);

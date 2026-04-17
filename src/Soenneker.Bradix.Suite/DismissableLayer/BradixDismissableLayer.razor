@@ -14,9 +14,10 @@
 
 @code {
     private ElementReference _element;
-    private DotNetObjectReference<object>? _dotNetReference;
+    private DotNetObjectReference<BradixDismissableLayer>? _dotNetReference;
     private bool _registered;
     private bool? _lastDisableOutsidePointerEvents;
+    private bool _disposed;
 
     [Parameter]
     public bool DisableOutsidePointerEvents { get; set; }
@@ -64,12 +65,23 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed)
+            return;
+
         if (firstRender)
         {
-            _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterDismissableLayer(_element, _dotNetReference, DisableOutsidePointerEvents);
-            _registered = true;
-            _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
+            _dotNetReference ??= DotNetObjectReference.Create(this);
+
+            try
+            {
+                await Interop.RegisterDismissableLayer(_element, _dotNetReference, DisableOutsidePointerEvents);
+                _registered = true;
+                _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+                return;
+            }
 
             if (OnElementReferenceCaptured.HasDelegate)
                 await OnElementReferenceCaptured.InvokeAsync(_element);
@@ -79,17 +91,36 @@
 
         if (_lastDisableOutsidePointerEvents != DisableOutsidePointerEvents)
         {
-            await Interop.UpdateDismissableLayer(_element, DisableOutsidePointerEvents);
+            try
+            {
+                await Interop.UpdateDismissableLayer(_element, DisableOutsidePointerEvents);
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+                return;
+            }
+
             _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
         }
     }
 
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
+
         if (_registered)
-            await Interop.UnregisterDismissableLayer(_element);
+        {
+            try
+            {
+                await Interop.UnregisterDismissableLayer(_element);
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+            }
+        }
 
         _dotNetReference?.Dispose();
+        _dotNetReference = null;
     }
 
     [JSInvokable]
@@ -161,5 +192,10 @@
 
         if (DismissOnFocusOutside && !focusArgs.DefaultPrevented && !interactArgs.DefaultPrevented && OnDismiss.HasDelegate)
             await OnDismiss.InvokeAsync();
+    }
+
+    private static bool ShouldIgnoreInteropException(Exception ex)
+    {
+        return ex is ObjectDisposedException or JSDisconnectedException;
     }
 }

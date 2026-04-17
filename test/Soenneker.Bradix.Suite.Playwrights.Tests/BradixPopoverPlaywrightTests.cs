@@ -141,6 +141,59 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "false");
         await Assertions.Expect(content).Not.ToBeVisibleAsync();
     }
+
+[Fact]
+    public async ValueTask Popover_demo_outside_control_button_opens_controlled_popover_while_another_popover_is_open()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+
+        ILocator customRoleTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open custom listbox", Exact = true });
+        await Assertions.Expect(customRoleTrigger).ToHaveAttributeAsync("aria-expanded", "true");
+
+        ILocator toggle = page.Locator("#popover-controlled-toggle");
+        ILocator state = page.Locator("#popover-controlled-state");
+        ILocator controlledTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit controlled dimensions", Exact = true });
+        ILocator controlledContent = page.Locator(".popover-demo__content[data-state='open']").Filter(new LocatorFilterOptions { HasText = "Controlled dimensions" });
+
+        await toggle.ClickAsync();
+
+        await Assertions.Expect(state).ToContainTextAsync("Open: true");
+        await Assertions.Expect(controlledTrigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(controlledContent).ToBeVisibleAsync();
+    }
+
+[Fact]
+    public async ValueTask Popover_demo_controlled_open_state_stays_in_sync_with_outside_dismissal()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+
+        ILocator toggle = page.Locator("#popover-controlled-toggle");
+        ILocator state = page.Locator("#popover-controlled-state");
+        ILocator controlledTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit controlled dimensions", Exact = true });
+        ILocator controlledContent = page.Locator(".popover-demo__content[data-state='open']").Filter(new LocatorFilterOptions { HasText = "Controlled dimensions" });
+
+        await toggle.ClickAsync();
+
+        await Assertions.Expect(state).ToContainTextAsync("Open: true");
+        await Assertions.Expect(controlledTrigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(controlledContent).ToBeVisibleAsync();
+
+        ILocator main = page.Locator(".docs-shell__main");
+        var mainBox = await main.BoundingBoxAsync();
+        Assert.NotNull(mainBox);
+        await page.Mouse.ClickAsync(mainBox.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);
+
+        await Assertions.Expect(state).ToContainTextAsync("Open: false");
+        await Assertions.Expect(controlledTrigger).ToHaveAttributeAsync("aria-expanded", "false");
+        await Assertions.Expect(controlledContent).Not.ToBeVisibleAsync();
+    }
+
     private sealed class PopoverRoleProbe
     {
         public string? role { get; set; }

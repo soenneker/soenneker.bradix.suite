@@ -31,7 +31,7 @@
 @code {
     private ElementReference _button;
     private bool _delegatedInteractionReady;
-    private DotNetObjectReference<object>? _dotNetReference;
+    private DotNetObjectReference<BradixPopoverTrigger>? _dotNetReference;
 
     [CascadingParameter]
     private BradixPopover? Popover { get; set; }
@@ -64,7 +64,7 @@
             Popover?.RegisterTrigger(_button, ResolvedTriggerId);
             if (Popover?.HasCustomAnchor != true)
                 Popper?.RegisterAnchor(_button);
-            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            _dotNetReference = DotNetObjectReference.Create(this);
             await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
                 readyMethod = nameof(HandleDelegatedInteractionReady),

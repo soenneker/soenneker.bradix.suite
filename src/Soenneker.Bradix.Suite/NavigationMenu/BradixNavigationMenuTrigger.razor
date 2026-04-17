@@ -23,29 +23,29 @@
     @ChildContent
 </button>
 
-@if (IsOpen)
+<span @ref="_focusProxy"
+      aria-hidden="true"
+      tabindex="@(IsOpen ? 0 : -1)"
+      style="@(IsOpen
+          ? "position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;"
+          : "position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;display:none;")" />
+
+@if (NavigationMenu?.IsRootMenu == true && NavigationMenu.HasViewport && Item is not null)
 {
-
-        <span @ref="_focusProxy"
-              aria-hidden="true"
-              tabindex="0"
-              style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" />
-
-        @if (NavigationMenu?.IsRootMenu == true && NavigationMenu.HasViewport && Item is not null)
-        {
-            <span aria-owns="@Item.ContentId"></span>
-        }
+    <span aria-owns="@(IsOpen ? Item.ContentId : null)"></span>
 }
 
 @code {
     private ElementReference _button;
     private ElementReference _focusProxy;
     private bool _hasPointerMoveOpened;
+    private bool _openedByPointerMove;
     private bool _rovingFocusBridgeReady;
+    private bool _rovingFocusRegistered;
     private bool _wasClickClose;
     private bool _focusProxyRegistered;
-    private bool _delegatedInteractionRegistered;
-    private DotNetObjectReference<object>? _dotNetReference;
+    private bool _disposed;
+    private DotNetObjectReference<BradixNavigationMenuTrigger>? _dotNetReference;
     private TriggerRegistration? _registration;
 
     [CascadingParameter]
@@ -71,48 +71,38 @@
         ("data-bradix-roving-orientation", NavigationMenu?.Orientation?.Value),
         ("data-bradix-roving-dir", NavigationMenu?.ResolvedDirection),
         ("data-bradix-roving-loop", "true"),
+        ("data-debug-dispose-count", NavigationMenu?.GetDebugTriggerDisposeCount(Item?.ResolvedValue).ToString(System.Globalization.CultureInfo.InvariantCulture)),
         ("aria-expanded", IsOpen ? "true" : "false"),
         ("aria-controls", Item?.ContentId),
         ("tabindex", NavigationMenu is not null && Item is not null && NavigationMenu.IsCurrentTabStop(Item) ? 0 : -1));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && NavigationMenu is not null && Item is not null)
+        if (_disposed)
+            return;
+
+        if (NavigationMenu is not null && Item is not null)
         {
-            _registration = new TriggerRegistration(Item.ResolvedValue, Item.TriggerId, Disabled, _button);
-            NavigationMenu.RegisterTrigger(_registration);
-            _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterRovingFocusNavigationKeys(_button, _dotNetReference);
-            await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            if (_registration is null)
             {
-                mouseenter = new
+                _registration = new TriggerRegistration(Item.ResolvedValue, Item.TriggerId, Disabled, _button);
+                NavigationMenu.RegisterTrigger(_registration);
+            }
+
+            _dotNetReference ??= DotNetObjectReference.Create(this);
+
+            if (!_rovingFocusRegistered)
+            {
+                try
                 {
-                    method = nameof(HandleDelegatedMouseEnter),
-                    currentTargetOnly = false
-                },
-                mouseover = new
-                {
-                    method = nameof(HandleDelegatedMouseOver),
-                    currentTargetOnly = false
-                },
-                pointermove = new
-                {
-                    method = nameof(HandleDelegatedPointerMove),
-                    currentTargetOnly = false
-                },
-                pointerover = new
-                {
-                    method = nameof(HandleDelegatedPointerOver),
-                    currentTargetOnly = false
-                },
-                keydown = new
-                {
-                    method = nameof(HandleDelegatedKeyDown),
-                    currentTargetOnly = true,
-                    preventDefaultKeys = new[] { "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End" }
+                    await Interop.RegisterRovingFocusNavigationKeys(_button, _dotNetReference);
+                    _rovingFocusRegistered = true;
                 }
-            });
-            _delegatedInteractionRegistered = true;
+                catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+                {
+                    return;
+                }
+            }
         }
 
         if (NavigationMenu is not null && Item is not null)
@@ -133,11 +123,23 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_delegatedInteractionRegistered)
-            await Interop.UnregisterDelegatedInteraction(_button);
+        _disposed = true;
 
-        await Interop.UnregisterRovingFocusNavigationKeys(_button);
+        if (_rovingFocusRegistered)
+        {
+            try
+            {
+                await Interop.UnregisterRovingFocusNavigationKeys(_button);
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+            }
+        }
+
         _dotNetReference?.Dispose();
+        _dotNetReference = null;
+
+        NavigationMenu?.RecordTriggerDisposed(Item?.ResolvedValue);
 
         if (_focusProxyRegistered && Item is not null)
             NavigationMenu?.UnregisterFocusProxy(Item.ResolvedValue);
@@ -167,6 +169,7 @@
 
         await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
         _hasPointerMoveOpened = true;
+        _openedByPointerMove = true;
     }
 
     private async Task HandlePointerMove(PointerEventArgs args)
@@ -182,6 +185,7 @@
 
         await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
         _hasPointerMoveOpened = true;
+        _openedByPointerMove = true;
     }
 
     private Task HandlePointerOver(PointerEventArgs args)
@@ -263,15 +267,26 @@
             return;
 
         _hasPointerMoveOpened = false;
+        _openedByPointerMove = false;
         await NavigationMenu.HandleTriggerPointerLeave();
     }
 
-    private async Task HandleClick()
+    private Task HandleClick() => ProcessClick();
+
+    private async Task ProcessClick()
     {
         if (Disabled || NavigationMenu is null || Item is null)
             return;
 
+        if (IsOpen && _openedByPointerMove)
+        {
+            _openedByPointerMove = false;
+            _wasClickClose = false;
+            return;
+        }
+
         bool wasOpen = IsOpen;
+        _openedByPointerMove = false;
         await NavigationMenu.ToggleItem(Item.ResolvedValue);
         _wasClickClose = wasOpen;
     }
@@ -285,6 +300,11 @@
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        await ProcessKeyDown(args);
+    }
+
+    private async Task ProcessKeyDown(KeyboardEventArgs args)
     {
         if (Disabled || NavigationMenu is null || Item is null)
             return;
@@ -314,55 +334,15 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedMouseEnter(BradixDelegatedMouseEvent _)
-    {
-        return HandleHoverEnter();
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedMouseOver(BradixDelegatedMouseEvent _)
-    {
-        return HandleHoverMove();
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedPointerMove(BradixDelegatedMouseEvent args)
-    {
-        if (string.Equals(args.PointerType, "touch", StringComparison.Ordinal))
-            return Task.CompletedTask;
-
-        return HandleHoverMove();
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedPointerOver(BradixDelegatedMouseEvent args)
-    {
-        if (string.Equals(args.PointerType, "touch", StringComparison.Ordinal))
-            return Task.CompletedTask;
-
-        return HandleHoverEnter();
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
-    {
-        return HandleKeyDown(new KeyboardEventArgs
-        {
-            Key = args.Key,
-            Code = args.Code,
-            CtrlKey = args.CtrlKey,
-            ShiftKey = args.ShiftKey,
-            AltKey = args.AltKey,
-            MetaKey = args.MetaKey,
-            Repeat = args.Repeat
-        });
-    }
-
-    [JSInvokable]
     public Task HandleRovingFocusBridgeReady()
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;
+    }
+
+    private static bool ShouldIgnoreInteropException(Exception ex)
+    {
+        return ex is ObjectDisposedException or JSDisconnectedException;
     }
 
     private sealed class TriggerRegistration(string value, string triggerId, bool disabled, ElementReference triggerElement) : IBradixNavigationMenuRegisteredTrigger

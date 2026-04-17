@@ -1,0 +1,29 @@
+@page "/navigation-menu-inline"
+
+<PageTitle>NavigationMenu Inline</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixNavigationMenu DelayDuration="0"
+                              Class="stack nav-menu-inline"
+                              Style="position:relative;">
+            <BradixNavigationMenuList Class="nav-menu-list">
+                <BradixNavigationMenuItem Value="learn">
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">Learn</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content nav-menu-content--learn">
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives">Radix Primitives</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://stitches.dev/">Stitches</BradixNavigationMenuLink>
+                    </BradixNavigationMenuContent>
+                </BradixNavigationMenuItem>
+
+                <BradixNavigationMenuItem Value="overview">
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">Overview</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content nav-menu-content--overview">
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/overview/introduction">Introduction</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/overview/getting-started">Getting started</BradixNavigationMenuLink>
+                    </BradixNavigationMenuContent>
+                </BradixNavigationMenuItem>
+            </BradixNavigationMenuList>
+        </BradixNavigationMenu>
+    </section>
+</section>

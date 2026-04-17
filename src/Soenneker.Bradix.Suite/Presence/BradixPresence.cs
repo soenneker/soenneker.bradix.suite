@@ -41,6 +41,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
     private bool _exitSuspended;
     private bool _elementReferenceCaptured;
     private bool _forceExitAnimationFillModeForwards;
+    private bool _disposed;
     private string _previousAnimationName = "none";
 
     protected override void OnParametersSet()
@@ -67,6 +68,9 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed)
+            return;
+
         if (_rendered)
         {
             if (!_elementReferenceCaptured)
@@ -80,8 +84,15 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
             if (!_registered)
             {
                 _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-                await Interop.RegisterPresence(_element, _dotNetReference);
-                _registered = true;
+                try
+                {
+                    await Interop.RegisterPresence(_element, _dotNetReference);
+                    _registered = true;
+                }
+                catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+                {
+                    return;
+                }
             }
 
             if (_pendingExitEvaluation)
@@ -105,7 +116,14 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
         }
         else if (_registered)
         {
-            await Interop.UnregisterPresence(_element);
+            try
+            {
+                await Interop.UnregisterPresence(_element);
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+            }
+
             _registered = false;
         }
 
@@ -135,11 +153,22 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
+
         if (_registered)
-            await Interop.UnregisterPresence(_element);
+        {
+            try
+            {
+                await Interop.UnregisterPresence(_element);
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+            }
+        }
 
         _registered = false;
         _dotNetReference?.Dispose();
+        _dotNetReference = null;
     }
 
     [JSInvokable]
@@ -227,5 +256,10 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
         string[] currentAnimations = currentAnimationName.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         return currentAnimations.Any(name => string.Equals(name, eventAnimationName, StringComparison.Ordinal));
+    }
+
+    private static bool ShouldIgnoreInteropException(Exception ex)
+    {
+        return ex is ObjectDisposedException or JSDisconnectedException;
     }
 }

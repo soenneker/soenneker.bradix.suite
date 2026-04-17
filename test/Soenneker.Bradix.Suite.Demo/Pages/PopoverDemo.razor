@@ -51,4 +51,51 @@
             </BradixPopoverPortal>
         </BradixPopover>
     </section>
+
+    <section class="card website-demo-card">
+        <div class="popover-demo__fields">
+            <div style="display:flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                <button id="popover-controlled-toggle"
+                        class="popover-demo__icon-button"
+                        type="button"
+                        @onclick="ToggleControlledPopover">
+                    Toggle controlled popover
+                </button>
+                <span id="popover-controlled-state">Open: @(_controlledOpen ? "true" : "false")</span>
+            </div>
+
+            <BradixPopover Open="@_controlledOpen" OpenChanged="HandleControlledOpenChanged">
+                <BradixPopoverTrigger Class="popover-demo__icon-button" aria-label="Edit controlled dimensions">
+                    Edit dimensions
+                </BradixPopoverTrigger>
+                <BradixPopoverPortal>
+                    <BradixPopoverContent Class="popover-demo__content" SideOffset="5">
+                        <div class="popover-demo__fields">
+                            <p class="popover-demo__text popover-demo__text--heading">Controlled dimensions</p>
+                            <div class="popover-demo__fieldset">
+                                <label class="popover-demo__label" for="controlled-popover-width">Width</label>
+                                <input class="popover-demo__input" id="controlled-popover-width" value="100%" />
+                            </div>
+                        </div>
+                    </BradixPopoverContent>
+                </BradixPopoverPortal>
+            </BradixPopover>
+        </div>
+    </section>
 </section>
+
+@code {
+    private bool _controlledOpen;
+
+    private Task ToggleControlledPopover()
+    {
+        _controlledOpen = !_controlledOpen;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleControlledOpenChanged(bool open)
+    {
+        _controlledOpen = open;
+        return Task.CompletedTask;
+    }
+}

@@ -16,7 +16,7 @@
 @code {
     private ElementReference _button;
     private bool _delegatedInteractionReady;
-    private DotNetObjectReference<object>? _dotNetReference;
+    private DotNetObjectReference<BradixDialogTrigger>? _dotNetReference;
 
     [CascadingParameter]
     private BradixDialog? Dialog { get; set; }
@@ -44,7 +44,7 @@
         if (firstRender)
         {
             Dialog?.RegisterTrigger(_button, ResolvedTriggerId);
-            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            _dotNetReference = DotNetObjectReference.Create(this);
             await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
                 readyMethod = nameof(HandleDelegatedInteractionReady),

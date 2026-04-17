@@ -1,0 +1,29 @@
+@page "/navigation-menu-minimal"
+
+<PageTitle>NavigationMenu Minimal Demo</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixNavigationMenu DelayDuration="0"
+                              Class="stack"
+                              Style="position:relative;">
+            <BradixNavigationMenuList Class="nav-menu-list">
+                <BradixNavigationMenuItem Value="learn">
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">Learn</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content nav-menu-content--learn">
+                        <div>Learn body</div>
+                    </BradixNavigationMenuContent>
+                </BradixNavigationMenuItem>
+
+                <BradixNavigationMenuItem Value="overview">
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">Overview</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content nav-menu-content--overview">
+                        <div>Overview body</div>
+                    </BradixNavigationMenuContent>
+                </BradixNavigationMenuItem>
+            </BradixNavigationMenuList>
+
+            <BradixNavigationMenuViewport Class="nav-surface nav-menu-viewport" />
+        </BradixNavigationMenu>
+    </section>
+</section>

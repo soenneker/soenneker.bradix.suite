@@ -47,7 +47,7 @@
 
 @code {
     private ElementReference _contentElement;
-    private DotNetObjectReference<object>? _dotNetReference;
+    private DotNetObjectReference<BradixTooltipContent>? _dotNetReference;
     private bool _contentRegistered;
     private string? _accessibleLabel;
     private bool? _lastHoverableContent;
@@ -141,7 +141,7 @@
             return;
         }
 
-        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        _dotNetReference ??= DotNetObjectReference.Create(this);
 
         bool hoverableContent = !Tooltip.EffectiveDisableHoverableContent;
         string? triggerId = Tooltip.TriggerElement.Id;

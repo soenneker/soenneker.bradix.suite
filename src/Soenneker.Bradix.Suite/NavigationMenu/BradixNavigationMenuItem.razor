@@ -5,8 +5,10 @@
 @using Soenneker.Blazor.Utils.Ids
 @implements IBradixNavigationMenuItem
 
-<CascadingValue Value="this">
-    <li @attributes="ItemAttributes">
+<CascadingValue @key="ResolvedValue"
+                Value="this">
+    <li
+        @attributes="ItemAttributes">
         @ChildContent
     </li>
 </CascadingValue>

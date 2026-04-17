@@ -1,0 +1,70 @@
+@page "/navigation-menu-uncontrolled"
+
+<PageTitle>NavigationMenu Uncontrolled Demo</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixNavigationMenu DelayDuration="0"
+                              Class="stack"
+                              Style="position:relative;">
+            <BradixNavigationMenuList Class="nav-menu-list">
+                <BradixNavigationMenuItem Value="learn">
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">Learn</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content nav-menu-content--learn">
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives"
+                                                  Active="@(_activeLink == "primitives")"
+                                                  OnSelect='@(() => SetActiveLink("primitives"))'>
+                            Radix Primitives
+                        </BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://stitches.dev/"
+                                                  Active="@(_activeLink == "stitches")"
+                                                  OnSelect='@(() => SetActiveLink("stitches"))'>
+                            Stitches
+                        </BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/colors"
+                                                  Active="@(_activeLink == "colors")"
+                                                  OnSelect='@(() => SetActiveLink("colors"))'>
+                            Colors
+                        </BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://icons.radix-ui.com/"
+                                                  Active="@(_activeLink == "icons")"
+                                                  OnSelect='@(() => SetActiveLink("icons"))'>
+                            Icons
+                        </BradixNavigationMenuLink>
+                    </BradixNavigationMenuContent>
+                </BradixNavigationMenuItem>
+
+                <BradixNavigationMenuItem Value="overview">
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">Overview</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content nav-menu-content--overview">
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/overview/introduction">Introduction</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/overview/getting-started">Getting started</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/guides/styling">Styling</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/guides/animation">Animation</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/overview/accessibility">Accessibility</BradixNavigationMenuLink>
+                        <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/overview/releases">Releases</BradixNavigationMenuLink>
+                    </BradixNavigationMenuContent>
+                </BradixNavigationMenuItem>
+
+                <BradixNavigationMenuItem>
+                    <BradixNavigationMenuLink Class="primitive__trigger" Href="https://github.com/radix-ui">
+                        Github
+                    </BradixNavigationMenuLink>
+                </BradixNavigationMenuItem>
+            </BradixNavigationMenuList>
+
+            <BradixNavigationMenuIndicator Class="nav-menu-indicator" />
+            <BradixNavigationMenuViewport Class="nav-surface nav-menu-viewport" />
+        </BradixNavigationMenu>
+    </section>
+</section>
+
+@code {
+    private string _activeLink = "primitives";
+
+    private Task SetActiveLink(string value)
+    {
+        _activeLink = value;
+        return Task.CompletedTask;
+    }
+}

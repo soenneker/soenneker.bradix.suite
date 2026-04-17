@@ -21,7 +21,7 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnobserveCollapsibleContent(ElementReference element, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterRovingFocusNavigationKeys(ElementReference element, DotNetObjectReference<object>? dotNetReference = null,
+    ValueTask RegisterRovingFocusNavigationKeys(ElementReference element, object? dotNetReference = null,
         CancellationToken cancellationToken = default);
 
     ValueTask UnregisterRovingFocusNavigationKeys(ElementReference element, CancellationToken cancellationToken = default);
@@ -33,16 +33,21 @@ public interface IBradixSuiteInterop : IAsyncDisposable
     ValueTask RegisterCheckboxRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, string? formId = null,
         CancellationToken cancellationToken = default);
 
-    ValueTask RegisterDelegatedInteraction(ElementReference element, DotNetObjectReference<object> dotNetReference, object options,
+    ValueTask RegisterDelegatedInteraction(ElementReference element, object dotNetReference, object options,
         CancellationToken cancellationToken = default);
 
     ValueTask UnregisterDelegatedInteraction(ElementReference element, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterTooltipTrigger(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
+    ValueTask RegisterNavigationMenuTriggerInteraction(ElementReference element, DotNetObjectReference<object> dotNetReference,
+        CancellationToken cancellationToken = default);
+
+    ValueTask UnregisterNavigationMenuTriggerInteraction(ElementReference element, CancellationToken cancellationToken = default);
+
+    ValueTask RegisterTooltipTrigger(ElementReference element, object dotNetReference, CancellationToken cancellationToken = default);
 
     ValueTask UnregisterTooltipTrigger(ElementReference element, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterTooltipContent(ElementReference content, ElementReference trigger, DotNetObjectReference<object> dotNetReference, string contentId,
+    ValueTask RegisterTooltipContent(ElementReference content, ElementReference trigger, object dotNetReference, string contentId,
         bool hoverableContent, CancellationToken cancellationToken = default);
 
     ValueTask UnregisterTooltipContent(ElementReference content, CancellationToken cancellationToken = default);
@@ -146,7 +151,7 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask RequestFormSubmit(ElementReference associatedElement, string? formId = null, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterDismissableLayer(ElementReference element, DotNetObjectReference<object> dotNetReference, bool disableOutsidePointerEvents,
+    ValueTask RegisterDismissableLayer(ElementReference element, object dotNetReference, bool disableOutsidePointerEvents,
         CancellationToken cancellationToken = default);
 
     ValueTask UpdateDismissableLayer(ElementReference element, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default);
@@ -157,7 +162,7 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnregisterDismissableLayerBranch(ElementReference element, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterMenubarDocumentDismiss(ElementReference element, DotNetObjectReference<object> dotNetReference, string menubarId,
+    ValueTask RegisterMenubarDocumentDismiss(ElementReference element, object dotNetReference, string menubarId,
         CancellationToken cancellationToken = default);
 
     ValueTask UnregisterMenubarDocumentDismiss(ElementReference element, CancellationToken cancellationToken = default);
@@ -228,7 +233,7 @@ public interface IBradixSuiteInterop : IAsyncDisposable
     ValueTask UnregisterAvatarImageLoadingStatus(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     ValueTask RegisterNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference track,
-        DotNetObjectReference<object> dotNetReference, string orientation, CancellationToken cancellationToken = default);
+        object dotNetReference, string orientation, CancellationToken cancellationToken = default);
 
     ValueTask UpdateNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference track, string orientation,
         CancellationToken cancellationToken = default);
@@ -243,12 +248,13 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnregisterNavigationMenuContentFocusBridge(ElementReference content, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterNavigationMenuViewport(ElementReference viewport, ElementReference content, DotNetObjectReference<object> dotNetReference,
+    ValueTask RegisterNavigationMenuViewport(ElementReference viewport, ElementReference content, object dotNetReference,
         CancellationToken cancellationToken = default);
 
     ValueTask UpdateNavigationMenuViewport(ElementReference viewport, ElementReference content, CancellationToken cancellationToken = default);
 
     ValueTask UnregisterNavigationMenuViewport(ElementReference viewport, CancellationToken cancellationToken = default);
+
 
     ValueTask RegisterPresence(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 

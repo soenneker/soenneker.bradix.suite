@@ -37,7 +37,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unobserveCollapsibleContent", cancellationToken, element);
     }
 
-    public async ValueTask RegisterRovingFocusNavigationKeys(ElementReference element, DotNetObjectReference<object>? dotNetReference = null,
+    public async ValueTask RegisterRovingFocusNavigationKeys(ElementReference element, object? dotNetReference = null,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
@@ -69,7 +69,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("registerCheckboxRoot", cancellationToken, element, dotNetReference, formId);
     }
 
-    public async ValueTask RegisterDelegatedInteraction(ElementReference element, DotNetObjectReference<object> dotNetReference, object options,
+    public async ValueTask RegisterDelegatedInteraction(ElementReference element, object dotNetReference, object options,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
@@ -82,7 +82,20 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterDelegatedInteraction", cancellationToken, element);
     }
 
-    public async ValueTask RegisterTooltipTrigger(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
+    public async ValueTask RegisterNavigationMenuTriggerInteraction(ElementReference element, DotNetObjectReference<object> dotNetReference,
+        CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("registerNavigationMenuTriggerInteraction", cancellationToken, element, dotNetReference);
+    }
+
+    public async ValueTask UnregisterNavigationMenuTriggerInteraction(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("unregisterNavigationMenuTriggerInteraction", cancellationToken, element);
+    }
+
+    public async ValueTask RegisterTooltipTrigger(ElementReference element, object dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("registerTooltipTrigger", cancellationToken, element, dotNetReference);
@@ -94,7 +107,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterTooltipTrigger", cancellationToken, element);
     }
 
-    public async ValueTask RegisterTooltipContent(ElementReference content, ElementReference trigger, DotNetObjectReference<object> dotNetReference, string contentId,
+    public async ValueTask RegisterTooltipContent(ElementReference content, ElementReference trigger, object dotNetReference, string contentId,
         bool hoverableContent, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
@@ -398,7 +411,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("requestFormSubmit", cancellationToken, associatedElement, formId);
     }
 
-    public async ValueTask RegisterDismissableLayer(ElementReference element, DotNetObjectReference<object> dotNetReference, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default)
+    public async ValueTask RegisterDismissableLayer(ElementReference element, object dotNetReference, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("registerDismissableLayer", cancellationToken, element, dotNetReference, disableOutsidePointerEvents);
@@ -428,7 +441,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterDismissableLayerBranch", cancellationToken, element);
     }
 
-    public async ValueTask RegisterMenubarDocumentDismiss(ElementReference element, DotNetObjectReference<object> dotNetReference, string menubarId,
+    public async ValueTask RegisterMenubarDocumentDismiss(ElementReference element, object dotNetReference, string menubarId,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
@@ -614,7 +627,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
     }
 
     public async ValueTask RegisterNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference track,
-        DotNetObjectReference<object> dotNetReference, string orientation, CancellationToken cancellationToken = default)
+        object dotNetReference, string orientation, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("registerNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, track, dotNetReference, orientation)
@@ -654,7 +667,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("unregisterNavigationMenuContentFocusBridge", cancellationToken, content);
     }
 
-    public async ValueTask RegisterNavigationMenuViewport(ElementReference viewport, ElementReference content, DotNetObjectReference<object> dotNetReference,
+    public async ValueTask RegisterNavigationMenuViewport(ElementReference viewport, ElementReference content, object dotNetReference,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);

@@ -1,64 +1,38 @@
 @namespace Soenneker.Bradix
 
-@using System.Globalization
-@using Microsoft.JSInterop
-@using Soenneker.Blazor.Utils.Ids
-
 @inherits BradixComponent
 
 @implements IBradixNavigationMenuViewport
 
+@using Soenneker.Blazor.Utils.Ids
+@using Microsoft.JSInterop
+
 @inject IBradixSuiteInterop Interop
 
-@if (ShouldRenderViewport)
+@if (NavigationMenu?.IsRootMenu == true)
 {
-    <BradixPresence Present="ForceMount || NavigationMenu?.HasOpenItem == true"
-                    Tag="div"
-                    Class="@Class"
-                    Style="@ComputedStyle"
-                    AdditionalAttributes="@ViewportAttributes"
-                    OnElementReferenceCaptured="@HandleViewportCaptured">
-        @if (Registrations.Count > 0)
-        {
-            @foreach (BradixNavigationMenuViewportRegistration registration in Registrations)
-            {
-                bool isActive = string.Equals(ActiveViewportValue, registration.Value, StringComparison.Ordinal);
-
-                <BradixNavigationMenuViewportContentHost Registration="@registration"
-                                                        Present="@(registration.ForceMount || isActive)"
-                                                        IsOpen="@(NavigationMenu?.HasOpenItem == true && string.Equals(NavigationMenu.CurrentValue, registration.Value, StringComparison.Ordinal))"
-                                                        Motion="@ResolveMotion(registration.Value)"
-                                                        OnContentElementCaptured="@CreateContentCapturedCallback(registration.Value)"
-                                                        OnPointerEnterContent="@HandleContentEnter"
-                                                        OnPointerLeaveContent="@HandleContentLeave" />
-            }
-        }
-    </BradixPresence>
+    <div @ref="_viewportElement"
+         class="@Class"
+         style="@ComputedStyle"
+         @attributes="ViewportAttributes">
+    </div>
 }
 
 @code {
     private ElementReference _viewportElement;
-    private ElementReference _contentElement;
-    private bool _hasViewportElement;
-    private bool _hasContentElement;
-    private bool _registered;
     private bool _viewportRegisteredWithRoot;
-    private DotNetObjectReference<object>? _dotNetReference;
-    private double? _width;
-    private double? _height;
+    private DotNetObjectReference<BradixNavigationMenuViewport>? _dotNetReference;
+    private string? _observedContentValue;
+    private string? _pendingContentRetryValue;
+    private double _width;
+    private double _height;
+    private bool _disposed;
 
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
 
     [Parameter]
     public bool ForceMount { get; set; }
-
-    private string ActiveViewportValue => NavigationMenu?.ActiveViewportValue ?? string.Empty;
-
-    private IReadOnlyList<BradixNavigationMenuViewportRegistration> Registrations =>
-        NavigationMenu?.GetViewportContents() ?? [];
-
-    private bool ShouldRenderViewport => ForceMount || NavigationMenu?.HasOpenItem == true || Registrations.Count > 0;
 
     private string ResolvedViewportId =>
         string.IsNullOrWhiteSpace(Id)
@@ -80,22 +54,24 @@
         }
     }
 
-    private string ComputedStyle
+    private string? ComputedStyle
     {
         get
         {
-            string viewportStyle = string.Empty;
+            string sizeStyle = string.Empty;
 
-            if (_width.HasValue)
-                viewportStyle += $"--radix-navigation-menu-viewport-width:{_width.Value.ToString(CultureInfo.InvariantCulture)}px;";
+            if (_width > 0 || _height > 0)
+            {
+                string width = _width > 0 ? $"{_width.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
+                string height = _height > 0 ? $"{_height.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
+                sizeStyle = $"--radix-navigation-menu-viewport-width:{width};--radix-navigation-menu-viewport-height:{height};";
+            }
 
-            if (_height.HasValue)
-                viewportStyle += $"--radix-navigation-menu-viewport-height:{_height.Value.ToString(CultureInfo.InvariantCulture)}px;";
+            string viewportStyle = NavigationMenu?.HasOpenItem == true
+                ? string.Empty
+                : "pointer-events:none;";
 
-            if (NavigationMenu?.HasOpenItem != true)
-                viewportStyle += "pointer-events:none;";
-
-            return MergeStyleValues(viewportStyle, Style)!;
+            return MergeStyleValues(MergeStyleValues(sizeStyle, viewportStyle), Style);
         }
     }
 
@@ -110,83 +86,92 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_hasViewportElement || !_hasContentElement)
+        if (_disposed || NavigationMenu is null)
+            return;
+
+        string? contentValue = NavigationMenu.HasOpenItem ? NavigationMenu.CurrentValue : null;
+
+        if (string.IsNullOrWhiteSpace(contentValue) || !NavigationMenu.TryGetContent(contentValue, out ElementReference content))
         {
-            if (_registered)
+            if (!string.IsNullOrWhiteSpace(contentValue) &&
+                !string.Equals(_pendingContentRetryValue, contentValue, StringComparison.Ordinal))
             {
-                await Interop.UnregisterNavigationMenuViewport(_viewportElement);
-                _registered = false;
+                _pendingContentRetryValue = contentValue;
+                await Task.Yield();
+
+                if (!_disposed &&
+                    string.Equals(_pendingContentRetryValue, contentValue, StringComparison.Ordinal))
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(_observedContentValue))
+            {
+                try
+                {
+                    await Interop.UnregisterNavigationMenuViewport(_viewportElement);
+                }
+                catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+                {
+                }
+
+                _observedContentValue = null;
             }
 
             return;
         }
 
-        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        _pendingContentRetryValue = null;
+        _dotNetReference ??= DotNetObjectReference.Create(this);
 
-        if (_registered)
+        try
         {
-            await Interop.UpdateNavigationMenuViewport(_viewportElement, _contentElement);
+            if (string.Equals(_observedContentValue, contentValue, StringComparison.Ordinal))
+            {
+                await Interop.UpdateNavigationMenuViewport(_viewportElement, content);
+            }
+            else
+            {
+                await Interop.RegisterNavigationMenuViewport(_viewportElement, content, _dotNetReference);
+                _observedContentValue = contentValue;
+            }
         }
-        else
+        catch (Exception ex) when (ShouldIgnoreInteropException(ex))
         {
-            await Interop.RegisterNavigationMenuViewport(_viewportElement, _contentElement, _dotNetReference);
-            _registered = true;
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_viewportRegisteredWithRoot)
-            NavigationMenu?.UnregisterViewport(ResolvedViewportId);
+        _disposed = true;
 
-        if (_registered)
-            await Interop.UnregisterNavigationMenuViewport(_viewportElement);
+        if (!string.IsNullOrWhiteSpace(_observedContentValue))
+        {
+            try
+            {
+                await Interop.UnregisterNavigationMenuViewport(_viewportElement);
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+            }
+        }
 
         _dotNetReference?.Dispose();
-    }
+        _dotNetReference = null;
 
-    private Task HandleViewportCaptured(ElementReference element)
-    {
-        _viewportElement = element;
-        _hasViewportElement = true;
-        return Task.CompletedTask;
-    }
-
-    private Task HandleContentCaptured(string value, ElementReference element)
-    {
-        if (!string.Equals(value, ActiveViewportValue, StringComparison.Ordinal))
-            return Task.CompletedTask;
-
-        _contentElement = element;
-
-        if (_hasContentElement)
-            return Task.CompletedTask;
-
-        _hasContentElement = true;
-        return InvokeAsync(StateHasChanged);
-
-    }
-
-    private EventCallback<ElementReference> CreateContentCapturedCallback(string value)
-    {
-        return EventCallback.Factory.Create<ElementReference>(this, element => HandleContentCaptured(value, element));
-    }
-
-    private Task HandleContentEnter()
-    {
-        return NavigationMenu?.HandleContentPointerEnter() ?? Task.CompletedTask;
-    }
-
-    private Task HandleContentLeave()
-    {
-        return NavigationMenu?.HandleContentPointerLeave() ?? Task.CompletedTask;
+        if (_viewportRegisteredWithRoot)
+            NavigationMenu?.UnregisterViewport(ResolvedViewportId);
     }
 
     [JSInvokable]
     public Task HandleViewportSizeChanged(double width, double height)
     {
-        if (Math.Abs((_width ?? -1) - width) < 0.1 &&
-            Math.Abs((_height ?? -1) - height) < 0.1)
+        if (_disposed)
+            return Task.CompletedTask;
+
+        if (Math.Abs(_width - width) < 0.1 &&
+            Math.Abs(_height - height) < 0.1)
         {
             return Task.CompletedTask;
         }
@@ -196,31 +181,8 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private string ResolveMotion(string value)
+    private static bool ShouldIgnoreInteropException(Exception ex)
     {
-        if (NavigationMenu is null || string.IsNullOrWhiteSpace(NavigationMenu.PreviousValue))
-            return string.Empty;
-
-        List<string> values = NavigationMenu.GetOrderedTriggerValues();
-        int index = values.IndexOf(NavigationMenu.CurrentValue);
-        int previousIndex = values.IndexOf(NavigationMenu.PreviousValue);
-        int activeIndex = values.IndexOf(value);
-
-        bool isSelected = value == NavigationMenu.CurrentValue;
-        bool wasSelected = activeIndex == previousIndex;
-
-        if (!isSelected && !wasSelected)
-            return string.Empty;
-
-        if (index != previousIndex)
-        {
-            if (isSelected && previousIndex != -1)
-                return index > previousIndex ? "from-end" : "from-start";
-
-            if (wasSelected && index != -1)
-                return index > previousIndex ? "to-start" : "to-end";
-        }
-
-        return string.Empty;
+        return ex is ObjectDisposedException or JSDisconnectedException;
     }
 }

@@ -46,6 +46,15 @@ function ensureDelegatedInteractionListeners() {
 function dispatchDelegatedInteraction(type, event) {
   const registration = findDelegatedInteractionRegistration(event.target);
 
+  window.__bradixDelegatedInteractionDispatches = window.__bradixDelegatedInteractionDispatches || [];
+  window.__bradixDelegatedInteractionDispatches.push({
+    type,
+    eventTargetTag: event.target?.tagName || null,
+    eventTargetId: event.target?.id || null,
+    registrationElementTag: registration?.element?.tagName || null,
+    registrationElementId: registration?.element?.id || null
+  });
+
   if (!registration) {
     return;
   }
@@ -104,7 +113,21 @@ function dispatchDelegatedInteraction(type, event) {
     return;
   }
 
-  registration.dotNetRef.invokeMethodAsync(config.method, createDelegatedEventSnapshot(type, event)).catch(() => {});
+  window.__bradixDelegatedInteractionInvocations = window.__bradixDelegatedInteractionInvocations || [];
+  window.__bradixDelegatedInteractionInvocations.push({
+    type,
+    method: config.method,
+    elementId: registration.element?.id || null
+  });
+
+  registration.dotNetRef.invokeMethodAsync(config.method, createDelegatedEventSnapshot(type, event)).catch((error) => {
+    window.__bradixDelegatedInteractionErrors = window.__bradixDelegatedInteractionErrors || [];
+    window.__bradixDelegatedInteractionErrors.push({
+      type,
+      method: config.method,
+      message: error?.message || String(error)
+    });
+  });
 }
 
 function findDelegatedInteractionRegistration(start) {
