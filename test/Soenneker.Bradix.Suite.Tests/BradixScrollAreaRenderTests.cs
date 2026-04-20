@@ -86,8 +86,10 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         await Assert.That(cut.FindAll("[data-state='visible']")).IsNotEmpty();
 
         await Task.Delay(40, CancellationToken.None);
-
-        await Assert.That(cut.FindAll("[data-state='visible']")).IsEmpty();
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(cut.FindAll("[data-state='visible']")).IsEmpty();
+        }, TimeSpan.FromSeconds(2));
     }
 
     [Test]

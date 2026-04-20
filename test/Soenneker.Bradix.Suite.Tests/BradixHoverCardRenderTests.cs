@@ -19,6 +19,8 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         _module.SetupVoid("registerDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("updateDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDismissableLayerBranch", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDismissableLayerBranch", _ => true).SetVoidResult();
         _module.SetupVoid("registerPopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("updatePopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPopperContent", _ => true).SetVoidResult();

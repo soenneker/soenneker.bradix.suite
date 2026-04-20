@@ -20,6 +20,8 @@ public sealed class BradixAccordionRenderTests : BunitContext
         module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
         Services.AddScoped<BradixSuiteInterop>();

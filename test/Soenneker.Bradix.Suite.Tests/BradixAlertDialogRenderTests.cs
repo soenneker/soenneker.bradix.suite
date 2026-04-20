@@ -22,6 +22,8 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         _module.SetupVoid("registerDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("updateDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDismissableLayerBranch", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDismissableLayerBranch", _ => true).SetVoidResult();
         _module.SetupVoid("registerFocusGuards", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterFocusGuards", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();

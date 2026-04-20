@@ -21,15 +21,21 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         _module.SetupVoid("registerDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("updateDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDismissableLayerBranch", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDismissableLayerBranch", _ => true).SetVoidResult();
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        _module.SetupVoid("mountPortal", _ => true).SetVoidResult();
+        _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("registerNavigationMenuIndicator", _ => true).SetVoidResult();
         _module.SetupVoid("updateNavigationMenuIndicator", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterNavigationMenuIndicator", _ => true).SetVoidResult();
+        _module.SetupVoid("registerNavigationMenuTriggerInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterNavigationMenuTriggerInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("registerNavigationMenuContentFocusBridge", _ => true).SetVoidResult();
         _module.SetupVoid("updateNavigationMenuContentFocusBridge", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterNavigationMenuContentFocusBridge", _ => true).SetVoidResult();
@@ -90,7 +96,8 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeIndicator: true));
 
-        IElement track = cut.Find("nav > div");
+        IElement track = cut.FindAll("nav div")
+                            .First(element => (element.GetAttribute("style") ?? string.Empty).Replace(" ", string.Empty).Contains("position:relative"));
         IElement? list = track.QuerySelector("ul");
 
         await Assert.That(list).IsNotNull();

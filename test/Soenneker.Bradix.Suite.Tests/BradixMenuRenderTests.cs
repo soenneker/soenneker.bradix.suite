@@ -45,6 +45,8 @@ public sealed class BradixMenuRenderTests : BunitContext
         _module.SetupVoid("cancelMenuSubmenuPointerGrace", _ => true).SetVoidResult();
         _module.SetupVoid("registerDismissableLayerBranch", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayerBranch", _ => true).SetVoidResult();
+        _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 

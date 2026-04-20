@@ -39,6 +39,8 @@ public sealed class BradixMenubarRenderTests : BunitContext
         _module.SetupVoid("unregisterFocusGuards", _ => true).SetVoidResult();
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(false);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Share");

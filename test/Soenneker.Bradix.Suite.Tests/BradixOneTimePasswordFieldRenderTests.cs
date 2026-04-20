@@ -22,6 +22,8 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
         _module.SetupVoid("unregisterAssociatedFormReset", _ => true).SetVoidResult();
         _module.SetupVoid("requestFormSubmit", _ => true).SetVoidResult();
         _module.SetupVoid("selectInputText", _ => true).SetVoidResult();
+        _module.SetupVoid("syncInputValue", _ => true).SetVoidResult();
+        _module.SetupVoid("focusElementById", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
         Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());

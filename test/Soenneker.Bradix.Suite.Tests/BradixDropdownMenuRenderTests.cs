@@ -39,6 +39,8 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(false);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Share");
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)

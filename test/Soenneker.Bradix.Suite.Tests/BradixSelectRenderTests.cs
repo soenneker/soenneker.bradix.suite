@@ -54,6 +54,8 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.SetupVoid("scrollElementIntoViewNearest", _ => true).SetVoidResult();
         _module.SetupVoid("syncSelectBubbleInputValue", _ => true).SetVoidResult();
+        _module.SetupVoid("registerSelectBubbleInput", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterSelectBubbleInput", _ => true).SetVoidResult();
         _module.Setup<bool>("isFormControl", _ => true).SetResult(true);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Fruit");
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
