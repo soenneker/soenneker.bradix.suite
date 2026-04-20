@@ -51,6 +51,11 @@
         IsPointerInTransit = inTransit;
     }
 
+    internal bool ShouldBlockTriggerHoverOpen(BradixTooltip tooltip)
+    {
+        return IsPointerInTransit && (_openTooltip is null || ReferenceEquals(_openTooltip, tooltip));
+    }
+
     public ValueTask DisposeAsync()
     {
         CancelSkipDelayTimer();

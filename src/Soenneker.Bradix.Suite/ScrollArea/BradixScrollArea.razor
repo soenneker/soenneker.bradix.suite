@@ -119,7 +119,7 @@
     {
         if (orientation == "horizontal")
         {
-            bool changed = !ScrollbarXMounted || ForceMountThumbX != forceMountThumb;
+            var changed = !ScrollbarXMounted || ForceMountThumbX != forceMountThumb;
             ScrollbarXMounted = true;
             ForceMountThumbX = forceMountThumb;
             if (changed)
@@ -127,7 +127,7 @@
         }
         else
         {
-            bool changed = !ScrollbarYMounted || ForceMountThumbY != forceMountThumb;
+            var changed = !ScrollbarYMounted || ForceMountThumbY != forceMountThumb;
             ScrollbarYMounted = true;
             ForceMountThumbY = forceMountThumb;
             if (changed)
@@ -139,7 +139,7 @@
     {
         if (orientation == "horizontal")
         {
-            bool changed = ScrollbarXMounted || ForceMountThumbX;
+            var changed = ScrollbarXMounted || ForceMountThumbX;
             ScrollbarXMounted = false;
             ForceMountThumbX = false;
             if (changed)
@@ -147,7 +147,7 @@
         }
         else
         {
-            bool changed = ScrollbarYMounted || ForceMountThumbY;
+            var changed = ScrollbarYMounted || ForceMountThumbY;
             ScrollbarYMounted = false;
             ForceMountThumbY = false;
             if (changed)
@@ -157,8 +157,8 @@
 
     internal bool IsScrollbarVisible(string orientation)
     {
-        bool mounted = orientation == "horizontal" ? ScrollbarXMounted : ScrollbarYMounted;
-        bool overflow = orientation == "horizontal" ? HasOverflowX : HasOverflowY;
+        var mounted = orientation == "horizontal" ? ScrollbarXMounted : ScrollbarYMounted;
+        var overflow = orientation == "horizontal" ? HasOverflowX : HasOverflowY;
 
         if (!mounted)
             return false;
@@ -175,7 +175,7 @@
 
     internal bool ShouldRenderScrollbar(string orientation, bool forceMount)
     {
-        bool overflow = orientation == "horizontal" ? HasOverflowX : HasOverflowY;
+        var overflow = orientation == "horizontal" ? HasOverflowX : HasOverflowY;
 
         if (forceMount)
             return true;
@@ -221,13 +221,13 @@
     {
         if (orientation == "horizontal")
         {
-            double thumbSize = GetThumbSize(true);
-            double offset = GetThumbOffset(true);
+            var thumbSize = GetThumbSize(true);
+            var offset = GetThumbOffset(true);
             return $"width: {thumbSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translate3d({offset.ToString(System.Globalization.CultureInfo.InvariantCulture)}px, 0, 0);";
         }
 
-        double verticalThumbSize = GetThumbSize(false);
-        double verticalOffset = GetThumbOffset(false);
+        var verticalThumbSize = GetThumbSize(false);
+        var verticalOffset = GetThumbOffset(false);
         return $"height: {verticalThumbSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translate3d(0, {verticalOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}px, 0);";
     }
 
@@ -266,12 +266,12 @@
     [JSInvokable]
     public Task HandleViewportMetricsChanged(double scrollLeft, double scrollTop, double scrollWidth, double scrollHeight, double viewportWidth, double viewportHeight)
     {
-        bool xChanged = !AreClose(ScrollLeft, scrollLeft);
-        bool yChanged = !AreClose(ScrollTop, scrollTop);
-        bool widthChanged = !AreClose(ContentWidth, scrollWidth);
-        bool heightChanged = !AreClose(ContentHeight, scrollHeight);
-        bool viewportWidthChanged = !AreClose(ViewportWidth, viewportWidth);
-        bool viewportHeightChanged = !AreClose(ViewportHeight, viewportHeight);
+        var xChanged = !AreClose(ScrollLeft, scrollLeft);
+        var yChanged = !AreClose(ScrollTop, scrollTop);
+        var widthChanged = !AreClose(ContentWidth, scrollWidth);
+        var heightChanged = !AreClose(ContentHeight, scrollHeight);
+        var viewportWidthChanged = !AreClose(ViewportWidth, viewportWidth);
+        var viewportHeightChanged = !AreClose(ViewportHeight, viewportHeight);
 
         if (!xChanged && !yChanged && !widthChanged && !heightChanged && !viewportWidthChanged && !viewportHeightChanged)
             return Task.CompletedTask;
@@ -297,7 +297,7 @@
 
     public Task HandleScrollbarPointerChanged(string orientation, bool entering)
     {
-        bool horizontal = orientation == "horizontal";
+        var horizontal = orientation == "horizontal";
 
         if (horizontal)
         {
@@ -380,53 +380,53 @@
 
     private string BuildRootStyle()
     {
-        string cornerWidth = CornerWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        string cornerHeight = CornerHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        string scrollAreaStyle = $"position: relative; --radix-scroll-area-corner-width: {cornerWidth}px; --radix-scroll-area-corner-height: {cornerHeight}px;";
+        var cornerWidth = CornerWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var cornerHeight = CornerHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var scrollAreaStyle = $"position: relative; --radix-scroll-area-corner-width: {cornerWidth}px; --radix-scroll-area-corner-height: {cornerHeight}px;";
 
         return MergeStyleValues(scrollAreaStyle, Style)!;
     }
 
     private double GetThumbRatio(bool horizontal)
     {
-        double viewport = horizontal ? ViewportWidth : ViewportHeight;
-        double content = horizontal ? ContentWidth : ContentHeight;
+        var viewport = horizontal ? ViewportWidth : ViewportHeight;
+        var content = horizontal ? ContentWidth : ContentHeight;
 
         if (viewport <= 0 || content <= 0)
             return 0;
 
-        double ratio = viewport / content;
+        var ratio = viewport / content;
         return double.IsNaN(ratio) ? 0 : ratio;
     }
 
     private double GetThumbSize(bool horizontal)
     {
-        double ratio = GetThumbRatio(horizontal);
-        double scrollbarSize = horizontal ? HorizontalScrollbarWidth : VerticalScrollbarHeight;
-        double padding = horizontal
+        var ratio = GetThumbRatio(horizontal);
+        var scrollbarSize = horizontal ? HorizontalScrollbarWidth : VerticalScrollbarHeight;
+        var padding = horizontal
             ? HorizontalScrollbarPaddingStart + HorizontalScrollbarPaddingEnd
             : VerticalScrollbarPaddingStart + VerticalScrollbarPaddingEnd;
 
-        double thumbSize = (scrollbarSize - padding) * ratio;
+        var thumbSize = (scrollbarSize - padding) * ratio;
         return Math.Max(thumbSize, 18);
     }
 
     private double GetThumbOffset(bool horizontal)
     {
-        double thumbSize = GetThumbSize(horizontal);
-        double viewport = horizontal ? ViewportWidth : ViewportHeight;
-        double content = horizontal ? ContentWidth : ContentHeight;
-        double maxScrollPos = content - viewport;
+        var thumbSize = GetThumbSize(horizontal);
+        var viewport = horizontal ? ViewportWidth : ViewportHeight;
+        var content = horizontal ? ContentWidth : ContentHeight;
+        var maxScrollPos = content - viewport;
 
         if (maxScrollPos <= 0)
             return 0;
 
-        double scrollbarSize = horizontal ? HorizontalScrollbarWidth : VerticalScrollbarHeight;
-        double padding = horizontal
+        var scrollbarSize = horizontal ? HorizontalScrollbarWidth : VerticalScrollbarHeight;
+        var padding = horizontal
             ? HorizontalScrollbarPaddingStart + HorizontalScrollbarPaddingEnd
             : VerticalScrollbarPaddingStart + VerticalScrollbarPaddingEnd;
-        double maxThumbPos = (scrollbarSize - padding) - thumbSize;
-        double scrollPos = horizontal ? ScrollLeft : ScrollTop;
+        var maxThumbPos = (scrollbarSize - padding) - thumbSize;
+        var scrollPos = horizontal ? ScrollLeft : ScrollTop;
 
         if (horizontal && ResolvedDirection == "rtl")
             scrollPos = Math.Clamp(scrollPos, -maxScrollPos, 0) + maxScrollPos;

@@ -56,7 +56,7 @@
 
     private Task HandlePointerMove(PointerEventArgs args)
     {
-        if (args.PointerType == "touch" || Tooltip is null || _hasPointerMoveOpened || Tooltip.IsPointerInTransit)
+        if (args.PointerType == "touch" || Tooltip is null || _hasPointerMoveOpened || Tooltip.ShouldBlockTriggerHoverOpen)
             return Task.CompletedTask;
 
         _hasPointerMoveOpened = true;
@@ -70,7 +70,7 @@
 
     private Task HandleMouseMove()
     {
-        if (Tooltip is null || _hasPointerMoveOpened || Tooltip.IsPointerInTransit)
+        if (Tooltip is null || _hasPointerMoveOpened || Tooltip.ShouldBlockTriggerHoverOpen)
             return Task.CompletedTask;
 
         _hasPointerMoveOpened = true;

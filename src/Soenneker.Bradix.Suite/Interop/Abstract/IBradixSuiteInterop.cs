@@ -38,7 +38,7 @@ public interface IBradixSuiteInterop : IAsyncDisposable
 
     ValueTask UnregisterDelegatedInteraction(ElementReference element, CancellationToken cancellationToken = default);
 
-    ValueTask RegisterNavigationMenuTriggerInteraction(ElementReference element, DotNetObjectReference<object> dotNetReference,
+    ValueTask RegisterNavigationMenuTriggerInteraction(ElementReference element, object dotNetReference,
         CancellationToken cancellationToken = default);
 
     ValueTask UnregisterNavigationMenuTriggerInteraction(ElementReference element, CancellationToken cancellationToken = default);

@@ -141,7 +141,7 @@ else
 
         if (string.IsNullOrWhiteSpace(TextValue))
         {
-            string textContent = await Interop.GetTextContent(_element);
+            var textContent = await Interop.GetTextContent(_element);
 
             if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
                 _resolvedTextValue = textContent;
@@ -195,7 +195,7 @@ else
         if (Disabled || args.Button != 0)
             return;
 
-        bool shouldSelectOnPointerUp = !_isPointerDown;
+        var shouldSelectOnPointerUp = !_isPointerDown;
         _isPointerDown = false;
 
         if (shouldSelectOnPointerUp)

@@ -98,8 +98,8 @@
 
         if (NavigationMenu is not null &&
             Item is not null &&
-            NavigationMenu.TryGetFocusProxy(Item.ResolvedValue, out ElementReference startProxy) &&
-            NavigationMenu.TryGetTrigger(Item.ResolvedValue, out IBradixNavigationMenuRegisteredTrigger trigger))
+            NavigationMenu.TryGetFocusProxy(Item.ResolvedValue, out var startProxy) &&
+            NavigationMenu.TryGetTrigger(Item.ResolvedValue, out var trigger))
         {
             if (_focusBridgeRegistered)
             {
@@ -117,7 +117,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -134,7 +134,7 @@
             attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? BradixOrientation.Horizontal.Value;
             attributes["aria-labelledby"] = Item?.TriggerId ?? string.Empty;
 
-            string motion = ResolveMotion();
+            var motion = ResolveMotion();
             if (!string.IsNullOrWhiteSpace(motion))
                 attributes["data-motion"] = motion;
 
@@ -216,13 +216,13 @@
             return string.Empty;
         }
 
-        List<string> values = NavigationMenu.GetOrderedTriggerValues();
-        int index = values.IndexOf(NavigationMenu.CurrentValue);
-        int previousIndex = values.IndexOf(NavigationMenu.PreviousValue);
-        int activeIndex = values.IndexOf(Item.ResolvedValue);
+        var values = NavigationMenu.GetOrderedTriggerValues();
+        var index = values.IndexOf(NavigationMenu.CurrentValue);
+        var previousIndex = values.IndexOf(NavigationMenu.PreviousValue);
+        var activeIndex = values.IndexOf(Item.ResolvedValue);
 
-        bool isSelected = Item.ResolvedValue == NavigationMenu.CurrentValue;
-        bool wasSelected = activeIndex == previousIndex;
+        var isSelected = Item.ResolvedValue == NavigationMenu.CurrentValue;
+        var wasSelected = activeIndex == previousIndex;
 
         if (!isSelected && !wasSelected)
             return string.Empty;

@@ -15,7 +15,8 @@
     private bool _registered;
 
     private Dictionary<string, object> BranchAttributes => BuildAttributes(
-        ("data-bradix-dismissable-layer-branch", string.Empty));
+        ("data-bradix-dismissable-layer-branch", string.Empty),
+        ("style", MergeStyleValues("display:contents;", Style)));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

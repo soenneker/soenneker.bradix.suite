@@ -9,7 +9,7 @@
 
 @inject IBradixSuiteInterop Interop
 
-@if (NavigationMenu?.IsRootMenu == true)
+@if (ShouldRenderViewport)
 {
     <div @ref="_viewportElement"
          class="@Class"
@@ -34,6 +34,10 @@
     [Parameter]
     public bool ForceMount { get; set; }
 
+    private bool ShouldRenderViewport =>
+        NavigationMenu?.IsRootMenu == true &&
+        (ForceMount || NavigationMenu.HasOpenItem);
+
     private string ResolvedViewportId =>
         string.IsNullOrWhiteSpace(Id)
             ? BlazorIdGenerator.Child(NavigationMenu!.BaseId!, "viewport")
@@ -43,7 +47,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -58,16 +62,16 @@
     {
         get
         {
-            string sizeStyle = string.Empty;
+            var sizeStyle = string.Empty;
 
             if (_width > 0 || _height > 0)
             {
-                string width = _width > 0 ? $"{_width.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
-                string height = _height > 0 ? $"{_height.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
+                var width = _width > 0 ? $"{_width.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
+                var height = _height > 0 ? $"{_height.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
                 sizeStyle = $"--radix-navigation-menu-viewport-width:{width};--radix-navigation-menu-viewport-height:{height};";
             }
 
-            string viewportStyle = NavigationMenu?.HasOpenItem == true
+            var viewportStyle = NavigationMenu?.HasOpenItem == true
                 ? string.Empty
                 : "pointer-events:none;";
 
@@ -89,9 +93,9 @@
         if (_disposed || NavigationMenu is null)
             return;
 
-        string? contentValue = NavigationMenu.HasOpenItem ? NavigationMenu.CurrentValue : null;
+        var contentValue = NavigationMenu.HasOpenItem ? NavigationMenu.CurrentValue : null;
 
-        if (string.IsNullOrWhiteSpace(contentValue) || !NavigationMenu.TryGetContent(contentValue, out ElementReference content))
+        if (string.IsNullOrWhiteSpace(contentValue) || !NavigationMenu.TryGetContent(contentValue, out var content))
         {
             if (!string.IsNullOrWhiteSpace(contentValue) &&
                 !string.Equals(_pendingContentRetryValue, contentValue, StringComparison.Ordinal))

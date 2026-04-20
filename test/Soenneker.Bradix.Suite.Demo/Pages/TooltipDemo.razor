@@ -4,18 +4,32 @@
 
 <section class="website-demo-page">
     <section class="card website-demo-card">
-        <BradixTooltipProvider>
-            <BradixTooltip>
-                <BradixTooltipTrigger Class="tooltip-demo__button">+</BradixTooltipTrigger>
-                <BradixTooltipPortal>
-                    <BradixTooltipContent Class="tooltip-demo__content" SideOffset="5">
-                        Add to library
-                        <BradixTooltipArrow>
-                            <span class="tooltip-arrow-shape"></span>
-                        </BradixTooltipArrow>
-                    </BradixTooltipContent>
-                </BradixTooltipPortal>
-            </BradixTooltip>
+        <BradixTooltipProvider DelayDuration="150">
+            <div style="display:flex; gap:1rem; align-items:center; justify-content:center; flex-wrap:wrap;">
+                <BradixTooltip>
+                    <BradixTooltipTrigger Class="tooltip-demo__button">+</BradixTooltipTrigger>
+                    <BradixTooltipPortal>
+                        <BradixTooltipContent Class="tooltip-demo__content" SideOffset="5">
+                            Add to library
+                            <BradixTooltipArrow>
+                                <span class="tooltip-arrow-shape"></span>
+                            </BradixTooltipArrow>
+                        </BradixTooltipContent>
+                    </BradixTooltipPortal>
+                </BradixTooltip>
+
+                <BradixTooltip>
+                    <BradixTooltipTrigger Class="tooltip-demo__button">Top</BradixTooltipTrigger>
+                    <BradixTooltipPortal>
+                        <BradixTooltipContent Class="tooltip-demo__content" SideOffset="5">
+                            Default placement
+                            <BradixTooltipArrow>
+                                <span class="tooltip-arrow-shape"></span>
+                            </BradixTooltipArrow>
+                        </BradixTooltipContent>
+                    </BradixTooltipPortal>
+                </BradixTooltip>
+            </div>
         </BradixTooltipProvider>
     </section>
 </section>

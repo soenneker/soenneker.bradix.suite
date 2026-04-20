@@ -136,7 +136,7 @@
 
     internal async Task ToggleMenu(string value)
     {
-        string? nextValue = string.Equals(CurrentValue, value, StringComparison.Ordinal)
+        var nextValue = string.Equals(CurrentValue, value, StringComparison.Ordinal)
             ? null
             : value;
 
@@ -149,16 +149,16 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
-        int currentIndex = focusableTriggers.IndexOf(trigger);
+        var focusableTriggers = GetFocusableTriggers();
+        var currentIndex = focusableTriggers.IndexOf(trigger);
 
         if (currentIndex < 0)
             return;
 
-        if (!BradixRovingFocusNavigator.TryGetTargetIndex(args.Key, "horizontal", ResolvedDirection, currentIndex, focusableTriggers.Count, Loop, out int targetIndex))
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(args.Key, "horizontal", ResolvedDirection, currentIndex, focusableTriggers.Count, Loop, out var targetIndex))
             return;
 
-        IBradixMenubarTriggerEntry target = focusableTriggers[targetIndex];
+        var target = focusableTriggers[targetIndex];
         CurrentTabStopId = target.Value;
         await target.Focus();
 
@@ -170,25 +170,25 @@
 
     internal async Task MoveToAdjacentMenu(string value, string key)
     {
-        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
-        List<string> candidateValues = focusableTriggers.Select(trigger => trigger.Value).ToList();
+        var focusableTriggers = GetFocusableTriggers();
+        var candidateValues = focusableTriggers.Select(trigger => trigger.Value).ToList();
 
-        string previousMenuKey = ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
-        bool isPreviousKey = string.Equals(previousMenuKey, key, StringComparison.Ordinal);
+        var previousMenuKey = ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
+        var isPreviousKey = string.Equals(previousMenuKey, key, StringComparison.Ordinal);
 
         if (isPreviousKey)
             candidateValues.Reverse();
 
-        int currentIndex = candidateValues.IndexOf(value);
+        var currentIndex = candidateValues.IndexOf(value);
 
         if (currentIndex < 0)
             return;
 
-        List<string> rotatedValues = Loop
+        var rotatedValues = Loop
             ? WrapArray(candidateValues, currentIndex + 1)
             : candidateValues.Skip(currentIndex + 1).ToList();
 
-        string? nextValue = rotatedValues.FirstOrDefault();
+        var nextValue = rotatedValues.FirstOrDefault();
 
         if (string.IsNullOrWhiteSpace(nextValue))
             return;
@@ -213,7 +213,7 @@
         if (ancestorIds is null)
             return false;
 
-        foreach (string ancestorId in ancestorIds)
+        foreach (var ancestorId in ancestorIds)
         {
             if (IsRegisteredTriggerId(ancestorId))
                 return true;
@@ -249,7 +249,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
+        var focusableTriggers = GetFocusableTriggers();
 
         if (focusableTriggers.Count == 0)
         {

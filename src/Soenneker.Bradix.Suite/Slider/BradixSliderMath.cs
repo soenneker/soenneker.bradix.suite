@@ -9,7 +9,7 @@ internal static class BradixSliderMath
 {
     public static IReadOnlyList<double> NormalizeValues(IEnumerable<double>? values, double min, double max)
     {
-        List<double> normalized = values?.Select(value => Clamp(value, min, max)).OrderBy(value => value).ToList() ?? [];
+        var normalized = values?.Select(value => Clamp(value, min, max)).OrderBy(value => value).ToList() ?? [];
         return normalized.Count == 0 ? [min] : normalized;
     }
 
@@ -26,12 +26,12 @@ internal static class BradixSliderMath
 
     public static double ConvertValueToPercentage(double value, double min, double max)
     {
-        double range = max - min;
+        var range = max - min;
 
         if (range <= 0)
             return 0;
 
-        double percentage = ((value - min) / range) * 100;
+        var percentage = ((value - min) / range) * 100;
         return Clamp(percentage, 0, 100);
     }
 
@@ -40,12 +40,12 @@ internal static class BradixSliderMath
         if (values.Count <= 1)
             return 0;
 
-        double closestDistance = double.MaxValue;
-        int closestIndex = 0;
+        var closestDistance = double.MaxValue;
+        var closestIndex = 0;
 
         for (var i = 0; i < values.Count; i++)
         {
-            double distance = Math.Abs(values[i] - nextValue);
+            var distance = Math.Abs(values[i] - nextValue);
 
             if (distance < closestDistance)
             {
@@ -59,7 +59,7 @@ internal static class BradixSliderMath
 
     public static List<double> GetNextSortedValues(IReadOnlyList<double> previousValues, double nextValue, int atIndex)
     {
-        List<double> nextValues = previousValues.ToList();
+        var nextValues = previousValues.ToList();
 
         if (atIndex < 0 || atIndex >= nextValues.Count)
             return nextValues;
@@ -85,13 +85,13 @@ internal static class BradixSliderMath
 
     public static int GetDecimalCount(double value)
     {
-        string[] segments = value.ToString(CultureInfo.InvariantCulture).Split('.');
+        var segments = value.ToString(CultureInfo.InvariantCulture).Split('.');
         return segments.Length > 1 ? segments[1].Length : 0;
     }
 
     public static double RoundValue(double value, int decimalCount)
     {
-        double rounder = Math.Pow(10, decimalCount);
+        var rounder = Math.Pow(10, decimalCount);
         return Math.Round(value * rounder) / rounder;
     }
 

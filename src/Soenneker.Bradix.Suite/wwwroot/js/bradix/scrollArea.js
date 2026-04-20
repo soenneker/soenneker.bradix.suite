@@ -280,17 +280,25 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     const maxScrollPos = orientation === "horizontal"
       ? viewport.scrollWidth - viewport.offsetWidth
       : viewport.scrollHeight - viewport.offsetHeight;
+    const delta = orientation === "horizontal"
+      ? (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY)
+      : event.deltaY;
     const nextScrollPos = orientation === "horizontal"
-      ? viewport.scrollLeft + event.deltaX
-      : viewport.scrollTop + event.deltaY;
+      ? viewport.scrollLeft + delta
+      : viewport.scrollTop + delta;
+    const clampedScrollPos = Math.min(Math.max(nextScrollPos, 0), Math.max(maxScrollPos, 0));
+
+    const previousScrollPos = orientation === "horizontal"
+      ? viewport.scrollLeft
+      : viewport.scrollTop;
 
     if (orientation === "horizontal") {
-      viewport.scrollLeft = nextScrollPos;
+      viewport.scrollLeft = clampedScrollPos;
     } else {
-      viewport.scrollTop = nextScrollPos;
+      viewport.scrollTop = clampedScrollPos;
     }
 
-    if (isScrollingWithinScrollbarBounds(nextScrollPos, maxScrollPos)) {
+    if (clampedScrollPos !== previousScrollPos || isScrollingWithinScrollbarBounds(clampedScrollPos, maxScrollPos)) {
       event.preventDefault();
     }
   };

@@ -136,7 +136,7 @@
     {
         get
         {
-            string swipeStyles = "user-select:none;touch-action:none;";
+            var swipeStyles = "user-select:none;touch-action:none;";
             if (_swipeMoveX != 0)
                 swipeStyles += $"--radix-toast-swipe-move-x:{_swipeMoveX}px;";
             if (_swipeMoveY != 0)
@@ -154,7 +154,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : [];
 
@@ -258,7 +258,7 @@
 
         if (_closeTimerCts is not null)
         {
-            TimeSpan elapsed = DateTime.UtcNow - _timerStartedUtc;
+            var elapsed = DateTime.UtcNow - _timerStartedUtc;
             _remainingDuration = Math.Max(0, _remainingDuration - elapsed.TotalMilliseconds);
         }
 
@@ -279,7 +279,7 @@
 
     internal async Task Close()
     {
-        bool wasFocused = await Interop.IsToastFocused(_toastElement);
+        var wasFocused = await Interop.IsToastFocused(_toastElement);
         await SetOpen(false);
 
         if (wasFocused && Provider?.HasViewport == true)
@@ -389,7 +389,7 @@
             _remainingDuration = ResolvedDuration;
 
         _closeTimerCts = new CancellationTokenSource();
-        CancellationToken token = _closeTimerCts.Token;
+        var token = _closeTimerCts.Token;
         _timerStartedUtc = DateTime.UtcNow;
 
         _ = RunCloseTimer(_remainingDuration, token);
@@ -456,11 +456,11 @@
         if (_pointerStartX is null || _pointerStartY is null || Provider is null)
             return;
 
-        double x = args.ClientX - _pointerStartX.Value;
-        double y = args.ClientY - _pointerStartY.Value;
-        bool horizontal = Provider.SwipeDirection.Value is BradixSwipeDirection.LeftValue or BradixSwipeDirection.RightValue;
-        double clampedX = horizontal ? ClampInDirection(x, Provider.SwipeDirection) : 0;
-        double clampedY = horizontal ? 0 : ClampInDirection(y, Provider.SwipeDirection);
+        var x = args.ClientX - _pointerStartX.Value;
+        var y = args.ClientY - _pointerStartY.Value;
+        var horizontal = Provider.SwipeDirection.Value is BradixSwipeDirection.LeftValue or BradixSwipeDirection.RightValue;
+        var clampedX = horizontal ? ClampInDirection(x, Provider.SwipeDirection) : 0;
+        var clampedY = horizontal ? 0 : ClampInDirection(y, Provider.SwipeDirection);
         double moveStartBuffer = string.Equals(args.PointerType, "touch", StringComparison.OrdinalIgnoreCase) ? 10 : 2;
 
         if (string.IsNullOrWhiteSpace(_swipeState))
@@ -592,16 +592,16 @@
         if (_activePointerId is null || _activePointerId.Value <= 0)
             return;
 
-        long pointerId = _activePointerId.Value;
+        var pointerId = _activePointerId.Value;
         _activePointerId = null;
         await Interop.ReleasePointer(_toastElement, pointerId);
     }
 
     private static bool IsDeltaInDirection(double x, double y, BradixSwipeDirection direction, double threshold)
     {
-        double deltaX = Math.Abs(x);
-        double deltaY = Math.Abs(y);
-        bool isDeltaX = deltaX > deltaY;
+        var deltaX = Math.Abs(x);
+        var deltaY = Math.Abs(y);
+        var isDeltaX = deltaX > deltaY;
 
         return direction.Value switch
         {
@@ -625,7 +625,7 @@
         if (!CurrentOpen)
             return;
 
-        string[] announceText = await Interop.GetToastAnnounceText(_toastElement);
+        var announceText = await Interop.GetToastAnnounceText(_toastElement);
 
         if (_announceTextSegments.SequenceEqual(announceText, StringComparer.Ordinal))
             return;

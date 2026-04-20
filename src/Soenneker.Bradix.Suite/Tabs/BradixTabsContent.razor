@@ -63,7 +63,7 @@
 
     private string? BuildContentStyle()
     {
-        string? animationStyle = _preventMountAnimation ? "animation-duration: 0s;" : null;
+        var animationStyle = _preventMountAnimation ? "animation-duration: 0s;" : null;
 
         return MergeStyleValues(animationStyle, Style);
     }

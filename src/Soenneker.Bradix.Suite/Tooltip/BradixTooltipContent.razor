@@ -25,6 +25,8 @@
                              AvoidCollisions="AvoidCollisions"
                              CollisionPadding="CollisionPadding"
                              HideWhenDetached="HideWhenDetached"
+                             Anchor="@TooltipTriggerAnchor"
+                             UseAnchor="@HasTooltipTriggerAnchor"
                              Style="@PositionerStyle">
             <BradixPresence Present="IsPresent"
                             Tag="div"
@@ -102,6 +104,8 @@
     public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     private bool IsPresent => ForceMount || PortalForceMount || Tooltip?.CurrentOpen == true;
+    private ElementReference TooltipTriggerAnchor => Tooltip?.TriggerElement ?? default;
+    private bool HasTooltipTriggerAnchor => TooltipTriggerAnchor.Context is not null;
 
     private string PositionerStyle =>
         "--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-available-width: var(--radix-popper-available-width); --radix-tooltip-content-available-height: var(--radix-popper-available-height); --radix-tooltip-trigger-width: var(--radix-popper-anchor-width); --radix-tooltip-trigger-height: var(--radix-popper-anchor-height);";
@@ -112,7 +116,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -143,11 +147,11 @@
 
         _dotNetReference ??= DotNetObjectReference.Create(this);
 
-        bool hoverableContent = !Tooltip.EffectiveDisableHoverableContent;
-        string? triggerId = Tooltip.TriggerElement.Id;
-        bool shouldRegister = !_contentRegistered ||
-            _lastHoverableContent != hoverableContent ||
-            !string.Equals(_lastTriggerId, triggerId, StringComparison.Ordinal);
+        var hoverableContent = !Tooltip.EffectiveDisableHoverableContent;
+        var triggerId = Tooltip.TriggerElement.Id;
+        var shouldRegister = !_contentRegistered ||
+                             _lastHoverableContent != hoverableContent ||
+                             !string.Equals(_lastTriggerId, triggerId, StringComparison.Ordinal);
 
         if (shouldRegister)
         {
@@ -160,7 +164,7 @@
 
         if (string.IsNullOrWhiteSpace(AriaLabel))
         {
-            string textContent = await Interop.GetTextContent(_contentElement);
+            var textContent = await Interop.GetTextContent(_contentElement);
 
             if (!string.Equals(_accessibleLabel, textContent, StringComparison.Ordinal))
             {

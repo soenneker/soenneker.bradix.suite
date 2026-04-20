@@ -14,14 +14,14 @@ public sealed class BradixFormDataSnapshot
 
     public string? Get(string name)
     {
-        return Values.TryGetValue(name, out string[]? values) && values.Length > 0
+        return Values.TryGetValue(name, out var values) && values.Length > 0
             ? values[0]
             : null;
     }
 
     public IReadOnlyList<string> GetAll(string name)
     {
-        return Values.TryGetValue(name, out string[]? values)
+        return Values.TryGetValue(name, out var values)
             ? values
             : Array.Empty<string>();
     }

@@ -55,7 +55,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
 
-        ILocator viewTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "View", Exact = true });
+        ILocator viewTrigger = page.Locator("[data-testid='bradix-menubar-demo']").GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "View", Exact = true });
         await viewTrigger.ClickAsync();
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Sort by");
 
@@ -164,7 +164,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
 
-        await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "View", Exact = true }).ClickAsync();
+        await page.Locator("[data-testid='bradix-menubar-demo']").GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "View", Exact = true }).ClickAsync();
         ILocator dateModified = page.GetByText("Date modified", new PageGetByTextOptions { Exact = true }).Locator("..");
 
         await dateModified.ClickAsync();
@@ -180,7 +180,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
 
-        ILocator viewTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "View", Exact = true });
+        ILocator viewTrigger = page.Locator("[data-testid='bradix-menubar-demo']").GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "View", Exact = true });
         await viewTrigger.ClickAsync();
 
         ILocator dateModified = page.GetByText("Date modified", new PageGetByTextOptions { Exact = true }).Locator("..");

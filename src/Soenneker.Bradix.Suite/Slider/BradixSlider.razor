@@ -149,7 +149,7 @@
 
     internal string? GetThumbInputName(BradixSliderThumb thumb)
     {
-        int index = GetThumbIndex(thumb);
+        var index = GetThumbIndex(thumb);
 
         if (index < 0)
             return null;
@@ -204,10 +204,10 @@
         if (!PageKeys.Contains(args.Key) && !ArrowKeys.Contains(args.Key))
             return;
 
-        bool isSkipKey = PageKeys.Contains(args.Key) || (args.ShiftKey && ArrowKeys.Contains(args.Key));
+        var isSkipKey = PageKeys.Contains(args.Key) || (args.ShiftKey && ArrowKeys.Contains(args.Key));
         double multiplier = isSkipKey ? 10 : 1;
-        int direction = IsBackKey(args.Key) ? -1 : 1;
-        double currentValue = CurrentValues[index];
+        var direction = IsBackKey(args.Key) ? -1 : 1;
+        var currentValue = CurrentValues[index];
         await UpdateValue(currentValue + (Step * multiplier * direction), index, commit: true);
     }
 
@@ -226,8 +226,8 @@
             return;
         }
 
-        double nextValue = GetValueFromFractions(xFraction, yFraction);
-        int closestIndex = BradixSliderMath.GetClosestValueIndex(CurrentValues, nextValue);
+        var nextValue = GetValueFromFractions(xFraction, yFraction);
+        var closestIndex = BradixSliderMath.GetClosestValueIndex(CurrentValues, nextValue);
         CurrentThumbIndex = closestIndex;
         await UpdateValue(nextValue, closestIndex, commit: false);
     }
@@ -238,7 +238,7 @@
         if (Disabled)
             return Task.CompletedTask;
 
-        double nextValue = GetValueFromFractions(xFraction, yFraction);
+        var nextValue = GetValueFromFractions(xFraction, yFraction);
         return UpdateValue(nextValue, CurrentThumbIndex, commit: false);
     }
 
@@ -248,8 +248,8 @@
         if (Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
             return;
 
-        double previousValue = _valuesBeforeSlideStart.Count > CurrentThumbIndex ? _valuesBeforeSlideStart[CurrentThumbIndex] : CurrentValues[CurrentThumbIndex];
-        double nextValue = CurrentValues[CurrentThumbIndex];
+        var previousValue = _valuesBeforeSlideStart.Count > CurrentThumbIndex ? _valuesBeforeSlideStart[CurrentThumbIndex] : CurrentValues[CurrentThumbIndex];
+        var nextValue = CurrentValues[CurrentThumbIndex];
 
         if (previousValue != nextValue && OnValueCommit.HasDelegate)
             await OnValueCommit.InvokeAsync(CurrentValues.ToArray());
@@ -284,16 +284,16 @@
         if (atIndex < 0 || atIndex >= CurrentValues.Count)
             return;
 
-        int decimalCount = BradixSliderMath.GetDecimalCount(Step);
-        double snappedValue = BradixSliderMath.RoundValue(Math.Round((value - Min) / Step) * Step + Min, decimalCount);
-        double clampedValue = BradixSliderMath.Clamp(snappedValue, Min, Max);
+        var decimalCount = BradixSliderMath.GetDecimalCount(Step);
+        var snappedValue = BradixSliderMath.RoundValue(Math.Round((value - Min) / Step) * Step + Min, decimalCount);
+        var clampedValue = BradixSliderMath.Clamp(snappedValue, Min, Max);
 
-        List<double> nextValues = BradixSliderMath.GetNextSortedValues(CurrentValues, clampedValue, atIndex);
+        var nextValues = BradixSliderMath.GetNextSortedValues(CurrentValues, clampedValue, atIndex);
 
         if (!BradixSliderMath.HasMinStepsBetweenValues(nextValues, MinStepsBetweenThumbs * Step))
             return;
 
-        int nextIndex = nextValues.IndexOf(clampedValue);
+        var nextIndex = nextValues.IndexOf(clampedValue);
 
         if (nextValues.SequenceEqual(CurrentValues))
             return;
@@ -320,20 +320,20 @@
 
     private double GetValueFromFractions(double xFraction, double yFraction)
     {
-        double range = Max - Min;
+        var range = Max - Min;
 
         if (range <= 0)
             return Min;
 
         if (Orientation == BradixOrientation.Horizontal)
         {
-            bool slidingFromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
+            var slidingFromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
             return slidingFromLeft
                 ? Min + (xFraction * range)
                 : Max - (xFraction * range);
         }
 
-        bool slidingFromBottom = !Inverted;
+        var slidingFromBottom = !Inverted;
         return slidingFromBottom
             ? Max - (yFraction * range)
             : Min + (yFraction * range);
@@ -348,7 +348,7 @@
 
     private HashSet<string> GetHorizontalBackKeys()
     {
-        bool fromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
+        var fromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
         return fromLeft
             ? ["Home", "PageDown", "ArrowDown", "ArrowLeft"]
             : ["Home", "PageDown", "ArrowDown", "ArrowRight"];
@@ -356,7 +356,7 @@
 
     private HashSet<string> GetVerticalBackKeys()
     {
-        bool fromBottom = !Inverted;
+        var fromBottom = !Inverted;
         return fromBottom
             ? ["Home", "PageDown", "ArrowDown", "ArrowLeft"]
             : ["Home", "PageDown", "ArrowUp", "ArrowLeft"];

@@ -71,8 +71,8 @@
         if (firstRender)
             Provider?.RegisterViewport();
 
-        bool hasToasts = Provider?.ToastCount > 0;
-        string hotkeySignature = string.Join("\u001F", Hotkey);
+        var hasToasts = Provider?.ToastCount > 0;
+        var hotkeySignature = string.Join("\u001F", Hotkey);
 
         if (!firstRender &&
             _registered &&

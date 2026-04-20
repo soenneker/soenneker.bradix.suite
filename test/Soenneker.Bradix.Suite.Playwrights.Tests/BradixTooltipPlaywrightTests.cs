@@ -61,6 +61,28 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Fact]
+    public async ValueTask Tooltip_demo_transfers_open_state_when_hovering_a_sibling_trigger()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltip"));
+
+        ILocator basicTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "+", Exact = true });
+        ILocator basicTooltip = page.GetByRole(AriaRole.Tooltip, new PageGetByRoleOptions { Name = "Add to library", Exact = true });
+        ILocator siblingTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Top", Exact = true });
+        ILocator siblingTooltip = page.GetByRole(AriaRole.Tooltip, new PageGetByRoleOptions { Name = "Default placement", Exact = true });
+
+        await basicTrigger.HoverAsync();
+        await Assertions.Expect(basicTooltip).ToBeVisibleAsync();
+
+        await siblingTrigger.HoverAsync();
+
+        await Assertions.Expect(siblingTooltip).ToBeVisibleAsync();
+        await Assertions.Expect(basicTooltip).Not.ToBeVisibleAsync();
+    }
+
+[Fact]
     public async ValueTask Tooltip_demo_reveals_content_on_hover()
     {
         await using BrowserSession session = await CreateSession();

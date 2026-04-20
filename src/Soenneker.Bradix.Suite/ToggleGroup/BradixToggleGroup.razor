@@ -101,7 +101,7 @@
         if (IsSingle)
             return string.Equals(NormalizeSingleValue(Value ?? _uncontrolledValue), value, StringComparison.Ordinal);
 
-        IReadOnlyCollection<string> values = Values ?? _uncontrolledValues;
+        var values = Values ?? _uncontrolledValues;
         return values.Contains(value);
     }
 
@@ -144,7 +144,7 @@
             return;
         }
 
-        List<string> next = Values?.ToList() ?? [.. _uncontrolledValues];
+        var next = Values?.ToList() ?? [.. _uncontrolledValues];
 
         if (next.Contains(value, StringComparer.Ordinal))
             return;
@@ -161,7 +161,7 @@
             return;
         }
 
-        List<string> next = Values?.ToList() ?? [.. _uncontrolledValues];
+        var next = Values?.ToList() ?? [.. _uncontrolledValues];
 
         if (!next.Remove(value))
             return;
@@ -174,11 +174,11 @@
         if (!RovingFocus || args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<BradixToggleGroupItem> focusableItems = _items
-            .Where(candidate => candidate.IsFocusable)
-            .ToList();
+        var focusableItems = _items
+                             .Where(candidate => candidate.IsFocusable)
+                             .ToList();
 
-        int currentIndex = focusableItems.IndexOf(item);
+        var currentIndex = focusableItems.IndexOf(item);
 
         if (currentIndex < 0)
             return;
@@ -190,12 +190,12 @@
                 currentIndex,
                 focusableItems.Count,
                 Loop,
-                out int targetIndex))
+                out var targetIndex))
         {
             return;
         }
 
-        BradixToggleGroupItem target = focusableItems[targetIndex];
+        var target = focusableItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -203,9 +203,9 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<BradixToggleGroupItem> focusableItems = _items
-            .Where(item => item.IsFocusable)
-            .ToList();
+        var focusableItems = _items
+                             .Where(item => item.IsFocusable)
+                             .ToList();
 
         if (focusableItems.Count == 0)
         {
@@ -216,13 +216,13 @@
         if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
             return;
 
-        BradixToggleGroupItem? activeItem = focusableItems.FirstOrDefault(item => item.IsPressed);
+        var activeItem = focusableItems.FirstOrDefault(item => item.IsPressed);
         CurrentTabStopId = activeItem?.TabStopId ?? focusableItems[0].TabStopId;
     }
 
     private async Task SetSingleValue(string? value)
     {
-        string normalizedValue = NormalizeSingleValue(value);
+        var normalizedValue = NormalizeSingleValue(value);
 
         if (string.Equals(NormalizeSingleValue(Value ?? _uncontrolledValue), normalizedValue, StringComparison.Ordinal))
             return;
@@ -242,7 +242,7 @@
 
     private async Task SetMultipleValues(IReadOnlyCollection<string> values)
     {
-        List<string> next = values.Distinct(StringComparer.Ordinal).ToList();
+        var next = values.Distinct(StringComparer.Ordinal).ToList();
 
         if (Values is null)
             _uncontrolledValues = next;

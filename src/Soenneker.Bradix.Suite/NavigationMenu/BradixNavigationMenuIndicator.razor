@@ -39,7 +39,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -54,8 +54,8 @@
     {
         get
         {
-            BradixOrientation orientation = NavigationMenu?.Orientation ?? BradixOrientation.Horizontal;
-            string baseStyle = "position:absolute;";
+            var orientation = NavigationMenu?.Orientation ?? BradixOrientation.Horizontal;
+            var baseStyle = "position:absolute;";
 
             if (_size.HasValue && _offset.HasValue)
             {
@@ -75,13 +75,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        BradixNavigationMenu? navigationMenu = NavigationMenu;
+        var navigationMenu = NavigationMenu;
 
         if (!_hasElement ||
             navigationMenu is null ||
             !navigationMenu.HasIndicatorTrack ||
             !navigationMenu.HasOpenItem ||
-            !navigationMenu.TryGetOpenTrigger(out IBradixNavigationMenuRegisteredTrigger trigger))
+            !navigationMenu.TryGetOpenTrigger(out var trigger))
         {
             if (_registered)
             {

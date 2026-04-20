@@ -98,7 +98,7 @@
     [JSInvokable]
     public async Task HandleImageLoadingStatusChanged(string status)
     {
-        BradixAvatarImageLoadingStatus resolvedStatus = status switch
+        var resolvedStatus = status switch
         {
             "loading" => BradixAvatarImageLoadingStatus.Loading,
             "loaded" => BradixAvatarImageLoadingStatus.Loaded,

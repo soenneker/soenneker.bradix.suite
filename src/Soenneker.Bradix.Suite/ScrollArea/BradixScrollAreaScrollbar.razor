@@ -38,8 +38,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        string orientation = Orientation.Value;
-        bool shouldRender = ScrollArea.ShouldRenderScrollbar(orientation, ForceMount);
+        var orientation = Orientation.Value;
+        var shouldRender = ScrollArea.ShouldRenderScrollbar(orientation, ForceMount);
 
         if (!shouldRender || !ScrollArea.HasViewport)
         {
@@ -100,7 +100,7 @@
 
     private string BuildScrollbarStyle()
     {
-        string baseStyle = ScrollArea.GetScrollbarStyle(Orientation.Value);
+        var baseStyle = ScrollArea.GetScrollbarStyle(Orientation.Value);
 
         return MergeStyleValues(baseStyle, Style)!;
     }

@@ -105,7 +105,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -125,7 +125,7 @@
 
     protected override void OnParametersSet()
     {
-        bool present = IsPresent;
+        var present = IsPresent;
 
         if (_wasPresent && !present)
             _isExiting = true;
@@ -212,8 +212,8 @@ ResetState:
         if (OnPointerDownOutsideDetailed.HasDelegate)
             await OnPointerDownOutsideDetailed.InvokeAsync(args);
 
-        bool ctrlLeftClick = args.OriginalEvent.Button == 0 && args.OriginalEvent.CtrlKey;
-        bool isRightClick = args.OriginalEvent.Button == 2 || ctrlLeftClick;
+        var ctrlLeftClick = args.OriginalEvent.Button == 0 && args.OriginalEvent.CtrlKey;
+        var isRightClick = args.OriginalEvent.Button == 2 || ctrlLeftClick;
 
         if (isRightClick)
             args.PreventDefault();

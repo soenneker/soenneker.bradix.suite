@@ -30,7 +30,7 @@
 
     private string BuildThumbStyle()
     {
-        string baseStyle = Scrollbar.ScrollArea.GetThumbStyle(Scrollbar.Orientation.Value);
+        var baseStyle = Scrollbar.ScrollArea.GetThumbStyle(Scrollbar.Orientation.Value);
 
         return MergeStyleValues(baseStyle, Style)!;
     }

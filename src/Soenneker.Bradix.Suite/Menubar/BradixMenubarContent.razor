@@ -117,7 +117,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -143,7 +143,7 @@
 
     protected override void OnParametersSet()
     {
-        bool present = IsPresent;
+        var present = IsPresent;
 
         if (_wasPresent && !present)
             _isExiting = true;
@@ -269,8 +269,8 @@
         if (args.Key == "Tab")
             return;
 
-        string? contentId = ResolvedContentId;
-        bool isContentTarget = !string.IsNullOrWhiteSpace(contentId) && string.Equals(args.TargetId, contentId, StringComparison.Ordinal);
+        var contentId = ResolvedContentId;
+        var isContentTarget = !string.IsNullOrWhiteSpace(contentId) && string.Equals(args.TargetId, contentId, StringComparison.Ordinal);
 
         if (isContentTarget && args.Key.Length == 1)
         {
@@ -299,11 +299,11 @@
         if (Menubar is null || MenubarMenu is null || string.IsNullOrWhiteSpace(contentId))
             return;
 
-        string previousMenuKey = Menubar.ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
-        bool isPreviousKey = previousMenuKey == args.Key;
-        bool isNextKey = !isPreviousKey;
-        bool isInsideNestedContent = !string.IsNullOrWhiteSpace(args.ClosestMenubarContentId)
-            && !string.Equals(args.ClosestMenubarContentId, contentId, StringComparison.Ordinal);
+        var previousMenuKey = Menubar.ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
+        var isPreviousKey = previousMenuKey == args.Key;
+        var isNextKey = !isPreviousKey;
+        var isInsideNestedContent = !string.IsNullOrWhiteSpace(args.ClosestMenubarContentId)
+                                    && !string.Equals(args.ClosestMenubarContentId, contentId, StringComparison.Ordinal);
 
         if (isNextKey && args.IsMenubarSubTrigger)
             return;
@@ -367,7 +367,7 @@
 
     private bool IsWithinContent(string? targetId, IReadOnlyList<string>? ancestorIds)
     {
-        string? contentId = ResolvedContentId;
+        var contentId = ResolvedContentId;
 
         if (string.IsNullOrWhiteSpace(contentId))
             return false;

@@ -120,7 +120,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -217,9 +217,9 @@
         if (OnInteractOutsideDetailed.HasDelegate)
             await OnInteractOutsideDetailed.InvokeAsync(args);
 
-        bool shouldDismiss = string.Equals(args.OriginalEventType, "pointerdown", StringComparison.Ordinal) &&
-            !_pointerDownOutsidePrevented &&
-            !args.DefaultPrevented;
+        var shouldDismiss = string.Equals(args.OriginalEventType, "pointerdown", StringComparison.Ordinal) &&
+                            !_pointerDownOutsidePrevented &&
+                            !args.DefaultPrevented;
 
         _pointerDownOutsidePrevented = false;
 

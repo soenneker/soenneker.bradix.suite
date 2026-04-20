@@ -98,11 +98,11 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
             if (_pendingExitEvaluation)
             {
                 _pendingExitEvaluation = false;
-                BradixPresenceSnapshot snapshot = await Interop.GetPresenceState(_element);
+                var snapshot = await Interop.GetPresenceState(_element);
 
-                bool hasExitAnimation = snapshot.Display != "none"
-                    && !string.Equals(snapshot.AnimationName, "none", StringComparison.Ordinal)
-                    && !string.Equals(snapshot.AnimationName, _previousAnimationName, StringComparison.Ordinal);
+                var hasExitAnimation = snapshot.Display != "none"
+                                       && !string.Equals(snapshot.AnimationName, "none", StringComparison.Ordinal)
+                                       && !string.Equals(snapshot.AnimationName, _previousAnimationName, StringComparison.Ordinal);
 
                 if (hasExitAnimation)
                 {
@@ -181,8 +181,8 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
     [JSInvokable]
     public async Task HandleAnimationEnd(string animationName, string? currentAnimationName = null)
     {
-        string normalizedEventAnimation = NormalizeAnimationName(animationName);
-        string activeAnimationName = NormalizeAnimationName(currentAnimationName);
+        var normalizedEventAnimation = NormalizeAnimationName(animationName);
+        var activeAnimationName = NormalizeAnimationName(currentAnimationName);
 
         if (!string.IsNullOrWhiteSpace(activeAnimationName) &&
             !string.Equals(activeAnimationName, "none", StringComparison.Ordinal) &&
@@ -225,11 +225,11 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
     private Dictionary<string, object> BuildRenderAttributes()
     {
-        Dictionary<string, object> attributes = BuildAttributes();
+        var attributes = BuildAttributes();
 
         if (_forceExitAnimationFillModeForwards)
         {
-            if (attributes.TryGetValue("style", out object? style) && style is string styleValue && !string.IsNullOrWhiteSpace(styleValue))
+            if (attributes.TryGetValue("style", out var style) && style is string styleValue && !string.IsNullOrWhiteSpace(styleValue))
                 attributes["style"] = $"{styleValue.TrimEnd(';')}; animation-fill-mode: forwards;";
             else
                 attributes["style"] = "animation-fill-mode: forwards;";
@@ -245,7 +245,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
     private static string NormalizeAnimationName(string? animationName, string? fallback = null)
     {
-        string? value = string.IsNullOrWhiteSpace(animationName) ? fallback : animationName;
+        var value = string.IsNullOrWhiteSpace(animationName) ? fallback : animationName;
         return string.IsNullOrWhiteSpace(value) ? "none" : value;
     }
 
@@ -254,7 +254,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
         if (string.Equals(eventAnimationName, "none", StringComparison.Ordinal))
             return false;
 
-        string[] currentAnimations = currentAnimationName.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var currentAnimations = currentAnimationName.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         return currentAnimations.Any(name => string.Equals(name, eventAnimationName, StringComparison.Ordinal));
     }
 

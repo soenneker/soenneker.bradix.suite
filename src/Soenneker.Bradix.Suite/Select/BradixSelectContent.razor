@@ -175,7 +175,7 @@ else
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -444,7 +444,7 @@ else
         if (Select is null || !UseItemAlignedPosition || !_hasContentElement || !_hasViewportElement || !Select.HasTrigger || !Select.HasValueNode)
             return;
 
-        IBradixSelectCollectionItem? selectedItem = Select.GetSelectedOrFirstEnabledItem();
+        var selectedItem = Select.GetSelectedOrFirstEnabledItem();
 
         if (selectedItem is null || !selectedItem.HasItemTextElement)
             return;
@@ -472,7 +472,7 @@ else
             if (Select is null)
                 return;
 
-            IBradixSelectCollectionItem? item = Select.GetSelectedOrFirstEnabledItem();
+            var item = Select.GetSelectedOrFirstEnabledItem();
 
             if (item is not null)
                 await Interop.ScrollSelectViewportByItem(_viewportElement, item.ItemElement, upward, cancellationToken);

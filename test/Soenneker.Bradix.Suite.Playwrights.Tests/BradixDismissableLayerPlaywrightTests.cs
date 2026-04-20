@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
@@ -19,8 +20,16 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dismissable-layer"));
+        await Assertions.Expect(page.Locator(".portal-surface[data-bradix-dismissable-layer-ready='true']")).ToHaveCountAsync(1);
 
-        await page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "BradixDismissableLayer", Exact = true }).ClickAsync();
+        ILocator layer = page.Locator(".portal-surface").First;
+        LocatorBoundingBoxResult? layerBox = await layer.BoundingBoxAsync();
+        Assert.NotNull(layerBox);
+
+        double outsideX = Math.Max(8, layerBox.X - 24);
+        double outsideY = Math.Max(8, layerBox.Y - 24);
+
+        await page.Mouse.ClickAsync((float)outsideX, (float)outsideY);
 
         await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Dismissed: True");
     }

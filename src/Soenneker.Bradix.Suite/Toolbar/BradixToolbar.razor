@@ -83,11 +83,11 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<IBradixToolbarRovingItem> focusableItems = _items
-            .Where(candidate => !candidate.IsDisabled)
-            .ToList();
+        var focusableItems = _items
+                             .Where(candidate => !candidate.IsDisabled)
+                             .ToList();
 
-        int currentIndex = focusableItems.IndexOf(item);
+        var currentIndex = focusableItems.IndexOf(item);
 
         if (currentIndex < 0)
             return;
@@ -99,12 +99,12 @@
                 currentIndex,
                 focusableItems.Count,
                 Loop,
-                out int targetIndex))
+                out var targetIndex))
         {
             return;
         }
 
-        IBradixToolbarRovingItem target = focusableItems[targetIndex];
+        var target = focusableItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -112,9 +112,9 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixToolbarRovingItem> focusableItems = _items
-            .Where(item => !item.IsDisabled)
-            .ToList();
+        var focusableItems = _items
+                             .Where(item => !item.IsDisabled)
+                             .ToList();
 
         if (focusableItems.Count == 0)
         {

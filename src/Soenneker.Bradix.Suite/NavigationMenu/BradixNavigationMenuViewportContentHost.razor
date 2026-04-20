@@ -60,14 +60,14 @@
     {
         get
         {
-            Dictionary<string, object> attributes = Registration.AdditionalAttributes is not null
+            var attributes = Registration.AdditionalAttributes is not null
                 ? new Dictionary<string, object>(Registration.AdditionalAttributes)
                 : new Dictionary<string, object>();
 
             if (!string.IsNullOrWhiteSpace(Registration.Class))
                 attributes["class"] = Registration.Class;
 
-            attributes["style"] = BradixComponent.MergeStyleValues(Registration.Style, "position:static;left:auto;right:auto;top:auto;");
+            attributes["style"] = MergeStyleValues(Registration.Style, "position:static;left:auto;right:auto;top:auto;");
 
             attributes["id"] = Registration.ContentId;
             attributes["aria-labelledby"] = Registration.TriggerId;
@@ -97,8 +97,8 @@
             await OnContentElementCaptured.InvokeAsync(_contentElement);
 
         if (NavigationMenu is not null &&
-            NavigationMenu.TryGetFocusProxy(Registration.Value, out ElementReference startProxy) &&
-            NavigationMenu.TryGetTrigger(Registration.Value, out IBradixNavigationMenuRegisteredTrigger trigger))
+            NavigationMenu.TryGetFocusProxy(Registration.Value, out var startProxy) &&
+            NavigationMenu.TryGetTrigger(Registration.Value, out var trigger))
         {
             if (_focusBridgeRegistered)
             {

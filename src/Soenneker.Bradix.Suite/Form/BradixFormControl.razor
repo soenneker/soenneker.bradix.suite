@@ -68,7 +68,7 @@
             _registeredWithForm = true;
         }
 
-        bool serverInvalid = Field?.ServerInvalid == true;
+        var serverInvalid = Field?.ServerInvalid == true;
 
         if (serverInvalid && (_lastServerInvalid != true || firstRender))
             await Interop.FocusServerInvalidFormControl(_element);
@@ -86,13 +86,13 @@
 
     private async Task HandleInvalid()
     {
-        BradixFormControlSnapshot snapshot = await Interop.GetFormControlState(_element);
+        var snapshot = await Interop.GetFormControlState(_element);
         await HandleControlStateChanged(snapshot);
     }
 
     private async Task HandleChange(ChangeEventArgs _)
     {
-        BradixFormControlSnapshot snapshot = await Interop.GetFormControlState(_element);
+        var snapshot = await Interop.GetFormControlState(_element);
         await HandleControlStateChanged(snapshot);
     }
 

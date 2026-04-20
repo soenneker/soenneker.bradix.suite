@@ -104,7 +104,7 @@ function ensureDismissableLayerListeners() {
       invokeDotNetSafely(topLayer.dotNetRef, "HandlePointerDownOutside", snapshot);
     };
 
-    document.addEventListener("pointerdown", (event) => {
+    const handlePointerDownLikeEvent = (event) => {
       const topLayer = dismissableLayers[dismissableLayers.length - 1];
 
       if (!topLayer || !event.target) {
@@ -128,7 +128,9 @@ function ensureDismissableLayerListeners() {
       }
 
       topLayer.isPointerInside = false;
-    });
+    };
+
+    document.addEventListener("pointerdown", handlePointerDownLikeEvent);
 
     dismissableLayerPointerDownListenerRegistered = true;
   }

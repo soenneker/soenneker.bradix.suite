@@ -91,7 +91,7 @@
             return;
         }
 
-        bool controlledOpen = Open.Value;
+        var controlledOpen = Open.Value;
 
         if (_lastControlledOpen == controlledOpen)
             return;
@@ -144,16 +144,16 @@
 
     internal async Task<bool> HandleItemNavigation(IBradixMenuRovingItem item, string key, bool loop)
     {
-        List<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
-        int currentIndex = enabledItems.IndexOf(item);
+        var enabledItems = GetEnabledItems();
+        var currentIndex = enabledItems.IndexOf(item);
 
         if (currentIndex < 0)
             return false;
 
-        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, loop, out int targetIndex))
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, loop, out var targetIndex))
             return false;
 
-        IBradixMenuRovingItem target = enabledItems[targetIndex];
+        var target = enabledItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -162,10 +162,10 @@
 
     internal async Task HandleTypeahead(IBradixMenuRovingItem? currentItem, string key)
     {
-        string search = _typeahead.Append(key);
+        var search = _typeahead.Append(key);
         IReadOnlyList<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
 
-        IBradixMenuRovingItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
+        var nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
 
         if (nextItem is null)
             return;
@@ -192,21 +192,21 @@
 
     internal bool ConsumeFocusFirstItemOnOpen()
     {
-        bool shouldFocusFirstItemOnOpen = _focusFirstItemOnOpen;
+        var shouldFocusFirstItemOnOpen = _focusFirstItemOnOpen;
         _focusFirstItemOnOpen = false;
         return shouldFocusFirstItemOnOpen;
     }
 
     internal bool ConsumeFocusContentOnOpen()
     {
-        bool shouldFocusContentOnOpen = _focusContentOnOpen;
+        var shouldFocusContentOnOpen = _focusContentOnOpen;
         _focusContentOnOpen = true;
         return shouldFocusContentOnOpen;
     }
 
     internal async Task FocusFirstItem()
     {
-        IBradixMenuRovingItem? first = GetEnabledItems().FirstOrDefault();
+        var first = GetEnabledItems().FirstOrDefault();
         if (first is null)
             return;
 
@@ -217,7 +217,7 @@
 
     internal async Task FocusLastItem()
     {
-        IBradixMenuRovingItem? last = GetEnabledItems().LastOrDefault();
+        var last = GetEnabledItems().LastOrDefault();
         if (last is null)
             return;
 
@@ -316,7 +316,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
+        var enabledItems = GetEnabledItems();
 
         if (enabledItems.Count == 0)
         {

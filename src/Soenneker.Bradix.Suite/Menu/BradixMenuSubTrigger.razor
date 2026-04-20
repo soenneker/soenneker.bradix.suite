@@ -98,7 +98,7 @@
 
         if (string.IsNullOrWhiteSpace(TextValue))
         {
-            string textContent = await Interop.GetTextContent(_element);
+            var textContent = await Interop.GetTextContent(_element);
 
             if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
                 _resolvedTextValue = textContent;
@@ -159,7 +159,7 @@
         if (ParentMenu.IsTypeaheadActive && args.Key is " " or "Spacebar")
             return;
 
-        bool isOpenKey = ParentMenu.ResolvedDirection == "rtl"
+        var isOpenKey = ParentMenu.ResolvedDirection == "rtl"
             ? args.Key is "ArrowLeft" or "Enter" or " " or "Spacebar"
             : args.Key is "ArrowRight" or "Enter" or " " or "Spacebar";
 

@@ -48,7 +48,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BuildAttributes(
+            var attributes = BuildAttributes(
                 ("type", "button"),
                 ("data-state", IsPressed ? "on" : "off"),
                 ("data-disabled", IsDisabled ? string.Empty : null),

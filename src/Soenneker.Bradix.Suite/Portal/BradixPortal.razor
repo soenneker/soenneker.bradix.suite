@@ -27,7 +27,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        bool containerChanged = !_lastContainerCaptured || !EqualityComparer<ElementReference>.Default.Equals(_lastContainer, Container);
+        var containerChanged = !_lastContainerCaptured || !EqualityComparer<ElementReference>.Default.Equals(_lastContainer, Container);
 
         if (_mounted && !firstRender && !containerChanged && string.Equals(_lastContainerSelector, ContainerSelector, StringComparison.Ordinal))
             return;

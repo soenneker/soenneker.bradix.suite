@@ -16,23 +16,23 @@
 
     private string BuildRangeStyle()
     {
-        IReadOnlyList<double> values = Slider.CurrentValues;
-        List<double> percentages = values.Select(Slider.GetPercentForValue).ToList();
-        double offsetStart = percentages.Count > 1 ? percentages.Min() : 0;
-        double offsetEnd = 100 - percentages.Max();
+        var values = Slider.CurrentValues;
+        var percentages = values.Select(Slider.GetPercentForValue).ToList();
+        var offsetStart = percentages.Count > 1 ? percentages.Min() : 0;
+        var offsetEnd = 100 - percentages.Max();
 
         string startEdge;
         string endEdge;
 
         if (Slider.Orientation == BradixOrientation.Horizontal)
         {
-            bool fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
+            var fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
             startEdge = fromLeft ? "left" : "right";
             endEdge = fromLeft ? "right" : "left";
         }
         else
         {
-            bool fromBottom = !Slider.Inverted;
+            var fromBottom = !Slider.Inverted;
             startEdge = fromBottom ? "bottom" : "top";
             endEdge = fromBottom ? "top" : "bottom";
         }

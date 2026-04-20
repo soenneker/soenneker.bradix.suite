@@ -121,7 +121,7 @@
 
     internal bool TryConsumeSelectOnFocus()
     {
-        bool shouldSelect = _selectOnFocusAfterNavigation;
+        var shouldSelect = _selectOnFocusAfterNavigation;
         _selectOnFocusAfterNavigation = false;
         return shouldSelect;
     }
@@ -158,11 +158,11 @@
         if (args.Key == "Enter")
             return;
 
-        List<BradixRadioGroupItem> focusableItems = _items
-            .Where(candidate => !candidate.IsDisabled)
-            .ToList();
+        var focusableItems = _items
+                             .Where(candidate => !candidate.IsDisabled)
+                             .ToList();
 
-        int currentIndex = focusableItems.IndexOf(item);
+        var currentIndex = focusableItems.IndexOf(item);
 
         if (currentIndex < 0)
             return;
@@ -174,12 +174,12 @@
                 currentIndex,
                 focusableItems.Count,
                 Loop,
-                out int targetIndex))
+                out var targetIndex))
         {
             return;
         }
 
-        BradixRadioGroupItem target = focusableItems[targetIndex];
+        var target = focusableItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
         _selectOnFocusAfterNavigation = args.Key is "ArrowUp" or "ArrowDown" or "ArrowLeft" or "ArrowRight";
         await target.Focus();
@@ -188,9 +188,9 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<BradixRadioGroupItem> focusableItems = _items
-            .Where(item => !item.IsDisabled)
-            .ToList();
+        var focusableItems = _items
+                             .Where(item => !item.IsDisabled)
+                             .ToList();
 
         if (focusableItems.Count == 0)
         {
@@ -201,7 +201,7 @@
         if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
             return;
 
-        BradixRadioGroupItem? checkedItem = focusableItems.FirstOrDefault(item => item.IsChecked);
+        var checkedItem = focusableItems.FirstOrDefault(item => item.IsChecked);
         CurrentTabStopId = checkedItem?.TabStopId ?? focusableItems[0].TabStopId;
     }
 }

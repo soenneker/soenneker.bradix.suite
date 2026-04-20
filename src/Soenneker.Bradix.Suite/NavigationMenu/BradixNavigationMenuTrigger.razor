@@ -8,14 +8,9 @@
 
 @inject IBradixSuiteInterop Interop
 <button @ref="_button"
-        @onpointerover="HandlePointerOver"
         @onpointerenter="HandlePointerEnter"
         @onpointermove="HandlePointerMove"
         @onpointerleave="HandlePointerLeave"
-        @onmouseover="HandleMouseOver"
-        @onmouseenter="HandleMouseEnter"
-        @onmousemove="HandleMouseMove"
-        @onmouseleave="HandleMouseLeave"
         @onclick="HandleClick"
         @onfocus="HandleFocus"
         @onkeydown="HandleKeyDown"
@@ -42,6 +37,7 @@
     private bool _openedByPointerMove;
     private bool _rovingFocusBridgeReady;
     private bool _rovingFocusRegistered;
+    private bool _triggerInteractionRegistered;
     private bool _wasClickClose;
     private bool _focusProxyRegistered;
     private bool _disposed;
@@ -103,6 +99,19 @@
                     return;
                 }
             }
+
+            if (!_triggerInteractionRegistered)
+            {
+                try
+                {
+                    await Interop.RegisterNavigationMenuTriggerInteraction(_button, _dotNetReference);
+                    _triggerInteractionRegistered = true;
+                }
+                catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+                {
+                    return;
+                }
+            }
         }
 
         if (NavigationMenu is not null && Item is not null)
@@ -136,6 +145,17 @@
             }
         }
 
+        if (_triggerInteractionRegistered)
+        {
+            try
+            {
+                await Interop.UnregisterNavigationMenuTriggerInteraction(_button);
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+            }
+        }
+
         _dotNetReference?.Dispose();
         _dotNetReference = null;
 
@@ -150,8 +170,6 @@
 
     private async Task HandlePointerEnter(PointerEventArgs args)
     {
-        _wasClickClose = false;
-
         if (NavigationMenu is not null)
             NavigationMenu.HandleTriggerPointerEnter();
 
@@ -188,31 +206,6 @@
         _openedByPointerMove = true;
     }
 
-    private Task HandlePointerOver(PointerEventArgs args)
-    {
-        return HandlePointerMove(args);
-    }
-
-    private Task HandleMouseEnter()
-    {
-        return HandleHoverEnter();
-    }
-
-    private Task HandleMouseMove()
-    {
-        return HandleHoverMove();
-    }
-
-    private Task HandleMouseOver()
-    {
-        return HandleHoverMove();
-    }
-
-    private Task HandleMouseLeave()
-    {
-        return HandleHoverLeave();
-    }
-
     private async Task HandlePointerLeave(PointerEventArgs args)
     {
         if (args.PointerType == "touch" || Disabled || NavigationMenu is null)
@@ -228,8 +221,6 @@
 
         if (NavigationMenu is not null)
             NavigationMenu.HandleTriggerPointerEnter();
-
-        _wasClickClose = false;
 
         if (NavigationMenu is not null && Item is not null)
             NavigationMenu.ClearEscapeClosed(Item.ResolvedValue);
@@ -268,6 +259,7 @@
 
         _hasPointerMoveOpened = false;
         _openedByPointerMove = false;
+        _wasClickClose = false;
         await NavigationMenu.HandleTriggerPointerLeave();
     }
 
@@ -285,7 +277,7 @@
             return;
         }
 
-        bool wasOpen = IsOpen;
+        var wasOpen = IsOpen;
         _openedByPointerMove = false;
         await NavigationMenu.ToggleItem(Item.ResolvedValue);
         _wasClickClose = wasOpen;
@@ -309,8 +301,8 @@
         if (Disabled || NavigationMenu is null || Item is null)
             return;
 
-        string verticalEntryKey = NavigationMenu.ResolvedDirection == "rtl" ? "ArrowLeft" : "ArrowRight";
-        string entryKey = NavigationMenu.Orientation == BradixOrientation.Vertical ? verticalEntryKey : "ArrowDown";
+        var verticalEntryKey = NavigationMenu.ResolvedDirection == "rtl" ? "ArrowLeft" : "ArrowRight";
+        var entryKey = NavigationMenu.Orientation == BradixOrientation.Vertical ? verticalEntryKey : "ArrowDown";
 
         if (IsOpen && string.Equals(args.Key, entryKey, StringComparison.Ordinal))
         {
@@ -338,6 +330,33 @@
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleDirectClick()
+    {
+        return ProcessClick();
+    }
+
+    [JSInvokable]
+    public Task HandleDirectFocus()
+    {
+        return HandleFocus(new FocusEventArgs());
+    }
+
+    [JSInvokable]
+    public Task HandleDirectKeyDown(BradixDelegatedKeyboardEvent args)
+    {
+        return ProcessKeyDown(new KeyboardEventArgs
+        {
+            Key = args.Key,
+            Code = args.Code,
+            CtrlKey = args.CtrlKey,
+            ShiftKey = args.ShiftKey,
+            AltKey = args.AltKey,
+            MetaKey = args.MetaKey,
+            Repeat = args.Repeat
+        });
     }
 
     private static bool ShouldIgnoreInteropException(Exception ex)

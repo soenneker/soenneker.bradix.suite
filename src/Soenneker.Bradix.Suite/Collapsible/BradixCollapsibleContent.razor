@@ -47,7 +47,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -71,7 +71,7 @@
             if (!string.IsNullOrWhiteSpace(Class))
                 attributes["class"] = Class;
 
-            string? mergedStyle = BuildMergedStyle(attributes.TryGetValue("style", out object? existingStyle) ? existingStyle?.ToString() : null);
+            var mergedStyle = BuildMergedStyle(attributes.TryGetValue("style", out var existingStyle) ? existingStyle?.ToString() : null);
 
             if (!string.IsNullOrWhiteSpace(mergedStyle))
                 attributes["style"] = mergedStyle;

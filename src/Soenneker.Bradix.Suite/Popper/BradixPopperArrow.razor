@@ -31,7 +31,7 @@
         if (Content is null)
             return Style ?? string.Empty;
 
-        string oppositeSide = Content.PlacedSide switch
+        var oppositeSide = Content.PlacedSide switch
         {
             "top" => "bottom",
             "right" => "left",
@@ -40,7 +40,7 @@
             _ => "top"
         };
 
-        string positionStyle = $"position: absolute; {oppositeSide}: 0;";
+        var positionStyle = $"position: absolute; {oppositeSide}: 0;";
 
         if (Content.ArrowX.HasValue)
             positionStyle += $" left: {Content.ArrowX.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translateX(-50%);";

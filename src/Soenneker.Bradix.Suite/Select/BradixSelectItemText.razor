@@ -30,7 +30,7 @@
         if (!string.IsNullOrWhiteSpace(Item.TextValue))
             return;
 
-        string text = await Interop.GetTextContent(_element);
+        var text = await Interop.GetTextContent(_element);
 
         if (string.Equals(_lastResolvedText, text, StringComparison.Ordinal))
             return;

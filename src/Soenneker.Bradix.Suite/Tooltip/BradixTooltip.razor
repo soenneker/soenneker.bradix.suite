@@ -59,6 +59,8 @@
 
     public bool IsPointerInTransit => Provider?.IsPointerInTransit ?? false;
 
+    public bool ShouldBlockTriggerHoverOpen => Provider?.ShouldBlockTriggerHoverOpen(this) ?? IsPointerInTransit;
+
     public void SetPointerInTransit(bool inTransit)
     {
         Provider?.SetPointerInTransit(inTransit);

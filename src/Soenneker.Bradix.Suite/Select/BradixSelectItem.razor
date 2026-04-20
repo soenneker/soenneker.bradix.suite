@@ -97,7 +97,7 @@
 
         if (string.IsNullOrWhiteSpace(TextValue) && !_hasItemTextElement && string.IsNullOrWhiteSpace(_resolvedTextValue))
         {
-            string textContent = await Interop.GetTextContent(_element);
+            var textContent = await Interop.GetTextContent(_element);
 
             if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
             {
@@ -169,7 +169,7 @@
         if (Disabled || Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
-        bool isTypingAhead = Select.HasActiveTypeahead;
+        var isTypingAhead = Select.HasActiveTypeahead;
 
         if (isTypingAhead && args.Key is " " or "Spacebar")
             return;

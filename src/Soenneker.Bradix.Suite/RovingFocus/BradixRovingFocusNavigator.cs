@@ -11,8 +11,8 @@ internal static class BradixRovingFocusNavigator
         if (count <= 0)
             return false;
 
-        string effectiveDir = dir == "rtl" ? "rtl" : "ltr";
-        string normalizedKey = GetDirectionAwareKey(key, effectiveDir);
+        var effectiveDir = dir == "rtl" ? "rtl" : "ltr";
+        var normalizedKey = GetDirectionAwareKey(key, effectiveDir);
 
         if (orientation == "vertical" && (normalizedKey == "ArrowLeft" || normalizedKey == "ArrowRight"))
             return false;

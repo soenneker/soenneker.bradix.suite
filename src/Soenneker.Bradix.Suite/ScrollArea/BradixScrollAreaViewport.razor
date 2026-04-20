@@ -56,9 +56,9 @@
 
     private string BuildViewportStyle()
     {
-        string overflowX = ScrollArea.ScrollbarXMounted ? "scroll" : "hidden";
-        string overflowY = ScrollArea.ScrollbarYMounted ? "scroll" : "hidden";
-        string baseStyle = $"overflow-x: {overflowX}; overflow-y: {overflowY};";
+        var overflowX = ScrollArea.ScrollbarXMounted ? "scroll" : "hidden";
+        var overflowY = ScrollArea.ScrollbarYMounted ? "scroll" : "hidden";
+        var baseStyle = $"overflow-x: {overflowX}; overflow-y: {overflowY};";
 
         return MergeStyleValues(baseStyle, Style)!;
     }

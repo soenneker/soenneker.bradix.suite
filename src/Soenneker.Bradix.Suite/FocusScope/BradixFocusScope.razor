@@ -74,7 +74,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        bool unmountAutoFocusPrevented = PreventUnmountAutoFocus;
+        var unmountAutoFocusPrevented = PreventUnmountAutoFocus;
 
         if (OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate)
             unmountAutoFocusPrevented = await HandleUnmountAutoFocusCore(new BradixAutoFocusEventArgs()) || unmountAutoFocusPrevented;

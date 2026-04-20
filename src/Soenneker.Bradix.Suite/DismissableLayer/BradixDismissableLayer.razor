@@ -61,7 +61,8 @@
     [Parameter]
     public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
 
-    private Dictionary<string, object> LayerAttributes => BuildAttributes();
+    private Dictionary<string, object> LayerAttributes => BuildAttributes(
+        ("data-bradix-dismissable-layer-ready", _registered ? "true" : null));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -77,6 +78,7 @@
                 await Interop.RegisterDismissableLayer(_element, _dotNetReference, DisableOutsidePointerEvents);
                 _registered = true;
                 _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
+                await InvokeAsync(StateHasChanged);
             }
             catch (Exception ex) when (ShouldIgnoreInteropException(ex))
             {
@@ -134,7 +136,7 @@
         if (OnEscapeKeyDownDetailed.HasDelegate)
             await OnEscapeKeyDownDetailed.InvokeAsync(args);
 
-        bool shouldDismiss = DismissOnEscapeKeyDown && !args.DefaultPrevented && OnDismiss.HasDelegate;
+        var shouldDismiss = DismissOnEscapeKeyDown && !args.DefaultPrevented && OnDismiss.HasDelegate;
 
         if (shouldDismiss)
             await OnDismiss.InvokeAsync();

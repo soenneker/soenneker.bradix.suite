@@ -55,24 +55,24 @@
                 return BuildAttributes(("style", "display: none;"));
             }
 
-            double percent = Slider.GetPercentForValue(Value.Value);
+            var percent = Slider.GetPercentForValue(Value.Value);
             string startEdge;
             string transform;
 
             if (Slider.Orientation == BradixOrientation.Horizontal)
             {
-                bool fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
+                var fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
                 startEdge = fromLeft ? "left" : "right";
                 transform = "translateX(-50%)";
             }
             else
             {
-                bool fromBottom = !Slider.Inverted;
+                var fromBottom = !Slider.Inverted;
                 startEdge = fromBottom ? "bottom" : "top";
                 transform = "translateY(50%)";
             }
 
-            string style = $"position: absolute; {startEdge}: {percent.ToString(System.Globalization.CultureInfo.InvariantCulture)}%; transform: {transform};";
+            var style = $"position: absolute; {startEdge}: {percent.ToString(System.Globalization.CultureInfo.InvariantCulture)}%; transform: {transform};";
             return BuildAttributes(("style", style));
         }
     }
@@ -81,7 +81,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BuildAttributes(
+            var attributes = BuildAttributes(
                 ("role", "slider"),
                 ("aria-label", AriaLabel ?? BradixSliderMath.GetThumbLabel(Index, Slider.CurrentValues.Count)),
                 ("aria-valuemin", Slider.Min.ToString(System.Globalization.CultureInfo.InvariantCulture)),
@@ -128,7 +128,7 @@
 
         if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Slider.Form, StringComparison.Ordinal))
         {
-            bool isFormControl = await Interop.IsFormControl(_element, Slider.Form);
+            var isFormControl = await Interop.IsFormControl(_element, Slider.Form);
             _formControlStateResolved = true;
             _lastResolvedForm = Slider.Form;
 
@@ -142,7 +142,7 @@
 
         if (ShouldRenderBubbleInput && Value is not null)
         {
-            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedValue != Value;
+            var dispatchEvent = _hasSyncedBubbleInput && _lastRenderedValue != Value;
             await Interop.SyncSliderBubbleInputValue(_bubbleInputElement, Value.Value, dispatchEvent);
             _hasSyncedBubbleInput = true;
         }

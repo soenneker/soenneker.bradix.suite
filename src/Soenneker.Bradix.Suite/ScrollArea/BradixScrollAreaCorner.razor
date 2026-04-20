@@ -18,7 +18,7 @@
 
     private string BuildCornerStyle()
     {
-        string baseStyle = ScrollArea.GetCornerStyle();
+        var baseStyle = ScrollArea.GetCornerStyle();
 
         return MergeStyleValues(baseStyle, Style)!;
     }

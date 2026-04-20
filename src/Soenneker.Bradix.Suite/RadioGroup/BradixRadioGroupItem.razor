@@ -129,7 +129,7 @@
 
         if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
         {
-            bool isFormControl = await Interop.IsFormControl(_element, Form);
+            var isFormControl = await Interop.IsFormControl(_element, Form);
             _formControlStateResolved = true;
             _lastResolvedForm = Form;
 
@@ -143,7 +143,7 @@
 
         if (ShouldRenderBubbleInput)
         {
-            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedChecked != IsChecked;
+            var dispatchEvent = _hasSyncedBubbleInput && _lastRenderedChecked != IsChecked;
             await Interop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, false, dispatchEvent);
             _hasSyncedBubbleInput = true;
         }

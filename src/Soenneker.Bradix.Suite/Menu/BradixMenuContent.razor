@@ -134,7 +134,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
+            var attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -156,7 +156,7 @@
 
     protected override void OnParametersSet()
     {
-        bool present = IsPresent;
+        var present = IsPresent;
 
         if (_wasPresent && !present)
             _isExiting = true;
@@ -295,7 +295,7 @@
         if (args.Key == "Tab")
             return;
 
-        bool isContentTarget = string.Equals(args.TargetId, ResolvedContentId, StringComparison.Ordinal);
+        var isContentTarget = string.Equals(args.TargetId, ResolvedContentId, StringComparison.Ordinal);
 
         if (isContentTarget && args.Key.Length == 1)
         {
@@ -470,8 +470,8 @@
 
         _pendingOpenAutoFocus = false;
 
-        bool shouldFocusContent = Menu.ConsumeFocusContentOnOpen();
-        bool shouldFocusFirstItem = Menu.ConsumeFocusFirstItemOnOpen();
+        var shouldFocusContent = Menu.ConsumeFocusContentOnOpen();
+        var shouldFocusFirstItem = Menu.ConsumeFocusFirstItemOnOpen();
 
         if (shouldFocusContent)
             await Interop.FocusElementPreventScroll(_contentElement);
@@ -512,7 +512,7 @@
 
     private bool IsWithinContent(string? targetId, IReadOnlyList<string>? ancestorIds)
     {
-        string? contentId = ResolvedContentId;
+        var contentId = ResolvedContentId;
 
         if (string.IsNullOrWhiteSpace(contentId))
             return false;

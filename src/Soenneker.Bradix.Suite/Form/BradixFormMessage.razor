@@ -77,7 +77,7 @@
         if (!string.Equals(_registeredCustomMatcherFieldName, ResolvedName, StringComparison.Ordinal))
             UnregisterCustomMatcher();
 
-        if (TryCreateCustomMatcher(out Func<string?, BradixFormDataSnapshot, ValueTask<bool>>? matcher))
+        if (TryCreateCustomMatcher(out var matcher))
         {
             if (!string.IsNullOrWhiteSpace(ResolvedName))
             {
@@ -104,7 +104,7 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        bool shouldRegister = ShouldDisplay && !string.IsNullOrWhiteSpace(ResolvedName);
+        var shouldRegister = ShouldDisplay && !string.IsNullOrWhiteSpace(ResolvedName);
 
         if (_registered && !string.Equals(_registeredMessageFieldName, ResolvedName, StringComparison.Ordinal))
         {
@@ -152,7 +152,7 @@
         if (Match is null)
             return !Validity.Valid || Field?.ServerInvalid == true;
 
-        if (TryGetBuiltInMatch(out string? builtInMatch))
+        if (TryGetBuiltInMatch(out var builtInMatch))
         {
             return builtInMatch switch
             {
@@ -177,7 +177,7 @@
 
     private string ResolveDefaultMessage()
     {
-        if (Match is string builtInMatch && _defaultMessages.TryGetValue(builtInMatch, out string? message))
+        if (Match is string builtInMatch && _defaultMessages.TryGetValue(builtInMatch, out var message))
             return message;
 
         return "This value is not valid";

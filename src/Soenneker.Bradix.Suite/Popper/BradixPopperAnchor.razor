@@ -14,7 +14,8 @@
     [CascadingParameter]
     private BradixPopper? Popper { get; set; }
 
-    private Dictionary<string, object> AnchorAttributes => BuildAttributes();
+    private Dictionary<string, object> AnchorAttributes => BuildAttributes(
+        ("style", MergeStyleValues("display:contents;", Style)));
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {

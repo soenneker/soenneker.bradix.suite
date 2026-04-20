@@ -5,6 +5,7 @@
 @inherits BradixComponent
 
 @implements IBradixNavigationMenuLink
+@implements IBradixNavigationMenuFocusGroupItem
 
 @inject IBradixSuiteInterop Interop
 <a @ref="_element"
@@ -22,6 +23,7 @@
     private bool _rovingFocusBridgeReady;
     private bool _disposed;
     private RootLinkRegistration? _rootRegistration;
+    private bool _focusGroupRegistered;
 
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
@@ -41,6 +43,8 @@
     private string? RovingGroupId => !IsInContent && NavigationMenu?.IsRootMenu == true ? NavigationMenu.TriggerRovingGroupId : null;
 
     private string? RovingItemId => !IsInContent ? Item?.ResolvedValue : null;
+
+    private string? FocusGroupId => IsInContent ? Item?.ContentId : null;
 
     private int? TabIndex => !IsInContent && NavigationMenu?.IsRootMenu == true && Item is not null
         ? (NavigationMenu.CurrentTabStopValue == Item.ResolvedValue ? 0 : -1)
@@ -66,6 +70,15 @@
         {
             _rootRegistration = new RootLinkRegistration(Item.ResolvedValue, Item.TriggerId, _element);
             NavigationMenu.RegisterTrigger(_rootRegistration);
+        }
+
+        if (!_focusGroupRegistered &&
+            IsInContent &&
+            NavigationMenu is not null &&
+            !string.IsNullOrWhiteSpace(FocusGroupId))
+        {
+            NavigationMenu.RegisterFocusGroupItem(FocusGroupId, this);
+            _focusGroupRegistered = true;
         }
 
         _dotNetReference ??= DotNetObjectReference.Create(this);
@@ -100,6 +113,13 @@
 
         if (_rootRegistration is not null)
             NavigationMenu?.UnregisterTrigger(_rootRegistration);
+
+        if (_focusGroupRegistered &&
+            NavigationMenu is not null &&
+            !string.IsNullOrWhiteSpace(FocusGroupId))
+        {
+            NavigationMenu.UnregisterFocusGroupItem(FocusGroupId, this);
+        }
     }
 
     private async Task HandleClick(MouseEventArgs args)
@@ -121,7 +141,16 @@
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
     {
-        if (NavigationMenu is null || string.IsNullOrWhiteSpace(RovingGroupId))
+        if (NavigationMenu is null)
+            return;
+
+        if (IsInContent && !string.IsNullOrWhiteSpace(FocusGroupId))
+        {
+            await NavigationMenu.HandleFocusGroupItemKeyDown(FocusGroupId, this, args);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(RovingGroupId))
             return;
 
         if (_rovingFocusBridgeReady &&
@@ -131,7 +160,7 @@
         if (Item is null)
             return;
 
-        if (NavigationMenu.TryGetTrigger(Item.ResolvedValue, out IBradixNavigationMenuRegisteredTrigger trigger))
+        if (NavigationMenu.TryGetTrigger(Item.ResolvedValue, out var trigger))
             await NavigationMenu.HandleTriggerNavigation(trigger, args);
     }
 
@@ -158,5 +187,10 @@
         {
             return TriggerElement.FocusAsync();
         }
+    }
+
+    ValueTask IBradixNavigationMenuFocusGroupItem.Focus()
+    {
+        return _element.FocusAsync();
     }
 }
