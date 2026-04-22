@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixPopoverPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixPopoverPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Popover_demo_preserves_explicit_content_role_over_dialog_default()
     {
         await using BrowserSession session = await CreateSession();
@@ -44,7 +43,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(page.GetByRole(AriaRole.Dialog)).ToHaveCountAsync(0);
     }
 
-[Fact]
+[Test]
     public async ValueTask Popover_demo_closes_from_escape_after_opening_from_trigger()
     {
         await using BrowserSession session = await CreateSession();
@@ -68,7 +67,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(content).Not.ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Popover_demo_opens_and_closes_from_close_button()
     {
         await using BrowserSession session = await CreateSession();
@@ -84,7 +83,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(page.GetByText("Dimensions", new PageGetByTextOptions { Exact = true })).Not.ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async Task Popover_demo_positions_content_relative_to_the_trigger()
     {
         await using BrowserSession session = await CreateSession();
@@ -112,7 +111,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         Assert.True(contentBox.Width >= 240, $"Expected popover content width to be measurable, but was {contentBox.Width}.");
     }
 
-[Fact]
+[Test]
     public async ValueTask Popover_demo_closes_from_outside_click_after_opening_from_trigger()
     {
         await using BrowserSession session = await CreateSession();
@@ -142,7 +141,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(content).Not.ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Popover_demo_outside_control_button_opens_controlled_popover_while_another_popover_is_open()
     {
         await using BrowserSession session = await CreateSession();
@@ -165,7 +164,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(controlledContent).ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Popover_demo_controlled_open_state_stays_in_sync_with_outside_dismissal()
     {
         await using BrowserSession session = await CreateSession();

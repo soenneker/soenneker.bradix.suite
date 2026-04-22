@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixSeparatorPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixSeparatorPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixSeparatorPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Separator_demo_exposes_semantic_horizontal_and_decorative_vertical_metadata()
     {
         await using BrowserSession session = await CreateSession();

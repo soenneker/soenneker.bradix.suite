@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixRemoveScrollPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixRemoveScrollPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Remove_scroll_demo_mount_toggle_shows_and_hides_locked_surface()
     {
         await using BrowserSession session = await CreateSession();

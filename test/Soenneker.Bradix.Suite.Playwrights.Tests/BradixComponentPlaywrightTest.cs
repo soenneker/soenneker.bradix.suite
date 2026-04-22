@@ -1,13 +1,12 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Tests.Unit;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 public abstract class BradixComponentPlaywrightTest : PlaywrightUnitTest
 {
-    protected BradixComponentPlaywrightTest(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    protected BradixComponentPlaywrightTest(BradixPlaywrightHost Host,  outputHelper) : base(host)
     {
     }
 

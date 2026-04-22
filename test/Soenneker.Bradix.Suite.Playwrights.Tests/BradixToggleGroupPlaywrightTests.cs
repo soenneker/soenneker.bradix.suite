@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixToggleGroupPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixToggleGroupPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Toggle_group_demo_enforces_single_selection()
     {
         await using BrowserSession session = await CreateSession();
@@ -31,7 +30,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(center).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Fact]
+[Test]
     public async ValueTask Toggle_group_demo_vertical_navigation_skips_disabled_item()
     {
         await using BrowserSession session = await CreateSession();
@@ -55,7 +54,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(top).ToHaveAttributeAsync("tabindex", "-1");
     }
 
-[Fact]
+[Test]
     public async ValueTask Toggle_group_demo_rtl_arrow_keys_follow_visual_direction()
     {
         await using BrowserSession session = await CreateSession();
@@ -86,7 +85,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(right).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Fact]
+[Test]
     public async ValueTask Toggle_group_demo_disabled_group_does_not_change_pressed_state()
     {
         await using BrowserSession session = await CreateSession();
@@ -108,7 +107,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(right).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Fact]
+[Test]
     public async ValueTask Toggle_group_demo_preserves_multiple_selection_state()
     {
         await using BrowserSession session = await CreateSession();

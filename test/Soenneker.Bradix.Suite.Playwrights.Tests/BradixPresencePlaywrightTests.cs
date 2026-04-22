@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixPresencePlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixPresencePlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixPresencePlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Presence_demo_runs_exit_completion_when_toggled_closed()
     {
         await using BrowserSession session = await CreateSession();

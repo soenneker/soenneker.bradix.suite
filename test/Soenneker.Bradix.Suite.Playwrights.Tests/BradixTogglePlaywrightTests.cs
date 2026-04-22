@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixTogglePlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixTogglePlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Toggle_demo_updates_pressed_state()
     {
         await using BrowserSession session = await CreateSession();
@@ -28,7 +27,7 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-pressed", "true");
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Toggle_demo_controlled_buttons_and_disabled_state_stay_in_sync()
     {
         await using BrowserSession session = await CreateSession();

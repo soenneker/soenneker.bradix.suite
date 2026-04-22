@@ -3,18 +3,17 @@ using Microsoft.Playwright;
 using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
 using Soenneker.Playwrights.Tests.Unit;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
 {
-    public BradixSelectPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixSelectPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Select_demo_opens_options_and_updates_current_selection()
     {
         await using BrowserSession session = await CreateSession();
@@ -56,7 +55,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
                         .ToBeFocusedAsync();
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Select_demo_portals_content_and_closes_on_outside_click()
     {
         await using BrowserSession session = await CreateSession();
@@ -99,7 +98,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
                         .Not.ToBeVisibleAsync();
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Select_demo_marks_disabled_items_and_checked_selection_correctly()
     {
         await using BrowserSession session = await CreateSession();
@@ -133,7 +132,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
                         .ToHaveAttributeAsync("aria-selected", "true");
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Select_demo_home_and_end_keys_move_focus_to_first_and_last_enabled_options()
     {
         await using BrowserSession session = await CreateSession();
@@ -164,7 +163,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await Assertions.Expect(apple).ToHaveAttributeAsync("data-highlighted", string.Empty);
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Select_demo_typeahead_moves_focus_to_matching_enabled_option()
     {
         await using BrowserSession session = await CreateSession();
@@ -190,7 +189,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         Assert.True(await highlightedGrapes.CountAsync() > 0, "Expected a highlighted Grapes option after typeahead.");
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Select_demo_typeahead_skips_disabled_matching_option()
     {
         await using BrowserSession session = await CreateSession();
@@ -220,7 +219,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await Assertions.Expect(carrot).Not.ToHaveAttributeAsync("data-highlighted", string.Empty);
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Select_demo_supports_nested_select_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();
@@ -249,7 +248,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await Assertions.Expect(trigger).ToContainTextAsync("Remix");
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Select_demo_native_form_requires_selection_and_submits_selected_value()
     {
         await using BrowserSession session = await CreateSession();

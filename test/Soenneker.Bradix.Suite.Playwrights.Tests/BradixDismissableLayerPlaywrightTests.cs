@@ -2,18 +2,17 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixDismissableLayerPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixDismissableLayerPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Dismissable_layer_demo_dismisses_on_outside_click()
     {
         await using BrowserSession session = await CreateSession();
@@ -34,7 +33,7 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
         await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Dismissed: True");
     }
 
-[Fact]
+[Test]
     public async Task Dismissable_layer_demo_dismisses_on_escape()
     {
         await using BrowserSession session = await CreateSession();

@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixOneTimePasswordFieldPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixOneTimePasswordFieldPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask One_time_password_demo_distributes_typed_digits_across_slots()
     {
         await using BrowserSession session = await CreateSession();
@@ -32,7 +31,7 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
         await Assertions.Expect(slots.Nth(5)).ToHaveValueAsync("6");
     }
 
-[Fact]
+[Test]
     public async ValueTask One_time_password_demo_home_and_end_keys_move_focus_to_first_and_last_filled_slots()
     {
         await using BrowserSession session = await CreateSession();
@@ -52,7 +51,7 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
         await Assertions.Expect(first).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask One_time_password_demo_controlled_buttons_keep_visible_slots_and_hidden_input_in_sync()
     {
         await using BrowserSession session = await CreateSession();
@@ -89,7 +88,7 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
         await Assertions.Expect(page.Locator("input[type='hidden'][name='otp-controlled']")).ToHaveValueAsync(string.Empty);
     }
 
-[Fact]
+[Test]
     public async ValueTask One_time_password_demo_backspace_after_paste_clears_uncontrolled_slots_and_form_reset_restores_default_value()
     {
         await using BrowserSession session = await CreateSession();

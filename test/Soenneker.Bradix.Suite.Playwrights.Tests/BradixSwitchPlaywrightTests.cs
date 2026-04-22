@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixSwitchPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixSwitchPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Switch_demo_controlled_buttons_and_clicks_stay_in_sync()
     {
         await using BrowserSession session = await CreateSession();
@@ -36,7 +35,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(controlledSection).ToContainTextAsync("State: checked");
     }
 
-[Fact]
+[Test]
     public async ValueTask Switch_demo_form_reset_restores_default_checked_state()
     {
         await using BrowserSession session = await CreateSession();
@@ -62,7 +61,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(product).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Fact]
+[Test]
     public async ValueTask Switch_demo_toggles_checked_state()
     {
         await using BrowserSession session = await CreateSession();

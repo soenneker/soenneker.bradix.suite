@@ -1,16 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
-        <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Remove="FixtureHost.cs" />
+        <Compile Remove="FixtureHost.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -30,13 +27,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
         <PackageReference Include="Soenneker.Facts.Manual" Version="4.0.174" />
         <PackageReference Include="Soenneker.Playwrights.Extensions.TestPages" Version="4.0.5" />
         <PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.13" />
-        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.314" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.6" />
+        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.315" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.7" />
         <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.813" />
-        <PackageReference Include="xunit.v3" Version="3.2.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="C:\git\Soenneker\Playwrights\soenneker.playwrights.testhosts\src\Soenneker.Playwrights.TestHosts\Soenneker.Playwrights.TestHosts.csproj" />
     </ItemGroup>
 </Project>

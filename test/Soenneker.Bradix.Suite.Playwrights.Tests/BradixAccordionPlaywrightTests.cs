@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixAccordionPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixAccordionPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Accordion_demo_skips_disabled_items_and_honors_orientation_specific_keyboard_navigation()
     {
         await using BrowserSession session = await CreateSession();
@@ -63,7 +62,7 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         await ExpectActiveElementAsync(page, thirdHorizontalTrigger);
     }
 
-[Fact]
+[Test]
     public async ValueTask Accordion_demo_unmounts_closed_content_by_default_and_keeps_force_mounted_content_in_dom()
     {
         await using BrowserSession session = await CreateSession();
@@ -100,7 +99,7 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         await Assertions.Expect(forceMountContent).ToContainTextAsync("Force mounted accordion details remain in the DOM while closed.");
     }
 
-[Fact]
+[Test]
     public async ValueTask Accordion_demo_switches_visible_content_between_items()
     {
         await using BrowserSession session = await CreateSession();
@@ -119,7 +118,7 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         await Assertions.Expect(accessibleTrigger).ToHaveAttributeAsync("aria-expanded", "false");
     }
 
-[Fact]
+[Test]
     public async ValueTask Accordion_demo_supports_multiple_items_without_closing_previous_content()
     {
         await using BrowserSession session = await CreateSession();

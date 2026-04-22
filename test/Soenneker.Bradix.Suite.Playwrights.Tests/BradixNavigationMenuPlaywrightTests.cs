@@ -2,18 +2,17 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixNavigationMenuPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixNavigationMenuPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_demo_switches_visible_content_between_triggers()
     {
         await using BrowserSession session = await CreateSession();
@@ -35,7 +34,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(viewport).ToContainTextAsync("Introduction", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_demo_home_and_end_keys_move_focus_between_edge_triggers()
     {
         await using BrowserSession session = await CreateSession();
@@ -89,7 +88,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(viewport).ToContainTextAsync("Introduction", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_uncontrolled_demo_switches_visible_content_between_triggers()
     {
         await using BrowserSession session = await CreateSession();
@@ -111,7 +110,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(viewport).ToContainTextAsync("Introduction", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_minimal_demo_switches_visible_content_between_triggers()
     {
         await using BrowserSession session = await CreateSession();
@@ -133,7 +132,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(viewport).ToContainTextAsync("Overview body", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_inline_demo_switches_visible_content_between_triggers()
     {
         await using BrowserSession session = await CreateSession();
@@ -156,7 +155,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
                         .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 3000 });
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_demo_closes_from_single_outside_click()
     {
         await using BrowserSession session = await CreateSession();
@@ -177,7 +176,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(viewport).ToHaveCountAsync(0, new LocatorAssertionsToHaveCountOptions { Timeout = 3000 });
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_demo_marks_active_link_and_direct_link_does_not_open_viewport()
     {
         await using BrowserSession session = await CreateSession();
@@ -204,7 +203,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         Assert.Null(await githubLink.GetAttributeAsync("aria-expanded"));
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_demo_home_and_end_keys_move_focus_between_edge_links_in_open_content()
     {
         await using BrowserSession session = await CreateSession();
@@ -233,7 +232,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(primitives).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_demo_shared_viewport_expands_to_fit_open_content()
     {
         await using BrowserSession session = await CreateSession();
@@ -254,7 +253,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         Assert.True(viewportBox.Height >= 120, $"Expected the shared Bradix navigation viewport to show full content, but measured height {viewportBox.Height}.");
     }
 
-[Fact]
+[Test]
     public async Task Navigation_menu_demo_debugs_trigger_hit_target_after_open()
     {
         await using BrowserSession session = await CreateSession();
@@ -309,7 +308,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
             $"Expected Overview trigger center to resolve to the trigger button, but hit tag={diagnostics.hitTarget.tagName}, id={diagnostics.hitTarget.id}, text={diagnostics.hitTarget.text}, aria-labelledby={diagnostics.hitTarget.ariaLabelledBy}, data-state={diagnostics.hitTarget.dataState}.");
     }
 
-    [Fact]
+    [Test]
     public async Task Navigation_menu_demo_debugs_overview_trigger_events_after_open()
     {
         await using BrowserSession session = await CreateSession();
@@ -358,7 +357,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
             $"Expected Overview click to reach document without being default-prevented, but observed pointerdown={diagnostics.pointerdown}, mousedown={diagnostics.mousedown}, click={diagnostics.click}, documentClick={diagnostics.documentClick}, documentDefaultPrevented={diagnostics.documentDefaultPrevented}.");
     }
 
-    [Fact]
+    [Test]
     public async Task Navigation_menu_demo_debugs_overview_state_immediately_and_after_delay()
     {
         await using BrowserSession session = await CreateSession();
@@ -382,7 +381,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
             $"Expected Overview to open at least briefly when clicked after Learn, but immediate aria-expanded={immediate ?? "<null>"}, delayed aria-expanded={delayed ?? "<null>"}.");
     }
 
-    [Fact]
+    [Test]
     public async Task Navigation_menu_demo_debugs_programmatic_click_switch_after_open()
     {
         await using BrowserSession session = await CreateSession();
@@ -401,7 +400,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false");
     }
 
-    [Fact]
+    [Test]
     public async Task Navigation_menu_demo_debugs_overview_trigger_identity_after_open()
     {
         await using BrowserSession session = await CreateSession();
@@ -452,7 +451,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
             $"Expected Overview trigger DOM node to stay stable after opening Learn, but it was replaced. PreviousConnected={after.previousIsConnected}, CurrentConnected={after.currentIsConnected}, CurrentHtml={after.outerHtml}");
     }
 
-    [Fact]
+    [Test]
     public async Task Navigation_menu_demo_debugs_overview_can_open_first()
     {
         await using BrowserSession session = await CreateSession();
@@ -469,7 +468,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
             $"Expected Overview to open from the initial closed state, but aria-expanded was {expanded ?? "<null>"}.");
     }
 
-    [Fact]
+    [Test]
     public async Task Navigation_menu_demo_debugs_state_after_failed_switch_attempt()
     {
         await using BrowserSession session = await CreateSession();
@@ -529,7 +528,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
     }
 
-    [Fact]
+    [Test]
     public async Task Navigation_menu_demo_debugs_console_and_page_errors_after_open()
     {
         await using BrowserSession session = await CreateSession();

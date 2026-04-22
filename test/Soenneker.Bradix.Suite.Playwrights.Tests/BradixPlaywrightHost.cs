@@ -1,10 +1,10 @@
-using Soenneker.Playwrights.Fixtures;
+using Soenneker.Playwrights.TestHosts;
 using Soenneker.Playwrights.TestEnvironment.Options;
 using System.IO;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-public sealed class BradixPlaywrightFixture : PlaywrightFixture
+public sealed class BradixPlaywrightHost : PlaywrightHostedTestHost
 {
     protected override PlaywrightFixtureOptions CreateOptions()
     {

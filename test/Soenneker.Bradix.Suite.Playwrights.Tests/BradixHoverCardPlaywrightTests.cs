@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixHoverCardPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixHoverCardPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Hover_card_demo_supports_nested_hover_card_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();
@@ -34,7 +33,7 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
         await Assertions.Expect(dialog).ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Hover_card_demo_hides_profile_details_after_pointer_leaves_trigger_and_content()
     {
         await using BrowserSession session = await CreateSession();
@@ -53,7 +52,7 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
         await Assertions.Expect(card).Not.ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Hover_card_demo_shows_profile_details_on_hover()
     {
         await using BrowserSession session = await CreateSession();

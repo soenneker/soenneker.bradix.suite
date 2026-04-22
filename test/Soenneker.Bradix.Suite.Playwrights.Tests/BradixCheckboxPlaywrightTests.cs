@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixCheckboxPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixCheckboxPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Checkbox_demo_form_reset_restores_default_checked_and_indeterminate_states()
     {
         await using BrowserSession session = await CreateSession();
@@ -48,7 +47,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         await Assertions.Expect(projectPermissions).ToHaveAttributeAsync("data-state", "indeterminate");
     }
 
-[Fact]
+[Test]
     public async ValueTask Checkbox_demo_indeterminate_click_sets_checked_state()
     {
         await using BrowserSession session = await CreateSession();
@@ -68,7 +67,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         await Assertions.Expect(page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Indeterminate" })).ToContainTextAsync("State: checked");
     }
 
-[Fact]
+[Test]
     public async ValueTask Checkbox_demo_is_checked_by_default_and_can_toggle()
     {
         await using BrowserSession session = await CreateSession();

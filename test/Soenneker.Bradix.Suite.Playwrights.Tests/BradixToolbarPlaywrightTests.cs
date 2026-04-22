@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixToolbarPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixToolbarPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Toolbar_demo_roves_focus_across_groups_and_skips_disabled_items()
     {
         await using BrowserSession session = await CreateSession();
@@ -63,7 +62,7 @@ public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(share).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async Task Toolbar_demo_updates_pressed_states_for_toggle_groups()
     {
         await using BrowserSession session = await CreateSession();

@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixAvatarPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixAvatarPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixAvatarPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Avatar_demo_renders_loaded_image_and_keeps_fallback_hidden()
     {
         await using BrowserSession session = await CreateSession();
@@ -26,7 +25,7 @@ public sealed class BradixAvatarPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(loadedAvatar.GetByText("CT", new LocatorGetByTextOptions { Exact = true })).ToHaveCountAsync(0);
     }
 
-[Fact]
+[Test]
     public async Task Avatar_demo_delayed_and_broken_cases_render_fallbacks_when_expected()
     {
         await using BrowserSession session = await CreateSession();

@@ -4,14 +4,13 @@ using Soenneker.Facts.Manual;
 using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
 using Soenneker.Playwrights.Tests.Unit;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixDemoCatalogPlaywrightTests : PlaywrightUnitTest
 {
-    public BradixDemoCatalogPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixDemoCatalogPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 

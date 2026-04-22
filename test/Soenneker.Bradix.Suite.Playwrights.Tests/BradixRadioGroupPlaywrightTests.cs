@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixRadioGroupPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixRadioGroupPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Radio_group_demo_disabled_item_does_not_change_selection()
     {
         await using BrowserSession session = await CreateSession();
@@ -39,7 +38,7 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
         await Assertions.Expect(proRadio).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Fact]
+[Test]
     public async ValueTask Radio_group_demo_home_and_end_keys_move_selection_to_enabled_edges()
     {
         await using BrowserSession session = await CreateSession();
@@ -83,7 +82,7 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
         await Assertions.Expect(enterpriseRadio).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Fact]
+[Test]
     public async ValueTask Radio_group_demo_controlled_buttons_and_clicks_stay_in_sync()
     {
         await using BrowserSession session = await CreateSession();
@@ -108,7 +107,7 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
         await Assertions.Expect(monthlyRadio).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Fact]
+[Test]
     public async ValueTask Radio_group_demo_changes_selected_density()
     {
         await using BrowserSession session = await CreateSession();

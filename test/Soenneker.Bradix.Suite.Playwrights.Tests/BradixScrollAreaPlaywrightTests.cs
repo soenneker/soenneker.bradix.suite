@@ -2,18 +2,17 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixScrollAreaPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixScrollAreaPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Scroll_area_demo_supports_horizontal_viewport_scrolling()
     {
         await using BrowserSession session = await CreateSession();
@@ -26,7 +25,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
         Assert.True(scrollLeft > 0);
     }
 
-[Fact]
+[Test]
     public async Task Scroll_area_demo_supports_vertical_horizontal_and_rtl_viewport_scrolling()
     {
         await using BrowserSession session = await CreateSession();
@@ -56,7 +55,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
         Assert.True(rtlScrollTop > 0);
     }
 
-[Fact]
+[Test]
     public async Task Scroll_area_demo_allows_viewport_scrolling()
     {
         await using BrowserSession session = await CreateSession();

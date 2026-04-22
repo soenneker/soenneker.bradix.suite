@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixCollapsiblePlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixCollapsiblePlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Collapsible_demo_disabled_trigger_stays_open_and_force_mounted_content_remains_hidden_in_dom()
     {
         await using BrowserSession session = await CreateSession();
@@ -40,7 +39,7 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(forceMountContent).ToContainTextAsync("Force mounted details remain in the DOM while closed.");
     }
 
-[Fact]
+[Test]
     public async ValueTask Collapsible_demo_reveals_additional_repositories_when_opened()
     {
         await using BrowserSession session = await CreateSession();

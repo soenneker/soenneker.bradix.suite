@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixToastPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixToastPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Toast_demo_shows_scheduled_notification()
     {
         await using BrowserSession session = await CreateSession();
@@ -26,7 +25,7 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(page.GetByText("Undo", new PageGetByTextOptions { Exact = true })).ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Toast_demo_action_dismisses_the_current_notification()
     {
         await using BrowserSession session = await CreateSession();

@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixAlertDialogPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixAlertDialogPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Alert_dialog_demo_opens_and_closes_from_cancel()
     {
         await using BrowserSession session = await CreateSession();
@@ -30,7 +29,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(trigger).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Alert_dialog_demo_can_disable_escape_dismissal()
     {
         await using BrowserSession session = await CreateSession();
@@ -52,7 +51,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(dialog).Not.ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Alert_dialog_demo_action_closes_and_restores_trigger_focus()
     {
         await using BrowserSession session = await CreateSession();
@@ -72,7 +71,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(trigger).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Alert_dialog_demo_does_not_dismiss_from_outside_click_and_focuses_cancel_by_default()
     {
         await using BrowserSession session = await CreateSession();

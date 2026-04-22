@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixLabelPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixLabelPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Label_demo_focuses_input_when_label_is_clicked()
     {
         await using BrowserSession session = await CreateSession();
@@ -26,7 +25,7 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(input).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async Task Label_demo_toggles_associated_checkbox_when_label_is_clicked()
     {
         await using BrowserSession session = await CreateSession();

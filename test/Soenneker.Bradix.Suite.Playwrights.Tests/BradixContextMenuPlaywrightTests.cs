@@ -2,18 +2,17 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixContextMenuPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixContextMenuPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Context_menu_demo_supports_nested_menu_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();
@@ -42,7 +41,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(dialog).ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async Task Context_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled()
     {
         await using BrowserSession session = await CreateSession();
@@ -78,7 +77,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(pedro).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Fact]
+[Test]
     public async Task Context_menu_demo_opens_from_right_click_and_reveals_submenu()
     {
         await using BrowserSession session = await CreateSession();

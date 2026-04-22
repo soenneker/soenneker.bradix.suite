@@ -2,18 +2,17 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixDropdownMenuPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixDropdownMenuPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async Task Dropdown_menu_submenu_home_and_end_keys_move_focus_to_first_and_last_items()
     {
         await using BrowserSession session = await CreateSession();
@@ -42,7 +41,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await Assertions.Expect(savePageAs).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async Task Dropdown_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled()
     {
         await using BrowserSession session = await CreateSession();
@@ -75,7 +74,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await Assertions.Expect(pedro).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Fact]
+[Test]
     public async Task Dropdown_menu_demo_home_and_end_keys_move_focus_to_first_and_last_items()
     {
         await using BrowserSession session = await CreateSession();
@@ -104,7 +103,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await Assertions.Expect(newTab).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async Task Dropdown_menu_demo_opens_and_reveals_submenu_items()
     {
         await using BrowserSession session = await CreateSession();
@@ -119,7 +118,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Developer Tools");
     }
 
-[Fact]
+[Test]
     public async Task Dropdown_menu_demo_supports_nested_menu_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();

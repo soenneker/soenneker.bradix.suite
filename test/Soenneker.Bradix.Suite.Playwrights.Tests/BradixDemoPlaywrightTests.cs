@@ -4,18 +4,17 @@ using Microsoft.Playwright;
 using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
 using Soenneker.Playwrights.Tests.Unit;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixDemoPlaywrightTests : PlaywrightUnitTest
 {
-    public BradixDemoPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixDemoPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-    [Fact]
+    [Test]
     public async ValueTask Overview_page_loads_and_lists_core_demo_links()
     {
         Logger.LogInformation("Initial loading complete");

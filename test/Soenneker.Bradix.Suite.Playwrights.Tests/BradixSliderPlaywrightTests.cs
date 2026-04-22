@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixSliderPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixSliderPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Slider_demo_rtl_keyboard_direction_matches_radix_behavior()
     {
         await using BrowserSession session = await CreateSession();
@@ -37,7 +36,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(rtlSection).ToContainTextAsync("Value: 75");
     }
 
-[Fact]
+[Test]
     public async ValueTask Slider_demo_minimum_spacing_prevents_thumbs_from_crossing()
     {
         await using BrowserSession session = await CreateSession();
@@ -66,7 +65,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(spacingSection).ToContainTextAsync("Values: 20, 40");
     }
 
-[Fact]
+[Test]
     public async ValueTask Slider_demo_home_and_end_keys_jump_to_minimum_and_maximum()
     {
         await using BrowserSession session = await CreateSession();
@@ -87,7 +86,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "100");
     }
 
-[Fact]
+[Test]
     public async ValueTask Slider_demo_controlled_buttons_and_keyboard_updates_stay_in_sync()
     {
         await using BrowserSession session = await CreateSession();
@@ -112,7 +111,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(controlledSection).ToContainTextAsync("Value: 70");
     }
 
-[Fact]
+[Test]
     public async ValueTask Slider_demo_horizontal_track_click_updates_value()
     {
         await using BrowserSession session = await CreateSession();
@@ -142,7 +141,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "80");
     }
 
-[Fact]
+[Test]
     public async ValueTask Slider_demo_updates_value_from_keyboard_input()
     {
         await using BrowserSession session = await CreateSession();
@@ -159,7 +158,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "51");
     }
 
-[Fact]
+[Test]
     public async ValueTask Slider_demo_vertical_track_click_and_keyboard_update_value()
     {
         await using BrowserSession session = await CreateSession();

@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
@@ -7,7 +6,6 @@
         <IsPackable>false</IsPackable>
         <!-- bUnit WaitForAssertion(Action) requires sync delegates; async lambdas used with awaited TUnit assertions are flagged as async-void. -->
         <NoWarn>$(NoWarn);TUnit0031</NoWarn>
-        <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     </PropertyGroup>
 
     <ItemGroup>
@@ -36,5 +34,4 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
-
 </Project>

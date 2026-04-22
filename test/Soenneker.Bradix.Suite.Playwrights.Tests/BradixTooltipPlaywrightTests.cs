@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixTooltipPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixTooltipPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Tooltip_demo_supports_nested_tooltip_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();
@@ -34,7 +33,7 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(dialog).ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Tooltip_demo_hides_content_after_pointer_leaves_trigger_and_content()
     {
         await using BrowserSession session = await CreateSession();
@@ -60,7 +59,7 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(tooltip).Not.ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Tooltip_demo_transfers_open_state_when_hovering_a_sibling_trigger()
     {
         await using BrowserSession session = await CreateSession();
@@ -82,7 +81,7 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(basicTooltip).Not.ToBeVisibleAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Tooltip_demo_reveals_content_on_hover()
     {
         await using BrowserSession session = await CreateSession();

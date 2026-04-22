@@ -2,18 +2,17 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
-[Collection("Collection")]
+[ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
 {
-    public BradixDialogPlaywrightTests(BradixPlaywrightFixture fixture, ITestOutputHelper outputHelper) : base(fixture, outputHelper)
+    public BradixDialogPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {
     }
 
-[Fact]
+[Test]
     public async ValueTask Dialog_demo_saves_updated_project_details()
     {
         await using BrowserSession session = await CreateSession();
@@ -37,7 +36,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(page.Locator("#dialog-username")).ToHaveValueAsync("@jake");
     }
 
-[Fact]
+[Test]
     public async ValueTask Dialog_demo_traps_focus_and_restores_trigger_focus_after_escape()
     {
         await using BrowserSession session = await CreateSession();
@@ -66,7 +65,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(trigger).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Dialog_demo_supports_popover_nested_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();
@@ -99,7 +98,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(dialogTrigger).ToBeFocusedAsync();
     }
 
-[Fact]
+[Test]
     public async ValueTask Dialog_demo_close_discards_unsaved_changes()
     {
         await using BrowserSession session = await CreateSession();
@@ -115,7 +114,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(page.Locator("#dialog-name")).ToHaveValueAsync("Pedro Duarte");
     }
 
-[Fact]
+[Test]
     public async ValueTask Dialog_demo_dismisses_from_overlay_click()
     {
         await using BrowserSession session = await CreateSession();
