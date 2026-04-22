@@ -21,13 +21,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="testconfig.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Soenneker.Facts.Manual" Version="4.0.174" />
         <PackageReference Include="Soenneker.Playwrights.Extensions.TestPages" Version="4.0.5" />
         <PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.13" />
         <PackageReference Include="Soenneker.Utils.Test" Version="4.0.315" />
@@ -39,3 +32,4 @@
         <ProjectReference Include="C:\git\Soenneker\Playwrights\soenneker.playwrights.testhosts\src\Soenneker.Playwrights.TestHosts\Soenneker.Playwrights.TestHosts.csproj" />
     </ItemGroup>
 </Project>
+

@@ -28,10 +28,5 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Soenneker.Bradix.Suite\Soenneker.Bradix.Suite.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="testconfig.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
 </Project>
+
