@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -36,11 +35,11 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
                 };
             }");
 
-        Xunit.Assert.NotNull(popupState);
-        Xunit.Assert.Equal("listbox", popupState.role);
-        Xunit.Assert.Equal("Framework choices", popupState.ariaLabel);
-        Xunit.Assert.Equal("open", popupState.dataState);
-        Xunit.Assert.Equal("Astro", popupState.selectedText);
+        await Assert.That(popupState).IsNotNull();
+        await Assert.That(popupState!.role).IsEqualTo("listbox");
+        await Assert.That(popupState.ariaLabel).IsEqualTo("Framework choices");
+        await Assert.That(popupState.dataState).IsEqualTo("open");
+        await Assert.That(popupState.selectedText).IsEqualTo("Astro");
         await Assertions.Expect(page.GetByRole(AriaRole.Dialog)).ToHaveCountAsync(0);
     }
 
@@ -104,12 +103,11 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         LocatorBoundingBoxResult? triggerBox = await trigger.BoundingBoxAsync();
         LocatorBoundingBoxResult? contentBox = await content.BoundingBoxAsync();
 
-        Xunit.Assert.NotNull(triggerBox);
-        Xunit.Assert.NotNull(contentBox);
-        Xunit.Assert.True(contentBox.Y > 0, $"Expected popover top ({contentBox.Y}) to remain inside the viewport.");
-        Xunit.Assert.True(System.Math.Abs(contentBox.X - triggerBox.X) <= 200,
-            $"Expected popover X ({contentBox.X}) to stay anchored near the trigger X ({triggerBox.X}).");
-        Xunit.Assert.True(contentBox.Width >= 240, $"Expected popover content width to be measurable, but was {contentBox.Width}.");
+        await Assert.That(triggerBox).IsNotNull();
+        await Assert.That(contentBox).IsNotNull();
+        await Assert.That(contentBox!.Y > 0).IsTrue();
+        await Assert.That(System.Math.Abs(contentBox.X - triggerBox!.X) <= 200).IsTrue();
+        await Assert.That(contentBox.Width >= 240).IsTrue();
     }
 
 [Test]
@@ -135,8 +133,8 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
 
         ILocator main = page.Locator(".docs-shell__main");
         var mainBox = await main.BoundingBoxAsync();
-        Xunit.Assert.NotNull(mainBox);
-        await page.Mouse.ClickAsync(mainBox.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);
+        await Assert.That(mainBox).IsNotNull();
+        await page.Mouse.ClickAsync(mainBox!.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);
 
         await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "false");
         await Assertions.Expect(content).Not.ToBeVisibleAsync();
@@ -186,8 +184,8 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
 
         ILocator main = page.Locator(".docs-shell__main");
         var mainBox = await main.BoundingBoxAsync();
-        Xunit.Assert.NotNull(mainBox);
-        await page.Mouse.ClickAsync(mainBox.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);
+        await Assert.That(mainBox).IsNotNull();
+        await page.Mouse.ClickAsync(mainBox!.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);
 
         await Assertions.Expect(state).ToContainTextAsync("Open: false");
         await Assertions.Expect(controlledTrigger).ToHaveAttributeAsync("aria-expanded", "false");

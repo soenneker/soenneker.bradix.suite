@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -79,11 +79,11 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
 
         LocatorBoundingBoxResult? learnBox = await learnTrigger.BoundingBoxAsync();
         LocatorBoundingBoxResult? overviewBox = await overviewTrigger.BoundingBoxAsync();
-        Xunit.Assert.NotNull(learnBox);
-        Xunit.Assert.NotNull(overviewBox);
+        await Assert.That(learnBox).IsNotNull();
+        await Assert.That(overviewBox).IsNotNull();
 
-        await page.Mouse.MoveAsync(learnBox.X + (learnBox.Width / 2), learnBox.Y + (learnBox.Height / 2));
-        await page.Mouse.MoveAsync(overviewBox.X + (overviewBox.Width / 2), overviewBox.Y + (overviewBox.Height / 2));
+        await page.Mouse.MoveAsync(learnBox!.X + (learnBox.Width / 2), learnBox.Y + (learnBox.Height / 2));
+        await page.Mouse.MoveAsync(overviewBox!.X + (overviewBox.Width / 2), overviewBox.Y + (overviewBox.Height / 2));
 
         await Assertions.Expect(overviewTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
@@ -202,7 +202,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator activeLink = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Radix Primitives", Exact = true });
         await Assertions.Expect(activeLink).ToHaveAttributeAsync("aria-current", "page");
         await Assertions.Expect(activeLink).ToHaveAttributeAsync("data-active", string.Empty);
-        Xunit.Assert.Null(await githubLink.GetAttributeAsync("aria-expanded"));
+        await Assert.That(await githubLink.GetAttributeAsync("aria-expanded")).IsNull();
     }
 
 [Test]
@@ -250,9 +250,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(viewport).ToContainTextAsync("Radix Primitives", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
 
         LocatorBoundingBoxResult? viewportBox = await viewport.BoundingBoxAsync();
-        Xunit.Assert.NotNull(viewportBox);
-        Xunit.Assert.True(viewportBox.Width >= 320, $"Expected the shared Bradix navigation viewport to expand beyond a sliver, but measured width {viewportBox.Width}.");
-        Xunit.Assert.True(viewportBox.Height >= 120, $"Expected the shared Bradix navigation viewport to show full content, but measured height {viewportBox.Height}.");
+        await Assert.That(viewportBox).IsNotNull();
+        await Assert.That(viewportBox!.Width >= 320).IsTrue();
+        await Assert.That(viewportBox.Height >= 120).IsTrue();
     }
 
 [Test]
@@ -301,13 +301,12 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
                 return { buttons, hitTarget };
             }");
 
-        Xunit.Assert.NotNull(diagnostics);
-        TriggerProbe? overview = Xunit.Assert.Single(diagnostics.buttons, button => button.text == "Overview");
-        Xunit.Assert.True(overview.width > 0 && overview.height > 0,
-            $"Expected Overview trigger to keep a measurable box after opening Learn, but measured left={overview.left}, top={overview.top}, width={overview.width}, height={overview.height}.");
-        Xunit.Assert.NotNull(diagnostics.hitTarget);
-        Xunit.Assert.True(string.Equals(diagnostics.hitTarget.tagName, "BUTTON", System.StringComparison.OrdinalIgnoreCase),
-            $"Expected Overview trigger center to resolve to the trigger button, but hit tag={diagnostics.hitTarget.tagName}, id={diagnostics.hitTarget.id}, text={diagnostics.hitTarget.text}, aria-labelledby={diagnostics.hitTarget.ariaLabelledBy}, data-state={diagnostics.hitTarget.dataState}.");
+        await Assert.That(diagnostics).IsNotNull();
+        await Assert.That(diagnostics!.buttons.Count(button => button.text == "Overview")).IsEqualTo(1);
+        TriggerProbe overview = diagnostics.buttons.Single(button => button.text == "Overview");
+        await Assert.That(overview.width > 0 && overview.height > 0).IsTrue();
+        await Assert.That(diagnostics.hitTarget).IsNotNull();
+        await Assert.That(string.Equals(diagnostics.hitTarget!.tagName, "BUTTON", System.StringComparison.OrdinalIgnoreCase)).IsTrue();
     }
 
     [Test]
@@ -349,14 +348,11 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
                 activeElementText: document.activeElement?.textContent?.trim() ?? null
             })");
 
-        Xunit.Assert.NotNull(diagnostics);
-        Xunit.Assert.True(diagnostics.pointerdown > 0, "Expected Overview trigger to receive pointerdown when clicked after opening Learn.");
-        Xunit.Assert.True(diagnostics.click > 0,
-            $"Expected Overview trigger to receive click when clicked after opening Learn, but observed pointerdown={diagnostics.pointerdown}, mousedown={diagnostics.mousedown}, click={diagnostics.click}, documentClick={diagnostics.documentClick}, documentDefaultPrevented={diagnostics.documentDefaultPrevented}, activeElementTag={diagnostics.activeElementTag}, activeElementText={diagnostics.activeElementText}.");
-        Xunit.Assert.True(diagnostics.documentClick > 0,
-            $"Expected Overview click to bubble to document, but observed pointerdown={diagnostics.pointerdown}, mousedown={diagnostics.mousedown}, click={diagnostics.click}, documentClick={diagnostics.documentClick}, documentDefaultPrevented={diagnostics.documentDefaultPrevented}.");
-        Xunit.Assert.False(diagnostics.documentDefaultPrevented,
-            $"Expected Overview click to reach document without being default-prevented, but observed pointerdown={diagnostics.pointerdown}, mousedown={diagnostics.mousedown}, click={diagnostics.click}, documentClick={diagnostics.documentClick}, documentDefaultPrevented={diagnostics.documentDefaultPrevented}.");
+        await Assert.That(diagnostics).IsNotNull();
+        await Assert.That(diagnostics!.pointerdown > 0).IsTrue();
+        await Assert.That(diagnostics.click > 0).IsTrue();
+        await Assert.That(diagnostics.documentClick > 0).IsTrue();
+        await Assert.That(diagnostics.documentDefaultPrevented).IsFalse();
     }
 
     [Test]
@@ -379,8 +375,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await page.WaitForTimeoutAsync(300);
         string? delayed = await overviewTrigger.GetAttributeAsync("aria-expanded");
 
-        Xunit.Assert.True(string.Equals(immediate, "true", System.StringComparison.Ordinal) || string.Equals(delayed, "true", System.StringComparison.Ordinal),
-            $"Expected Overview to open at least briefly when clicked after Learn, but immediate aria-expanded={immediate ?? "<null>"}, delayed aria-expanded={delayed ?? "<null>"}.");
+        await Assert.That(string.Equals(immediate, "true", System.StringComparison.Ordinal) || string.Equals(delayed, "true", System.StringComparison.Ordinal)).IsTrue();
     }
 
     [Test]
@@ -427,8 +422,8 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
                 };
             }");
 
-        Xunit.Assert.NotNull(before);
-        Xunit.Assert.True(before.isConnected);
+        await Assert.That(before).IsNotNull();
+        await Assert.That(before!.isConnected).IsTrue();
 
         await ClickTriggerAsync(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
@@ -448,9 +443,8 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
                 };
             }");
 
-        Xunit.Assert.NotNull(after);
-        Xunit.Assert.True(after.isSameNode,
-            $"Expected Overview trigger DOM node to stay stable after opening Learn, but it was replaced. PreviousConnected={after.previousIsConnected}, CurrentConnected={after.currentIsConnected}, CurrentHtml={after.outerHtml}");
+        await Assert.That(after).IsNotNull();
+        await Assert.That(after!.isSameNode).IsTrue();
     }
 
     [Test]
@@ -466,8 +460,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await overviewTrigger.EvaluateAsync("element => element.click()");
 
         string? expanded = await overviewTrigger.GetAttributeAsync("aria-expanded");
-        Xunit.Assert.True(string.Equals(expanded, "true", System.StringComparison.Ordinal),
-            $"Expected Overview to open from the initial closed state, but aria-expanded was {expanded ?? "<null>"}.");
+        await Assert.That(string.Equals(expanded, "true", System.StringComparison.Ordinal)).IsTrue();
     }
 
     [Test]
@@ -554,16 +547,16 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await ClickTriggerAsync(page, overviewTrigger);
         await page.WaitForTimeoutAsync(250);
 
-        Xunit.Assert.Empty(pageErrors);
-        Xunit.Assert.DoesNotContain(consoleMessages, message => message.Contains("ObjectDisposed", System.StringComparison.Ordinal));
-        Xunit.Assert.DoesNotContain(consoleMessages, message => message.Contains("Unhandled exception rendering component", System.StringComparison.Ordinal));
+        await Assert.That(pageErrors).IsEmpty();
+        await Assert.That(consoleMessages.Any(message => message.Contains("ObjectDisposed", System.StringComparison.Ordinal))).IsFalse();
+        await Assert.That(consoleMessages.Any(message => message.Contains("Unhandled exception rendering component", System.StringComparison.Ordinal))).IsFalse();
     }
 
     private static async Task ClickTriggerAsync(IPage page, ILocator trigger)
     {
         LocatorBoundingBoxResult? box = await trigger.BoundingBoxAsync();
-        Xunit.Assert.NotNull(box);
-        await page.Mouse.ClickAsync(box.X + (box.Width / 2), box.Y + (box.Height / 2));
+        await Assert.That(box).IsNotNull();
+        await page.Mouse.ClickAsync(box!.X + (box.Width / 2), box.Y + (box.Height / 2));
     }
 
     private sealed class HitTargetProbe

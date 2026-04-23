@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -88,9 +87,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         ILocator action = dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Yes, delete account", Exact = true });
 
         await Assertions.Expect(dialog).ToBeVisibleAsync();
-        string activeElementHtml = await page.EvaluateAsync<string>("() => document.activeElement?.outerHTML ?? 'null'");
-        Xunit.Assert.True(await cancel.EvaluateAsync<bool>("element => document.activeElement === element"),
-            $"Expected cancel button to be focused. Active element was: {activeElementHtml}");
+        await Assert.That(await cancel.EvaluateAsync<bool>("element => document.activeElement === element")).IsTrue();
 
         await page.Keyboard.PressAsync("Shift+Tab");
         await Assertions.Expect(action).ToBeFocusedAsync();

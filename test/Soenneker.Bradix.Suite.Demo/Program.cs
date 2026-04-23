@@ -10,7 +10,7 @@ using Serilog;
 using Serilog.Debugging;
 using Soenneker.Serilog.Sinks.Browser.Blazor.Registrars;
 
-namespace Soenneker.Bradix.Demo;
+namespace Soenneker.Bradix.Suite.Demo;
 
 public sealed class Program
 {

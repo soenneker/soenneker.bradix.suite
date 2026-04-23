@@ -21,13 +21,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Playwrights.Extensions.TestPages" Version="4.0.5" />
-        <PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.13" />
-        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.315" />
+        <PackageReference Include="Soenneker.Playwrights.Extensions.TestPages" Version="4.0.11" />
+        <PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.19" />
+        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.316" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.7" />
-        <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.813" />
-        <PackageReference Include="TUnit" Version="1.37.24" />
-        <PackageReference Include="xunit.assert" Version="2.9.3" />
+        <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.818" />
+        <PackageReference Include="TUnit" Version="1.37.36" />
     </ItemGroup>
 
     <ItemGroup>

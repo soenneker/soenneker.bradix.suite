@@ -12,7 +12,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
     {
     }
 
-[Test]
+    [Test]
     public async Task Context_menu_demo_supports_nested_menu_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();
@@ -23,7 +23,8 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         ILocator dialogTrigger = page.Locator("button.dialog-demo__button").Filter(new LocatorFilterOptions { HasText = "Open context menu dialog" });
         await dialogTrigger.ClickAsync();
 
-        ILocator dialog = page.Locator(".dialog-demo__content[role='dialog'][data-state='open']").Filter(new LocatorFilterOptions { HasText = "Context menu dialog" });
+        ILocator dialog = page.Locator(".dialog-demo__content[role='dialog'][data-state='open']")
+                              .Filter(new LocatorFilterOptions { HasText = "Context menu dialog" });
         await Assertions.Expect(dialog).ToBeVisibleAsync();
 
         ILocator contextSurface = dialog.GetByText("Right-click dialog surface.", new LocatorGetByTextOptions { Exact = true });
@@ -41,7 +42,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(dialog).ToBeVisibleAsync();
     }
 
-[Test]
+    [Test]
     public async Task Context_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled()
     {
         await using BrowserSession session = await CreateSession();
@@ -77,7 +78,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(pedro).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Test]
+    [Test]
     public async Task Context_menu_demo_opens_from_right_click_and_reveals_submenu()
     {
         await using BrowserSession session = await CreateSession();
@@ -95,4 +96,3 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Save Page As");
     }
 }
-

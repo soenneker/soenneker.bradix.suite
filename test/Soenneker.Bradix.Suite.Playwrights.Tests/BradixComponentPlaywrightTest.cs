@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Tests.Unit;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -14,8 +13,8 @@ public abstract class BradixComponentPlaywrightTest : PlaywrightUnitTest
     protected static async Task ClickJustOutsideActiveDialogAsync(IPage page, ILocator dialog)
     {
         var box = await dialog.BoundingBoxAsync();
-        Xunit.Assert.NotNull(box);
-        float x = box.X > 40 ? box.X - 20 : box.X + box.Width + 20;
+        await Assert.That(box).IsNotNull();
+        float x = box!.X > 40 ? box.X - 20 : box.X + box.Width + 20;
         float y = box.Y > 40 ? box.Y - 20 : box.Y + 20;
         await page.Mouse.ClickAsync(x, y);
     }
@@ -23,7 +22,7 @@ public abstract class BradixComponentPlaywrightTest : PlaywrightUnitTest
     protected static async Task ExpectActiveElementAsync(IPage page, ILocator locator)
     {
         string? id = await locator.GetAttributeAsync("id");
-        Xunit.Assert.False(string.IsNullOrWhiteSpace(id));
+        await Assert.That(string.IsNullOrWhiteSpace(id)).IsFalse();
 
         await page.WaitForFunctionAsync(
             "(expectedId) => document.activeElement?.id === expectedId",

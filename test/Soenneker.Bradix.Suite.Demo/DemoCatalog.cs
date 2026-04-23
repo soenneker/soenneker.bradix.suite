@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace Soenneker.Bradix.Demo;
+namespace Soenneker.Bradix.Suite.Demo;
 
 public sealed record DemoPageLink(string Route, string Title, string Category, string Description)
 {

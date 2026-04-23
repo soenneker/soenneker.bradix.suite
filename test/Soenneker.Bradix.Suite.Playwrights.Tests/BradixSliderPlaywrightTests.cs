@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -128,7 +127,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "50");
 
         var trackBox = await track.BoundingBoxAsync();
-        Xunit.Assert.NotNull(trackBox);
+        await Assert.That(trackBox).IsNotNull();
 
         await track.ClickAsync(new LocatorClickOptions
         {
@@ -175,7 +174,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
 
         ILocator verticalRoot = verticalSection.Locator(".slider-root--vertical");
         var rootBox = await verticalRoot.BoundingBoxAsync();
-        Xunit.Assert.NotNull(rootBox);
+        await Assert.That(rootBox).IsNotNull();
 
         await verticalRoot.ClickAsync(new LocatorClickOptions
         {

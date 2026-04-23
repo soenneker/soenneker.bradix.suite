@@ -2,7 +2,6 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
-using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -23,7 +22,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
 
         int scrollLeft = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('.scroll-area-demo__horizontal [data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollLeft = 200; return viewport.scrollLeft; }");
-        Xunit.Assert.True(scrollLeft > 0);
+        await Assert.That(scrollLeft > 0).IsTrue();
     }
 
 [Test]
@@ -40,11 +39,11 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
 
         int verticalScrollTop = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('[data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollTop = 200; return viewport.scrollTop; }");
-        Xunit.Assert.True(verticalScrollTop > 0);
+        await Assert.That(verticalScrollTop > 0).IsTrue();
 
         int horizontalScrollLeft = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('.scroll-area-demo__horizontal [data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollLeft = 200; return viewport.scrollLeft; }");
-        Xunit.Assert.True(horizontalScrollLeft > 0);
+        await Assert.That(horizontalScrollLeft > 0).IsTrue();
 
         ILocator rtlRoot = page.Locator("section").Filter(new LocatorFilterOptions { HasText = "RTL notes" })
                                .Locator(".scroll-area-root[dir='rtl']")
@@ -53,7 +52,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
 
         int rtlScrollTop = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('[dir=\"rtl\"] [data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollTop = 160; return viewport.scrollTop; }");
-        Xunit.Assert.True(rtlScrollTop > 0);
+        await Assert.That(rtlScrollTop > 0).IsTrue();
     }
 
 [Test]
@@ -66,7 +65,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
 
         int scrollTop = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('[data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollTop = 200; return viewport.scrollTop; }");
-        Xunit.Assert.True(scrollTop > 0);
+        await Assert.That(scrollTop > 0).IsTrue();
     }
 }
 
