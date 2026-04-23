@@ -408,9 +408,36 @@ export function registerOneTimePasswordInput(element, dotNetRef) {
       return;
     }
 
+    const focusBoundaryInput = (start) => {
+      const root = element.closest('[role="group"]');
+      const inputs = Array.from((root || document).querySelectorAll("[data-radix-otp-input]"))
+        .filter((input) => !input.disabled && !input.readOnly);
+      const next = start ? inputs[0] : inputs[inputs.length - 1];
+
+      if (next && typeof next.focus === "function") {
+        next.focus({ preventScroll: true });
+        if (typeof next.select === "function") {
+          next.select();
+        }
+      }
+    };
+
     switch (event.key) {
       case "Home":
       case "End":
+        event.preventDefault();
+        focusBoundaryInput(event.key === "Home");
+        if (dotNetRef) {
+          await dotNetRef.invokeMethodAsync(
+            "HandleManagedKeyDown",
+            event.key,
+            event.metaKey,
+            event.ctrlKey,
+            event.altKey,
+            event.shiftKey
+          );
+        }
+        return;
       case "Backspace":
       case "Delete":
       case "Clear":
