@@ -10,7 +10,7 @@
                     TextValue="@TextValue"
                     Role="menuitemcheckbox"
                     AriaChecked="@AriaChecked"
-                    DataState="@DataState"
+                    DataState="@CheckboxDataState"
                     Disabled="Disabled"
                     CloseOnSelect="CloseOnSelect"
                     OnSelect="HandleSelect"
@@ -65,7 +65,7 @@
             ? "true"
             : "false";
 
-    private string DataState => GetDataState(CurrentChecked);
+    private string CheckboxDataState => GetDataState(CurrentChecked);
 
     protected override void OnParametersSet()
     {

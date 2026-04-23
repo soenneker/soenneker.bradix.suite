@@ -17,6 +17,6 @@
 
     private IReadOnlyDictionary<string, object> HeaderAttributes => BuildAttributes(
         ("data-orientation", Accordion.Orientation.Value),
-        ("data-state", DataState(Item.IsOpen)),
+        ("data-state", OpenDataState(Item.IsOpen)),
         ("data-disabled", Item.IsDisabled ? string.Empty : null));
 }

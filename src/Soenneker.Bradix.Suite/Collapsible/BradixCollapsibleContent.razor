@@ -53,7 +53,7 @@
 
             attributes["id"] = Collapsible.ContentId!;
             attributes["hidden"] = !IsOpenOrPresent;
-            attributes["data-state"] = DataState(Collapsible.IsOpen);
+            attributes["data-state"] = OpenDataState(Collapsible.IsOpen);
 
             if (Collapsible.Disabled)
                 attributes["data-disabled"] = string.Empty;

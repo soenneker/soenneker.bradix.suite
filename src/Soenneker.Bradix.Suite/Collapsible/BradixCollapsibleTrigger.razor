@@ -44,7 +44,7 @@
         ("aria-controls", Collapsible.ContentId),
         ("aria-expanded", Collapsible.IsOpen ? "true" : "false"),
         ("aria-disabled", AriaDisabled),
-        ("data-state", DataState(Collapsible.IsOpen)),
+        ("data-state", OpenDataState(Collapsible.IsOpen)),
         ("data-disabled", IsDisabled ? string.Empty : null),
         ("disabled", IsDisabled ? true : null));
 

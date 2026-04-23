@@ -60,7 +60,7 @@ public abstract class BradixComponent : ComponentBase, IBradixComponent
         return attributes;
     }
 
-    protected static string DataState(bool open) => open ? "open" : "closed";
+    protected static string OpenDataState(bool open) => open ? "open" : "closed";
 
     protected static void MergeClassAttribute(IDictionary<string, object> attributes, string? value)
     {

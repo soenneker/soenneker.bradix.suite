@@ -40,7 +40,7 @@
     public bool IsOpen => Open ?? _uncontrolledOpen;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("data-state", DataState(IsOpen)),
+        ("data-state", OpenDataState(IsOpen)),
         ("data-disabled", Disabled ? string.Empty : null));
 
     protected override void OnInitialized()
