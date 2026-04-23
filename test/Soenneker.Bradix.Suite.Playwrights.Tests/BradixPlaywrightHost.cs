@@ -6,9 +6,9 @@ namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 public sealed class BradixPlaywrightHost : PlaywrightHostedTestHost
 {
-    protected override PlaywrightFixtureOptions CreateOptions()
+    protected override PlaywrightTestHostOptions CreateOptions()
     {
-        return new PlaywrightFixtureOptions
+        return new PlaywrightTestHostOptions
         {
             SolutionFileName = "Soenneker.Bradix.Suite.slnx",
             ProjectRelativePath = Path.Combine("test", "Soenneker.Bradix.Suite.Demo", "Soenneker.Bradix.Suite.Demo.csproj"),
