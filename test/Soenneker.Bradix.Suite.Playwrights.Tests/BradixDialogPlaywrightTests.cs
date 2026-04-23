@@ -2,6 +2,7 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -51,13 +52,13 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(dialog).ToBeVisibleAsync();
         await Assertions.Expect(dialog).ToHaveAttributeAsync("aria-modal", "true");
-        Assert.True(await WaitForDialogTabBoundaryAsync(dialog, first: true));
+        Xunit.Assert.True(await WaitForDialogTabBoundaryAsync(dialog, first: true));
 
         await page.Keyboard.PressAsync("Shift+Tab");
-        Assert.True(await WaitForDialogTabBoundaryAsync(dialog, first: false));
+        Xunit.Assert.True(await WaitForDialogTabBoundaryAsync(dialog, first: false));
 
         await page.Keyboard.PressAsync("Tab");
-        Assert.True(await WaitForDialogTabBoundaryAsync(dialog, first: true));
+        Xunit.Assert.True(await WaitForDialogTabBoundaryAsync(dialog, first: true));
 
         await page.Keyboard.PressAsync("Escape");
 

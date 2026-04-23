@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -20,7 +21,7 @@ public sealed class BradixAspectRatioPlaywrightTests : BradixComponentPlaywright
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/aspect-ratio"));
 
         ILocator wrappers = page.Locator("[data-radix-aspect-ratio-wrapper]");
-        Assert.Equal(3, await wrappers.CountAsync());
+        Xunit.Assert.Equal(3, await wrappers.CountAsync());
 
         double[] ratios = await page.EvaluateAsync<double[]>(
             @"() => Array.from(document.querySelectorAll('[data-radix-aspect-ratio-wrapper]')).map(element => {
@@ -28,9 +29,9 @@ public sealed class BradixAspectRatioPlaywrightTests : BradixComponentPlaywright
                 return rect.width / rect.height;
             })");
 
-        Assert.InRange(ratios[0], 1.70, 1.85);
-        Assert.InRange(ratios[1], 0.95, 1.05);
-        Assert.InRange(ratios[2], 0.52, 0.60);
+        Xunit.Assert.InRange(ratios[0], 1.70, 1.85);
+        Xunit.Assert.InRange(ratios[1], 0.95, 1.05);
+        Xunit.Assert.InRange(ratios[2], 0.52, 0.60);
     }
 }
 

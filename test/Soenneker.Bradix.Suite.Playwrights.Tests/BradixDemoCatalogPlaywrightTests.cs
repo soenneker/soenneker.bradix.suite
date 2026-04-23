@@ -13,7 +13,7 @@ public sealed class BradixDemoCatalogPlaywrightTests : PlaywrightUnitTest
     {
     }
 
-    //[Theory]
+    //[Test]
     //[MemberData(nameof(AllDemoRoutes))]
     public async ValueTask Every_demo_route_loads_intro_and_core_affordance(string route)
     {
@@ -31,4 +31,5 @@ public sealed class BradixDemoCatalogPlaywrightTests : PlaywrightUnitTest
         return DemoPageSpecs.AllRoutes();
     }
 }
+
 

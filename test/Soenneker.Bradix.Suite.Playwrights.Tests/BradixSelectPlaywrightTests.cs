@@ -3,6 +3,7 @@ using Microsoft.Playwright;
 using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
 using Soenneker.Playwrights.Tests.Unit;
+using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -88,7 +89,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
             "return !!listbox && document.body.contains(listbox) && !!main && !main.contains(listbox);" +
             "}");
 
-        Assert.True(renderedOutsideMain);
+        Xunit.Assert.True(renderedOutsideMain);
 
         await ClickJustOutsideAsync(page, listBox);
 
@@ -178,7 +179,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await trigger.ClickAsync();
 
         string? contentId = await trigger.GetAttributeAsync("aria-controls");
-        Assert.False(string.IsNullOrWhiteSpace(contentId));
+        Xunit.Assert.False(string.IsNullOrWhiteSpace(contentId));
 
         ILocator listbox = page.Locator($"#{contentId}");
         ILocator highlightedGrapes = listbox.Locator("[role='option'][data-highlighted]").Filter(new LocatorFilterOptions { HasText = "Grapes" });
@@ -186,7 +187,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await listbox.FocusAsync();
         await page.Keyboard.PressAsync("g");
 
-        Assert.True(await highlightedGrapes.CountAsync() > 0, "Expected a highlighted Grapes option after typeahead.");
+        Xunit.Assert.True(await highlightedGrapes.CountAsync() > 0, "Expected a highlighted Grapes option after typeahead.");
     }
 
     [Test]
@@ -204,7 +205,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await trigger.ClickAsync();
 
         string? contentId = await trigger.GetAttributeAsync("aria-controls");
-        Assert.False(string.IsNullOrWhiteSpace(contentId));
+        Xunit.Assert.False(string.IsNullOrWhiteSpace(contentId));
 
         ILocator listbox = page.Locator($"#{contentId}");
         ILocator carrot = listbox.Locator("[role='option']:visible").Filter(new LocatorFilterOptions { HasText = "Carrot" }).First;
@@ -215,7 +216,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await listbox.FocusAsync();
         await page.Keyboard.PressAsync("c");
 
-        Assert.True(await highlightedCourgette.CountAsync() > 0, "Expected a highlighted Courgette option after typeahead.");
+        Xunit.Assert.True(await highlightedCourgette.CountAsync() > 0, "Expected a highlighted Courgette option after typeahead.");
         await Assertions.Expect(carrot).Not.ToHaveAttributeAsync("data-highlighted", string.Empty);
     }
 
@@ -266,7 +267,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await Assertions.Expect(result).ToContainTextAsync("No submission yet.");
         await Assertions.Expect(hiddenSelect).ToHaveAttributeAsync("required", string.Empty);
         bool isInitiallyValid = await hiddenSelect.EvaluateAsync<bool>("element => element.checkValidity()");
-        Assert.False(isInitiallyValid);
+        Xunit.Assert.False(isInitiallyValid);
         ILocator trigger = form.GetByRole(AriaRole.Combobox, new LocatorGetByRoleOptions { Name = "Select framework", Exact = true });
         await trigger.ClickAsync();
         ILocator listBox = page.Locator("[role='listbox']:visible").First;
@@ -279,7 +280,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await Assertions.Expect(trigger).ToContainTextAsync("Astro");
         await Assertions.Expect(hiddenSelect).ToHaveValueAsync("astro");
         bool isValidAfterSelection = await hiddenSelect.EvaluateAsync<bool>("element => element.checkValidity()");
-        Assert.True(isValidAfterSelection);
+        Xunit.Assert.True(isValidAfterSelection);
 
         await form.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Submit native form", Exact = true }).ClickAsync();
         await Assertions.Expect(result).ToContainTextAsync("framework=astro");
@@ -288,7 +289,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
     private static async Task ClickJustOutsideAsync(IPage page, ILocator locator)
     {
         var box = await locator.BoundingBoxAsync();
-        Assert.NotNull(box);
+        Xunit.Assert.NotNull(box);
         float x = box.X > 40 ? box.X - 20 : box.X + box.Width + 20;
         float y = box.Y > 40 ? box.Y - 20 : box.Y + 20;
         await page.Mouse.ClickAsync(x, y);

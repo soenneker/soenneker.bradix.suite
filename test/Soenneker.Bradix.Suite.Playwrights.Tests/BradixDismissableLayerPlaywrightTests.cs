@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -23,7 +24,7 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
 
         ILocator layer = page.Locator(".portal-surface").First;
         LocatorBoundingBoxResult? layerBox = await layer.BoundingBoxAsync();
-        Assert.NotNull(layerBox);
+        Xunit.Assert.NotNull(layerBox);
 
         double outsideX = Math.Max(8, layerBox.X - 24);
         double outsideY = Math.Max(8, layerBox.Y - 24);

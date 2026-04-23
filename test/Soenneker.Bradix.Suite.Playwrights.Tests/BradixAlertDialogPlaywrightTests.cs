@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -88,7 +89,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
 
         await Assertions.Expect(dialog).ToBeVisibleAsync();
         string activeElementHtml = await page.EvaluateAsync<string>("() => document.activeElement?.outerHTML ?? 'null'");
-        Assert.True(await cancel.EvaluateAsync<bool>("element => document.activeElement === element"),
+        Xunit.Assert.True(await cancel.EvaluateAsync<bool>("element => document.activeElement === element"),
             $"Expected cancel button to be focused. Active element was: {activeElementHtml}");
 
         await page.Keyboard.PressAsync("Shift+Tab");

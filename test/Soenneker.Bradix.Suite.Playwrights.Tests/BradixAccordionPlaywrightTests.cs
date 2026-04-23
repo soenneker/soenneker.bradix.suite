@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using Xunit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -76,8 +77,8 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         string? accessiblePanelId = await accessibleTrigger.GetAttributeAsync("aria-controls");
         string? unstyledPanelId = await unstyledTrigger.GetAttributeAsync("aria-controls");
 
-        Assert.False(string.IsNullOrWhiteSpace(accessiblePanelId));
-        Assert.False(string.IsNullOrWhiteSpace(unstyledPanelId));
+        Xunit.Assert.False(string.IsNullOrWhiteSpace(accessiblePanelId));
+        Xunit.Assert.False(string.IsNullOrWhiteSpace(unstyledPanelId));
 
         ILocator accessiblePanel = page.Locator($"#{accessiblePanelId}");
         ILocator unstyledPanel = page.Locator($"#{unstyledPanelId}");
