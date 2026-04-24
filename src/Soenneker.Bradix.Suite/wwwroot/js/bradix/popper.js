@@ -1,174 +1,182 @@
 const popperContentHandlers = new WeakMap();
 
-function getOppositeSide(side) {
-  return {
-    top: "bottom",
-    right: "left",
-    bottom: "top",
-    left: "right"
-  }[side] || "bottom";
+function getFloatingUi() {
+  const floating = globalThis.FloatingUIDOM;
+
+  if (!floating) {
+    throw new Error("Floating UI has not been loaded. BradixSuiteInterop must load FloatingUIDOM before Popper registration.");
+  }
+
+  return floating;
 }
 
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
+function getSideAndAlign(placement) {
+  const [side, align = "center"] = placement.split("-");
+  return [side, align];
 }
 
-function resolvePopperPosition(anchorRect, contentRect, options) {
+function getPlacement(options) {
   const side = options.side || "bottom";
   const align = options.align || "center";
-  const dir = options.dir === "rtl" ? "rtl" : "ltr";
-  const sideOffset = Number(options.sideOffset || 0);
-  const alignOffset = Number(options.alignOffset || 0);
-  const collisionPadding = Number(options.collisionPadding || 0);
-  const arrowPadding = Number(options.arrowPadding || 0);
-  const avoidCollisions = options.avoidCollisions !== false;
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const availableWidth = Math.max(viewportWidth - collisionPadding * 2, 0);
-  const availableHeight = Math.max(viewportHeight - collisionPadding * 2, 0);
-  const spaces = {
-    top: anchorRect.top - collisionPadding,
-    right: viewportWidth - anchorRect.right - collisionPadding,
-    bottom: viewportHeight - anchorRect.bottom - collisionPadding,
-    left: anchorRect.left - collisionPadding
-  };
+  return align === "center" ? side : `${side}-${align}`;
+}
 
-  let placedSide = side;
-  if (avoidCollisions) {
-    const requiredMainAxis = side === "top" || side === "bottom" ? contentRect.height + sideOffset : contentRect.width + sideOffset;
-    if (spaces[side] < requiredMainAxis && spaces[getOppositeSide(side)] > spaces[side]) {
-      placedSide = getOppositeSide(side);
-    }
+function getCollisionPadding(options) {
+  const padding = options.collisionPadding ?? 0;
+
+  if (typeof padding === "number") {
+    return padding;
   }
-
-  let left = 0;
-  let top = 0;
-
-  if (placedSide === "bottom" || placedSide === "top") {
-    top = placedSide === "bottom"
-      ? anchorRect.bottom + sideOffset
-      : anchorRect.top - contentRect.height - sideOffset;
-
-    if (align === "start") {
-      left = dir === "rtl"
-        ? anchorRect.right - contentRect.width - alignOffset
-        : anchorRect.left + alignOffset;
-    } else if (align === "end") {
-      left = dir === "rtl"
-        ? anchorRect.left + alignOffset
-        : anchorRect.right - contentRect.width + alignOffset;
-    } else {
-      left = anchorRect.left + ((anchorRect.width - contentRect.width) / 2) + alignOffset;
-    }
-  } else {
-    left = placedSide === "right"
-      ? anchorRect.right + sideOffset
-      : anchorRect.left - contentRect.width - sideOffset;
-
-    if (align === "start") {
-      top = anchorRect.top + alignOffset;
-    } else if (align === "end") {
-      top = anchorRect.bottom - contentRect.height + alignOffset;
-    } else {
-      top = anchorRect.top + ((anchorRect.height - contentRect.height) / 2) + alignOffset;
-    }
-  }
-
-  if (avoidCollisions) {
-    left = clamp(left, collisionPadding, Math.max(collisionPadding, viewportWidth - collisionPadding - contentRect.width));
-    top = clamp(top, collisionPadding, Math.max(collisionPadding, viewportHeight - collisionPadding - contentRect.height));
-  }
-
-  let arrowX = null;
-  let arrowY = null;
-  let transformOriginX = "50%";
-  let transformOriginY = "50%";
-
-  if (placedSide === "bottom" || placedSide === "top") {
-    const anchorCenterX = anchorRect.left + (anchorRect.width / 2);
-    arrowX = clamp(anchorCenterX - left, arrowPadding, Math.max(arrowPadding, contentRect.width - arrowPadding));
-    transformOriginX = `${arrowX}px`;
-    transformOriginY = placedSide === "bottom" ? "0px" : `${contentRect.height}px`;
-  } else {
-    const anchorCenterY = anchorRect.top + (anchorRect.height / 2);
-    arrowY = clamp(anchorCenterY - top, arrowPadding, Math.max(arrowPadding, contentRect.height - arrowPadding));
-    transformOriginX = placedSide === "right" ? "0px" : `${contentRect.width}px`;
-    transformOriginY = `${arrowY}px`;
-  }
-
-  const referenceHidden =
-    anchorRect.bottom < 0 ||
-    anchorRect.top > viewportHeight ||
-    anchorRect.right < 0 ||
-    anchorRect.left > viewportWidth;
 
   return {
-    placedSide,
-    placedAlign: align,
-    left,
-    top,
-    availableWidth,
-    availableHeight,
-    anchorWidth: anchorRect.width,
-    anchorHeight: anchorRect.height,
-    arrowX,
-    arrowY,
-    shouldHideArrow: false,
-    referenceHidden,
-    transformOriginX,
-    transformOriginY
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    ...padding
   };
 }
 
-function updateRegisteredPopperContent(content) {
+function alignToOrigin(align) {
+  return {
+    start: "0%",
+    center: "50%",
+    end: "100%"
+  }[align] || "50%";
+}
+
+function transformOriginMiddleware(arrowWidth, arrowHeight) {
+  return {
+    name: "transformOrigin",
+    options: { arrowWidth, arrowHeight },
+    fn(data) {
+      const { placement, rects, middlewareData } = data;
+      const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
+      const isArrowHidden = cannotCenterArrow;
+      const resolvedArrowWidth = isArrowHidden ? 0 : arrowWidth;
+      const resolvedArrowHeight = isArrowHidden ? 0 : arrowHeight;
+      const [placedSide, placedAlign] = getSideAndAlign(placement);
+      const noArrowAlign = alignToOrigin(placedAlign);
+      const arrowXCenter = (middlewareData.arrow?.x ?? 0) + resolvedArrowWidth / 2;
+      const arrowYCenter = (middlewareData.arrow?.y ?? 0) + resolvedArrowHeight / 2;
+      let x = "";
+      let y = "";
+
+      if (placedSide === "bottom") {
+        x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
+        y = `${-resolvedArrowHeight}px`;
+      } else if (placedSide === "top") {
+        x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
+        y = `${rects.floating.height + resolvedArrowHeight}px`;
+      } else if (placedSide === "right") {
+        x = `${-resolvedArrowHeight}px`;
+        y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
+      } else if (placedSide === "left") {
+        x = `${rects.floating.width + resolvedArrowHeight}px`;
+        y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
+      }
+
+      return { data: { x, y } };
+    }
+  };
+}
+
+async function updateRegisteredPopperContent(content) {
   const handlers = popperContentHandlers.get(content);
-  if (!handlers || !handlers.anchor || !handlers.content) {
+  if (!handlers?.reference || !handlers.content) {
     return;
   }
 
-  const anchorRect = handlers.anchor.getBoundingClientRect();
-  const contentRect = handlers.content.getBoundingClientRect();
+  const floating = getFloatingUi();
+  const options = handlers.options || {};
+  const arrowRect = handlers.arrow?.getBoundingClientRect?.() || null;
+  const arrowWidth = arrowRect?.width || 0;
+  const arrowHeight = arrowRect?.height || 0;
+  const collisionPadding = getCollisionPadding(options);
+  let availableWidth = 0;
+  let availableHeight = 0;
+  let anchorWidth = 0;
+  let anchorHeight = 0;
 
-  const position = resolvePopperPosition(anchorRect, contentRect, handlers.options);
-  const nextPosition = {
-    placedSide: position.placedSide,
-    placedAlign: position.placedAlign,
-    left: position.left,
-    top: position.top,
-    availableWidth: position.availableWidth,
-    availableHeight: position.availableHeight,
-    anchorWidth: position.anchorWidth,
-    anchorHeight: position.anchorHeight,
-    arrowX: position.arrowX,
-    arrowY: position.arrowY,
-    shouldHideArrow: position.shouldHideArrow,
-    hidden: handlers.options.hideWhenDetached === true && position.referenceHidden,
-    transformOriginX: position.transformOriginX,
-    transformOriginY: position.transformOriginY
+  const detectOverflowOptions = {
+    padding: collisionPadding,
+    boundary: [],
+    altBoundary: false
   };
 
-  if (
-    handlers.lastPosition &&
-    handlers.lastPosition.placedSide === nextPosition.placedSide &&
-    handlers.lastPosition.placedAlign === nextPosition.placedAlign &&
-    handlers.lastPosition.left === nextPosition.left &&
-    handlers.lastPosition.top === nextPosition.top &&
-    handlers.lastPosition.availableWidth === nextPosition.availableWidth &&
-    handlers.lastPosition.availableHeight === nextPosition.availableHeight &&
-    handlers.lastPosition.anchorWidth === nextPosition.anchorWidth &&
-    handlers.lastPosition.anchorHeight === nextPosition.anchorHeight &&
-    handlers.lastPosition.arrowX === nextPosition.arrowX &&
-    handlers.lastPosition.arrowY === nextPosition.arrowY &&
-    handlers.lastPosition.shouldHideArrow === nextPosition.shouldHideArrow &&
-    handlers.lastPosition.hidden === nextPosition.hidden &&
-    handlers.lastPosition.transformOriginX === nextPosition.transformOriginX &&
-    handlers.lastPosition.transformOriginY === nextPosition.transformOriginY
-  ) {
+  const middleware = [
+    floating.offset({
+      mainAxis: Number(options.sideOffset || 0) + arrowHeight,
+      alignmentAxis: Number(options.alignOffset || 0)
+    })
+  ];
+
+  if (options.avoidCollisions !== false) {
+    middleware.push(
+      floating.shift({
+        mainAxis: true,
+        crossAxis: false,
+        limiter: options.sticky === "always" ? undefined : floating.limitShift(),
+        ...detectOverflowOptions
+      }),
+      floating.flip(detectOverflowOptions)
+    );
+  }
+
+  middleware.push(
+    floating.size({
+      ...detectOverflowOptions,
+      apply({ rects, availableWidth: width, availableHeight: height }) {
+        availableWidth = width;
+        availableHeight = height;
+        anchorWidth = rects.reference.width;
+        anchorHeight = rects.reference.height;
+      }
+    })
+  );
+
+  if (handlers.arrow) {
+    middleware.push(floating.arrow({ element: handlers.arrow, padding: Number(options.arrowPadding || 0) }));
+  }
+
+  middleware.push(transformOriginMiddleware(arrowWidth, arrowHeight));
+
+  if (options.hideWhenDetached === true) {
+    middleware.push(floating.hide({ strategy: "referenceHidden", ...detectOverflowOptions }));
+  }
+
+  const position = await floating.computePosition(handlers.reference, handlers.content, {
+    strategy: "fixed",
+    placement: getPlacement(options),
+    middleware
+  });
+
+  const [placedSide, placedAlign] = getSideAndAlign(position.placement);
+  const arrowData = position.middlewareData.arrow;
+  const transformOriginData = position.middlewareData.transformOrigin || {};
+  const nextPosition = {
+    placedSide,
+    placedAlign,
+    left: position.x,
+    top: position.y,
+    availableWidth,
+    availableHeight,
+    anchorWidth,
+    anchorHeight,
+    arrowX: arrowData?.x ?? null,
+    arrowY: arrowData?.y ?? null,
+    shouldHideArrow: arrowData?.centerOffset !== 0,
+    hidden: options.hideWhenDetached === true && position.middlewareData.hide?.referenceHidden === true,
+    transformOriginX: transformOriginData.x || "50%",
+    transformOriginY: transformOriginData.y || "50%"
+  };
+
+  if (isSamePosition(handlers.lastPosition, nextPosition)) {
     return;
   }
 
   handlers.lastPosition = nextPosition;
-  handlers.dotNetRef.invokeMethodAsync(
+  await handlers.dotNetRef.invokeMethodAsync(
     "HandlePositionChanged",
     nextPosition.placedSide,
     nextPosition.placedAlign,
@@ -187,6 +195,46 @@ function updateRegisteredPopperContent(content) {
   );
 }
 
+function isSamePosition(previous, next) {
+  return previous &&
+    previous.placedSide === next.placedSide &&
+    previous.placedAlign === next.placedAlign &&
+    previous.left === next.left &&
+    previous.top === next.top &&
+    previous.availableWidth === next.availableWidth &&
+    previous.availableHeight === next.availableHeight &&
+    previous.anchorWidth === next.anchorWidth &&
+    previous.anchorHeight === next.anchorHeight &&
+    previous.arrowX === next.arrowX &&
+    previous.arrowY === next.arrowY &&
+    previous.shouldHideArrow === next.shouldHideArrow &&
+    previous.hidden === next.hidden &&
+    previous.transformOriginX === next.transformOriginX &&
+    previous.transformOriginY === next.transformOriginY;
+}
+
+function getAnchorRect(anchor) {
+  const rect = anchor.getBoundingClientRect();
+
+  if ((rect.width > 0 || rect.height > 0) || !anchor.firstElementChild) {
+    return rect;
+  }
+
+  return anchor.firstElementChild.getBoundingClientRect();
+}
+
+function createAnchorReference(anchor) {
+  return {
+    contextElement: anchor,
+    getBoundingClientRect() {
+      return getAnchorRect(anchor);
+    },
+    getClientRects() {
+      return anchor.getClientRects?.() ?? [];
+    }
+  };
+}
+
 function createVirtualAnchor(x, y) {
   return {
     getBoundingClientRect() {
@@ -196,8 +244,29 @@ function createVirtualAnchor(x, y) {
         width: 0,
         height: 0
       });
+    },
+    getClientRects() {
+      return [];
     }
   };
+}
+
+function observeAutoUpdate(handlers) {
+  const floating = getFloatingUi();
+  handlers.cleanup = floating.autoUpdate(handlers.reference, handlers.content, handlers.update, {
+    animationFrame: handlers.options?.updatePositionStrategy === "always"
+  });
+}
+
+function reconnect(content) {
+  const handlers = popperContentHandlers.get(content);
+  if (!handlers) {
+    return;
+  }
+
+  handlers.cleanup?.();
+  handlers.lastPosition = null;
+  observeAutoUpdate(handlers);
 }
 
 export function registerPopperContent(anchor, content, arrow, dotNetRef, options) {
@@ -208,29 +277,21 @@ export function registerPopperContent(anchor, content, arrow, dotNetRef, options
   unregisterPopperContent(content);
 
   const update = () => updateRegisteredPopperContent(content);
-  const resizeObserver = new ResizeObserver(update);
   const resolvedArrow = arrow instanceof Element ? arrow : null;
-  resizeObserver.observe(anchor);
-  resizeObserver.observe(content);
-  if (resolvedArrow) {
-    resizeObserver.observe(resolvedArrow);
-  }
-
-  window.addEventListener("resize", update);
-  window.addEventListener("scroll", update, true);
 
   popperContentHandlers.set(content, {
     anchor,
+    reference: createAnchorReference(anchor),
     content,
     arrow: resolvedArrow,
     dotNetRef,
     options: options || {},
-    resizeObserver,
+    cleanup: null,
     update,
     lastPosition: null
   });
 
-  update();
+  reconnect(content);
 }
 
 export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, options) {
@@ -241,28 +302,21 @@ export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, op
   unregisterPopperContent(content);
 
   const update = () => updateRegisteredPopperContent(content);
-  const resizeObserver = new ResizeObserver(update);
   const resolvedArrow = arrow instanceof Element ? arrow : null;
-  resizeObserver.observe(content);
-  if (resolvedArrow) {
-    resizeObserver.observe(resolvedArrow);
-  }
-
-  window.addEventListener("resize", update);
-  window.addEventListener("scroll", update, true);
 
   popperContentHandlers.set(content, {
-    anchor: createVirtualAnchor(x, y),
+    anchor: null,
+    reference: createVirtualAnchor(x, y),
     content,
     arrow: resolvedArrow,
     dotNetRef,
     options: options || {},
-    resizeObserver,
+    cleanup: null,
     update,
     lastPosition: null
   });
 
-  update();
+  reconnect(content);
 }
 
 export function updatePopperContent(content, arrow, options) {
@@ -273,15 +327,7 @@ export function updatePopperContent(content, arrow, options) {
 
   handlers.arrow = arrow instanceof Element ? arrow : null;
   handlers.options = options || {};
-  handlers.lastPosition = null;
-  handlers.resizeObserver.disconnect();
-  handlers.resizeObserver.observe(handlers.anchor);
-  handlers.resizeObserver.observe(handlers.content);
-  if (handlers.arrow) {
-    handlers.resizeObserver.observe(handlers.arrow);
-  }
-
-  handlers.update();
+  reconnect(content);
 }
 
 export function updateVirtualPopperContent(content, arrow, x, y, options) {
@@ -290,17 +336,10 @@ export function updateVirtualPopperContent(content, arrow, x, y, options) {
     return;
   }
 
-  handlers.anchor = createVirtualAnchor(x, y);
+  handlers.reference = createVirtualAnchor(x, y);
   handlers.arrow = arrow instanceof Element ? arrow : null;
   handlers.options = options || {};
-  handlers.lastPosition = null;
-  handlers.resizeObserver.disconnect();
-  handlers.resizeObserver.observe(handlers.content);
-  if (handlers.arrow) {
-    handlers.resizeObserver.observe(handlers.arrow);
-  }
-
-  handlers.update();
+  reconnect(content);
 }
 
 export function unregisterPopperContent(content) {
@@ -309,8 +348,6 @@ export function unregisterPopperContent(content) {
     return;
   }
 
-  handlers.resizeObserver.disconnect();
-  window.removeEventListener("resize", handlers.update);
-  window.removeEventListener("scroll", handlers.update, true);
+  handlers.cleanup?.();
   popperContentHandlers.delete(content);
 }

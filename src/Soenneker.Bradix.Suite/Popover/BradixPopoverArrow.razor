@@ -5,6 +5,16 @@
 @implements IBradixPopoverArrow
 <BradixPopperArrow Class="@Class"
                    Style="@Style"
+                   Width="@Width"
+                   Height="@Height"
                    AdditionalAttributes="@AdditionalAttributes">
     @ChildContent
 </BradixPopperArrow>
+
+@code {
+    [Parameter]
+    public double Width { get; set; } = 10;
+
+    [Parameter]
+    public double Height { get; set; } = 5;
+}

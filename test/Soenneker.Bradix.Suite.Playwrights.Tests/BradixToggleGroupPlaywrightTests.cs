@@ -63,7 +63,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
 
         ILocator section = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "RTL single selection" });
-        ILocator group = section.GetByRole(AriaRole.Radiogroup);
+        ILocator group = section.GetByRole(AriaRole.Group, new LocatorGetByRoleOptions { Name = "RTL alignment", Exact = true });
         ILocator right = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Right", Exact = true });
         ILocator center = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Center", Exact = true });
         ILocator left = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Left", Exact = true });

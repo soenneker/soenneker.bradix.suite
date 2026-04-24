@@ -60,4 +60,7 @@ public interface IBradixSwitch : IAsyncDisposable {
 
     /// <summary>Called from script for delegated click handling.</summary>
     Task HandleDelegatedClick(BradixDelegatedMouseEvent _);
+
+    /// <summary>Called from script for delegated Enter-key activation.</summary>
+    Task HandleDelegatedEnterKeyDown(BradixDelegatedKeyboardEvent _);
 }

@@ -6,6 +6,12 @@ namespace Soenneker.Bradix;
 /// <summary>Defines the public API for <see cref="BradixMenubarArrow"/>.</summary>
 public interface IBradixMenubarArrow
 {
+    /// <summary>Arrow wrapper width in pixels.</summary>
+    double Width { get; set; }
+
+    /// <summary>Arrow wrapper height in pixels.</summary>
+    double Height { get; set; }
+
     /// <summary>Gets or sets the CSS class names.</summary>
     string? Class { get; set; }
 

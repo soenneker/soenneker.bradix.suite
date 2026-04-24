@@ -67,6 +67,8 @@
         ("data-bradix-roving-orientation", Tabs.Orientation.Value),
         ("data-bradix-roving-dir", Tabs.ResolvedDirection),
         ("data-bradix-roving-loop", (List?.Loop ?? true) ? "true" : "false"),
+        ("data-bradix-prevent-nonprimary-mousedown", "true"),
+        ("data-bradix-prevent-mousedown-when-disabled", "true"),
         ("disabled", Disabled ? true : null),
         ("id", TriggerId),
         ("tabindex", Tabs.IsCurrentTabStop(this) ? 0 : -1));
@@ -122,8 +124,6 @@
         if (_delegatedInteractionReady)
             return;
 
-        // TODO: Match Radix non-primary/Ctrl+click mousedown preventDefault semantics via delegated JS
-        // so the trigger does not steal focus on right/middle click or macOS Ctrl+click fallback paths.
         if (args.Button == 0 && !args.CtrlKey)
             await Tabs.SetValue(Value);
     }

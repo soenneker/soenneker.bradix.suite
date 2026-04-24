@@ -86,6 +86,23 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Switch_registers_enter_key_activation()
+    {
+        _ = Render(CreateSwitch());
+
+        object? options = _module.Invocations.First(invocation => invocation.Identifier == "registerDelegatedInteraction").Arguments[2];
+        object? keydown = options?.GetType().GetProperty("keydown")?.GetValue(options);
+        object? keys = keydown?.GetType().GetProperty("keys")?.GetValue(keydown);
+        object? method = keydown?.GetType().GetProperty("method")?.GetValue(keydown);
+        object? preventDefault = keydown?.GetType().GetProperty("preventDefault")?.GetValue(keydown);
+
+        await Assert.That(keys).IsAssignableTo<string[]>();
+        await Assert.That(((string[])keys!).Contains("Enter")).IsTrue();
+        await Assert.That(method).IsEqualTo(nameof(BradixSwitch.HandleDelegatedEnterKeyDown));
+        await Assert.That(preventDefault is true).IsTrue();
+    }
+
+    [Test]
     public async Task Uncontrolled_switch_resets_to_default_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(defaultChecked: true));

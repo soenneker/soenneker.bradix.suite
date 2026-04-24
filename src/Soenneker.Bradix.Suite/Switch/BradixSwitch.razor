@@ -141,11 +141,13 @@
                 click = new
                 {
                     method = nameof(HandleDelegatedClick),
-                    currentTargetOnly = false
+                    currentTargetOnly = false,
+                    stopPropagation = true
                 },
                 keydown = new
                 {
                     keys = new[] { "Enter" },
+                    method = nameof(HandleDelegatedEnterKeyDown),
                     preventDefault = true
                 }
             });
@@ -226,6 +228,12 @@
 
     [JSInvokable]
     public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
+    {
+        return Disabled ? Task.CompletedTask : SetChecked(!CurrentChecked);
+    }
+
+    [JSInvokable]
+    public Task HandleDelegatedEnterKeyDown(BradixDelegatedKeyboardEvent _)
     {
         return Disabled ? Task.CompletedTask : SetChecked(!CurrentChecked);
     }

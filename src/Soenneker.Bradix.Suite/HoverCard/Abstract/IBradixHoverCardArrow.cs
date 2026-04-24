@@ -8,6 +8,12 @@ namespace Soenneker.Bradix;
 /// </summary>
 public interface IBradixHoverCardArrow
 {
+    /// <summary>Arrow wrapper width in pixels.</summary>
+    double Width { get; set; }
+
+    /// <summary>Arrow wrapper height in pixels.</summary>
+    double Height { get; set; }
+
     /// <summary>CSS class names for the arrow.</summary>
     string? Class { get; set; }
 

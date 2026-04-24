@@ -332,8 +332,8 @@ ResetState:
                                      AvoidCollisions="AvoidCollisions"
                                      CollisionPadding="CollisionPadding"
                                      HideWhenDetached="HideWhenDetached"
-                                     Anchor="@Popover.TriggerElement"
-                                     UseAnchor="@(Popover?.HasTrigger == true)"
+                                     Anchor="@ResolvedAnchor"
+                                     UseAnchor="@ShouldUseAnchor"
                                      Style="@PositionerStyle"
                                      OnPlaced="@OnPlaced">
                     <BradixPresence Present="IsPresent"
@@ -373,4 +373,13 @@ ResetState:
 
         await InvokeAsync(StateHasChanged);
     }
+
+    private ElementReference ResolvedAnchor =>
+        Popover is null
+            ? default
+            : Popover.HasTrigger
+                ? Popover.TriggerElement
+                : Popover.AnchorElement;
+
+    private bool ShouldUseAnchor => Popover?.HasTrigger == true || Popover?.HasAnchor == true;
 }

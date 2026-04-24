@@ -21,12 +21,12 @@
 
                     <div class="dialog-demo__fieldset">
                         <label class="dialog-demo__label" for="dialog-name">Name</label>
-                        <input class="dialog-demo__input" id="dialog-name" @bind="_draftName" />
+                        <input class="dialog-demo__input" id="dialog-name" @bind="_draftName" @bind:event="oninput" />
                     </div>
 
                     <div class="dialog-demo__fieldset">
                         <label class="dialog-demo__label" for="dialog-username">Username</label>
-                        <input class="dialog-demo__input" id="dialog-username" @bind="_draftUsername" />
+                        <input class="dialog-demo__input" id="dialog-username" @bind="_draftUsername" @bind:event="oninput" />
                     </div>
 
                     <div class="dialog-demo__save-row">

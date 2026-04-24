@@ -76,7 +76,7 @@
 
     internal int CurrentThumbIndex { get; private set; }
 
-    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+    internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
     internal IReadOnlyList<double> CurrentValues => Values ?? _uncontrolledValues;
 

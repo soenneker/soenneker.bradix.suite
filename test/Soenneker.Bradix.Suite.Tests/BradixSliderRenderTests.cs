@@ -24,6 +24,8 @@ public sealed class BradixSliderRenderTests : BunitContext
         _module.Setup<bool>("isFormControl", _ => true).SetResult(false);
         _module.SetupVoid("registerSliderPointerBridge", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterSliderPointerBridge", _ => true).SetVoidResult();
+        _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("syncSliderBubbleInputValue", _ => true).SetVoidResult();
 
         Services.AddScoped<BradixSuiteInterop>();
@@ -155,6 +157,23 @@ public sealed class BradixSliderRenderTests : BunitContext
         thumb = cut.Find("[role='slider']");
 
         await Assert.That(thumb.GetAttribute("aria-valuenow")).IsEqualTo("21");
+    }
+
+    [Test]
+    public async Task Slider_thumb_registers_keyboard_default_prevention()
+    {
+        _ = Render(CreateSlider(defaultValues: [20]));
+
+        object? options = _module.Invocations.First(invocation => invocation.Identifier == "registerDelegatedInteraction").Arguments[2];
+        object? keydown = options?.GetType().GetProperty("keydown")?.GetValue(options);
+        object? preventDefaultKeys = keydown?.GetType().GetProperty("preventDefaultKeys")?.GetValue(keydown);
+
+        await Assert.That(preventDefaultKeys).IsAssignableTo<string[]>();
+        var keys = (string[])preventDefaultKeys!;
+        await Assert.That(keys.Contains("Home")).IsTrue();
+        await Assert.That(keys.Contains("End")).IsTrue();
+        await Assert.That(keys.Contains("ArrowRight")).IsTrue();
+        await Assert.That(keys.Contains("PageDown")).IsTrue();
     }
 
     private static RenderFragment CreateSlider(IReadOnlyList<double> defaultValues, double minStepsBetweenThumbs = 0, string? name = null, Action? onValueCommit = null, string? form = null)

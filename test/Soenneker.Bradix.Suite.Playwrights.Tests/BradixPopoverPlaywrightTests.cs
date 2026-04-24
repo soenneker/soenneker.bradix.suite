@@ -4,6 +4,7 @@ using Soenneker.Playwrights.Session;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
+[NotInParallel]
 [ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
 {

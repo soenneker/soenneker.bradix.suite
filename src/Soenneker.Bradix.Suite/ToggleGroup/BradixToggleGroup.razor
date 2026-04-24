@@ -66,15 +66,16 @@
 
     internal string? CurrentTabStopId { get; private set; }
 
-    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+    internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
     private bool IsSingle => Type != BradixSelectionMode.Multiple;
 
     private string? NormalizedOrientation => Orientation?.Value;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("role", IsSingle ? "radiogroup" : "group"),
+        ("role", "group"),
         ("aria-orientation", NormalizedOrientation),
+        ("data-orientation", NormalizedOrientation),
         ("dir", ResolvedDirection));
 
     protected override void OnInitialized()

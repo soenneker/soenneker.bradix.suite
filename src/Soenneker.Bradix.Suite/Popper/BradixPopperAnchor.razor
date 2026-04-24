@@ -14,13 +14,19 @@
     [CascadingParameter]
     private BradixPopper? Popper { get; set; }
 
+    [CascadingParameter]
+    private BradixPopover? Popover { get; set; }
+
     private Dictionary<string, object> AnchorAttributes => BuildAttributes(
         ("style", MergeStyleValues("display:contents;", Style)));
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             Popper?.RegisterAnchor(_element);
+            Popover?.RegisterAnchor(_element);
+        }
 
         return Task.CompletedTask;
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -81,6 +82,54 @@ public sealed class BradixContextMenuRenderTests : BunitContext
             invocation.Arguments[4] is double y &&
             x == 120 &&
             y == 40)).IsTrue();
+    }
+
+    [Test]
+    public async Task Disabled_trigger_does_not_open_context_menu()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu(triggerDisabled: true));
+        IElement trigger = cut.Find("[data-disabled]");
+
+        await trigger.TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
+
+        await Assert.That(cut.FindAll("[role='menu']")).IsEmpty();
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("false");
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerVirtualPopperContent")).IsFalse();
+    }
+
+    [Test]
+    public async Task Touch_long_press_opens_context_menu_at_pointer()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
+        IElement trigger = cut.Find("[data-state='closed']");
+
+        await trigger.TriggerEventAsync("onpointerdown", new PointerEventArgs { PointerType = "touch", ClientX = 42, ClientY = 84 });
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("open");
+            await Assert.That(_module.Invocations.Any(invocation =>
+                invocation.Identifier == "registerVirtualPopperContent" &&
+                invocation.Arguments.Count >= 5 &&
+                invocation.Arguments[3] is double x &&
+                invocation.Arguments[4] is double y &&
+                x == 42 &&
+                y == 84)).IsTrue();
+        }, timeout: TimeSpan.FromMilliseconds(1200));
+    }
+
+    [Test]
+    public async Task Touch_long_press_is_cancelled_by_pointer_move()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
+        IElement trigger = cut.Find("[data-state='closed']");
+
+        await trigger.TriggerEventAsync("onpointerdown", new PointerEventArgs { PointerType = "touch", ClientX = 42, ClientY = 84 });
+        await trigger.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "touch", ClientX = 48, ClientY = 90 });
+        await Task.Delay(800);
+
+        await Assert.That(cut.FindAll("[role='menu']")).IsEmpty();
+        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerVirtualPopperContent")).IsFalse();
     }
 
     [Test]
@@ -184,7 +233,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         await Assert.That(prevented).IsTrue();
     }
 
-    private static RenderFragment CreateContextMenu(bool modal = true)
+    private static RenderFragment CreateContextMenu(bool modal = true, bool triggerDisabled = false)
     {
         return builder =>
         {
@@ -193,7 +242,8 @@ public sealed class BradixContextMenuRenderTests : BunitContext
             builder.AddAttribute(2, nameof(BradixContextMenu.ChildContent), (RenderFragment)(content =>
             {
                 content.OpenComponent<BradixContextMenuTrigger>(0);
-                content.AddAttribute(1, nameof(BradixContextMenuTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Area")));
+                content.AddAttribute(1, nameof(BradixContextMenuTrigger.Disabled), triggerDisabled);
+                content.AddAttribute(2, nameof(BradixContextMenuTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Area")));
                 content.CloseComponent();
 
                 content.OpenComponent<BradixContextMenuPortal>(2);

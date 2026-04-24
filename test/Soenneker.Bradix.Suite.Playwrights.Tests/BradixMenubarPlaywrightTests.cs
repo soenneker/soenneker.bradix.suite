@@ -21,12 +21,12 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
 
         ILocator demo = page.Locator("[data-testid='bradix-menubar-demo']");
-        ILocator fileTrigger = demo.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "File", Exact = true });
+        ILocator editTrigger = demo.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "Edit", Exact = true });
 
-        await fileTrigger.ClickAsync();
+        await editTrigger.ClickAsync();
 
-        ILocator menu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "Share" }).First;
-        await Assertions.Expect(menu).ToContainTextAsync("New file");
+        ILocator menu = page.VisibleMenu();
+        await Assertions.Expect(menu).ToContainTextAsync("Show line numbers");
         ILocator submenuTrigger = menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "Share", Exact = true });
         await submenuTrigger.ClickAsync();
 
@@ -43,7 +43,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await submenuTrigger.PressAsync("Escape");
 
         await Assertions.Expect(menu).Not.ToBeVisibleAsync();
-        await Assertions.Expect(fileTrigger).ToBeFocusedAsync();
+        await Assertions.Expect(editTrigger).ToBeFocusedAsync();
     }
 
 [Test]
@@ -112,7 +112,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_demo_trigger_closes_checkbox_menu_after_non_closing_selection()
+    public async Task Menubar_demo_trigger_keeps_checkbox_menu_open_after_non_closing_selection()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -131,8 +131,8 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
 
         await editTrigger.ClickAsync();
 
-        await Assertions.Expect(editTrigger).ToHaveAttributeAsync("aria-expanded", "false");
-        await Assertions.Expect(page.Locator("[role='menu']:visible")).ToHaveCountAsync(0);
+        await Assertions.Expect(editTrigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Show line numbers");
     }
 
 [Test]
@@ -172,7 +172,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_demo_trigger_closes_radio_menu_after_non_closing_selection()
+    public async Task Menubar_demo_trigger_keeps_radio_menu_open_after_non_closing_selection()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -188,8 +188,8 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
 
         await viewTrigger.ClickAsync();
 
-        await Assertions.Expect(viewTrigger).ToHaveAttributeAsync("aria-expanded", "false");
-        await Assertions.Expect(page.Locator("[role='menu']:visible")).ToHaveCountAsync(0);
+        await Assertions.Expect(viewTrigger).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Sort by");
     }
 
 [Test]

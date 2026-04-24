@@ -1,10 +1,12 @@
 using Soenneker.Playwrights.Extensions.TestPages;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
+[NotInParallel]
 [ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
 {
@@ -27,13 +29,19 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Edit profile", Exact = true })).ToBeVisibleAsync();
 
-        await page.Locator("#dialog-name").FillAsync("Jake");
-        await page.Locator("#dialog-username").FillAsync("@jake");
+        ILocator nameInput = page.Locator("#dialog-name");
+        ILocator usernameInput = page.Locator("#dialog-username");
+        await nameInput.ClearAsync();
+        await nameInput.PressSequentiallyAsync("Jake");
+        await usernameInput.ClearAsync();
+        await usernameInput.PressSequentiallyAsync("@jake");
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Save changes", Exact = true }).ClickAsync();
 
+        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Edit profile", Exact = true })).Not.ToBeVisibleAsync();
+
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
-        await Assertions.Expect(page.Locator("#dialog-name")).ToHaveValueAsync("Jake");
-        await Assertions.Expect(page.Locator("#dialog-username")).ToHaveValueAsync("@jake");
+        await Assertions.Expect(nameInput).ToHaveValueAsync("Jake");
+        await Assertions.Expect(usernameInput).ToHaveValueAsync("@jake");
     }
 
 [Test]
@@ -41,6 +49,15 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
+        var consoleMessages = new List<string>();
+        var pageErrors = new List<string>();
+
+        page.Console += (_, message) =>
+        {
+            if (message.Type is "error" or "warning")
+                consoleMessages.Add($"{message.Type}: {message.Text}");
+        };
+        page.PageError += (_, exception) => pageErrors.Add(exception);
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialog"));
 
@@ -63,6 +80,8 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(dialog).Not.ToBeVisibleAsync();
         await Assertions.Expect(trigger).ToBeFocusedAsync();
+        await Assert.That(pageErrors).IsEmpty();
+        await Assert.That(consoleMessages).IsEmpty();
     }
 
 [Test]

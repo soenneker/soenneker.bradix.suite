@@ -51,7 +51,8 @@
                 click = new
                 {
                     method = nameof(HandleDelegatedClick),
-                    currentTargetOnly = false
+                    currentTargetOnly = false,
+                    stopPropagation = true
                 }
             });
         }

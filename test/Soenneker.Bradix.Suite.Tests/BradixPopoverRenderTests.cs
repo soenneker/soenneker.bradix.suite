@@ -165,6 +165,19 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Disabled_close_button_does_not_close_popover()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true, closeDisabled: true));
+
+        IElement close = cut.Find("button[data-popover-close='true']");
+        await close.ClickAsync();
+
+        IElement trigger = cut.Find("button[aria-haspopup='dialog']");
+        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+        await Assert.That(close.HasAttribute("disabled")).IsTrue();
+    }
+
+    [Test]
     public async Task Custom_anchor_keeps_single_trigger_and_opens_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(customAnchor: true));
@@ -176,7 +189,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         await Assert.That(cut.FindAll("[role='dialog']")).HasSingleItem();
     }
 
-    private static RenderFragment CreatePopover(bool defaultOpen = false, bool modal = false, bool customAnchor = false, bool closeOnEscapeKeyDown = true)
+    private static RenderFragment CreatePopover(bool defaultOpen = false, bool modal = false, bool customAnchor = false, bool closeOnEscapeKeyDown = true, bool closeDisabled = false)
     {
         return builder =>
         {
@@ -224,7 +237,8 @@ public sealed class BradixPopoverRenderTests : BunitContext
                     {
                         ["data-popover-close"] = "true"
                     });
-                    popoverContent.AddAttribute(4, nameof(BradixPopoverClose.ChildContent), (RenderFragment)(close =>
+                    popoverContent.AddAttribute(4, nameof(BradixPopoverClose.Disabled), closeDisabled);
+                    popoverContent.AddAttribute(5, nameof(BradixPopoverClose.ChildContent), (RenderFragment)(close =>
                     {
                         close.AddContent(0, "Close");
                     }));

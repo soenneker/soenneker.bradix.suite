@@ -44,7 +44,7 @@
     internal bool HasViewport { get; private set; }
     internal bool HasContent { get; private set; }
 
-    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+    internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
     internal bool IsHovering { get; private set; }
     internal bool IsScrollingX { get; private set; }

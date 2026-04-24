@@ -8,6 +8,12 @@ namespace Soenneker.Bradix;
 /// </summary>
 public interface IBradixPopperArrow
 {
+    /// <summary>Arrow wrapper width in pixels.</summary>
+    double Width { get; set; }
+
+    /// <summary>Arrow wrapper height in pixels.</summary>
+    double Height { get; set; }
+
     /// <summary>Root element id.</summary>
     string? Id { get; set; }
 

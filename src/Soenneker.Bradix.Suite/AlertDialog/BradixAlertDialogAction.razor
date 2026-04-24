@@ -1,10 +1,13 @@
 @namespace Soenneker.Bradix
 
 @implements IBradixAlertDialogAction
+@using Microsoft.AspNetCore.Components.Web
 <BradixDialogClose Class="@Class"
                    AriaLabel="@((string?)null)"
                    Style="@Style"
-                   AdditionalAttributes="@AdditionalAttributes">
+                   Disabled="Disabled"
+                   AdditionalAttributes="@AdditionalAttributes"
+                   OnClick="OnClick">
     @ChildContent
 </BradixDialogClose>
 
@@ -14,6 +17,12 @@
 
     [Parameter]
     public string? Style { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }

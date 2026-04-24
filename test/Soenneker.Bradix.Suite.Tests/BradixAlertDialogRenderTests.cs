@@ -96,6 +96,21 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Disabled_action_and_cancel_do_not_close_alertdialog()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true, controlsDisabled: true));
+
+        await cut.Find("button[data-alert-cancel='true']").ClickAsync();
+        await Assert.That(cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded")).IsEqualTo("true");
+
+        await cut.Find("button[data-alert-action='true']").ClickAsync();
+        await Assert.That(cut.Find("button[aria-haspopup='dialog']").GetAttribute("aria-expanded")).IsEqualTo("true");
+
+        await Assert.That(cut.Find("button[data-alert-cancel='true']").HasAttribute("disabled")).IsTrue();
+        await Assert.That(cut.Find("button[data-alert-action='true']").HasAttribute("disabled")).IsTrue();
+    }
+
+    [Test]
     public async Task Detailed_open_auto_focus_can_prevent_alertdialog_cancel_focus()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
@@ -154,7 +169,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 1);
     }
 
-    private static RenderFragment CreateAlertDialog(bool defaultOpen = false)
+    private static RenderFragment CreateAlertDialog(bool defaultOpen = false, bool controlsDisabled = false)
     {
         return builder =>
         {
@@ -199,18 +214,20 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
                         {
                             ["data-alert-cancel"] = "true"
                         });
-                        dialogContent.AddAttribute(6, nameof(BradixAlertDialogCancel.ChildContent), (RenderFragment)(cancel =>
+                        dialogContent.AddAttribute(6, nameof(BradixAlertDialogCancel.Disabled), controlsDisabled);
+                        dialogContent.AddAttribute(7, nameof(BradixAlertDialogCancel.ChildContent), (RenderFragment)(cancel =>
                         {
                             cancel.AddContent(0, "Cancel");
                         }));
                         dialogContent.CloseComponent();
 
-                        dialogContent.OpenComponent<BradixAlertDialogAction>(7);
-                        dialogContent.AddAttribute(8, nameof(BradixAlertDialogAction.AdditionalAttributes), new Dictionary<string, object>
+                        dialogContent.OpenComponent<BradixAlertDialogAction>(8);
+                        dialogContent.AddAttribute(9, nameof(BradixAlertDialogAction.AdditionalAttributes), new Dictionary<string, object>
                         {
                             ["data-alert-action"] = "true"
                         });
-                        dialogContent.AddAttribute(9, nameof(BradixAlertDialogAction.ChildContent), (RenderFragment)(action =>
+                        dialogContent.AddAttribute(10, nameof(BradixAlertDialogAction.Disabled), controlsDisabled);
+                        dialogContent.AddAttribute(11, nameof(BradixAlertDialogAction.ChildContent), (RenderFragment)(action =>
                         {
                             action.AddContent(0, "Confirm");
                         }));

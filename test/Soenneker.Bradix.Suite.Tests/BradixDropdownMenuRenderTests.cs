@@ -176,6 +176,23 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Submenu_escape_closes_dropdown_root()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true));
+
+        await cut.Find("[aria-haspopup='menu'][role='menuitem']").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
+        await Assert.That(cut.FindAll("[role='menu']").Count).IsEqualTo(2);
+
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponents<BradixDismissableLayer>().Last();
+        await cut.InvokeAsync(() => layer.Instance.HandleEscapeKeyDown());
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("closed");
+        });
+    }
+
+    [Test]
     public async Task Modal_right_click_outside_does_not_refocus_dropdown_trigger_on_close()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true, modal: true));

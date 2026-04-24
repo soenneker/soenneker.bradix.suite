@@ -8,6 +8,7 @@
                       ValueChanged="@ValueChanged"
                       OnValueChange="@OnValueChange"
                       Orientation="@Orientation"
+                      Dir="@ParentNavigationMenu?.ResolvedDirection"
                       IsRootMenu="false"
                       Class="@Class"
                       Style="@Style"
@@ -16,6 +17,9 @@
 </BradixNavigationMenu>
 
 @code {
+    [CascadingParameter]
+    private BradixNavigationMenu? ParentNavigationMenu { get; set; }
+
     [Parameter]
     public string? Value { get; set; }
 

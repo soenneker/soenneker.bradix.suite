@@ -1,5 +1,7 @@
 @namespace Soenneker.Bradix
 
+@using Microsoft.JSInterop
+
 @inherits BradixComponent
 
 @implements IBradixSliderThumb
@@ -28,6 +30,7 @@
     private double? _lastRenderedValue;
     private string? _lastResolvedForm;
     private bool _registered;
+    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     internal BradixSlider Slider { get; set; } = null!;
@@ -123,6 +126,15 @@
         {
             Slider.RegisterThumb(this);
             _registered = true;
+            _dotNetReference = DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    currentTargetOnly = true,
+                    preventDefaultKeys = new[] { "Home", "End", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight" }
+                }
+            });
             _lastRenderedValue = Value;
         }
 
@@ -150,12 +162,13 @@
         _lastRenderedValue = Value;
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
+        await Interop.UnregisterDelegatedInteraction(_element);
+        _dotNetReference?.Dispose();
+
         if (_registered)
             Slider.UnregisterThumb(this);
-
-        return ValueTask.CompletedTask;
     }
 
     internal ValueTask Focus() => _element.FocusAsync();

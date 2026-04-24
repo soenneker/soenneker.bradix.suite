@@ -14,6 +14,12 @@
     [CascadingParameter]
     private BradixPopperContent? Content { get; set; }
 
+    [Parameter]
+    public double Width { get; set; } = 10;
+
+    [Parameter]
+    public double Height { get; set; } = 5;
+
     private Dictionary<string, object> ArrowAttributes => BuildAttributes(
         ("aria-hidden", "true"),
         ("style", BuildArrowStyle()));
@@ -40,12 +46,12 @@
             _ => "top"
         };
 
-        var positionStyle = $"position: absolute; {oppositeSide}: 0;";
+        var positionStyle = $"position: absolute; display: block; width: {Width.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; height: {Height.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; {oppositeSide}: 0;";
 
         if (Content.ArrowX.HasValue)
-            positionStyle += $" left: {Content.ArrowX.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translateX(-50%);";
+            positionStyle += $" left: {Content.ArrowX.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px;";
         else if (Content.ArrowY.HasValue)
-            positionStyle += $" top: {Content.ArrowY.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translateY(-50%);";
+            positionStyle += $" top: {Content.ArrowY.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px;";
 
         if (Content.ShouldHideArrow)
             positionStyle += " visibility: hidden;";

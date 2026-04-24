@@ -89,7 +89,8 @@ public sealed class BradixDialogRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true, modal: true));
 
-        await Assert.That(cut.FindAll(".dialog-overlay")).HasSingleItem();
+        IElement overlay = cut.Find(".dialog-overlay");
+        await Assert.That(overlay.GetAttribute("style")).Contains("pointer-events:auto");
         await Assert.That(cut.Find("[role='dialog']").GetAttribute("aria-modal")).IsEqualTo("true");
     }
 
@@ -99,6 +100,30 @@ public sealed class BradixDialogRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true, modal: false));
 
         await Assert.That(cut.FindAll(".dialog-overlay")).IsEmpty();
+    }
+
+    [Test]
+    public async Task Modal_state_controls_focus_trap_and_outside_pointer_lock()
+    {
+        Render(CreateDialog(defaultOpen: true, modal: true));
+
+        JSRuntimeInvocation focusScopeInvocation = _module.Invocations.Single(invocation => invocation.Identifier == "registerFocusScope");
+        JSRuntimeInvocation dismissableLayerInvocation = _module.Invocations.Single(invocation => invocation.Identifier == "registerDismissableLayer");
+
+        await Assert.That(focusScopeInvocation.Arguments[3]).IsEqualTo(true);
+        await Assert.That(dismissableLayerInvocation.Arguments[2]).IsEqualTo(true);
+    }
+
+    [Test]
+    public async Task Non_modal_state_disables_focus_trap_and_outside_pointer_lock()
+    {
+        Render(CreateDialog(defaultOpen: true, modal: false));
+
+        JSRuntimeInvocation focusScopeInvocation = _module.Invocations.Single(invocation => invocation.Identifier == "registerFocusScope");
+        JSRuntimeInvocation dismissableLayerInvocation = _module.Invocations.Single(invocation => invocation.Identifier == "registerDismissableLayer");
+
+        await Assert.That(focusScopeInvocation.Arguments[3]).IsEqualTo(false);
+        await Assert.That(dismissableLayerInvocation.Arguments[2]).IsEqualTo(false);
     }
 
     [Test]

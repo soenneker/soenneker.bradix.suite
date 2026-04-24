@@ -61,7 +61,6 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(learnTrigger).ToBeFocusedAsync();
     }
 
-[Skip("Hover-triggered content switching does not fire in the interactive browser demo under Playwright; click switching is covered separately.")]
 [Test]
     public async Task Navigation_menu_demo_switches_visible_content_between_triggers_on_hover()
     {
@@ -484,7 +483,6 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(viewport).ToContainTextAsync("Introduction", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
     }
 
-[Skip("Keyboard trigger-switch parity is deferred while core render/layout issues are being stabilized.")]
 [Test]
     public async Task Navigation_menu_demo_debugs_keyboard_switch_after_open()
     {
@@ -506,7 +504,6 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
     }
 
-    [Skip("Repeat-click close behavior in the browser demo remains a non-contract debug probe; core open, switch, focus, and outside-dismiss behavior is covered separately.")]
     [Test]
     public async Task Navigation_menu_demo_debugs_active_trigger_can_close_itself_after_open()
     {

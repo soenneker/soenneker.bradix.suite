@@ -31,7 +31,7 @@ function ensureDelegatedInteractionListeners() {
 
   delegatedInteractionListenersRegistered = true;
 
-  document.addEventListener("click", (event) => dispatchDelegatedInteraction("click", event));
+  document.addEventListener("click", (event) => dispatchDelegatedInteraction("click", event), true);
   document.addEventListener("mousedown", (event) => dispatchDelegatedInteraction("mousedown", event));
   document.addEventListener("pointerdown", (event) => dispatchDelegatedInteraction("pointerdown", event));
   document.addEventListener("mouseover", (event) => dispatchDelegatedInteraction("mouseover", event));
@@ -45,15 +45,6 @@ function ensureDelegatedInteractionListeners() {
 
 function dispatchDelegatedInteraction(type, event) {
   const registration = findDelegatedInteractionRegistration(event.target);
-
-  window.__bradixDelegatedInteractionDispatches = window.__bradixDelegatedInteractionDispatches || [];
-  window.__bradixDelegatedInteractionDispatches.push({
-    type,
-    eventTargetTag: event.target?.tagName || null,
-    eventTargetId: event.target?.id || null,
-    registrationElementTag: registration?.element?.tagName || null,
-    registrationElementId: registration?.element?.id || null
-  });
 
   if (!registration) {
     return;
@@ -109,25 +100,16 @@ function dispatchDelegatedInteraction(type, event) {
     event.preventDefault();
   }
 
+  if (config.stopPropagation) {
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+  }
+
   if (!config.method) {
     return;
   }
 
-  window.__bradixDelegatedInteractionInvocations = window.__bradixDelegatedInteractionInvocations || [];
-  window.__bradixDelegatedInteractionInvocations.push({
-    type,
-    method: config.method,
-    elementId: registration.element?.id || null
-  });
-
-  registration.dotNetRef.invokeMethodAsync(config.method, createDelegatedEventSnapshot(type, event)).catch((error) => {
-    window.__bradixDelegatedInteractionErrors = window.__bradixDelegatedInteractionErrors || [];
-    window.__bradixDelegatedInteractionErrors.push({
-      type,
-      method: config.method,
-      message: error?.message || String(error)
-    });
-  });
+  registration.dotNetRef.invokeMethodAsync(config.method, createDelegatedEventSnapshot(type, event)).catch(() => {});
 }
 
 function findDelegatedInteractionRegistration(start) {

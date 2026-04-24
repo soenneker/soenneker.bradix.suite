@@ -3,11 +3,19 @@
 @implements IBradixContextMenuArrow
 <BradixMenuArrow Class="@Class"
                  Style="@Style"
+                 Width="@Width"
+                 Height="@Height"
                  AdditionalAttributes="@AdditionalAttributes">
     @ChildContent
 </BradixMenuArrow>
 
 @code {
+    [Parameter]
+    public double Width { get; set; } = 10;
+
+    [Parameter]
+    public double Height { get; set; } = 5;
+
     [Parameter]
     public string? Class { get; set; }
 

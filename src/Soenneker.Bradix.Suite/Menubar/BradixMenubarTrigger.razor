@@ -58,7 +58,7 @@
         ("tabindex", Menubar?.IsCurrentTabStop(MenubarMenu!) == true ? 0 : -1),
         ("aria-haspopup", "menu"),
         ("aria-expanded", IsOpen ? "true" : "false"),
-        ("aria-controls", MenubarMenu?.ContentId),
+        ("aria-controls", IsOpen ? MenubarMenu?.ContentId : null),
         ("data-highlighted", _isFocused ? string.Empty : null),
         ("data-state", IsOpen ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
@@ -107,9 +107,7 @@
             return Task.CompletedTask;
 
         MenubarMenu.ResetKeyboardTriggerOpen();
-        return IsOpen
-            ? Menubar.CloseMenu()
-            : Menubar.OpenMenu(MenubarMenu.CurrentValue);
+        return Menubar.OpenMenu(MenubarMenu.CurrentValue);
     }
 
     private async Task HandlePointerEnter(PointerEventArgs _)

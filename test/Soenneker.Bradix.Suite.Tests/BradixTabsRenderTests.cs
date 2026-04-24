@@ -39,6 +39,8 @@ public sealed class BradixTabsRenderTests : BunitContext
         await Assert.That(tabList.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
         await Assert.That(buttons[0].GetAttribute("aria-selected")).IsEqualTo("true");
         await Assert.That(buttons[0].GetAttribute("data-state")).IsEqualTo("active");
+        await Assert.That(buttons[0].GetAttribute("data-bradix-prevent-nonprimary-mousedown")).IsEqualTo("true");
+        await Assert.That(buttons[1].GetAttribute("data-bradix-prevent-mousedown-when-disabled")).IsEqualTo("true");
         await Assert.That(panel.Id).IsEqualTo(buttons[0].GetAttribute("aria-controls"));
         await Assert.That(panel.GetAttribute("aria-labelledby")).IsEqualTo(buttons[0].Id);
     }
@@ -114,6 +116,29 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Local_ltr_direction_overrides_inherited_rtl_direction()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixDirectionProvider>(0);
+            builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
+            builder.AddAttribute(2, nameof(BradixDirectionProvider.ChildContent), (RenderFragment) (contentBuilder =>
+            {
+                CreateTabs(defaultValue: "tab1", dir: "ltr")(contentBuilder);
+            }));
+            builder.CloseComponent();
+        });
+
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        buttons = cut.FindAll("button");
+
+        await Assert.That(cut.Find("[role='tablist']").ParentElement?.GetAttribute("dir")).IsEqualTo("ltr");
+        await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");
+        await Assert.That(buttons[2].GetAttribute("tabindex")).IsEqualTo("0");
+    }
+
+    [Test]
     public async Task Vertical_tabs_list_exposes_vertical_aria_orientation()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", orientation: BradixOrientation.Vertical));
@@ -122,7 +147,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     private static RenderFragment CreateTabs(string? defaultValue = null, BradixTabsActivationMode? activationMode = null, EventCallback<string?> onValueChange = default,
-        bool forceMount = false, BradixOrientation? orientation = null)
+        bool forceMount = false, BradixOrientation? orientation = null, string? dir = null)
     {
         return builder =>
         {
@@ -133,6 +158,9 @@ public sealed class BradixTabsRenderTests : BunitContext
 
             builder.AddAttribute(2, nameof(BradixTabs.ActivationMode), (object) (activationMode ?? BradixTabsActivationMode.Automatic));
             builder.AddAttribute(6, nameof(BradixTabs.Orientation), (object) (orientation ?? BradixOrientation.Horizontal));
+
+            if (dir is not null)
+                builder.AddAttribute(7, nameof(BradixTabs.Dir), dir);
 
             if (onValueChange.HasDelegate)
                 builder.AddAttribute(3, nameof(BradixTabs.OnValueChange), onValueChange);

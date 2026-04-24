@@ -56,7 +56,7 @@
 
     internal string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
 
-    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+    internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
     internal BradixMenu RootMenu => RootMenuCandidate ?? this;
 

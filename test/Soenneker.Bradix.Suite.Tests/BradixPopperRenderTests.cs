@@ -73,7 +73,47 @@ public sealed class BradixPopperRenderTests : BunitContext
         await Assert.That(cut.Markup).Contains("data-side=\"top\"");
         await Assert.That(cut.Markup).Contains("data-align=\"start\"");
         await Assert.That(cut.Find("[aria-hidden='true']").GetAttribute("aria-hidden")).IsEqualTo("true");
+        await Assert.That(cut.Find("[aria-hidden='true']").GetAttribute("style")).Contains("width: 10px; height: 5px");
         await Assert.That(placedCount).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Popper_arrow_uses_explicit_size_for_measurement_wrapper()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixPopper>(0);
+            builder.AddAttribute(1, nameof(BradixPopper.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixPopperAnchor>(0);
+                content.AddAttribute(1, nameof(BradixPopperAnchor.ChildContent), (RenderFragment)(anchor =>
+                {
+                    anchor.OpenElement(0, "button");
+                    anchor.AddContent(1, "Anchor");
+                    anchor.CloseElement();
+                }));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixPopperContent>(2);
+                content.AddAttribute(3, nameof(BradixPopperContent.ChildContent), (RenderFragment)(popperContent =>
+                {
+                    popperContent.OpenComponent<BradixPopperArrow>(0);
+                    popperContent.AddAttribute(1, nameof(BradixPopperArrow.Width), 18d);
+                    popperContent.AddAttribute(2, nameof(BradixPopperArrow.Height), 9d);
+                    popperContent.CloseComponent();
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        IRenderedComponent<BradixPopperContent> content = cut.FindComponent<BradixPopperContent>();
+        await content.Instance.HandlePositionChanged("bottom", "center", 12, 20, 300, 240, 90, 24, 40, null, false, false, "49px", "-9px");
+
+        string? style = cut.Find("[aria-hidden='true']").GetAttribute("style");
+
+        await Assert.That(style).Contains("width: 18px; height: 9px");
+        await Assert.That(style).Contains("left: 40px");
     }
 
     [Test]

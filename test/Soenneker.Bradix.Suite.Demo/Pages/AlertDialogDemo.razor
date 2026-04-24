@@ -20,12 +20,14 @@
                     </BradixAlertDialogDescription>
 
                     <div class="dialog-demo__actions">
-                        <span @onclick="HandleCancelClicked">
-                            <BradixAlertDialogCancel Class="dialog-demo__button dialog-demo__button--mauve">Cancel</BradixAlertDialogCancel>
-                        </span>
-                        <span @onclick="HandleDeleteClicked">
-                            <BradixAlertDialogAction Class="dialog-demo__button dialog-demo__button--red">Yes, delete account</BradixAlertDialogAction>
-                        </span>
+                        <BradixAlertDialogCancel Class="dialog-demo__button dialog-demo__button--mauve"
+                                                 OnClick="HandleCancelClicked">
+                            Cancel
+                        </BradixAlertDialogCancel>
+                        <BradixAlertDialogAction Class="dialog-demo__button dialog-demo__button--red"
+                                                 OnClick="HandleDeleteClicked">
+                            Yes, delete account
+                        </BradixAlertDialogAction>
                     </div>
                 </BradixAlertDialogContent>
             </BradixAlertDialogPortal>

@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
 
 @inherits BradixComponent
@@ -21,8 +22,16 @@
     [CascadingParameter]
     private BradixPopover? Popover { get; set; }
 
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
-        ("type", "button"));
+        ("type", "button"),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("disabled", Disabled ? true : null));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -36,16 +45,19 @@
             click = new
             {
                 method = nameof(HandleDelegatedClick),
-                currentTargetOnly = false
+                currentTargetOnly = false,
+                stopPropagation = true
             }
         });
     }
 
-    private Task HandleClick()
+    private async Task HandleClick()
     {
-        return Popover is null || _delegatedInteractionReady
-            ? Task.CompletedTask
-            : Popover.SetOpen(false);
+        if (!Disabled && Popover is not null && !_delegatedInteractionReady)
+            await Popover.SetOpen(false);
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync();
     }
 
     public async ValueTask DisposeAsync()
@@ -62,8 +74,24 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
+    public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
     {
-        return Popover is null ? Task.CompletedTask : Popover.SetOpen(false);
+        if (!Disabled && Popover is not null)
+            await Popover.SetOpen(false);
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(new MouseEventArgs
+            {
+                Detail = args.Detail,
+                Button = args.Button,
+                CtrlKey = args.CtrlKey,
+                ShiftKey = args.ShiftKey,
+                AltKey = args.AltKey,
+                MetaKey = args.MetaKey,
+                PageX = args.PageX,
+                PageY = args.PageY
+            });
+        }
     }
 }

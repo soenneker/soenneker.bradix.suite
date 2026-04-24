@@ -44,7 +44,7 @@
 
     internal string? CurrentTabStopId { get; private set; }
 
-    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+    internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
     internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
 

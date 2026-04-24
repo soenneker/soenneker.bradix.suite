@@ -52,7 +52,7 @@
 
     internal string GroupId { get; private set; } = string.Empty;
 
-    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+    internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
     internal string? CurrentValue => Value ?? _uncontrolledValue;
 

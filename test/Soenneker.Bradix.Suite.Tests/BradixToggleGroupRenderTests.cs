@@ -29,11 +29,12 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         string? requestedValue = null;
 
         IRenderedComponent<ContainerFragment> cut = Render(CreateSingleGroup(EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
-        IElement group = cut.Find("[role='radiogroup']");
+        IElement group = cut.Find("[role='group']");
 
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
 
         await Assert.That(group.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(group.GetAttribute("data-orientation")).IsEqualTo("horizontal");
         await Assert.That(buttons[0].GetAttribute("role")).IsEqualTo("radio");
         await Assert.That(buttons[0].GetAttribute("aria-checked")).IsEqualTo("false");
 

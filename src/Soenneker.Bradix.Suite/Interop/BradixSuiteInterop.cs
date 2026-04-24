@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
 using Soenneker.Blazor.Utils.ModuleImport;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
@@ -12,12 +13,16 @@ namespace Soenneker.Bradix;
 public sealed class BradixSuiteInterop : IBradixSuiteInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
+    private readonly IResourceLoader? _resourceLoader;
 
     private const string _modulePath = "./_content/Soenneker.Bradix.Suite/js/bradix.js";
+    private const string _floatingUiCorePath = "_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.core.umd.min.js";
+    private const string _floatingUiDomPath = "_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.dom.umd.min.js";
 
-    public BradixSuiteInterop(IJSRuntime jsRuntime, IModuleImportUtil? moduleImportUtil = null)
+    public BradixSuiteInterop(IJSRuntime jsRuntime, IModuleImportUtil? moduleImportUtil = null, IResourceLoader? resourceLoader = null)
     {
         _moduleImportUtil = moduleImportUtil ?? new ModuleImportUtil(jsRuntime);
+        _resourceLoader = resourceLoader;
     }
 
     public async ValueTask Initialize(CancellationToken cancellationToken = default)
@@ -478,6 +483,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
 
     public async ValueTask RegisterPopperContent(ElementReference anchor, ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, object options, CancellationToken cancellationToken = default)
     {
+        await EnsureFloatingUi(cancellationToken);
         var module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("registerPopperContent", cancellationToken, anchor, content, arrow, dotNetReference, options);
     }
@@ -497,18 +503,21 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
 
     public async ValueTask RegisterVirtualPopperContent(ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, double x, double y, object options, CancellationToken cancellationToken = default)
     {
+        await EnsureFloatingUi(cancellationToken);
         var module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("registerVirtualPopperContent", cancellationToken, content, arrow, dotNetReference, x, y, options);
     }
 
     public async ValueTask UpdatePopperContent(ElementReference content, ElementReference arrow, object options, CancellationToken cancellationToken = default)
     {
+        await EnsureFloatingUi(cancellationToken);
         var module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("updatePopperContent", cancellationToken, content, arrow, options);
     }
 
     public async ValueTask UpdateVirtualPopperContent(ElementReference content, ElementReference arrow, double x, double y, object options, CancellationToken cancellationToken = default)
     {
+        await EnsureFloatingUi(cancellationToken);
         var module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("updateVirtualPopperContent", cancellationToken, content, arrow, x, y, options);
     }
@@ -771,6 +780,23 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
     public async ValueTask DisposeAsync()
     {
         await _moduleImportUtil.DisposeContentModule(_modulePath);
+    }
+
+    private static string NormalizeContentUri(string uri)
+    {
+        if (string.IsNullOrEmpty(uri) || uri.Contains("://", System.StringComparison.Ordinal))
+            return uri;
+
+        return uri[0] == '/' ? uri : "/" + uri;
+    }
+
+    private async ValueTask EnsureFloatingUi(CancellationToken cancellationToken)
+    {
+        if (_resourceLoader is null)
+            return;
+
+        await _resourceLoader.LoadScriptAndWaitForVariable(NormalizeContentUri(_floatingUiCorePath), "FloatingUICore", cancellationToken: cancellationToken);
+        await _resourceLoader.LoadScriptAndWaitForVariable(NormalizeContentUri(_floatingUiDomPath), "FloatingUIDOM", cancellationToken: cancellationToken);
     }
 
 }

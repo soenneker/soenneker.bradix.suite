@@ -140,7 +140,6 @@
             return Task.CompletedTask;
 
         _pointerType = string.IsNullOrWhiteSpace(args.PointerType) ? "mouse" : args.PointerType;
-        Select.ClearTriggerPointerDownPosition();
-        return Task.CompletedTask;
+        return Select.OpenFromTrigger(args.PageX, args.PageY);
     }
 }

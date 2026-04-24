@@ -12,5 +12,5 @@
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    private string ResolvedDirection => Dir == "rtl" ? "rtl" : "ltr";
+    private string ResolvedDirection => BradixDirection.Normalize(Dir);
 }

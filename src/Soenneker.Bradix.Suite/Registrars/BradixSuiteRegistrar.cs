@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Soenneker.Blazor.Utils.ModuleImport.Registrars;
+using Soenneker.Blazor.Utils.ResourceLoader.Registrars;
 
 namespace Soenneker.Bradix;
 
@@ -11,7 +12,8 @@ public static class BradixSuiteRegistrar
 {
     public static IServiceCollection AddBradixSuiteAsScoped(this IServiceCollection services)
     {
-        services.AddModuleImportUtilAsScoped();
+        services.AddModuleImportUtilAsScoped()
+                .AddResourceLoaderAsScoped();
         services.TryAddScoped<IBradixSuiteInterop, BradixSuiteInterop>();
 
         return services;

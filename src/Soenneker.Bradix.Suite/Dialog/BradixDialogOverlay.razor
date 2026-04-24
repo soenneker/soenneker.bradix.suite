@@ -9,7 +9,7 @@
     <BradixPresence Present="Dialog?.CurrentOpen == true || ForceMount || PortalForceMount"
                     Tag="div"
                     Class="@Class"
-                    Style="@Style"
+                    Style="@OverlayStyle"
                     AdditionalAttributes="OverlayAttributes">
         @ChildContent
     </BradixPresence>
@@ -26,6 +26,8 @@
     public bool ForceMount { get; set; }
 
     private bool ShouldRenderOverlay => Dialog?.Modal == true && (Dialog.CurrentOpen || ForceMount || PortalForceMount);
+
+    private string? OverlayStyle => MergeStyleValues("pointer-events:auto;", Style);
 
     private IReadOnlyDictionary<string, object> OverlayAttributes
     {

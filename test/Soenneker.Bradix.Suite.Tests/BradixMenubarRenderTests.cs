@@ -56,7 +56,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
-        string closedControls = await Assert.That(triggers[0].GetAttribute("aria-controls")).IsTypeOf<string>();
+        await Assert.That(triggers[0].GetAttribute("aria-controls")).IsNull();
 
         await triggers[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
 
@@ -65,7 +65,6 @@ public sealed class BradixMenubarRenderTests : BunitContext
             IReadOnlyList<IElement> updatedTriggers = cut.FindAll("button[role='menuitem']");
             IElement menu = cut.Find("[role='menu']");
             await Assert.That(updatedTriggers[0].GetAttribute("aria-expanded")).IsEqualTo("true");
-            await Assert.That(updatedTriggers[0].GetAttribute("aria-controls")).IsEqualTo(closedControls);
             await Assert.That(updatedTriggers[0].GetAttribute("aria-controls")).IsEqualTo(menu.Id);
             await Assert.That(menu.GetAttribute("aria-labelledby")).IsEqualTo(updatedTriggers[0].Id);
         });
@@ -76,7 +75,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
-        string closedControls = await Assert.That(triggers[0].GetAttribute("aria-controls")).IsTypeOf<string>();
+        await Assert.That(triggers[0].GetAttribute("aria-controls")).IsNull();
 
         await triggers[0].TriggerEventAsync("onpointerdown", new PointerEventArgs { Button = 0 });
 
@@ -85,9 +84,28 @@ public sealed class BradixMenubarRenderTests : BunitContext
             IReadOnlyList<IElement> updatedTriggers = cut.FindAll("button[role='menuitem']");
             IElement menu = cut.Find("[role='menu']");
             await Assert.That(updatedTriggers[0].GetAttribute("aria-expanded")).IsEqualTo("true");
-            await Assert.That(updatedTriggers[0].GetAttribute("aria-controls")).IsEqualTo(closedControls);
             await Assert.That(updatedTriggers[0].GetAttribute("aria-controls")).IsEqualTo(menu.Id);
             await Assert.That(menu.GetAttribute("aria-labelledby")).IsEqualTo(updatedTriggers[0].Id);
+        });
+    }
+
+    [Test]
+    public async Task Pointer_down_on_open_trigger_keeps_associated_menu_open()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
+        IElement trigger = cut.FindAll("button[role='menuitem']")[0];
+
+        await trigger.TriggerEventAsync("onpointerdown", new PointerEventArgs { Button = 0 });
+        await Assert.That(cut.Find("[role='menu']").TextContent).Contains("File action");
+
+        trigger = cut.FindAll("button[role='menuitem']")[0];
+        await trigger.TriggerEventAsync("onpointerdown", new PointerEventArgs { Button = 0 });
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IElement updatedTrigger = cut.FindAll("button[role='menuitem']")[0];
+            await Assert.That(updatedTrigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(cut.Find("[role='menu']").TextContent).Contains("File action");
         });
     }
 
@@ -113,6 +131,31 @@ public sealed class BradixMenubarRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
 
         await Assert.That(cut.Find("[role='menubar']").GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+    }
+
+    [Test]
+    public async Task Controlled_menubar_reports_value_change_without_mutating_internal_state()
+    {
+        string? value = null;
+
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixMenubar>(0);
+            builder.AddAttribute(1, nameof(BradixMenubar.Value), value);
+            builder.AddAttribute(2, nameof(BradixMenubar.ValueChanged),
+                EventCallback.Factory.Create<string?>(this, next => value = next));
+            builder.AddAttribute(3, nameof(BradixMenubar.ChildContent), (RenderFragment)(content =>
+            {
+                BuildMenu(content, 0, "file", "File", submenu: false, includeCheckbox: false, includeRadio: false);
+            }));
+            builder.CloseComponent();
+        });
+
+        await cut.Find("button[role='menuitem']").TriggerEventAsync("onpointerdown", new PointerEventArgs { Button = 0 });
+
+        await Assert.That(value).IsEqualTo("file");
+        await Assert.That(cut.Find("button[role='menuitem']").GetAttribute("aria-expanded")).IsEqualTo("false");
+        await Assert.That(cut.FindAll("[role='menu']")).IsEmpty();
     }
 
     [Test]

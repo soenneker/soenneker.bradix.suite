@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Soenneker.Bradix;
 
@@ -18,6 +19,15 @@ public interface IBradixDialogClose : IAsyncDisposable {
     /// </summary>
     string? AriaLabel { get; set; }
 
+    /// <summary>
+    /// Gets or sets whether the close button is disabled.
+    /// </summary>
+    bool Disabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets the callback invoked when the close button is clicked.
+    /// </summary>
+    EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <summary>
     /// Called when delegated interaction handling is ready on the close button.

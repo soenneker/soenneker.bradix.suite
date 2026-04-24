@@ -28,11 +28,16 @@
     public string? AriaLabel { get; set; } = "Close";
 
     [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
-        ("aria-label", AriaLabel));
+        ("aria-label", AriaLabel),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("disabled", Disabled ? true : null));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -49,14 +54,15 @@
             click = new
             {
                 method = nameof(HandleDelegatedClick),
-                currentTargetOnly = false
+                currentTargetOnly = false,
+                stopPropagation = true
             }
         });
     }
 
     private async Task HandleClick()
     {
-        if (Dialog is not null && !_delegatedInteractionReady)
+        if (!Disabled && Dialog is not null && !_delegatedInteractionReady)
             await Dialog.SetOpen(false);
 
         if (OnClick.HasDelegate)
@@ -79,7 +85,7 @@
     [JSInvokable]
     public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
     {
-        if (Dialog is not null)
+        if (!Disabled && Dialog is not null)
             await Dialog.SetOpen(false);
 
         if (OnClick.HasDelegate)

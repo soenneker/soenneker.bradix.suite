@@ -62,7 +62,7 @@
 
     internal bool IsCollapsible => Type == BradixSelectionMode.Multiple || Collapsible;
     internal string GroupId => _groupId ??= BlazorIdGenerator.New("bradix-accordion-group");
-    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+    internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
     private bool IsSingle => Type == BradixSelectionMode.Single;
 

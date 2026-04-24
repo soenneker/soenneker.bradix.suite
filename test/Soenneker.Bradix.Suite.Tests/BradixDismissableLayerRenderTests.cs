@@ -113,6 +113,58 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Pointer_down_outside_prevent_default_prevents_dismiss()
+    {
+        bool interactOutside = false;
+
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixDismissableLayer>(0);
+            builder.AddAttribute(1, nameof(BradixDismissableLayer.OnPointerDownOutsideDetailed),
+                EventCallback.Factory.Create<BradixPointerDownOutsideEventArgs>(this, args => args.PreventDefault()));
+            builder.AddAttribute(2, nameof(BradixDismissableLayer.OnInteractOutside), EventCallback.Factory.Create(this, () => interactOutside = true));
+            builder.AddAttribute(3, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => _dismissed = true));
+            builder.AddAttribute(4, nameof(BradixDismissableLayer.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.AddContent(0, "Layer content");
+            }));
+            builder.CloseComponent();
+        });
+
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
+        await layer.Instance.HandlePointerDownOutside();
+
+        await Assert.That(interactOutside).IsTrue();
+        await Assert.That(_dismissed).IsFalse();
+    }
+
+    [Test]
+    public async Task Interact_outside_prevent_default_prevents_focus_dismiss()
+    {
+        bool focusOutside = false;
+
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixDismissableLayer>(0);
+            builder.AddAttribute(1, nameof(BradixDismissableLayer.OnFocusOutside), EventCallback.Factory.Create(this, () => focusOutside = true));
+            builder.AddAttribute(2, nameof(BradixDismissableLayer.OnInteractOutsideDetailed),
+                EventCallback.Factory.Create<BradixInteractOutsideEventArgs>(this, args => args.PreventDefault()));
+            builder.AddAttribute(3, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => _dismissed = true));
+            builder.AddAttribute(4, nameof(BradixDismissableLayer.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.AddContent(0, "Layer content");
+            }));
+            builder.CloseComponent();
+        });
+
+        IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
+        await layer.Instance.HandleFocusOutside();
+
+        await Assert.That(focusOutside).IsTrue();
+        await Assert.That(_dismissed).IsFalse();
+    }
+
+    [Test]
     public async Task Branch_renders_child_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>

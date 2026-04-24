@@ -53,6 +53,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
         IReadOnlyList<IElement> inputs = cut.FindAll("input[type='radio']");
         await Assert.That(inputs.Count).IsEqualTo(3);
         await Assert.That(inputs[0].GetAttribute("form")).IsEqualTo("settings-form");
+        await Assert.That(inputs.Select(input => input.GetAttribute("value") ?? string.Empty).ToArray()).IsEquivalentTo(["one", "two", "three"]);
         await Assert.That(_module.Invocations.Any(invocation =>
             invocation.Identifier == "isFormControl" &&
             invocation.Arguments.Count > 1 &&
@@ -171,7 +172,6 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     {
         builder.OpenComponent<BradixRadioGroupItem>(sequence);
         builder.AddAttribute(sequence + 1, nameof(BradixRadioGroupItem.Value), value);
-        builder.AddAttribute(sequence + 2, nameof(BradixRadioGroupItem.InputValue), value);
         builder.AddAttribute(sequence + 3, nameof(BradixRadioGroupItem.Disabled), disabled);
         if (form is not null)
             builder.AddAttribute(sequence + 4, nameof(BradixRadioGroupItem.Form), form);

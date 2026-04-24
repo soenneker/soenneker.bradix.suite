@@ -47,7 +47,7 @@
     public bool Disabled { get; set; }
 
     [Parameter]
-    public string InputValue { get; set; } = "on";
+    public string? InputValue { get; set; }
 
     [Parameter]
     public string? Form { get; set; }
@@ -69,6 +69,8 @@
 
     private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Form);
 
+    private string ResolvedInputValue => InputValue ?? Value;
+
     private Dictionary<string, object> ItemAttributes => BuildAttributes(
         ("type", "button"),
         ("role", "radio"),
@@ -83,7 +85,7 @@
         ("data-bradix-roving-dir", Group.ResolvedDirection),
         ("data-bradix-roving-loop", Group.Loop ? "true" : "false"),
         ("disabled", IsDisabled ? true : null),
-        ("value", InputValue),
+        ("value", ResolvedInputValue),
         ("tabindex", Group.IsCurrentTabStop(this) ? 0 : -1));
 
     private Dictionary<string, object> BubbleInputAttributes
@@ -94,7 +96,7 @@
             {
                 ["type"] = "radio",
                 ["name"] = Group.Name!,
-                ["value"] = InputValue,
+                ["value"] = ResolvedInputValue,
                 ["checked"] = IsChecked,
                 ["required"] = Group.Required,
                 ["disabled"] = IsDisabled,

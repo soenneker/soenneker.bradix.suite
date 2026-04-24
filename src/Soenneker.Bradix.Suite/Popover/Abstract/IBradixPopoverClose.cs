@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Soenneker.Bradix;
 
@@ -17,6 +18,12 @@ public interface IBradixPopoverClose : IAsyncDisposable {
 
     /// <summary>Inline style for the root element.</summary>
     string? Style { get; set; }
+
+    /// <summary>When true, the close button ignores close interactions.</summary>
+    bool Disabled { get; set; }
+
+    /// <summary>Callback invoked when the close button is clicked.</summary>
+    EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <summary>Close button content.</summary>
     RenderFragment? ChildContent { get; set; }

@@ -49,7 +49,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip());
 
         IElement trigger = cut.Find("button");
-        await Assert.That(trigger.GetAttribute("type")).IsEqualTo("button");
+        await Assert.That(trigger.GetAttribute("type")).IsNull();
         await trigger.FocusAsync();
 
         await cut.WaitForAssertionAsync(async  () =>

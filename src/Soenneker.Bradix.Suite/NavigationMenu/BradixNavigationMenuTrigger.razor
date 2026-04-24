@@ -39,8 +39,10 @@
     private bool _rovingFocusRegistered;
     private bool _triggerInteractionRegistered;
     private bool _wasClickClose;
+    private bool _ignoreNextClick;
     private bool _focusProxyRegistered;
     private bool _disposed;
+    private string? _pointerOpenClickSuppressedValue;
     private DotNetObjectReference<BradixNavigationMenuTrigger>? _dotNetReference;
     private TriggerRegistration? _registration;
 
@@ -187,7 +189,7 @@
 
         await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
         _hasPointerMoveOpened = true;
-        _openedByPointerMove = true;
+        _openedByPointerMove = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
     }
 
     private async Task HandlePointerMove(PointerEventArgs args)
@@ -203,7 +205,7 @@
 
         await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
         _hasPointerMoveOpened = true;
-        _openedByPointerMove = true;
+        _openedByPointerMove = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
     }
 
     private async Task HandlePointerLeave(PointerEventArgs args)
@@ -263,17 +265,29 @@
         await NavigationMenu.HandleTriggerPointerLeave();
     }
 
-    private Task HandleClick() => ProcessClick();
+    private Task HandleClick()
+    {
+        if (_ignoreNextClick)
+        {
+            _ignoreNextClick = false;
+            return Task.CompletedTask;
+        }
+
+        return ProcessClick();
+    }
 
     private async Task ProcessClick()
     {
         if (Disabled || NavigationMenu is null || Item is null)
             return;
 
-        if (IsOpen && _openedByPointerMove)
+        if (IsOpen &&
+            _openedByPointerMove &&
+            !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal))
         {
             _openedByPointerMove = false;
             _wasClickClose = false;
+            _pointerOpenClickSuppressedValue = Item.ResolvedValue;
             return;
         }
 
@@ -281,6 +295,9 @@
         _openedByPointerMove = false;
         await NavigationMenu.ToggleItem(Item.ResolvedValue);
         _wasClickClose = wasOpen;
+
+        if (wasOpen || !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal))
+            _pointerOpenClickSuppressedValue = null;
     }
 
     private Task HandleFocus(FocusEventArgs _)
@@ -335,6 +352,7 @@
     [JSInvokable]
     public Task HandleDirectClick()
     {
+        _ignoreNextClick = true;
         return ProcessClick();
     }
 

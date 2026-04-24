@@ -43,8 +43,10 @@
     public string DefaultTriggerId => BlazorIdGenerator.Child(BaseId!, "trigger");
 
     public ElementReference TriggerElement { get; private set; }
+    public ElementReference AnchorElement { get; private set; }
 
     public bool HasTrigger { get; private set; }
+    public bool HasAnchor { get; private set; }
     public string ResolvedTriggerId { get; private set; } = string.Empty;
 
     protected override void OnInitialized()
@@ -101,6 +103,12 @@
         TriggerElement = element;
         ResolvedTriggerId = string.IsNullOrWhiteSpace(triggerId) ? DefaultTriggerId : triggerId;
         HasTrigger = true;
+    }
+
+    public void RegisterAnchor(ElementReference element)
+    {
+        AnchorElement = element;
+        HasAnchor = true;
     }
 
     public bool ContainsTriggerTarget(string? targetId, IEnumerable<string>? ancestorIds)

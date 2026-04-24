@@ -76,5 +76,19 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "true");
     }
+
+[Test]
+    public async ValueTask Switch_demo_enter_key_toggles_focused_switch()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switch"));
+
+        ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
+        await toggle.PressAsync("Enter");
+
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "true");
+    }
 }
 

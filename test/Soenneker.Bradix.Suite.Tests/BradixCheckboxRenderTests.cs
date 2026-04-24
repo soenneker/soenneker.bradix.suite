@@ -65,6 +65,21 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Enter_key_prevention_is_registered_with_delegated_bridge()
+    {
+        _ = Render(CreateCheckbox());
+
+        object? options = _module.Invocations.First(invocation => invocation.Identifier == "registerDelegatedInteraction").Arguments[2];
+        object? keydown = options?.GetType().GetProperty("keydown")?.GetValue(options);
+        object? keys = keydown?.GetType().GetProperty("keys")?.GetValue(keydown);
+        object? preventDefault = keydown?.GetType().GetProperty("preventDefault")?.GetValue(keydown);
+
+        await Assert.That(keys).IsAssignableTo<string[]>();
+        await Assert.That(((string[])keys!).Contains("Enter")).IsTrue();
+        await Assert.That(preventDefault).IsEqualTo(true);
+    }
+
+    [Test]
     public async Task Checkbox_indicator_force_mount_renders_when_unchecked()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(forceMountIndicator: true));

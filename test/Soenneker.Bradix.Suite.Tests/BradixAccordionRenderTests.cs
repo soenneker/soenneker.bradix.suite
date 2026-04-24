@@ -34,11 +34,13 @@ public sealed class BradixAccordionRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateSingleAccordion());
 
         IReadOnlyList<IElement> triggers = cut.FindAll("button");
+        IElement firstItem = cut.Find("[data-state='closed'][data-orientation='vertical']");
 
         await triggers[0].ClickAsync();
 
         triggers = cut.FindAll("button");
 
+        await Assert.That(firstItem.GetAttribute("data-orientation")).IsEqualTo("vertical");
         await Assert.That(cut.Markup).Contains("Content One");
         await Assert.That(triggers[0].GetAttribute("aria-expanded")).IsEqualTo("true");
         await Assert.That(triggers[0].GetAttribute("aria-disabled")).IsEqualTo("true");

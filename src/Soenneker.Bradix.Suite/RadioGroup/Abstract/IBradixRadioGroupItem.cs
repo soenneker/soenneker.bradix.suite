@@ -31,7 +31,7 @@ public interface IBradixRadioGroupItem : IAsyncDisposable {
     bool Disabled { get; set; }
 
     /// <summary>Gets or sets the value submitted with native bubble inputs.</summary>
-    string InputValue { get; set; }
+    string? InputValue { get; set; }
 
     /// <summary>Gets or sets the <c>form</c> attribute for detached native inputs.</summary>
     string? Form { get; set; }

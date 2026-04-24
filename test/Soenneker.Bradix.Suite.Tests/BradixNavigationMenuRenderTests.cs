@@ -162,7 +162,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_opened_root_item_does_not_close_on_following_click()
+    public async Task Pointer_opened_root_item_stays_open_on_first_click_then_closes_on_repeat_click()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         IElement productsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
@@ -188,6 +188,16 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
             IElement updatedDocsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
             await Assert.That(updatedDocsTrigger.GetAttribute("aria-expanded")).IsEqualTo("true");
             await Assert.That(cut.Markup).Contains("Getting started");
+        });
+
+        docsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        await docsTrigger.ClickAsync();
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IElement updatedDocsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+            await Assert.That(updatedDocsTrigger.GetAttribute("aria-expanded")).IsEqualTo("false");
+            await Assert.That(cut.Markup).DoesNotContain("Getting started");
         });
     }
 
@@ -495,6 +505,27 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         await Assert.That(cut.Markup).Contains("API content swaps immediately.");
     }
 
+    [Test]
+    public async Task Sub_inherits_parent_direction_for_rtl_navigation()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenuWithSub("rtl"));
+        await cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).ClickAsync();
+
+        IElement subRoot = cut.FindAll("div").First(element => string.Equals(element.GetAttribute("dir"), "rtl", System.StringComparison.Ordinal));
+        await Assert.That(subRoot.GetAttribute("data-orientation")).IsEqualTo("horizontal");
+
+        IElement overviewTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Overview"));
+        await overviewTrigger.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowLeft" });
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IElement updatedOverview = cut.FindAll("button").First(button => button.TextContent.Contains("Overview"));
+            IElement updatedApi = cut.FindAll("button").First(button => button.TextContent.Contains("API"));
+            await Assert.That(updatedOverview.GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(updatedApi.GetAttribute("tabindex")).IsEqualTo("0");
+        });
+    }
+
     private static RenderFragment CreateNavigationMenu(bool includeIndicator = false, bool includeViewport = false)
     {
         return builder =>
@@ -529,13 +560,14 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         };
     }
 
-    private static RenderFragment CreateNavigationMenuWithSub()
+    private static RenderFragment CreateNavigationMenuWithSub(string? dir = null)
     {
         return builder =>
         {
             builder.OpenComponent<BradixNavigationMenu>(0);
             builder.AddAttribute(1, nameof(BradixNavigationMenu.DelayDuration), 0);
-            builder.AddAttribute(2, nameof(BradixNavigationMenu.ChildContent), (RenderFragment)(content =>
+            builder.AddAttribute(2, nameof(BradixNavigationMenu.Dir), dir);
+            builder.AddAttribute(3, nameof(BradixNavigationMenu.ChildContent), (RenderFragment)(content =>
             {
                 content.OpenComponent<BradixNavigationMenuList>(0);
                 content.AddAttribute(1, nameof(BradixNavigationMenuList.ChildContent), (RenderFragment)(list =>

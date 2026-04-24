@@ -170,16 +170,8 @@
             return;
 
         args.PreventDefault();
-
-        if (SubMenu.CurrentOpen)
-        {
-            await SubMenu.SetOpen(false);
-            await SubMenu.FocusTrigger();
-            return;
-        }
-
-        await ParentMenu.SetOpen(false);
-        await ParentMenu.FocusTrigger();
+        await RootMenu.SetOpen(false);
+        await RootMenu.FocusTrigger();
     }
 
     private async Task HandleContentKeyDown(KeyboardEventArgs args)

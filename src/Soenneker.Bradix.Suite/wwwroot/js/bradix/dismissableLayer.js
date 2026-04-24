@@ -27,29 +27,13 @@ function isRegisteredLayer(layer) {
   return !!layer && dismissableLayers.includes(layer);
 }
 
-function getTopmostLayerForTarget(target) {
-  if (!target) {
-    return dismissableLayers[dismissableLayers.length - 1];
-  }
-
-  for (let index = dismissableLayers.length - 1; index >= 0; index -= 1) {
-    const layer = dismissableLayers[index];
-
-    if (layer?.element?.contains?.(target)) {
-      return layer;
-    }
-  }
-
-  return dismissableLayers[dismissableLayers.length - 1];
-}
-
-function isBranchTarget(target) {
+function isBranchTarget(target, layer) {
   if (!target) {
     return false;
   }
 
   for (const branch of dismissableBranches) {
-    if (branch.contains(target)) {
+    if (branch.contains(target) && (!layer || branch.contains(layer.element) || layer.element?.contains?.(branch))) {
       return true;
     }
   }
@@ -118,19 +102,18 @@ function ensureDismissableLayerListeners() {
         return;
       }
 
-      if (!topLayer.isPointerInside) {
-        if (isBranchTarget(event.target)) {
-          topLayer.isPointerInside = false;
-          return;
-        }
+      const isInsideLayer = !!topLayer.element?.contains?.(event.target);
 
-        dispatchPointerDownOutside(topLayer, event);
+      if (isInsideLayer || isBranchTarget(event.target, topLayer)) {
+        topLayer.isPointerInside = false;
+        return;
       }
 
+      dispatchPointerDownOutside(topLayer, event);
       topLayer.isPointerInside = false;
     };
 
-    document.addEventListener("pointerdown", handlePointerDownLikeEvent);
+    document.addEventListener("pointerdown", handlePointerDownLikeEvent, true);
 
     dismissableLayerPointerDownListenerRegistered = true;
   }
@@ -150,7 +133,7 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
-    if (isBranchTarget(event.target)) {
+    if (isBranchTarget(event.target, topLayer)) {
       return;
     }
 
@@ -162,7 +145,7 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
-    const topLayer = getTopmostLayerForTarget(event.target);
+    const topLayer = dismissableLayers[dismissableLayers.length - 1];
     if (!topLayer) {
       return;
     }

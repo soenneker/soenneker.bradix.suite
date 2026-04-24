@@ -90,7 +90,7 @@
 
     internal string PreviousValue => _previousValue;
 
-    internal string ResolvedDirection => Dir == "rtl" ? "rtl" : CascadedDirection == "rtl" ? "rtl" : "ltr";
+    internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
     internal string CurrentTabStopValue { get; private set; } = string.Empty;
 
