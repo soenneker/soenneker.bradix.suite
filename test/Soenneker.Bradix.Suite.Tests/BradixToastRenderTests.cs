@@ -59,7 +59,7 @@ public sealed class BradixToastRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast();
 
-        await Assert.That(cut.Find("button[data-toast-close='true']").GetAttribute("aria-label")).IsEqualTo("Close");
+        await Assert.That(cut.Find("button[data-toast-close='true']").GetAttribute("aria-label")).IsNull();
         await cut.Find("button[data-toast-close='true']").ClickAsync();
         await Assert.That(cut.FindAll("li[data-radix-toast-root]")).HasSingleItem();
 
@@ -67,6 +67,50 @@ public sealed class BradixToastRenderTests : BunitContext
         await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("toast-out"));
 
         await Assert.That(cut.FindAll("li[data-radix-toast-root]")).IsEmpty();
+    }
+
+    [Test]
+    public async Task Viewport_applies_attributes_to_ordered_list_and_custom_id_is_portal_target()
+    {
+        IRenderedComponent<ContainerFragment> cut = RenderToast(viewportId: "custom-toast-viewport", viewportClass: "toast-viewport");
+
+        IElement viewport = cut.Find("ol#custom-toast-viewport.toast-viewport[data-testid='toast-viewport']");
+
+        await Assert.That(viewport.GetAttribute("tabindex")).IsEqualTo("-1");
+        await Assert.That(_module.Invocations.Any(invocation =>
+            invocation.Identifier == "mountPortal" &&
+            invocation.Arguments.Count >= 2 &&
+            string.Equals(invocation.Arguments[1]?.ToString(), "#custom-toast-viewport", StringComparison.Ordinal))).IsTrue();
+    }
+
+    [Test]
+    public async Task Action_alt_text_is_only_used_for_announcement_not_button_name()
+    {
+        IRenderedComponent<ContainerFragment> cut = RenderToast();
+
+        IElement action = cut.Find("button[data-radix-toast-announce-alt='Open uploads']");
+
+        await Assert.That(action.GetAttribute("aria-label")).IsNull();
+        await Assert.That(action.TextContent).IsEqualTo("Open");
+    }
+
+    [Test]
+    public async Task Action_and_close_support_onclick_and_disabled_state()
+    {
+        var actionClicked = 0;
+        var closeClicked = 0;
+        IRenderedComponent<ContainerFragment> cut = RenderToast(actionOnClick: () => actionClicked++, closeOnClick: () => closeClicked++);
+
+        await cut.Find("button[data-radix-toast-announce-alt='Open uploads']").ClickAsync();
+        await Assert.That(actionClicked).IsEqualTo(1);
+
+        cut = RenderToast(actionDisabled: true, closeDisabled: true, actionOnClick: () => actionClicked++, closeOnClick: () => closeClicked++);
+
+        IElement action = cut.Find("button[data-radix-toast-announce-alt='Open uploads']");
+        IElement close = cut.Find("button[data-toast-close='true']");
+
+        await Assert.That(action.HasAttribute("disabled")).IsTrue();
+        await Assert.That(close.HasAttribute("disabled")).IsTrue();
     }
 
     [Test]
@@ -235,7 +279,8 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     private IRenderedComponent<ContainerFragment> RenderToast(Action? onPause = null, Action? onResume = null, double swipeThreshold = 50,
-        Action<BradixEscapeKeyDownEventArgs>? onEscapeKeyDownDetailed = null)
+        Action<BradixEscapeKeyDownEventArgs>? onEscapeKeyDownDetailed = null, string? viewportId = null, string? viewportClass = null,
+        bool actionDisabled = false, bool closeDisabled = false, Action? actionOnClick = null, Action? closeOnClick = null)
     {
         return Render(builder =>
         {
@@ -244,6 +289,14 @@ public sealed class BradixToastRenderTests : BunitContext
             builder.AddAttribute(2, nameof(BradixToastProvider.ChildContent), (RenderFragment)(content =>
             {
                 content.OpenComponent<BradixToastViewport>(0);
+                if (viewportId is not null)
+                    content.AddAttribute(1, nameof(BradixToastViewport.Id), viewportId);
+                if (viewportClass is not null)
+                    content.AddAttribute(2, nameof(BradixToastViewport.Class), viewportClass);
+                content.AddAttribute(3, nameof(BradixToastViewport.AdditionalAttributes), new System.Collections.Generic.Dictionary<string, object>
+                {
+                    ["data-testid"] = "toast-viewport"
+                });
                 content.CloseComponent();
 
                 content.OpenComponent<BradixToast>(1);
@@ -274,18 +327,22 @@ public sealed class BradixToastRenderTests : BunitContext
 
                     toast.OpenComponent<BradixToastAction>(4);
                     toast.AddAttribute(5, nameof(BradixToastAction.AltText), "Open uploads");
-                    toast.AddAttribute(6, nameof(BradixToastAction.ChildContent), (RenderFragment)(action =>
+                    toast.AddAttribute(6, nameof(BradixToastAction.Disabled), actionDisabled);
+                    toast.AddAttribute(7, nameof(BradixToastAction.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, () => actionOnClick?.Invoke()));
+                    toast.AddAttribute(8, nameof(BradixToastAction.ChildContent), (RenderFragment)(action =>
                     {
                         action.AddContent(0, "Open");
                     }));
                     toast.CloseComponent();
 
                     toast.OpenComponent<BradixToastClose>(7);
-                    toast.AddAttribute(8, nameof(BradixToastClose.AdditionalAttributes), new System.Collections.Generic.Dictionary<string, object>
+                    toast.AddAttribute(8, nameof(BradixToastClose.Disabled), closeDisabled);
+                    toast.AddAttribute(9, nameof(BradixToastClose.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, () => closeOnClick?.Invoke()));
+                    toast.AddAttribute(10, nameof(BradixToastClose.AdditionalAttributes), new System.Collections.Generic.Dictionary<string, object>
                     {
                         ["data-toast-close"] = "true"
                     });
-                    toast.AddAttribute(9, nameof(BradixToastClose.ChildContent), (RenderFragment)(close =>
+                    toast.AddAttribute(11, nameof(BradixToastClose.ChildContent), (RenderFragment)(close =>
                     {
                         close.AddContent(0, "Dismiss");
                     }));

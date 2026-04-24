@@ -103,7 +103,25 @@ public sealed class BradixAvatarRenderTests : BunitContext
         });
     }
 
-    private static RenderFragment CreateAvatar(int? delayMs)
+    [Test]
+    public async Task Image_loading_status_callback_fires_before_avatar_context_updates()
+    {
+        var reported = new System.Collections.Generic.List<string>();
+        IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: null, status => reported.Add(status.Value)));
+        BradixAvatarImage image = cut.FindComponent<BradixAvatarImage>().Instance;
+
+        await image.HandleImageLoadingStatusChanged("loading");
+        await image.HandleImageLoadingStatusChanged("loaded");
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(reported).IsEquivalentTo(["loading", "loaded"]);
+            await Assert.That(cut.FindAll("img")).HasSingleItem();
+            await Assert.That(cut.Markup).DoesNotContain("JD");
+        });
+    }
+
+    private static RenderFragment CreateAvatar(int? delayMs, Action<BradixAvatarImageLoadingStatus>? onLoadingStatusChange = null)
     {
         return builder =>
         {
@@ -113,6 +131,9 @@ public sealed class BradixAvatarRenderTests : BunitContext
                 content.OpenComponent<BradixAvatarImage>(0);
                 content.AddAttribute(1, nameof(BradixAvatarImage.Src), "https://example.com/avatar.png");
                 content.AddAttribute(2, nameof(BradixAvatarImage.Alt), "Jane Doe");
+                if (onLoadingStatusChange is not null)
+                    content.AddAttribute(6, nameof(BradixAvatarImage.OnLoadingStatusChange),
+                        EventCallback.Factory.Create<BradixAvatarImageLoadingStatus>(new object(), onLoadingStatusChange));
                 content.CloseComponent();
 
                 content.OpenComponent<BradixAvatarFallback>(3);

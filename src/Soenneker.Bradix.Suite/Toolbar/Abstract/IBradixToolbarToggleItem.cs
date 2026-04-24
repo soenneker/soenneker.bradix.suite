@@ -30,6 +30,9 @@ public interface IBradixToolbarToggleItem : IAsyncDisposable {
     /// <summary>Gets or sets whether this item is disabled.</summary>
     bool Disabled { get; set; }
 
+    /// <summary>Callback invoked before the item toggles its pressed state.</summary>
+    EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs> OnClick { get; set; }
+
     /// <summary>Gets the stable id used for roving tabindex.</summary>
     string? TabStopId { get; }
 

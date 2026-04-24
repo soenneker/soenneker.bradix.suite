@@ -140,11 +140,35 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Content_root_home_and_end_keys_move_focus_to_first_and_last_items()
+    public async Task Content_root_first_and_last_keys_move_focus_to_first_and_last_items()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(disableFirstItem: true));
         IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
         string contentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
+        {
+            Key = "ArrowUp",
+            TargetId = contentId
+        }));
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
+        });
+
+        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
+        {
+            Key = "ArrowDown",
+            TargetId = contentId
+        }));
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
+            await Assert.That(updatedItems[1].GetAttribute("tabindex")).IsEqualTo("0");
+        });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -390,6 +414,22 @@ public sealed class BradixMenuRenderTests : BunitContext
             await Assert.That(updated[0].GetAttribute("aria-checked")).IsEqualTo("false");
             await Assert.That(updated[1].GetAttribute("aria-checked")).IsEqualTo("true");
             await Assert.That(updated[1].GetAttribute("data-state")).IsEqualTo("checked");
+        });
+    }
+
+    [Test]
+    public async Task Controlled_radio_group_reports_value_change_without_mutating_internal_state()
+    {
+        string? changedValue = null;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateControlledRadioGroupMenu(value: null, valueChanged: value => changedValue = value));
+
+        await cut.Find("[role='menuitemradio']").ClickAsync();
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(changedValue).IsEqualTo("name");
+            await Assert.That(cut.Find("[role='menuitemradio']").GetAttribute("aria-checked")).IsEqualTo("false");
+            await Assert.That(cut.Find("[role='menuitemradio']").GetAttribute("data-state")).IsEqualTo("unchecked");
         });
     }
 
@@ -694,6 +734,53 @@ public sealed class BradixMenuRenderTests : BunitContext
                             group.AddAttribute(7, nameof(BradixMenuRadioItem.TextValue), "Date modified");
                             group.AddAttribute(8, nameof(BradixMenuRadioItem.CloseOnSelect), false);
                             group.AddAttribute(9, nameof(BradixMenuRadioItem.ChildContent), (RenderFragment)(item => item.AddContent(0, "Date modified")));
+                            group.CloseComponent();
+                        }));
+                        menuContent.CloseComponent();
+                    }));
+                    portal.CloseComponent();
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        };
+    }
+
+    private RenderFragment CreateControlledRadioGroupMenu(string? value, Action<string?> valueChanged)
+    {
+        return builder =>
+        {
+            builder.OpenComponent<BradixMenu>(0);
+            builder.AddAttribute(1, nameof(BradixMenu.DefaultOpen), true);
+            builder.AddAttribute(2, nameof(BradixMenu.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixMenuAnchor>(0);
+                content.AddAttribute(1, nameof(BradixMenuAnchor.ChildContent), (RenderFragment)(anchor =>
+                {
+                    anchor.OpenElement(0, "button");
+                    anchor.AddAttribute(1, "type", "button");
+                    anchor.AddContent(2, "Trigger");
+                    anchor.CloseElement();
+                }));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixMenuPortal>(2);
+                content.AddAttribute(3, nameof(BradixMenuPortal.ChildContent), (RenderFragment)(portal =>
+                {
+                    portal.OpenComponent<BradixMenuContent>(0);
+                    portal.AddAttribute(1, nameof(BradixMenuContent.ChildContent), (RenderFragment)(menuContent =>
+                    {
+                        menuContent.OpenComponent<BradixMenuRadioGroup>(0);
+                        menuContent.AddAttribute(1, nameof(BradixMenuRadioGroup.Value), value);
+                        menuContent.AddAttribute(2, nameof(BradixMenuRadioGroup.ValueChanged),
+                            EventCallback.Factory.Create<string?>(this, valueChanged));
+                        menuContent.AddAttribute(3, nameof(BradixMenuRadioGroup.ChildContent), (RenderFragment)(group =>
+                        {
+                            group.OpenComponent<BradixMenuRadioItem>(0);
+                            group.AddAttribute(1, nameof(BradixMenuRadioItem.Value), "name");
+                            group.AddAttribute(2, nameof(BradixMenuRadioItem.TextValue), "Name");
+                            group.AddAttribute(3, nameof(BradixMenuRadioItem.CloseOnSelect), false);
+                            group.AddAttribute(4, nameof(BradixMenuRadioItem.ChildContent), (RenderFragment)(item => item.AddContent(0, "Name")));
                             group.CloseComponent();
                         }));
                         menuContent.CloseComponent();

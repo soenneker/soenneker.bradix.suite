@@ -104,12 +104,15 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     [Test]
     public async Task Focus_outside_does_not_dismiss_hover_card()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
+        BradixFocusOutsideEventArgs? focusOutsideArgs = null;
+        IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true,
+            onFocusOutsideDetailed: args => focusOutsideArgs = args));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandleFocusOutside());
 
         await Assert.That(cut.Markup).Contains("Hover card body");
+        await Assert.That(focusOutsideArgs?.DefaultPrevented).IsEqualTo(true);
     }
 
     [Test]
@@ -140,7 +143,8 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     private RenderFragment CreateHoverCard(bool defaultOpen = false, int openDelay = 0, bool includeArrow = false,
-        Action<BradixInteractOutsideEventArgs>? onInteractOutsideDetailed = null)
+        Action<BradixInteractOutsideEventArgs>? onInteractOutsideDetailed = null,
+        Action<BradixFocusOutsideEventArgs>? onFocusOutsideDetailed = null)
     {
         return builder =>
         {
@@ -165,6 +169,12 @@ public sealed class BradixHoverCardRenderTests : BunitContext
                     {
                         portal.AddAttribute(2, nameof(BradixHoverCardContent.OnInteractOutsideDetailed),
                             EventCallback.Factory.Create<BradixInteractOutsideEventArgs>(this, onInteractOutsideDetailed));
+                    }
+
+                    if (onFocusOutsideDetailed is not null)
+                    {
+                        portal.AddAttribute(4, nameof(BradixHoverCardContent.OnFocusOutsideDetailed),
+                            EventCallback.Factory.Create<BradixFocusOutsideEventArgs>(this, onFocusOutsideDetailed));
                     }
 
                     portal.AddAttribute(3, nameof(BradixHoverCardContent.ChildContent), (RenderFragment)(hoverContent =>

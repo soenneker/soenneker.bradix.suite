@@ -54,22 +54,41 @@
 
     private string ResolvedViewportId => Id ?? Provider?.ViewportId ?? string.Empty;
 
-    private Dictionary<string, object> RegionAttributes => BuildAttributes(
-        ("role", "region"),
-        ("aria-label", Label.Replace("{hotkey}", HotkeyLabel, StringComparison.Ordinal)),
-        ("tabindex", -1),
-        ("style", Provider?.ToastCount > 0 ? null : "pointer-events:none;"));
-
-    private Dictionary<string, object> ViewportAttributes => new()
+    private Dictionary<string, object> RegionAttributes
     {
-        ["id"] = ResolvedViewportId,
-        ["tabindex"] = -1
-    };
+        get
+        {
+            var attributes = new Dictionary<string, object>
+            {
+                ["role"] = "region",
+                ["aria-label"] = Label.Replace("{hotkey}", HotkeyLabel, StringComparison.Ordinal),
+                ["tabindex"] = -1
+            };
+
+            if (Provider?.ToastCount <= 0)
+                attributes["style"] = "pointer-events:none;";
+
+            return attributes;
+        }
+    }
+
+    private Dictionary<string, object> ViewportAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = BuildAttributes(
+                ("id", ResolvedViewportId),
+                ("tabindex", -1));
+
+            attributes["id"] = ResolvedViewportId;
+            return attributes;
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
-            Provider?.RegisterViewport();
+            Provider?.RegisterViewport(ResolvedViewportId);
 
         var hasToasts = Provider?.ToastCount > 0;
         var hotkeySignature = string.Join("\u001F", Hotkey);

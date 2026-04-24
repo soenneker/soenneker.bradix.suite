@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Soenneker.Bradix;
 
@@ -10,6 +11,9 @@ public interface IBradixFormLabel
 {
     /// <summary>Value for the label's <c>for</c> attribute when not inferred from the field.</summary>
     string? For { get; set; }
+
+    /// <summary>Raised when a guarded mouse down is forwarded from the underlying label primitive.</summary>
+    EventCallback<MouseEventArgs> OnMouseDown { get; set; }
 
     /// <summary>Root element id.</summary>
     string? Id { get; set; }

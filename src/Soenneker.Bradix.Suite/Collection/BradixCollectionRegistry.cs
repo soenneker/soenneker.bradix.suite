@@ -22,6 +22,16 @@ public sealed class BradixCollectionRegistry<TItem>
         _items.Insert(index, key, item);
     }
 
+    public void SetBefore(string key, string newKey, TItem item)
+    {
+        _items.SetBefore(key, newKey, item);
+    }
+
+    public void SetAfter(string key, string newKey, TItem item)
+    {
+        _items.SetAfter(key, newKey, item);
+    }
+
     public bool Unregister(string key)
     {
         return _items.Delete(key);

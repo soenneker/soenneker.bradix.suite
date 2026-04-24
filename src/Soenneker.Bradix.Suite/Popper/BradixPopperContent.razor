@@ -37,6 +37,7 @@
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir)? _lastOptions;
     private bool _lastHadArrow;
     private (double X, double Y)? _lastVirtualAnchor;
+    private string? _lastAnchorSelector;
 
     [CascadingParameter]
     private BradixPopper? Popper { get; set; }
@@ -77,6 +78,9 @@
     [Parameter]
     public bool UseAnchor { get; set; }
 
+    [Parameter]
+    public string? AnchorSelector { get; set; }
+
     internal string PlacedSide => _placedSide;
     internal double? ArrowX => _arrowX;
     internal double? ArrowY => _arrowY;
@@ -90,10 +94,12 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         var hasExplicitAnchor = UseAnchor;
+        var hasAnchorSelector = !string.IsNullOrWhiteSpace(AnchorSelector);
         var hasPopperAnchor = Popper?.HasAnchor == true;
         var hasVirtualAnchor = Popper?.HasVirtualAnchor == true;
 
-        if ((!hasExplicitAnchor && Popper is null) || (!hasExplicitAnchor && !hasPopperAnchor && !hasVirtualAnchor))
+        if ((!hasExplicitAnchor && !hasAnchorSelector && Popper is null) ||
+            (!hasExplicitAnchor && !hasAnchorSelector && !hasPopperAnchor && !hasVirtualAnchor))
         {
             if (!_registered)
                 await InvokeAsync(StateHasChanged);
@@ -112,6 +118,11 @@
                 await Interop.RegisterVirtualPopperContent(_element, _arrow, _dotNetReference, Popper!.VirtualAnchorX, Popper.VirtualAnchorY, CreateOptionsPayload(options));
                 _lastVirtualAnchor = (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
             }
+            else if (hasAnchorSelector)
+            {
+                await Interop.RegisterPopperContentBySelector(AnchorSelector!, _element, _arrow, _dotNetReference, CreateOptionsPayload(options));
+                _lastVirtualAnchor = null;
+            }
             else
             {
                 var anchor = hasExplicitAnchor ? Anchor : Popper!.AnchorElement;
@@ -122,18 +133,25 @@
             _registered = true;
             _lastOptions = options;
             _lastHadArrow = hasArrow;
+            _lastAnchorSelector = AnchorSelector;
             return;
         }
 
         var virtualAnchorChanged = hasVirtualAnchor &&
                                    _lastVirtualAnchor != (Popper!.VirtualAnchorX, Popper.VirtualAnchorY);
+        var anchorSelectorChanged = !string.Equals(_lastAnchorSelector, AnchorSelector, StringComparison.Ordinal);
 
-        if (_lastOptions != options || _lastHadArrow != hasArrow || virtualAnchorChanged)
+        if (_lastOptions != options || _lastHadArrow != hasArrow || virtualAnchorChanged || anchorSelectorChanged)
         {
             if (hasVirtualAnchor)
             {
                 await Interop.UpdateVirtualPopperContent(_element, _arrow, Popper!.VirtualAnchorX, Popper.VirtualAnchorY, CreateOptionsPayload(options));
                 _lastVirtualAnchor = (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
+            }
+            else if (anchorSelectorChanged && hasAnchorSelector)
+            {
+                await Interop.RegisterPopperContentBySelector(AnchorSelector!, _element, _arrow, _dotNetReference!, CreateOptionsPayload(options));
+                _lastVirtualAnchor = null;
             }
             else
             {
@@ -143,6 +161,7 @@
 
             _lastOptions = options;
             _lastHadArrow = hasArrow;
+            _lastAnchorSelector = AnchorSelector;
         }
     }
 
@@ -209,7 +228,7 @@
     {
         var baseStyle = _isPositioned
             ? $"position: fixed; left: {_left.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; top: {_top.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; min-width: max-content; --radix-popper-available-width: {_availableWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-available-height: {_availableHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-anchor-width: {_anchorWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-anchor-height: {_anchorHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; --radix-popper-transform-origin: {_transformOriginX} {_transformOriginY};"
-            : "position: fixed; left: 0px; top: 0px; min-width: max-content; transform: translate(0, -200%); animation: none; --radix-popper-available-width: 0px; --radix-popper-available-height: 0px; --radix-popper-anchor-width: 0px; --radix-popper-anchor-height: 0px; --radix-popper-transform-origin: 50% 0px;";
+            : "position: fixed; left: 0px; top: 0px; min-width: max-content; transform: translate(0, -200%); animation: none; visibility: hidden; pointer-events: none; --radix-popper-available-width: 0px; --radix-popper-available-height: 0px; --radix-popper-anchor-width: 0px; --radix-popper-anchor-height: 0px; --radix-popper-transform-origin: 50% 0px;";
 
         if (_hidden)
             baseStyle += " visibility: hidden; pointer-events: none;";

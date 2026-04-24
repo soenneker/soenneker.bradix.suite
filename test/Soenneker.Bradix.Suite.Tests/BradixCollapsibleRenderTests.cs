@@ -42,14 +42,14 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         IElement content = cut.Find($"#{contentId}");
         await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
         await Assert.That(trigger.GetAttribute("data-state")).IsEqualTo("open");
-        await Assert.That(content.GetAttribute("role")).IsEqualTo("region");
-        await Assert.That(content.GetAttribute("aria-labelledby")).IsEqualTo(trigger.Id);
+        await Assert.That(content.GetAttribute("role")).IsNull();
+        await Assert.That(content.GetAttribute("aria-labelledby")).IsNull();
         await Assert.That(content.HasAttribute("hidden")).IsFalse();
         await Assert.That(cut.Markup).Contains("Content");
     }
 
     [Test]
-    public async Task Trigger_uses_root_id_prefix_for_aria_wiring()
+    public async Task Trigger_uses_root_id_prefix_for_controls_wiring()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(rootId: "settings-collapse", open: true));
 
@@ -58,7 +58,17 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
 
         await Assert.That(trigger.Id).IsEqualTo("settings-collapse-trigger");
         await Assert.That(trigger.GetAttribute("aria-controls")).IsEqualTo("settings-collapse-content");
-        await Assert.That(content.GetAttribute("aria-labelledby")).IsEqualTo("settings-collapse-trigger");
+        await Assert.That(content.GetAttribute("aria-labelledby")).IsNull();
+    }
+
+    [Test]
+    public async Task Content_allows_opt_in_region_labelling_for_accordion_composition()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(open: true, contentRole: "region", contentLabelledBy: "custom-trigger"));
+
+        IElement content = cut.Find("[data-state='open'][role='region']");
+
+        await Assert.That(content.GetAttribute("aria-labelledby")).IsEqualTo("custom-trigger");
     }
 
     [Test]
@@ -95,7 +105,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         await Assert.That(cut.Markup).Contains("Content");
     }
 
-    private static RenderFragment CreateCollapsible(bool? open = null, bool defaultOpen = false, EventCallback<bool> onOpenChange = default, string? rootId = null, bool triggerDisabled = false)
+    private static RenderFragment CreateCollapsible(bool? open = null, bool defaultOpen = false, EventCallback<bool> onOpenChange = default, string? rootId = null, bool triggerDisabled = false, string? contentRole = null, string? contentLabelledBy = null)
     {
         return builder =>
         {
@@ -123,6 +133,10 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
                 contentBuilder.CloseComponent();
 
                 contentBuilder.OpenComponent<BradixCollapsibleContent>(2);
+                if (contentRole is not null)
+                    contentBuilder.AddAttribute(4, nameof(BradixCollapsibleContent.Role), contentRole);
+                if (contentLabelledBy is not null)
+                    contentBuilder.AddAttribute(5, nameof(BradixCollapsibleContent.AriaLabelledBy), contentLabelledBy);
                 contentBuilder.AddAttribute(3, nameof(BradixCollapsibleContent.ChildContent), (RenderFragment) (childBuilder =>
                 {
                     childBuilder.AddContent(0, "Content");

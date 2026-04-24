@@ -37,6 +37,7 @@
                                             Class="@Class"
                                             Style="@MergedStyle"
                                             AdditionalAttributes="@ContentAttributes"
+                                            OnKeyDown="@HandleContentKeyDown"
                                             OnElementReferenceCaptured="@HandleContentElementCaptured">
                                 <CascadingValue Value="this">
                                     @ChildContent
@@ -62,6 +63,7 @@
                                             Class="@Class"
                                             Style="@MergedStyle"
                                             AdditionalAttributes="@ContentAttributes"
+                                            OnKeyDown="@HandleContentKeyDown"
                                             OnElementReferenceCaptured="@HandleContentElementCaptured">
                                 <CascadingValue Value="this">
                                     @ChildContent
@@ -420,6 +422,15 @@ else
         return Select?.SetOpen(false) ?? Task.CompletedTask;
     }
 
+    private async Task HandleContentKeyDown(KeyboardEventArgs args)
+    {
+        if (Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
+            return;
+
+        if (args.Key.Length == 1)
+            await Select.HandleContentTypeahead(args.Key);
+    }
+
     [JSInvokable]
     public async Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args)
     {
@@ -428,12 +439,6 @@ else
 
         if (args.Key == "Tab")
             return;
-
-        if (args.Key.Length == 1)
-        {
-            await Select.HandleContentTypeahead(args.Key);
-            return;
-        }
 
         if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
             await Select.HandleContentNavigation(args.Key);

@@ -186,7 +186,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await listbox.FocusAsync();
         await page.Keyboard.PressAsync("g");
 
-        await Assert.That(await highlightedGrapes.CountAsync() > 0).IsTrue();
+        await Assertions.Expect(highlightedGrapes).ToHaveCountAsync(1);
     }
 
     [Test]
@@ -215,7 +215,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
         await listbox.FocusAsync();
         await page.Keyboard.PressAsync("c");
 
-        await Assert.That(await highlightedCourgette.CountAsync() > 0).IsTrue();
+        await Assertions.Expect(highlightedCourgette).ToHaveCountAsync(1);
         await Assertions.Expect(carrot).Not.ToHaveAttributeAsync("data-highlighted", string.Empty);
     }
 

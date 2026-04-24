@@ -46,8 +46,11 @@
             throw new InvalidOperationException("BradixToastProvider Duration must be zero or greater.");
     }
 
-    internal void RegisterViewport()
+    internal void RegisterViewport(string? viewportId = null)
     {
+        if (!string.IsNullOrWhiteSpace(viewportId))
+            ViewportId = viewportId;
+
         if (HasViewport)
             return;
 

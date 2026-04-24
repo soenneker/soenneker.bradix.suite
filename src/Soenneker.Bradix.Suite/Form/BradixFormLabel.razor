@@ -4,8 +4,10 @@
 
 @implements IBradixFormLabel
 <BradixLabel For="@HtmlFor"
+             Id="@Id"
              Class="@LabelClass"
              Style="@Style"
+             OnMouseDown="@OnMouseDown"
              AdditionalAttributes="@LabelAdditionalAttributes">
     @ChildContent
 </BradixLabel>
@@ -16,6 +18,9 @@
 
     [Parameter]
     public string? For { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMouseDown { get; set; }
 
     private string HtmlFor => For ?? Field?.FieldId ?? string.Empty;
 

@@ -27,6 +27,9 @@ public interface IBradixToolbarButton : IAsyncDisposable {
     /// <summary>Gets or sets whether the button is disabled.</summary>
     bool Disabled { get; set; }
 
+    /// <summary>Callback invoked when the button is clicked.</summary>
+    EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs> OnClick { get; set; }
+
     /// <summary>Gets the stable id used for roving tabindex.</summary>
     string? TabStopId { get; }
 

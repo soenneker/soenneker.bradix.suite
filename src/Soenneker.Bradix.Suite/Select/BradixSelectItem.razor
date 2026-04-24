@@ -53,7 +53,7 @@
 
     bool IBradixSelectCollectionItem.Disabled => Disabled;
 
-    string IBradixSelectCollectionItem.TextValue => string.IsNullOrWhiteSpace(TextValue)
+    string IBradixSelectCollectionItem.TextValue => TextValue is null
         ? _resolvedTextValue ?? string.Empty
         : TextValue;
 
@@ -95,7 +95,7 @@
             _registered = true;
         }
 
-        if (string.IsNullOrWhiteSpace(TextValue) && !_hasItemTextElement && string.IsNullOrWhiteSpace(_resolvedTextValue))
+        if (TextValue is null && !_hasItemTextElement && string.IsNullOrWhiteSpace(_resolvedTextValue))
         {
             var textContent = await Interop.GetTextContent(_element);
 
@@ -124,7 +124,7 @@
 
     internal async Task NotifyResolvedText(string? text)
     {
-        if (string.IsNullOrWhiteSpace(TextValue))
+        if (TextValue is null)
             _resolvedTextValue = text;
 
         if (Select is not null)

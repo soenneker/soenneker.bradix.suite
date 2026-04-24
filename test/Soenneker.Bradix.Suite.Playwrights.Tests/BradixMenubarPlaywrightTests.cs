@@ -12,16 +12,15 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     {
     }
 
-[Test]
-    public async Task Menubar_demo_escape_closes_submenu_before_parent_menu()
+    [Test]
+    public async Task Menubar_demo_close_key_closes_submenu_before_parent_menu()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
 
-        ILocator demo = page.Locator("[data-testid='bradix-menubar-demo']");
-        ILocator editTrigger = demo.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "Edit", Exact = true });
+        ILocator editTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Edit", Exact = true });
 
         await editTrigger.ClickAsync();
 
@@ -34,13 +33,15 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(submenu).ToBeVisibleAsync();
         await Assertions.Expect(submenu).ToContainTextAsync("Email");
 
-        await page.Keyboard.PressAsync("Escape");
+        ILocator copyLink = submenu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "Copy link", Exact = true });
+        await copyLink.FocusAsync();
+        await copyLink.PressAsync("ArrowLeft");
 
         await Assertions.Expect(submenu).Not.ToBeVisibleAsync();
         await Assertions.Expect(menu).ToBeVisibleAsync();
         await Assertions.Expect(submenuTrigger).ToBeFocusedAsync();
 
-        await submenuTrigger.PressAsync("Escape");
+        await page.Keyboard.PressAsync("Escape");
 
         await Assertions.Expect(menu).Not.ToBeVisibleAsync();
         await Assertions.Expect(editTrigger).ToBeFocusedAsync();

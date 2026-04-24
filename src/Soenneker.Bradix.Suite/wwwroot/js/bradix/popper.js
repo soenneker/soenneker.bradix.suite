@@ -88,6 +88,15 @@ async function updateRegisteredPopperContent(content) {
   }
 
   const floating = getFloatingUi();
+  const contentSurface = handlers.content.firstElementChild || handlers.content;
+  const contentZIndex = globalThis.getComputedStyle?.(contentSurface)?.zIndex;
+
+  if (contentZIndex && contentZIndex !== "auto") {
+    handlers.content.style.zIndex = contentZIndex;
+  } else {
+    handlers.content.style.removeProperty("z-index");
+  }
+
   const options = handlers.options || {};
   const arrowRect = handlers.arrow?.getBoundingClientRect?.() || null;
   const arrowWidth = arrowRect?.width || 0;
@@ -292,6 +301,20 @@ export function registerPopperContent(anchor, content, arrow, dotNetRef, options
   });
 
   reconnect(content);
+}
+
+export function registerPopperContentBySelector(anchorSelector, content, arrow, dotNetRef, options) {
+  if (!anchorSelector || !content) {
+    return;
+  }
+
+  const anchor = document.getElementById(anchorSelector) || document.querySelector(anchorSelector);
+
+  if (!anchor) {
+    return;
+  }
+
+  registerPopperContent(anchor, content, arrow, dotNetRef, options);
 }
 
 export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, options) {

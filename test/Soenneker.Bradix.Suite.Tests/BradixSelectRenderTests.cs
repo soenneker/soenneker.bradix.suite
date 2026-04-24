@@ -270,12 +270,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     public async Task Content_typeahead_scrolls_newly_focused_item_into_view()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
-        IRenderedComponent<BradixSelectContent> content = cut.FindComponent<BradixSelectContent>();
-
-        await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
-        {
-            Key = "s"
-        }));
+        cut.Find("[role='listbox']").KeyDown("s");
 
         await cut.WaitForAssertionAsync(async () =>
         {

@@ -30,11 +30,35 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
+    public async Task Repeated_character_search_normalizes_to_single_character_cycle()
+    {
+        string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "aaa", "Alpha");
+
+        await Assert.That(next).IsEqualTo("Amber");
+    }
+
+    [Test]
     public async Task Multi_character_search_can_leave_focus_on_current_match()
     {
         string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "al", "Alpha");
 
         await Assert.That(next).IsNull();
+    }
+
+    [Test]
+    public async Task Multi_character_search_returns_null_when_no_item_matches()
+    {
+        string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "zz", "Alpha");
+
+        await Assert.That(next).IsNull();
+    }
+
+    [Test]
+    public async Task Whitespace_search_is_preserved_like_radix()
+    {
+        string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", " Alpha"], " ");
+
+        await Assert.That(next).IsEqualTo(" Alpha");
     }
 
     [Test]
@@ -50,6 +74,20 @@ public sealed class BradixTypeaheadTests
         DemoItem? next = BradixTypeaheadMatcher.FindNextItem(items, "b", items[1], item => item.TextValue);
 
         await Assert.That(next?.TextValue).IsEqualTo("Blue");
+    }
+
+    [Test]
+    public async Task Generic_matcher_preserves_explicit_text_value_whitespace()
+    {
+        DemoItem[] items =
+        [
+            new DemoItem("Alpha"),
+            new DemoItem(" Alpha")
+        ];
+
+        DemoItem? next = BradixTypeaheadMatcher.FindNextItem(items, " ", null, item => item.TextValue);
+
+        await Assert.That(next?.TextValue).IsEqualTo(" Alpha");
     }
 
     private sealed record DemoItem(string TextValue);

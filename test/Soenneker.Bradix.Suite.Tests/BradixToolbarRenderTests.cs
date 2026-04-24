@@ -56,12 +56,86 @@ public sealed class BradixToolbarRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
         IReadOnlyList<IElement> radios = cut.FindAll("[role='radio']");
-        await Assert.That(cut.Find("[role='radiogroup']").GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(cut.Find(".toolbar-single-group").GetAttribute("role")).IsEqualTo("group");
+        await Assert.That(cut.Find(".toolbar-single-group").GetAttribute("aria-orientation")).IsEqualTo("horizontal");
         await radios[2].ClickAsync();
         radios = cut.FindAll("[role='radio']");
 
         await Assert.That(radios[0].GetAttribute("aria-checked")).IsEqualTo("false");
         await Assert.That(radios[2].GetAttribute("aria-checked")).IsEqualTo("true");
+    }
+
+    [Test]
+    public async Task Toolbar_items_register_radix_roving_mousedown_guards_and_click_callbacks()
+    {
+        var buttonClicks = 0;
+        var toggleClicks = 0;
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixToolbar>(0);
+            builder.AddAttribute(1, nameof(BradixToolbar.ChildContent), (RenderFragment) (contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixToolbarButton>(0);
+                contentBuilder.AddAttribute(1, nameof(BradixToolbarButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, () => buttonClicks++));
+                contentBuilder.AddAttribute(2, nameof(BradixToolbarButton.ChildContent), (RenderFragment) (b => b.AddContent(0, "Button")));
+                contentBuilder.CloseComponent();
+
+                contentBuilder.OpenComponent<BradixToolbarToggleGroup>(10);
+                contentBuilder.AddAttribute(11, nameof(BradixToolbarToggleGroup.ChildContent), (RenderFragment) (groupBuilder =>
+                {
+                    groupBuilder.OpenComponent<BradixToolbarToggleItem>(0);
+                    groupBuilder.AddAttribute(1, nameof(BradixToolbarToggleItem.Value), "bold");
+                    groupBuilder.AddAttribute(2, nameof(BradixToolbarToggleItem.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, () => toggleClicks++));
+                    groupBuilder.AddAttribute(3, nameof(BradixToolbarToggleItem.ChildContent), (RenderFragment) (b => b.AddContent(0, "Bold")));
+                    groupBuilder.CloseComponent();
+                }));
+                contentBuilder.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
+
+        await Assert.That(buttons[0].GetAttribute("data-bradix-prevent-nonprimary-mousedown")).IsEqualTo("true");
+        await Assert.That(buttons[0].GetAttribute("data-bradix-prevent-mousedown-when-disabled")).IsEqualTo("true");
+        await Assert.That(buttons[1].GetAttribute("data-bradix-prevent-nonprimary-mousedown")).IsEqualTo("true");
+        await Assert.That(buttons[1].GetAttribute("data-bradix-prevent-mousedown-when-disabled")).IsEqualTo("true");
+
+        await buttons[0].ClickAsync();
+        await buttons[1].ClickAsync();
+
+        await Assert.That(buttonClicks).IsEqualTo(1);
+        await Assert.That(toggleClicks).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Controlled_toolbar_toggle_group_with_null_value_does_not_mutate_internal_state()
+    {
+        string? reported = null;
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixToolbar>(0);
+            builder.AddAttribute(1, nameof(BradixToolbar.ChildContent), (RenderFragment) (contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixToolbarToggleGroup>(0);
+                contentBuilder.AddAttribute(1, nameof(BradixToolbarToggleGroup.Value), (string?) null);
+                contentBuilder.AddAttribute(2, nameof(BradixToolbarToggleGroup.ValueChanged),
+                    EventCallback.Factory.Create<string?>(this, value => reported = value));
+                contentBuilder.AddAttribute(3, nameof(BradixToolbarToggleGroup.ChildContent), (RenderFragment) (groupBuilder =>
+                {
+                    RenderToggleItem(groupBuilder, 0, "left");
+                    RenderToggleItem(groupBuilder, 10, "center");
+                }));
+                contentBuilder.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        IElement left = cut.FindAll("[role='radio']")[0];
+        await left.ClickAsync();
+
+        await Assert.That(reported).IsEqualTo("left");
+        await Assert.That(cut.FindAll("[role='radio']")[0].GetAttribute("aria-checked")).IsEqualTo("false");
     }
 
     [Test]
@@ -121,6 +195,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
                 contentBuilder.CloseComponent();
 
                 contentBuilder.OpenComponent<BradixToolbarToggleGroup>(40);
+                contentBuilder.AddAttribute(44, nameof(BradixToolbarToggleGroup.Class), "toolbar-single-group");
                 contentBuilder.AddAttribute(41, nameof(BradixToolbarToggleGroup.Type), (object) BradixSelectionMode.Single);
                 contentBuilder.AddAttribute(42, nameof(BradixToolbarToggleGroup.DefaultValue), "center");
                 contentBuilder.AddAttribute(43, nameof(BradixToolbarToggleGroup.ChildContent), (RenderFragment) (groupBuilder =>

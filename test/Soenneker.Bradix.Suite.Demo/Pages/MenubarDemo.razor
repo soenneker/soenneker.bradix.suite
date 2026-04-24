@@ -28,6 +28,15 @@
                     <BradixMenubarTrigger>Edit</BradixMenubarTrigger>
                     <BradixMenubarPortal>
                         <BradixMenubarContent Class="card stack" SideOffset="6">
+                            <BradixMenubarSub>
+                                <BradixMenubarSubTrigger TextValue="Share">Share</BradixMenubarSubTrigger>
+                                <BradixMenubarPortal>
+                                    <BradixMenubarSubContent Class="card stack" SideOffset="6">
+                                        <BradixMenubarItem TextValue="Copy link" OnSelect='@(() => SetSelection("Copy link"))'>Copy link</BradixMenubarItem>
+                                        <BradixMenubarItem TextValue="Email" OnSelect='@(() => SetSelection("Email"))'>Email</BradixMenubarItem>
+                                    </BradixMenubarSubContent>
+                                </BradixMenubarPortal>
+                            </BradixMenubarSub>
                             <BradixMenubarCheckboxItem Checked="@_lineNumbers"
                                                        CheckedChanged="HandleLineNumbersChanged"
                                                        CloseOnSelect="false">

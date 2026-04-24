@@ -178,6 +178,9 @@ public interface IBradixSuiteInterop : IAsyncDisposable
     ValueTask RegisterPopperContent(ElementReference anchor, ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference,
         object options, CancellationToken cancellationToken = default);
 
+    ValueTask RegisterPopperContentBySelector(string anchorSelector, ElementReference content, ElementReference arrow,
+        DotNetObjectReference<object> dotNetReference, object options, CancellationToken cancellationToken = default);
+
     ValueTask<bool> BeginMenuSubmenuPointerGrace(ElementReference trigger, ElementReference content, double clientX, double clientY,
         DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 

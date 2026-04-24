@@ -15,14 +15,17 @@ export function registerCheckboxRoot(element, dotNetRef, formId = null) {
   }
 
   unregisterCheckboxRoot(element);
+  element.setAttribute("data-bradix-checkbox-root", "");
 
-  const keydown = (event) => {
+  const preventEnterActivation = (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
     }
   };
 
-  element.addEventListener("keydown", keydown);
+  element.addEventListener("keydown", preventEnterActivation, true);
+  element.addEventListener("keypress", preventEnterActivation, true);
+  element.addEventListener("keyup", preventEnterActivation, true);
 
   const form = resolveAssociatedForm(element, formId);
   let reset = null;
@@ -35,7 +38,7 @@ export function registerCheckboxRoot(element, dotNetRef, formId = null) {
     form.addEventListener("reset", reset);
   }
 
-  checkboxRootHandlers.set(element, { keydown, form, reset, dotNetRef });
+  checkboxRootHandlers.set(element, { preventEnterActivation, form, reset, dotNetRef });
 }
 
 export function unregisterCheckboxRoot(element) {
@@ -45,7 +48,10 @@ export function unregisterCheckboxRoot(element) {
     return;
   }
 
-  element.removeEventListener("keydown", handlers.keydown);
+  element.removeEventListener("keydown", handlers.preventEnterActivation, true);
+  element.removeEventListener("keypress", handlers.preventEnterActivation, true);
+  element.removeEventListener("keyup", handlers.preventEnterActivation, true);
+  element.removeAttribute("data-bradix-checkbox-root");
 
   if (handlers.form && handlers.reset) {
     handlers.form.removeEventListener("reset", handlers.reset);

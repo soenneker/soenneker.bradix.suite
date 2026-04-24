@@ -15,9 +15,15 @@
     [Parameter]
     public string AltText { get; set; } = string.Empty;
 
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
-        ("aria-label", AltText),
+        ("disabled", Disabled ? true : null),
         ("data-radix-toast-announce-exclude", string.Empty),
         ("data-radix-toast-announce-alt", AltText));
 
@@ -27,8 +33,15 @@
             throw new InvalidOperationException("BradixToastAction requires a non-empty AltText.");
     }
 
-    private Task HandleClick()
+    private async Task HandleClick(MouseEventArgs args)
     {
-        return Toast?.TriggerClose() ?? Task.CompletedTask;
+        if (Disabled)
+            return;
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
+
+        if (Toast is not null)
+            await Toast.TriggerClose();
     }
 }

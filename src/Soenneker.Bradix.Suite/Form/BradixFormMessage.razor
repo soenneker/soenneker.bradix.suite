@@ -23,6 +23,7 @@
         ["tooLong"] = "This value is too long",
         ["tooShort"] = "This value is too short",
         ["typeMismatch"] = "This value does not match the required type",
+        ["valid"] = string.Empty,
         ["valueMissing"] = "This value is missing"
     };
 
@@ -143,7 +144,7 @@
 
     private bool MatchesCurrentState()
     {
-        if (Field?.ServerInvalid == true && Match is null)
+        if (Match is null)
             return true;
 
         if (Validity is null)
@@ -165,6 +166,7 @@
                 "tooLong" => Validity.TooLong,
                 "tooShort" => Validity.TooShort,
                 "typeMismatch" => Validity.TypeMismatch,
+                "valid" => Validity.Valid,
                 "valueMissing" => Validity.ValueMissing,
                 _ => false
             };

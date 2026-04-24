@@ -233,11 +233,14 @@
 
         if (_popper is not null && !_popper.HasAnchor && !_popper.HasVirtualAnchor)
             _popper.RegisterAnchor(element);
+
+        _ = InvokeAsync(StateHasChanged);
     }
 
     internal void RegisterAnchor(ElementReference element)
     {
         _popper?.RegisterAnchor(element);
+        _ = InvokeAsync(StateHasChanged);
     }
 
     internal void RegisterContent(ElementReference element)

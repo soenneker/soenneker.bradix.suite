@@ -49,6 +49,10 @@
         ? BlazorIdGenerator.Child(BaseId!, "content")
         : ContentIdOverride;
 
+    internal ElementReference TriggerElement { get; private set; }
+
+    internal bool HasTrigger { get; private set; }
+
     protected override void OnInitialized()
     {
         BaseId ??= BlazorIdGenerator.New("bradix-dropdown-menu");
@@ -66,6 +70,13 @@
     public Task ToggleOpen()
     {
         return SetOpen(!CurrentOpen);
+    }
+
+    internal void RegisterTrigger(ElementReference element)
+    {
+        TriggerElement = element;
+        HasTrigger = true;
+        _ = InvokeAsync(StateHasChanged);
     }
 
     public async Task SetOpen(bool open)

@@ -8,7 +8,7 @@ namespace Soenneker.Bradix;
 /// Displays validation or custom messages for a form field.
 /// </summary>
 public interface IBradixFormMessage : IDisposable {
-    /// <summary>Built-in validity key, custom matcher delegate, or null for generic invalid.</summary>
+    /// <summary>Built-in validity key, custom matcher delegate, or null to always render a generic message.</summary>
     object? Match { get; set; }
 
     /// <summary>When true, the message is shown regardless of match evaluation.</summary>

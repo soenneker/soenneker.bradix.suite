@@ -40,5 +40,19 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(checkbox).ToBeCheckedAsync();
     }
-}
 
+    [Test]
+    public async Task Label_demo_prevents_double_click_text_selection_default_on_label_text()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/label"));
+
+        ILocator label = page.GetByText("First name", new PageGetByTextOptions { Exact = true });
+        bool dispatchResult = await label.EvaluateAsync<bool>(
+            "element => element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, detail: 2 }))");
+
+        await Assert.That(dispatchResult).IsFalse();
+    }
+}

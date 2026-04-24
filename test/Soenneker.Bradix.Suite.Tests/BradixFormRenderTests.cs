@@ -6,6 +6,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -44,6 +45,34 @@ public sealed class BradixFormRenderTests : BunitContext
 
         await Assert.That(input.GetAttribute("name")).IsEqualTo("email");
         await Assert.That(label.GetAttribute("for")).IsEqualTo(input.Id);
+    }
+
+    [Test]
+    public async Task Form_label_forwards_id_and_mouse_down_to_label_primitive()
+    {
+        var mouseDownCount = 0;
+
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixFormLabel>(0);
+            builder.AddAttribute(1, nameof(BradixFormLabel.Id), "email-label");
+            builder.AddAttribute(2, nameof(BradixFormLabel.For), "email-input");
+            builder.AddAttribute(3, nameof(BradixFormLabel.OnMouseDown), EventCallback.Factory.Create<MouseEventArgs>(this, () => mouseDownCount++));
+            builder.AddAttribute(4, nameof(BradixFormLabel.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.AddContent(0, "Email");
+            }));
+            builder.CloseComponent();
+        });
+
+        IElement label = cut.Find("label");
+        await Assert.That(label.Id).IsEqualTo("email-label");
+        await Assert.That(label.GetAttribute("for")).IsEqualTo("email-input");
+
+        IRenderedComponent<BradixLabel> primitive = cut.FindComponent<BradixLabel>();
+        await primitive.Instance.HandleMouseDownFromJs(new BradixDelegatedMouseEvent { Detail = 1 });
+
+        await Assert.That(mouseDownCount).IsEqualTo(1);
     }
 
     [Test]
@@ -107,6 +136,83 @@ public sealed class BradixFormRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             await Assert.That(cut.Find("span[id]").TextContent.Trim()).IsEqualTo("This value does not match the required type");
+        });
+    }
+
+    [Test]
+    public async Task Built_in_valid_message_matches_valid_state()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixForm>(0);
+            builder.AddAttribute(1, nameof(BradixForm.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixFormField>(0);
+                contentBuilder.AddAttribute(1, nameof(BradixFormField.Name), "email");
+                contentBuilder.AddAttribute(2, nameof(BradixFormField.ChildContent), (RenderFragment)(fieldBuilder =>
+                {
+                    fieldBuilder.OpenComponent<BradixFormControl>(0);
+                    fieldBuilder.CloseComponent();
+
+                    fieldBuilder.OpenComponent<BradixFormMessage>(2);
+                    fieldBuilder.AddAttribute(3, nameof(BradixFormMessage.Match), "valid");
+                    fieldBuilder.AddAttribute(4, nameof(BradixFormMessage.ChildContent), (RenderFragment)(messageBuilder =>
+                    {
+                        messageBuilder.AddContent(0, "Looks good");
+                    }));
+                    fieldBuilder.CloseComponent();
+                }));
+                contentBuilder.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        IRenderedComponent<BradixFormControl> control = cut.FindComponent<BradixFormControl>();
+        await control.Instance.HandleValidityChanged(new BradixFormValiditySnapshot
+        {
+            Valid = true
+        });
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(cut.Find("span[id]").TextContent.Trim()).IsEqualTo("Looks good");
+        });
+    }
+
+    [Test]
+    public async Task Message_without_match_renders_and_registers_description_immediately()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixForm>(0);
+            builder.AddAttribute(1, nameof(BradixForm.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixFormField>(0);
+                contentBuilder.AddAttribute(1, nameof(BradixFormField.Name), "email");
+                contentBuilder.AddAttribute(2, nameof(BradixFormField.ChildContent), (RenderFragment)(fieldBuilder =>
+                {
+                    fieldBuilder.OpenComponent<BradixFormControl>(0);
+                    fieldBuilder.CloseComponent();
+
+                    fieldBuilder.OpenComponent<BradixFormMessage>(2);
+                    fieldBuilder.AddAttribute(3, nameof(BradixFormMessage.ChildContent), (RenderFragment)(messageBuilder =>
+                    {
+                        messageBuilder.AddContent(0, "Generic message");
+                    }));
+                    fieldBuilder.CloseComponent();
+                }));
+                contentBuilder.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            IElement input = cut.Find("input");
+            IElement message = cut.Find("span[id]");
+
+            await Assert.That(message.TextContent.Trim()).IsEqualTo("Generic message");
+            await Assert.That(input.GetAttribute("aria-describedby")).IsEqualTo(message.Id);
         });
     }
 

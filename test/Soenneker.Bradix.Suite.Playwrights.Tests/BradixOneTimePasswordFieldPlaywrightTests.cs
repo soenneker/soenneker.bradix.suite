@@ -31,6 +31,22 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
         await Assertions.Expect(slots.Nth(5)).ToHaveValueAsync("6");
     }
 
+    [Test]
+    public async ValueTask One_time_password_demo_rejects_non_numeric_characters()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/one-time-password-field"));
+
+        ILocator first = page.Locator(".otp-slot").First;
+        await first.ClickAsync();
+        await page.Keyboard.TypeAsync("A");
+
+        await Assertions.Expect(first).ToHaveValueAsync(string.Empty);
+        await Assertions.Expect(page.Locator("input[type='hidden']").First).ToHaveValueAsync(string.Empty);
+    }
+
 [Test]
     public async ValueTask One_time_password_demo_home_and_end_keys_move_focus_to_first_and_last_filled_slots()
     {

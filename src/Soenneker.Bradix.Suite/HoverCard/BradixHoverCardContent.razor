@@ -207,6 +207,8 @@
 
         if (OnFocusOutsideDetailed.HasDelegate)
             await OnFocusOutsideDetailed.InvokeAsync(args);
+
+        args.PreventDefault();
     }
 
     private async Task HandleInteractOutside(BradixInteractOutsideEventArgs args)

@@ -32,5 +32,28 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
         await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Mounted: True");
         await Assertions.Expect(page.GetByRole(AriaRole.Textbox)).ToBeVisibleAsync();
     }
+
+    [Test]
+    public async Task Remove_scroll_demo_locks_body_scroll_and_restores_styles_on_unmount()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/remove-scroll"));
+
+        ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle scroll lock", Exact = true });
+
+        await Assertions.Expect(page.GetByRole(AriaRole.Textbox)).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("body")).ToHaveCSSAsync("overflow", "hidden");
+
+        string touchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");
+        await Assert.That(touchAction).IsEqualTo(string.Empty);
+
+        await toggle.ClickAsync();
+        await Assertions.Expect(page.Locator("body")).Not.ToHaveCSSAsync("overflow", "hidden");
+
+        string restoredTouchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");
+        await Assert.That(restoredTouchAction).IsEqualTo(string.Empty);
+    }
 }
 

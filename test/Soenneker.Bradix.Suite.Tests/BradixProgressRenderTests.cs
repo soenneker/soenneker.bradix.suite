@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -45,6 +46,41 @@ public sealed class BradixProgressRenderTests : BunitContext
 
         await Assert.That(root.GetAttribute("data-state")).IsEqualTo("complete");
         await Assert.That(indicator.GetAttribute("data-state")).IsEqualTo("complete");
+    }
+
+    [Test]
+    public async Task Progress_defaults_invalid_max_to_radix_default()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateProgress(30, 0));
+
+        IElement root = cut.Find("[role='progressbar']");
+        IElement indicator = cut.FindAll("div")[1];
+
+        await Assert.That(root.GetAttribute("aria-valuemax")).IsEqualTo("100");
+        await Assert.That(root.GetAttribute("data-max")).IsEqualTo("100");
+        await Assert.That(indicator.GetAttribute("data-max")).IsEqualTo("100");
+    }
+
+    [Test]
+    public async Task Progress_uses_custom_value_label_when_provided()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixProgress>(0);
+            builder.AddAttribute(1, nameof(BradixProgress.Value), 3d);
+            builder.AddAttribute(2, nameof(BradixProgress.Max), 5d);
+            builder.AddAttribute(3, nameof(BradixProgress.GetValueLabel), (Func<double, double, string>)((value, max) => $"{value} of {max} tasks"));
+            builder.AddAttribute(4, nameof(BradixProgress.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixProgressIndicator>(0);
+                contentBuilder.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        IElement root = cut.Find("[role='progressbar']");
+
+        await Assert.That(root.GetAttribute("aria-valuetext")).IsEqualTo("3 of 5 tasks");
     }
 
     [Test]

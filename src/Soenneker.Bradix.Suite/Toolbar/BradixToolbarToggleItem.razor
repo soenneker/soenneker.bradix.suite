@@ -36,6 +36,9 @@
     [Parameter]
     public bool Disabled { get; set; }
 
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
     public string? TabStopId { get; private set; }
 
     internal bool IsPressed => Group.IsItemPressed(Value);
@@ -59,6 +62,8 @@
                 ("data-bradix-roving-orientation", Toolbar.Orientation.Value),
                 ("data-bradix-roving-dir", Toolbar.ResolvedDirection),
                 ("data-bradix-roving-loop", Toolbar.Loop ? "true" : "false"),
+                ("data-bradix-prevent-nonprimary-mousedown", "true"),
+                ("data-bradix-prevent-mousedown-when-disabled", "true"),
                 ("disabled", IsDisabled ? true : null),
                 ("tabindex", Toolbar.IsCurrentTabStop(this) ? 0 : -1));
 
@@ -103,10 +108,13 @@
 
     public ValueTask Focus() => _element.FocusAsync();
 
-    private async Task HandleClick()
+    private async Task HandleClick(MouseEventArgs args)
     {
         if (IsDisabled)
             return;
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
 
         if (IsPressed)
             await Group.DeactivateItem(Value);

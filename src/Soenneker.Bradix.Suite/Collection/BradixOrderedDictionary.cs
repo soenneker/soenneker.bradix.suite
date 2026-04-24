@@ -62,23 +62,37 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public BradixOrderedDictionary<TKey, TValue> Insert(int index, TKey key, TValue value)
     {
-        var exists = _map.ContainsKey(key);
+        var has = _map.ContainsKey(key);
+        var length = _keys.Count;
+        var actualIndex = index >= 0 ? index : length + index;
+        var safeIndex = actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
 
-        if (exists)
+        if (safeIndex == -1 || (has && safeIndex == Count - 1))
+        {
+            Set(key, value);
+            return this;
+        }
+
+        if (index < 0)
+        {
+            actualIndex++;
+        }
+
+        if (has)
         {
             var existingIndex = _keys.IndexOf(key);
             if (existingIndex >= 0)
             {
                 _keys.RemoveAt(existingIndex);
 
-                if (existingIndex < index)
+                if (existingIndex < actualIndex)
                 {
-                    index--;
+                    actualIndex--;
                 }
             }
         }
 
-        var targetIndex = NormalizeInsertIndex(index, _keys.Count);
+        var targetIndex = Math.Clamp(actualIndex, 0, _keys.Count);
         _keys.Insert(targetIndex, key);
         _map[key] = value;
 
@@ -97,6 +111,11 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return removed;
     }
 
+    public bool DeleteAt(int index)
+    {
+        return TryGetKeyAt(index, out TKey key) && Delete(key);
+    }
+
     public void Clear()
     {
         _map.Clear();
@@ -110,20 +129,17 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public TKey? KeyAt(int index)
     {
-        var safeIndex = NormalizeLookupIndex(index, _keys.Count);
-        return safeIndex < 0 ? default : _keys[safeIndex];
+        return TryGetKeyAt(index, out TKey key) ? key : default;
     }
 
     public TValue? At(int index)
     {
-        var key = KeyAt(index);
-        return key is null ? default : _map[key];
+        return TryGetKeyAt(index, out TKey key) ? _map[key] : default;
     }
 
     public KeyValuePair<TKey, TValue>? EntryAt(int index)
     {
-        var key = KeyAt(index);
-        return key is null ? null : new KeyValuePair<TKey, TValue>(key, _map[key]);
+        return TryGetKeyAt(index, out TKey key) ? new KeyValuePair<TKey, TValue>(key, _map[key]) : null;
     }
 
     public KeyValuePair<TKey, TValue>? Before(TKey key)
@@ -134,6 +150,28 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     public KeyValuePair<TKey, TValue>? After(TKey key)
     {
         return EntryAt(IndexOf(key) + 1);
+    }
+
+    public KeyValuePair<TKey, TValue>? First()
+    {
+        return EntryAt(0);
+    }
+
+    public KeyValuePair<TKey, TValue>? Last()
+    {
+        return EntryAt(-1);
+    }
+
+    public BradixOrderedDictionary<TKey, TValue> SetBefore(TKey key, TKey newKey, TValue value)
+    {
+        var index = IndexOf(key);
+        return index < 0 ? this : Insert(index, newKey, value);
+    }
+
+    public BradixOrderedDictionary<TKey, TValue> SetAfter(TKey key, TKey newKey, TValue value)
+    {
+        var index = IndexOf(key);
+        return index < 0 ? this : Insert(index + 1, newKey, value);
     }
 
     public TValue? From(TKey key, int offset)
@@ -148,11 +186,71 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return At(destination);
     }
 
+    public TKey? KeyFrom(TKey key, int offset)
+    {
+        var index = IndexOf(key);
+        if (index < 0)
+        {
+            return default;
+        }
+
+        var destination = Math.Clamp(index + offset, 0, Count - 1);
+        return KeyAt(destination);
+    }
+
+    public KeyValuePair<TKey, TValue>? Find(Predicate<KeyValuePair<TKey, TValue>> predicate)
+    {
+        foreach (var entry in this)
+        {
+            if (predicate(entry))
+            {
+                return entry;
+            }
+        }
+
+        return null;
+    }
+
+    public int FindIndex(Predicate<KeyValuePair<TKey, TValue>> predicate)
+    {
+        var index = 0;
+
+        foreach (var entry in this)
+        {
+            if (predicate(entry))
+            {
+                return index;
+            }
+
+            index++;
+        }
+
+        return -1;
+    }
+
+    public BradixOrderedDictionary<TKey, TValue> Filter(Predicate<KeyValuePair<TKey, TValue>> predicate)
+    {
+        return new BradixOrderedDictionary<TKey, TValue>(this.Where(entry => predicate(entry)));
+    }
+
     public BradixOrderedDictionary<TKey, TValue> ToSorted(Comparison<KeyValuePair<TKey, TValue>> comparison)
     {
         List<KeyValuePair<TKey, TValue>> entries = [.. this];
         entries.Sort(comparison);
         return new BradixOrderedDictionary<TKey, TValue>(entries);
+    }
+
+    public BradixOrderedDictionary<TKey, TValue> ToReversed()
+    {
+        var reversed = new BradixOrderedDictionary<TKey, TValue>();
+
+        for (var i = _keys.Count - 1; i >= 0; i--)
+        {
+            TKey key = _keys[i];
+            reversed.Set(key, _map[key]);
+        }
+
+        return reversed;
     }
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
@@ -168,17 +266,6 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return GetEnumerator();
     }
 
-    private static int NormalizeInsertIndex(int index, int count)
-    {
-        if (count == 0)
-        {
-            return 0;
-        }
-
-        var normalized = index >= 0 ? index : count + index + 1;
-        return Math.Clamp(normalized, 0, count);
-    }
-
     private static int NormalizeLookupIndex(int index, int count)
     {
         if (count == 0)
@@ -188,5 +275,18 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
         var normalized = index >= 0 ? index : count + index;
         return normalized < 0 || normalized >= count ? -1 : normalized;
+    }
+
+    private bool TryGetKeyAt(int index, out TKey key)
+    {
+        var safeIndex = NormalizeLookupIndex(index, _keys.Count);
+        if (safeIndex < 0)
+        {
+            key = default!;
+            return false;
+        }
+
+        key = _keys[safeIndex];
+        return true;
     }
 }

@@ -58,6 +58,7 @@
         if (firstRender)
         {
             Menu?.RegisterTrigger(_button);
+            DropdownMenu?.RegisterTrigger(_button);
 
             if (OnElementReferenceCaptured.HasDelegate)
                 await OnElementReferenceCaptured.InvokeAsync(_button);

@@ -74,6 +74,15 @@
     public bool HideWhenDetached { get; set; }
 
     [Parameter]
+    public ElementReference Anchor { get; set; }
+
+    [Parameter]
+    public bool UseAnchor { get; set; }
+
+    [Parameter]
+    public string? AnchorSelector { get; set; }
+
+    [Parameter]
     public EventCallback OnOpenAutoFocus { get; set; }
 
     [Parameter]
@@ -308,10 +317,12 @@
 
         switch (args.Key)
         {
+            case "ArrowDown":
             case "PageUp":
             case "Home":
                 await Menu.FocusFirstItem();
                 return;
+            case "ArrowUp":
             case "PageDown":
             case "End":
                 await Menu.FocusLastItem();
@@ -411,6 +422,9 @@
                                          AvoidCollisions="AvoidCollisions"
                                          CollisionPadding="CollisionPadding"
                                          HideWhenDetached="HideWhenDetached"
+                                         Anchor="@(UseAnchor ? Anchor : Menu?.TriggerElement ?? default)"
+                                         UseAnchor="@(UseAnchor || Menu?.HasTrigger == true)"
+                                         AnchorSelector="@AnchorSelector"
                                          Style="@PositionerStyle"
                                          OnPlaced="@OnPlaced">
                         <BradixPresence Present="IsPresent"

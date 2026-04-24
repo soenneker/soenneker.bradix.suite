@@ -49,8 +49,12 @@
 
     internal bool IsSingle => Type != BradixSelectionMode.Multiple;
 
+    private bool IsSingleControlled => Value is not null || ValueChanged.HasDelegate || OnValueChange.HasDelegate;
+
+    private bool IsMultipleControlled => Values is not null || ValuesChanged.HasDelegate || OnValuesChange.HasDelegate;
+
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("role", IsSingle ? "radiogroup" : "group"),
+        ("role", "group"),
         ("dir", Toolbar.ResolvedDirection),
         ("aria-orientation", Toolbar.Orientation.Value),
         ("data-orientation", Toolbar.Orientation.Value));
@@ -68,9 +72,9 @@
     internal bool IsItemPressed(string value)
     {
         if (IsSingle)
-            return string.Equals(NormalizeSingleValue(Value ?? _uncontrolledValue), value, StringComparison.Ordinal);
+            return string.Equals(NormalizeSingleValue(IsSingleControlled ? Value : _uncontrolledValue), value, StringComparison.Ordinal);
 
-        var values = Values ?? _uncontrolledValues;
+        var values = IsMultipleControlled ? Values ?? [] : _uncontrolledValues;
         return values.Contains(value);
     }
 
@@ -82,7 +86,7 @@
             return;
         }
 
-        var next = Values?.ToList() ?? [.. _uncontrolledValues];
+        var next = (IsMultipleControlled ? Values?.ToList() : [.. _uncontrolledValues]) ?? [];
 
         if (next.Contains(value, StringComparer.Ordinal))
             return;
@@ -99,7 +103,7 @@
             return;
         }
 
-        var next = Values?.ToList() ?? [.. _uncontrolledValues];
+        var next = (IsMultipleControlled ? Values?.ToList() : [.. _uncontrolledValues]) ?? [];
 
         if (!next.Remove(value))
             return;
@@ -111,10 +115,10 @@
     {
         var normalizedValue = NormalizeSingleValue(value);
 
-        if (string.Equals(NormalizeSingleValue(Value ?? _uncontrolledValue), normalizedValue, StringComparison.Ordinal))
+        if (string.Equals(NormalizeSingleValue(IsSingleControlled ? Value : _uncontrolledValue), normalizedValue, StringComparison.Ordinal))
             return;
 
-        if (Value is null)
+        if (!IsSingleControlled)
             _uncontrolledValue = normalizedValue;
 
         if (ValueChanged.HasDelegate)
@@ -130,7 +134,7 @@
     {
         var next = values.Distinct(StringComparer.Ordinal).ToList();
 
-        if (Values is null)
+        if (!IsMultipleControlled)
             _uncontrolledValues = next;
 
         IReadOnlyCollection<string> result = next.ToArray();

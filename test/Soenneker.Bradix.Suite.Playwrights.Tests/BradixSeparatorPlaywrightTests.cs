@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AwesomeAssertions;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
 
@@ -11,11 +12,19 @@ public sealed class BradixSeparatorPlaywrightTests : BradixComponentPlaywrightTe
     {
     }
 
-[Test]
+    [Test]
     public async Task Separator_demo_exposes_semantic_horizontal_and_decorative_vertical_metadata()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
+        var consoleErrors = new System.Collections.Generic.List<string>();
+        var sawPageError = false;
+        page.Console += (_, message) =>
+        {
+            if (message.Type == "error")
+                consoleErrors.Add(message.Text);
+        };
+        page.PageError += (_, _) => sawPageError = true;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/separator"));
 
@@ -25,6 +34,9 @@ public sealed class BradixSeparatorPlaywrightTests : BradixComponentPlaywrightTe
         ILocator decorativeVerticals = page.Locator("[role='none'][data-orientation='vertical']");
         await Assertions.Expect(decorativeVerticals).ToHaveCountAsync(2);
         await Assertions.Expect(decorativeVerticals.First).Not.ToHaveAttributeAsync("aria-orientation", new System.Text.RegularExpressions.Regex(".+"));
+
+        consoleErrors.Should().BeEmpty();
+        sawPageError.Should().BeFalse();
     }
 }
 

@@ -10,6 +10,7 @@
 
 @inject IBradixSuiteInterop Interop
 <button @ref="_element"
+        @onclick="HandleClick"
         @onmousedown="HandleMouseDown"
         @onfocus="HandleFocus"
         @onkeydown="HandleKeyDown"
@@ -29,6 +30,9 @@
     [Parameter]
     public bool Disabled { get; set; }
 
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
     public string? TabStopId { get; private set; }
 
     bool IBradixToolbarRovingItem.IsDisabled => Disabled;
@@ -41,6 +45,8 @@
         ("data-bradix-roving-orientation", Toolbar.Orientation.Value),
         ("data-bradix-roving-dir", Toolbar.ResolvedDirection),
         ("data-bradix-roving-loop", Toolbar.Loop ? "true" : "false"),
+        ("data-bradix-prevent-nonprimary-mousedown", "true"),
+        ("data-bradix-prevent-mousedown-when-disabled", "true"),
         ("tabindex", Toolbar.IsCurrentTabStop(this) ? 0 : -1),
         ("disabled", Disabled ? true : null));
 
@@ -70,6 +76,15 @@
     }
 
     public ValueTask Focus() => _element.FocusAsync();
+
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (Disabled)
+            return;
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
+    }
 
     private Task HandleMouseDown(MouseEventArgs _)
     {

@@ -92,7 +92,7 @@ else
 
     string IBradixMenuRovingItem.TabStopId => TabStopId!;
 
-    string IBradixMenuRovingItem.TextValue => string.IsNullOrWhiteSpace(TextValue)
+    string IBradixMenuRovingItem.TextValue => TextValue is null
         ? _resolvedTextValue ?? string.Empty
         : TextValue;
 
@@ -139,7 +139,7 @@ else
             _delegatedInteractionRegistered = true;
         }
 
-        if (string.IsNullOrWhiteSpace(TextValue))
+        if (TextValue is null)
         {
             var textContent = await Interop.GetTextContent(_element);
 

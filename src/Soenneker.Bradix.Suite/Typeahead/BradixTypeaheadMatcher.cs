@@ -11,7 +11,7 @@ public static class BradixTypeaheadMatcher
 {
     public static string? FindNextMatch(IReadOnlyList<string> values, string search, string? currentMatch = null)
     {
-        if (values.Count == 0 || string.IsNullOrWhiteSpace(search))
+        if (values.Count == 0 || string.IsNullOrEmpty(search))
         {
             return null;
         }
@@ -31,7 +31,7 @@ public static class BradixTypeaheadMatcher
     public static TItem? FindNextItem<TItem>(IReadOnlyList<TItem> items, string search, TItem? currentItem, Func<TItem, string?> textSelector,
         IEqualityComparer<TItem>? comparer = null)
     {
-        if (items.Count == 0 || string.IsNullOrWhiteSpace(search))
+        if (items.Count == 0 || string.IsNullOrEmpty(search))
         {
             return default;
         }
@@ -50,7 +50,7 @@ public static class BradixTypeaheadMatcher
                 return false;
             }
 
-            var textValue = textSelector(item)?.Trim() ?? string.Empty;
+            var textValue = textSelector(item) ?? string.Empty;
             return textValue.StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase);
         });
 

@@ -23,6 +23,12 @@ public interface IBradixToastAction
     /// <summary>Gets or sets additional attributes merged onto the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    /// <summary>Gets or sets the accessible name for the action.</summary>
+    /// <summary>Gets or sets the alternate announcement text for the action.</summary>
     string AltText { get; set; }
+
+    /// <summary>Gets or sets whether the action is disabled.</summary>
+    bool Disabled { get; set; }
+
+    /// <summary>Callback invoked before the action closes the toast.</summary>
+    EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs> OnClick { get; set; }
 }

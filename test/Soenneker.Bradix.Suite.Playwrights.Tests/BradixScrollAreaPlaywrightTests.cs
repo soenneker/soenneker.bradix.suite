@@ -67,5 +67,27 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
             "() => { const viewport = document.querySelector('[data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollTop = 200; return viewport.scrollTop; }");
         await Assert.That(scrollTop > 0).IsTrue();
     }
+
+    [Test]
+    public async Task Scroll_area_demo_custom_vertical_scrollbar_wheel_scrolls_viewport()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scroll-area"));
+
+        ILocator firstDemo = page.Locator(".website-demo-card").First;
+        ILocator scrollbar = firstDemo.Locator("[data-orientation='vertical']");
+        ILocator thumb = scrollbar.Locator(".scroll-area-thumb");
+
+        await Assertions.Expect(scrollbar).ToHaveAttributeAsync("data-state", "visible");
+        await Assertions.Expect(thumb).ToBeVisibleAsync();
+
+        await scrollbar.HoverAsync();
+        await page.Mouse.WheelAsync(0, 220);
+
+        int scrollTop = await firstDemo.Locator("[data-radix-scroll-area-viewport]").EvaluateAsync<int>("element => element.scrollTop");
+        await Assert.That(scrollTop > 0).IsTrue();
+    }
 }
 

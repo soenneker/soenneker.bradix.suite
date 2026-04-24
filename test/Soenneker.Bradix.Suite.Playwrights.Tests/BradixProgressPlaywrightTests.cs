@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using AwesomeAssertions;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
@@ -16,6 +18,16 @@ public sealed class BradixProgressPlaywrightTests : BradixComponentPlaywrightTes
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
+        List<string> consoleErrors = [];
+        var sawPageError = false;
+
+        page.Console += (_, message) =>
+        {
+            if (message.Type == "error")
+                consoleErrors.Add(message.Text);
+        };
+
+        page.PageError += (_, _) => sawPageError = true;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/progress"));
 
@@ -31,6 +43,8 @@ public sealed class BradixProgressPlaywrightTests : BradixComponentPlaywrightTes
 
         await Assertions.Expect(indeterminate).ToHaveAttributeAsync("data-state", "indeterminate");
         await Assertions.Expect(indeterminate).Not.ToHaveAttributeAsync("aria-valuenow", new System.Text.RegularExpressions.Regex(".+"));
+        sawPageError.Should().BeFalse();
+        consoleErrors.Should().BeEmpty();
     }
 }
 

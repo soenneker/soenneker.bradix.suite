@@ -29,7 +29,7 @@
     public bool ForceMount { get; set; }
 
     [Parameter]
-    public string? Role { get; set; } = "region";
+    public string? Role { get; set; }
 
     [Parameter]
     public string? AriaLabelledBy { get; set; }
@@ -61,9 +61,8 @@
             if (!string.IsNullOrWhiteSpace(Role))
                 attributes["role"] = Role;
 
-            attributes["aria-labelledby"] = !string.IsNullOrWhiteSpace(AriaLabelledBy)
-                ? AriaLabelledBy
-                : Collapsible.TriggerId;
+            if (!string.IsNullOrWhiteSpace(AriaLabelledBy))
+                attributes["aria-labelledby"] = AriaLabelledBy;
 
             if (!string.IsNullOrWhiteSpace(AriaDescribedBy))
                 attributes["aria-describedby"] = AriaDescribedBy;

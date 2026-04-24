@@ -53,6 +53,7 @@
         ("data-bradix-roving-orientation", Toolbar.Orientation.Value),
         ("data-bradix-roving-dir", Toolbar.ResolvedDirection),
         ("data-bradix-roving-loop", Toolbar.Loop ? "true" : "false"),
+        ("data-bradix-prevent-nonprimary-mousedown", "true"),
         ("tabindex", Toolbar.IsCurrentTabStop(this) ? 0 : -1));
 
     protected override void OnInitialized()

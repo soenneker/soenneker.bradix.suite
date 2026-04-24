@@ -16,8 +16,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
     private readonly IResourceLoader? _resourceLoader;
 
     private const string _modulePath = "./_content/Soenneker.Bradix.Suite/js/bradix.js";
-    private const string _floatingUiCorePath = "_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.core.umd.min.js";
-    private const string _floatingUiDomPath = "_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.dom.umd.min.js";
+    private const string _floatingUiGlobalLoaderPath = "_content/Soenneker.Bradix.Suite/js/bradix/floating-ui-global-loader.js";
 
     public BradixSuiteInterop(IJSRuntime jsRuntime, IModuleImportUtil? moduleImportUtil = null, IResourceLoader? resourceLoader = null)
     {
@@ -488,6 +487,14 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         await module.InvokeVoidAsync("registerPopperContent", cancellationToken, anchor, content, arrow, dotNetReference, options);
     }
 
+    public async ValueTask RegisterPopperContentBySelector(string anchorSelector, ElementReference content, ElementReference arrow,
+        DotNetObjectReference<object> dotNetReference, object options, CancellationToken cancellationToken = default)
+    {
+        await EnsureFloatingUi(cancellationToken);
+        var module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("registerPopperContentBySelector", cancellationToken, anchorSelector, content, arrow, dotNetReference, options);
+    }
+
     public async ValueTask<bool> BeginMenuSubmenuPointerGrace(ElementReference trigger, ElementReference content, double clientX, double clientY,
         DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
@@ -795,8 +802,7 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
         if (_resourceLoader is null)
             return;
 
-        await _resourceLoader.LoadScriptAndWaitForVariable(NormalizeContentUri(_floatingUiCorePath), "FloatingUICore", cancellationToken: cancellationToken);
-        await _resourceLoader.LoadScriptAndWaitForVariable(NormalizeContentUri(_floatingUiDomPath), "FloatingUIDOM", cancellationToken: cancellationToken);
+        await _resourceLoader.LoadScriptAndWaitForVariable(NormalizeContentUri(_floatingUiGlobalLoaderPath), "FloatingUIDOM", cancellationToken: cancellationToken);
     }
 
 }

@@ -27,7 +27,7 @@
 
         Item.RegisterTextElement(_element);
 
-        if (!string.IsNullOrWhiteSpace(Item.TextValue))
+        if (Item.TextValue is not null)
             return;
 
         var text = await Interop.GetTextContent(_element);

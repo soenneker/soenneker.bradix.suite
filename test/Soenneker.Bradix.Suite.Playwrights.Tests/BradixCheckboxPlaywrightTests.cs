@@ -11,13 +11,14 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
     {
     }
 
-[Test]
+    [Test]
     public async ValueTask Checkbox_demo_form_reset_restores_default_checked_and_indeterminate_states()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
+        await WaitForCheckboxRootAsync(page, "#email-updates-checkbox");
 
         ILocator emailUpdates = page.Locator("#email-updates-checkbox");
         ILocator projectPermissions = page.Locator("#project-permissions-checkbox");
@@ -47,13 +48,14 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         await Assertions.Expect(projectPermissions).ToHaveAttributeAsync("data-state", "indeterminate");
     }
 
-[Test]
+    [Test]
     public async ValueTask Checkbox_demo_indeterminate_click_sets_checked_state()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
+        await WaitForCheckboxRootAsync(page, "#ownership-checkbox");
 
         ILocator checkbox = page.Locator("#ownership-checkbox");
 
@@ -67,13 +69,14 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         await Assertions.Expect(page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Indeterminate" })).ToContainTextAsync("State: checked");
     }
 
-[Test]
+    [Test]
     public async ValueTask Checkbox_demo_is_checked_by_default_and_can_toggle()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
+        await WaitForCheckboxRootAsync(page, "#terms-checkbox");
 
         ILocator checkbox = page.Locator("#terms-checkbox");
         await Assertions.Expect(checkbox).ToHaveAttributeAsync("aria-checked", "true");
@@ -82,5 +85,33 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
 
         await Assertions.Expect(checkbox).ToHaveAttributeAsync("aria-checked", "false");
     }
-}
 
+    [Test]
+    public async ValueTask Checkbox_enter_does_not_toggle_but_space_does()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
+        await WaitForCheckboxRootAsync(page, "#terms-checkbox");
+
+        ILocator checkbox = page.Locator("#terms-checkbox");
+        await Assertions.Expect(checkbox).ToHaveAttributeAsync("aria-checked", "true");
+
+        await checkbox.FocusAsync();
+        await Assertions.Expect(checkbox).ToBeFocusedAsync();
+
+        await page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(checkbox).ToHaveAttributeAsync("aria-checked", "true");
+
+        await page.Keyboard.PressAsync("Space");
+        await Assertions.Expect(checkbox).ToHaveAttributeAsync("aria-checked", "false");
+    }
+
+    private static Task WaitForCheckboxRootAsync(IPage page, string selector)
+    {
+        return page.WaitForFunctionAsync(
+            "selector => document.querySelector(selector)?.hasAttribute('data-bradix-checkbox-root') === true",
+            selector);
+    }
+}
