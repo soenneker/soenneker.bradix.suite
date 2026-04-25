@@ -22,8 +22,8 @@
 
     <ItemGroup>
         <PackageReference Include="Soenneker.Playwrights.Extensions.TestPages" Version="4.0.12" />
-        <PackageReference Include="Soenneker.Playwrights.TestHosts" Version="4.0.13" />
-        <PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.26" />
+        <PackageReference Include="Soenneker.Playwrights.TestHosts" Version="4.0.15" />
+        <PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.27" />
         <PackageReference Include="Soenneker.Utils.Test" Version="4.0.316" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.7" />
         <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.819" />
