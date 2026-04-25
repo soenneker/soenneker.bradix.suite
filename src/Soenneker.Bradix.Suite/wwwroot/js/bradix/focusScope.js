@@ -62,6 +62,21 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     previouslyFocusedElement: document.activeElement instanceof HTMLElement ? document.activeElement : null
   };
 
+  const focusLastInsideScope = () => {
+    const target = scope.lastFocusedElement && scope.element.contains(scope.lastFocusedElement)
+      ? scope.lastFocusedElement
+      : scope.element;
+
+    focusElement(target, true);
+
+    queueMicrotask(() => {
+      const activeElement = document.activeElement;
+      if (!scope.paused && scope.trapped && activeElement && !scope.element.contains(activeElement)) {
+        focusElement(target, true);
+      }
+    });
+  };
+
   const focusin = (event) => {
     if (scope.paused || !scope.trapped) {
       return;
@@ -71,7 +86,7 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     if (scope.element.contains(target)) {
       scope.lastFocusedElement = target;
     } else {
-      focusElement(scope.lastFocusedElement || scope.element, true);
+      focusLastInsideScope();
     }
   };
 
@@ -86,7 +101,7 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     }
 
     if (!scope.element.contains(relatedTarget)) {
-      focusElement(scope.lastFocusedElement || scope.element, true);
+      focusLastInsideScope();
     }
   };
 
@@ -162,10 +177,30 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     }
 
     if (!scope.preventMountAutoFocus && !mountAutoFocusPrevented) {
-      focusFirst(removeLinks(getTabbableCandidates(scope.element)), true);
+      const tryFocusFirstCandidate = () => focusFirst(removeLinks(getTabbableCandidates(scope.element)), true);
+      tryFocusFirstCandidate();
       if (document.activeElement === previous) {
         focusElement(scope.element, false);
       }
+
+      const retryMountAutoFocus = () => {
+        if (focusScopeHandlers.get(element) !== handlers || scope.paused) {
+          return;
+        }
+
+        const activeElement = document.activeElement;
+        if (activeElement && scope.element.contains(activeElement) && activeElement !== scope.element) {
+          return;
+        }
+
+        if (!tryFocusFirstCandidate() && (document.activeElement === previous || document.activeElement === document.body)) {
+          focusElement(scope.element, false);
+        }
+      };
+
+      requestAnimationFrame(retryMountAutoFocus);
+      setTimeout(retryMountAutoFocus, 0);
+      setTimeout(retryMountAutoFocus, 50);
     }
   }
 }

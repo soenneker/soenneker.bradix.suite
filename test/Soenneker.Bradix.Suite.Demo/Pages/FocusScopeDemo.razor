@@ -8,16 +8,38 @@
         <p>Provides a managed focus boundary with optional looping and trapping, plus mount and unmount autofocus hooks for overlay families.</p>
     </header>
 
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Looping scope</h3>
-            <BradixFocusScope Class="portal-surface" Loop>
-                <button class="primitive__trigger" type="button">First</button>
-                <button class="primitive__trigger" type="button">Second</button>
-                <button class="primitive__trigger" type="button">Third</button>
-            </BradixFocusScope>
-        </section>
+    <div class="toolbar">
+        <button class="primitive__trigger" type="button" aria-pressed="@(!_showTrap)" @onclick="() => _showTrap = false">Looping scope</button>
+        <button class="primitive__trigger" type="button" aria-pressed="@_showTrap" @onclick="() => _showTrap = true">Trapped scope</button>
+    </div>
 
+    <div class="demo-grid">
+        @if (!_showTrap)
+        {
+            <section class="card stack stack--compact">
+                <h3>Looping scope</h3>
+                <BradixFocusScope Class="portal-surface" Loop>
+                    <button class="primitive__trigger" type="button">First</button>
+                    <button class="primitive__trigger" type="button">Second</button>
+                    <button class="primitive__trigger" type="button">Third</button>
+                </BradixFocusScope>
+            </section>
+        }
+        else
+        {
+            <section class="card stack stack--compact">
+                <h3>Trapped scope</h3>
+                <button id="focus-scope-before-trap" class="primitive__trigger" type="button">Before trap</button>
+                <BradixFocusScope Class="portal-surface" Trapped Loop>
+                    <button id="focus-scope-trap-first" class="primitive__trigger" type="button">Trap first</button>
+                    <button id="focus-scope-trap-second" class="primitive__trigger" type="button">Trap second</button>
+                </BradixFocusScope>
+                <button id="focus-scope-after-trap" class="primitive__trigger" type="button">After trap</button>
+            </section>
+        }
     </div>
 </section>
 
+@code {
+    private bool _showTrap;
+}

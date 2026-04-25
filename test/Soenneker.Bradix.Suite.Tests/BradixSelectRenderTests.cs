@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -316,6 +317,26 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Popper_position_forwards_collision_boundary_selectors_and_sticky()
+    {
+        _ = Render(CreateSelect(defaultOpen: true, position: BradixSelectPosition.Popper, configureContent: content =>
+        {
+            content.AddAttribute(20, nameof(BradixSelectContent.CollisionBoundarySelector), "#select-boundary-a");
+            content.AddAttribute(21, nameof(BradixSelectContent.CollisionBoundarySelectors), new[] { "#select-boundary-b", "#select-boundary-a" });
+            content.AddAttribute(22, nameof(BradixSelectContent.Sticky), "always");
+        }));
+
+        JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+        object? options = invocation.Arguments[4];
+        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
+        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+
+        await Assert.That(selectors).IsEquivalentTo(["#select-boundary-a", "#select-boundary-b"]);
+        await Assert.That(sticky).IsEqualTo("always");
+    }
+
+
+    [Test]
     public async Task Scroll_buttons_follow_viewport_metrics()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, includeScrollButtons: true));
@@ -467,7 +488,8 @@ public sealed class BradixSelectRenderTests : BunitContext
         await Assert.That(prevented).IsTrue();
     }
 
-    private static RenderFragment CreateSelect(bool defaultOpen = false, string? defaultValue = null, string? position = null, bool includeScrollButtons = false)
+    private static RenderFragment CreateSelect(bool defaultOpen = false, string? defaultValue = null, string? position = null, bool includeScrollButtons = false,
+        Action<RenderTreeBuilder>? configureContent = null)
     {
         return builder =>
         {
@@ -492,8 +514,10 @@ public sealed class BradixSelectRenderTests : BunitContext
                 content.AddAttribute(6, nameof(BradixSelectPortal.ChildContent), (RenderFragment)(portal =>
                 {
                     portal.OpenComponent<BradixSelectContent>(0);
-                    if (!string.IsNullOrWhiteSpace(position))
+                    if (position is not null)
                         portal.AddAttribute(1, nameof(BradixSelectContent.Position), position);
+
+                    configureContent?.Invoke(portal);
 
                     portal.AddAttribute(1, nameof(BradixSelectContent.ChildContent), (RenderFragment)(selectContent =>
                     {

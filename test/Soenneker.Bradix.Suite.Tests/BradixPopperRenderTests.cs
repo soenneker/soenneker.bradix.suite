@@ -182,6 +182,50 @@ public sealed class BradixPopperRenderTests : BunitContext
         await Assert.That(dir).IsEqualTo("rtl");
     }
 
+    [Test]
+    public async Task Popper_registers_explicit_collision_boundary_selectors_and_sticky_option()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        module.SetupVoid("registerPopperContent", _ => true);
+        module.SetupVoid("updatePopperContent", _ => true);
+        module.SetupVoid("unregisterPopperContent", _ => true);
+
+        Render(builder =>
+        {
+            builder.OpenComponent<BradixPopper>(0);
+            builder.AddAttribute(1, nameof(BradixPopper.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixPopperAnchor>(0);
+                content.AddAttribute(1, nameof(BradixPopperAnchor.ChildContent), (RenderFragment)(anchor =>
+                {
+                    anchor.OpenElement(0, "button");
+                    anchor.AddContent(1, "Anchor");
+                    anchor.CloseElement();
+                }));
+                content.CloseComponent();
+
+                content.OpenComponent<BradixPopperContent>(2);
+                content.AddAttribute(3, nameof(BradixPopperContent.CollisionBoundarySelector), "#boundary-a");
+                content.AddAttribute(4, nameof(BradixPopperContent.CollisionBoundarySelectors), new[] { "#boundary-b", "#boundary-a" });
+                content.AddAttribute(5, nameof(BradixPopperContent.Sticky), "always");
+                content.AddAttribute(6, nameof(BradixPopperContent.ChildContent), (RenderFragment)(popperContent =>
+                {
+                    popperContent.AddContent(0, "Content");
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        JSRuntimeInvocation invocation = module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+        object? options = invocation.Arguments[4];
+        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
+        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+
+        await Assert.That(selectors).IsEquivalentTo(["#boundary-a", "#boundary-b"]);
+        await Assert.That(sticky).IsEqualTo("always");
+    }
+
     private static RenderFragment CreatePopper()
     {
         return builder =>

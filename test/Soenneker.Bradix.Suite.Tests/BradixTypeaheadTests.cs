@@ -38,6 +38,24 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
+    public async Task Repeated_supplementary_plane_search_matches_radix_string_iterator_behavior()
+    {
+        var emoji = char.ConvertFromUtf32(0x1F600);
+        string? next = BradixTypeaheadMatcher.FindNextMatch([$"{emoji} single", $"{emoji}{emoji} repeated"], $"{emoji}{emoji}");
+
+        await Assert.That(next).IsEqualTo($"{emoji}{emoji} repeated");
+    }
+
+    [Test]
+    public async Task Single_supplementary_plane_search_does_not_exclude_current_match_like_radix()
+    {
+        var emoji = char.ConvertFromUtf32(0x1F600);
+        string? next = BradixTypeaheadMatcher.FindNextMatch([$"{emoji} Alpha", $"{emoji} Beta"], emoji, $"{emoji} Alpha");
+
+        await Assert.That(next).IsNull();
+    }
+
+    [Test]
     public async Task Multi_character_search_can_leave_focus_on_current_match()
     {
         string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "al", "Alpha");

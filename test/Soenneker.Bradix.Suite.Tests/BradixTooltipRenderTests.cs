@@ -175,8 +175,31 @@ public sealed class BradixTooltipRenderTests : BunitContext
         });
     }
 
+    [Test]
+    public async Task Content_forwards_popper_collision_boundary_selectors_and_sticky()
+    {
+        _ = Render(CreateTooltip(defaultOpen: true, configureContent: content =>
+        {
+            content.AddAttribute(20, nameof(BradixTooltipContent.CollisionBoundarySelector), "#tooltip-boundary-a");
+            content.AddAttribute(21, nameof(BradixTooltipContent.CollisionBoundarySelectors), new[] { "#tooltip-boundary-b", "#tooltip-boundary-a" });
+            content.AddAttribute(22, nameof(BradixTooltipContent.Sticky), "always");
+            content.AddAttribute(23, nameof(BradixTooltipContent.HideWhenDetached), true);
+        }));
+
+        JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+        object? options = invocation.Arguments[4];
+        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
+        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+        var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
+
+        await Assert.That(selectors).IsEquivalentTo(["#tooltip-boundary-a", "#tooltip-boundary-b"]);
+        await Assert.That(sticky).IsEqualTo("always");
+        await Assert.That(hideWhenDetached).IsTrue();
+    }
+
     private RenderFragment CreateTooltip(string triggerText = "Trigger", string contentText = "Tooltip body", bool defaultOpen = false, bool includeArrow = false,
-        string? ariaLabel = null, Action<BradixPointerDownOutsideEventArgs>? onPointerDownOutsideDetailed = null)
+        string? ariaLabel = null, Action<BradixPointerDownOutsideEventArgs>? onPointerDownOutsideDetailed = null,
+        Action<RenderTreeBuilder>? configureContent = null)
     {
         return builder =>
         {
@@ -198,6 +221,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
                     portal.OpenComponent<BradixTooltipContent>(0);
                     portal.AddAttribute(1, nameof(BradixTooltipContent.Class), "tooltip-content");
                     portal.AddAttribute(2, nameof(BradixTooltipContent.AriaLabel), ariaLabel);
+                    configureContent?.Invoke(portal);
                     if (onPointerDownOutsideDetailed is not null)
                     {
                         portal.AddAttribute(3, nameof(BradixTooltipContent.OnPointerDownOutsideDetailed),

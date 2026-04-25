@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -189,7 +190,29 @@ public sealed class BradixPopoverRenderTests : BunitContext
         await Assert.That(cut.FindAll("[role='dialog']")).HasSingleItem();
     }
 
-    private static RenderFragment CreatePopover(bool defaultOpen = false, bool modal = false, bool customAnchor = false, bool closeOnEscapeKeyDown = true, bool closeDisabled = false)
+    [Test]
+    public async Task Content_forwards_popper_collision_boundary_selectors_and_sticky()
+    {
+        _ = Render(CreatePopover(defaultOpen: true, configureContent: content =>
+        {
+            content.AddAttribute(20, nameof(BradixPopoverContent.CollisionBoundarySelector), "#popover-boundary-a");
+            content.AddAttribute(21, nameof(BradixPopoverContent.CollisionBoundarySelectors), new[] { "#popover-boundary-b", "#popover-boundary-a" });
+            content.AddAttribute(22, nameof(BradixPopoverContent.Sticky), "always");
+            content.AddAttribute(23, nameof(BradixPopoverContent.HideWhenDetached), true);
+        }));
+
+        JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+        object? options = invocation.Arguments[4];
+        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
+        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+        var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
+
+        await Assert.That(selectors).IsEquivalentTo(["#popover-boundary-a", "#popover-boundary-b"]);
+        await Assert.That(sticky).IsEqualTo("always");
+        await Assert.That(hideWhenDetached).IsTrue();
+    }
+
+    private static RenderFragment CreatePopover(bool defaultOpen = false, bool modal = false, bool customAnchor = false, bool closeOnEscapeKeyDown = true, bool closeDisabled = false, Action<Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder>? configureContent = null)
     {
         return builder =>
         {
@@ -228,6 +251,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
                 content.OpenComponent<BradixPopoverContent>(6);
                 content.AddAttribute(7, nameof(BradixPopoverContent.Class), "popover-content");
                 content.AddAttribute(8, nameof(BradixPopoverContent.CloseOnEscapeKeyDown), closeOnEscapeKeyDown);
+                configureContent?.Invoke(content);
                 content.AddAttribute(9, nameof(BradixPopoverContent.ChildContent), (RenderFragment)(popoverContent =>
                 {
                     popoverContent.OpenElement(0, "div");

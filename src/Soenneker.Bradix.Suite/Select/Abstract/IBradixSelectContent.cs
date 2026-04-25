@@ -28,7 +28,7 @@ public interface IBradixSelectContent : IAsyncDisposable {
     bool ForceMount { get; set; }
 
     /// <summary>Gets or sets the positioning mode.</summary>
-    BradixSelectPosition Position { get; set; }
+    string Position { get; set; }
 
     /// <summary>Gets or sets the popper side.</summary>
     BradixSide Side { get; set; }
@@ -50,6 +50,15 @@ public interface IBradixSelectContent : IAsyncDisposable {
 
     /// <summary>Gets or sets collision padding for the popper.</summary>
     double CollisionPadding { get; set; }
+
+    /// <summary>Gets or sets a CSS selector for an explicit Floating UI collision boundary.</summary>
+    string? CollisionBoundarySelector { get; set; }
+
+    /// <summary>Gets or sets CSS selectors for explicit Floating UI collision boundaries.</summary>
+    IReadOnlyList<string>? CollisionBoundarySelectors { get; set; }
+
+    /// <summary>Gets or sets how strongly shifted popper content sticks to the collision boundary.</summary>
+    string Sticky { get; set; }
 
     /// <summary>Gets or sets whether the popper content hides when detached.</summary>
     bool HideWhenDetached { get; set; }

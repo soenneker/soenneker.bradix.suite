@@ -28,6 +28,15 @@ public interface IBradixMenubarSubContent
     /// <summary>Gets or sets the padding used when resolving collisions.</summary>
     double CollisionPadding { get; set; }
 
+    /// <summary>CSS selector for an explicit collision boundary element.</summary>
+    string? CollisionBoundarySelector { get; set; }
+
+    /// <summary>CSS selectors for explicit collision boundary elements.</summary>
+    IReadOnlyList<string>? CollisionBoundarySelectors { get; set; }
+
+    /// <summary>Controls whether collision limiting is partial or always sticky.</summary>
+    string Sticky { get; set; }
+
     /// <summary>Gets or sets a value indicating whether to hide content when detached from the anchor.</summary>
     bool HideWhenDetached { get; set; }
 

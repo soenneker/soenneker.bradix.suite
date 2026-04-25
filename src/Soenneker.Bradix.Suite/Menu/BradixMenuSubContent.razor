@@ -1,5 +1,7 @@
 @namespace Soenneker.Bradix
 
+@using System.Collections.Generic
+
 @implements IBradixMenuSubContent
 
 <BradixDismissableLayerBranch>
@@ -13,6 +15,9 @@
                        ArrowPadding="ArrowPadding"
                        AvoidCollisions="AvoidCollisions"
                        CollisionPadding="CollisionPadding"
+                       CollisionBoundarySelector="@CollisionBoundarySelector"
+                       CollisionBoundarySelectors="@CollisionBoundarySelectors"
+                       Sticky="@Sticky"
                        HideWhenDetached="HideWhenDetached"
                        Class="@Class"
                        Style="@Style"
@@ -65,6 +70,15 @@
 
     [Parameter]
     public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public string? CollisionBoundarySelector { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? CollisionBoundarySelectors { get; set; }
+
+    [Parameter]
+    public string Sticky { get; set; } = "partial";
 
     [Parameter]
     public bool HideWhenDetached { get; set; }

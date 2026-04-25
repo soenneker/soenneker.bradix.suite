@@ -184,6 +184,54 @@ export function registerSliderPointerBridge(element, dotNetRef) {
 
   unregisterSliderPointerBridge(element);
   let suppressClickUntil = 0;
+  let resizeObserver = null;
+  let mutationObserver = null;
+
+  const updateThumbOffsets = () => {
+    const sliderThumbs = Array.from(element.querySelectorAll('[role="slider"]'));
+
+    sliderThumbs.forEach((thumb) => {
+      const wrapper = thumb.parentElement;
+      if (!wrapper) {
+        return;
+      }
+
+      const orientation = thumb.getAttribute("data-orientation") || "horizontal";
+      const rect = thumb.getBoundingClientRect();
+      const size = orientation === "vertical" ? rect.height : rect.width;
+      const percent = Number.parseFloat(wrapper.style.getPropertyValue("--bradix-slider-thumb-percent"));
+      const direction = Number.parseFloat(wrapper.style.getPropertyValue("--bradix-slider-thumb-direction")) || 1;
+
+      if (!Number.isFinite(size) || size <= 0 || !Number.isFinite(percent)) {
+        wrapper.style.setProperty("--bradix-slider-thumb-in-bounds-offset", "0px");
+        return;
+      }
+
+      const halfSize = size / 2;
+      const offsetAtPercent = (percent / 50) * halfSize;
+      const offset = (halfSize - offsetAtPercent * direction) * direction;
+      wrapper.style.setProperty("--bradix-slider-thumb-in-bounds-offset", `${offset}px`);
+    });
+  };
+
+  updateThumbOffsets();
+
+  if (typeof ResizeObserver === "function") {
+    resizeObserver = new ResizeObserver(updateThumbOffsets);
+    resizeObserver.observe(element);
+    Array.from(element.querySelectorAll('[role="slider"]')).forEach((thumb) => resizeObserver.observe(thumb));
+  }
+
+  if (typeof MutationObserver === "function") {
+    mutationObserver = new MutationObserver(updateThumbOffsets);
+    mutationObserver.observe(element, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["aria-valuenow", "data-orientation"]
+    });
+  }
+
   const getFractions = (event) => {
     const rect = element.getBoundingClientRect();
     const x = rect.width <= 0 ? 0 : (event.clientX - rect.left) / rect.width;
@@ -286,7 +334,7 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     await dotNetRef.invokeMethodAsync("HandlePointerEnd");
   };
 
-  sliderPointerHandlers.set(element, { pointerdown, click, pointermove: null, pointerup: null, pointercancel: null });
+  sliderPointerHandlers.set(element, { pointerdown, click, pointermove: null, pointerup: null, pointercancel: null, resizeObserver, mutationObserver });
   element.addEventListener("pointerdown", pointerdown);
   element.addEventListener("click", click);
 }
@@ -311,6 +359,14 @@ export function unregisterSliderPointerBridge(element) {
 
   if (handlers.pointercancel) {
     document.removeEventListener("pointercancel", handlers.pointercancel);
+  }
+
+  if (handlers.resizeObserver) {
+    handlers.resizeObserver.disconnect();
+  }
+
+  if (handlers.mutationObserver) {
+    handlers.mutationObserver.disconnect();
   }
 
   sliderPointerHandlers.delete(element);

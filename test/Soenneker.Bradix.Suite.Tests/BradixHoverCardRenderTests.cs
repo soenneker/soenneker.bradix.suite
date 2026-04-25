@@ -5,6 +5,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Soenneker.Bradix.Suite.Tests;
@@ -142,9 +143,32 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         await Assert.That(cut.FindAll(".tooltip-arrow-shape")).HasSingleItem();
     }
 
+    [Test]
+    public async Task Content_forwards_popper_collision_boundary_selectors_and_sticky()
+    {
+        _ = Render(CreateHoverCard(defaultOpen: true, configureContent: content =>
+        {
+            content.AddAttribute(20, nameof(BradixHoverCardContent.CollisionBoundarySelector), "#hover-card-boundary-a");
+            content.AddAttribute(21, nameof(BradixHoverCardContent.CollisionBoundarySelectors), new[] { "#hover-card-boundary-b", "#hover-card-boundary-a" });
+            content.AddAttribute(22, nameof(BradixHoverCardContent.Sticky), "always");
+            content.AddAttribute(23, nameof(BradixHoverCardContent.HideWhenDetached), true);
+        }));
+
+        JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+        object? options = invocation.Arguments[4];
+        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
+        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+        var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
+
+        await Assert.That(selectors).IsEquivalentTo(["#hover-card-boundary-a", "#hover-card-boundary-b"]);
+        await Assert.That(sticky).IsEqualTo("always");
+        await Assert.That(hideWhenDetached).IsTrue();
+    }
+
     private RenderFragment CreateHoverCard(bool defaultOpen = false, int openDelay = 0, bool includeArrow = false,
         Action<BradixInteractOutsideEventArgs>? onInteractOutsideDetailed = null,
-        Action<BradixFocusOutsideEventArgs>? onFocusOutsideDetailed = null)
+        Action<BradixFocusOutsideEventArgs>? onFocusOutsideDetailed = null,
+        Action<RenderTreeBuilder>? configureContent = null)
     {
         return builder =>
         {
@@ -165,6 +189,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
                 {
                     portal.OpenComponent<BradixHoverCardContent>(0);
                     portal.AddAttribute(1, nameof(BradixHoverCardContent.Class), "hover-card-content");
+                    configureContent?.Invoke(portal);
                     if (onInteractOutsideDetailed is not null)
                     {
                         portal.AddAttribute(2, nameof(BradixHoverCardContent.OnInteractOutsideDetailed),

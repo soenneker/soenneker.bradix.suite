@@ -1,5 +1,8 @@
 @namespace Soenneker.Bradix
 
+@using System
+@using System.Collections.Generic
+@using System.Linq
 @using Microsoft.JSInterop
 
 @inherits BradixComponent
@@ -34,7 +37,7 @@
     private bool _isPositioned;
     private string _transformOriginX = "50%";
     private string _transformOriginY = "50%";
-    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir)? _lastOptions;
+    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir)? _lastOptions;
     private bool _lastHadArrow;
     private (double X, double Y)? _lastVirtualAnchor;
     private string? _lastAnchorSelector;
@@ -65,6 +68,15 @@
 
     [Parameter]
     public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public string? CollisionBoundarySelector { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? CollisionBoundarySelectors { get; set; }
+
+    [Parameter]
+    public string Sticky { get; set; } = "partial";
 
     [Parameter]
     public bool HideWhenDetached { get; set; }
@@ -236,11 +248,29 @@
         return MergeStyleValues(baseStyle, Style)!;
     }
 
-    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir) CurrentOptions
-        => (Side.Value, SideOffset, Align.Value, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, HideWhenDetached,
+    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) CurrentOptions
+        => (Side.Value, SideOffset, Align.Value, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, CreateBoundarySelectorKey(), NormalizeSticky(Sticky), HideWhenDetached,
             Direction == "rtl" ? "rtl" : "ltr");
 
-    private static object CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, bool HideWhenDetached, string Dir) options)
+    private static string NormalizeSticky(string? sticky) => string.Equals(sticky, "always", StringComparison.OrdinalIgnoreCase) ? "always" : "partial";
+
+    private string CreateBoundarySelectorKey()
+    {
+        if (string.IsNullOrWhiteSpace(CollisionBoundarySelector) && CollisionBoundarySelectors is null)
+            return string.Empty;
+
+        List<string> selectors = [];
+
+        if (!string.IsNullOrWhiteSpace(CollisionBoundarySelector))
+            selectors.Add(CollisionBoundarySelector!);
+
+        if (CollisionBoundarySelectors is not null)
+            selectors.AddRange(CollisionBoundarySelectors.Where(selector => !string.IsNullOrWhiteSpace(selector)));
+
+        return string.Join("\n", selectors.Distinct(StringComparer.Ordinal));
+    }
+
+    private static object CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options)
     {
         return new
         {
@@ -251,6 +281,8 @@
             arrowPadding = options.ArrowPadding,
             avoidCollisions = options.AvoidCollisions,
             collisionPadding = options.CollisionPadding,
+            collisionBoundarySelectors = options.CollisionBoundarySelectors.Length == 0 ? Array.Empty<string>() : options.CollisionBoundarySelectors.Split('\n'),
+            sticky = options.Sticky,
             hideWhenDetached = options.HideWhenDetached,
             dir = options.Dir
         };

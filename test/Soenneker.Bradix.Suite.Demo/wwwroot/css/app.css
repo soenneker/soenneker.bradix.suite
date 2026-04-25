@@ -2250,6 +2250,15 @@ input[type="radio"] {
     z-index: 50;
 }
 
+.popper-boundary {
+    position: relative;
+    width: 260px;
+    min-height: 160px;
+    padding: var(--space-4);
+    border: 1px dashed rgba(71, 85, 105, 0.45);
+    border-radius: var(--radius-md);
+}
+
 .popper-arrow {
     width: 0;
     height: 0;

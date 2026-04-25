@@ -37,6 +37,36 @@ function getCollisionPadding(options) {
   };
 }
 
+function getCollisionBoundarySelectors(options) {
+  const selectors = [];
+
+  if (typeof options.collisionBoundarySelector === "string" && options.collisionBoundarySelector.trim()) {
+    selectors.push(options.collisionBoundarySelector);
+  }
+
+  if (Array.isArray(options.collisionBoundarySelectors)) {
+    for (const selector of options.collisionBoundarySelectors) {
+      if (typeof selector === "string" && selector.trim()) {
+        selectors.push(selector);
+      }
+    }
+  }
+
+  return [...new Set(selectors)];
+}
+
+function getCollisionBoundary(options) {
+  const boundary = [];
+
+  for (const selector of getCollisionBoundarySelectors(options)) {
+    for (const element of document.querySelectorAll(selector)) {
+      boundary.push(element);
+    }
+  }
+
+  return boundary;
+}
+
 function alignToOrigin(align) {
   return {
     start: "0%",
@@ -102,6 +132,8 @@ async function updateRegisteredPopperContent(content) {
   const arrowWidth = arrowRect?.width || 0;
   const arrowHeight = arrowRect?.height || 0;
   const collisionPadding = getCollisionPadding(options);
+  const collisionBoundary = getCollisionBoundary(options);
+  const hasExplicitBoundaries = collisionBoundary.length > 0;
   let availableWidth = 0;
   let availableHeight = 0;
   let anchorWidth = 0;
@@ -109,7 +141,8 @@ async function updateRegisteredPopperContent(content) {
 
   const detectOverflowOptions = {
     padding: collisionPadding,
-    boundary: [],
+    boundary: collisionBoundary,
+    rootBoundary: hasExplicitBoundaries ? "document" : "viewport",
     altBoundary: false
   };
 

@@ -33,6 +33,15 @@ public interface IBradixHoverCardContent : IAsyncDisposable {
     /// <summary>Padding used when resolving collisions.</summary>
     double CollisionPadding { get; set; }
 
+    /// <summary>CSS selector for an explicit collision boundary element.</summary>
+    string? CollisionBoundarySelector { get; set; }
+
+    /// <summary>CSS selectors for explicit collision boundary elements.</summary>
+    IReadOnlyList<string>? CollisionBoundarySelectors { get; set; }
+
+    /// <summary>Controls whether collision limiting is partial or always sticky.</summary>
+    string Sticky { get; set; }
+
     /// <summary>When true, hides the content if the anchor detaches.</summary>
     bool HideWhenDetached { get; set; }
 

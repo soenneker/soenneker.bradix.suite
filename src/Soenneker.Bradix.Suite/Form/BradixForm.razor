@@ -33,6 +33,15 @@
     [Parameter]
     public EventCallback OnClearServerErrors { get; set; }
 
+    [Parameter]
+    public EventCallback<EventArgs> OnSubmit { get; set; }
+
+    [Parameter]
+    public EventCallback<EventArgs> OnReset { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyList<string>> OnInvalid { get; set; }
+
     private Dictionary<string, object> FormAttributes => BuildAttributes();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -221,14 +230,20 @@
         }
     }
 
-    private async Task HandleSubmit()
+    private async Task HandleSubmit(EventArgs args)
     {
+        if (OnSubmit.HasDelegate)
+            await OnSubmit.InvokeAsync(args);
+
         if (OnClearServerErrors.HasDelegate)
             await OnClearServerErrors.InvokeAsync();
     }
 
-    private async Task HandleReset()
+    private async Task HandleReset(EventArgs args)
     {
+        if (OnReset.HasDelegate)
+            await OnReset.InvokeAsync(args);
+
         await Interop.ClearFormCustomValidity(_formElement);
 
         _validityMap.Clear();
@@ -302,7 +317,9 @@
     [JSInvokable]
     public async Task HandleInvalidControls(string[] fieldNames)
     {
-        foreach (var fieldName in fieldNames.Distinct(StringComparer.Ordinal))
+        string[] distinctFieldNames = fieldNames.Distinct(StringComparer.Ordinal).ToArray();
+
+        foreach (var fieldName in distinctFieldNames)
         {
             if (!_controlsByField.TryGetValue(fieldName, out var element))
                 continue;
@@ -310,5 +327,8 @@
             var snapshot = await Interop.GetFormControlState(element);
             await UpdateControlState(element, fieldName, snapshot);
         }
+
+        if (OnInvalid.HasDelegate)
+            await OnInvalid.InvokeAsync(distinctFieldNames);
     }
 }

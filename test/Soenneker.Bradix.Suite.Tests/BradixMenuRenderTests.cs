@@ -6,6 +6,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -606,10 +607,61 @@ public sealed class BradixMenuRenderTests : BunitContext
         });
     }
 
+    [Test]
+    public async Task Content_forwards_popper_collision_boundary_selectors_and_sticky()
+    {
+        _ = Render(CreateMenu(configureContent: content =>
+        {
+            content.AddAttribute(20, nameof(BradixMenuContent.CollisionBoundarySelector), "#menu-boundary-a");
+            content.AddAttribute(21, nameof(BradixMenuContent.CollisionBoundarySelectors), new[] { "#menu-boundary-b", "#menu-boundary-a" });
+            content.AddAttribute(22, nameof(BradixMenuContent.Sticky), "always");
+            content.AddAttribute(23, nameof(BradixMenuContent.HideWhenDetached), true);
+        }));
+
+        JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+        object? options = invocation.Arguments[4];
+        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
+        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+        var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
+
+        await Assert.That(selectors).IsEquivalentTo(["#menu-boundary-a", "#menu-boundary-b"]);
+        await Assert.That(sticky).IsEqualTo("always");
+        await Assert.That(hideWhenDetached).IsTrue();
+    }
+
+    [Test]
+    public async Task SubContent_forwards_popper_collision_boundary_selectors_and_sticky()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu(configureSubContent: content =>
+        {
+            content.AddAttribute(20, nameof(BradixMenuSubContent.CollisionBoundarySelector), "#submenu-boundary-a");
+            content.AddAttribute(21, nameof(BradixMenuSubContent.CollisionBoundarySelectors), new[] { "#submenu-boundary-b", "#submenu-boundary-a" });
+            content.AddAttribute(22, nameof(BradixMenuSubContent.Sticky), "always");
+            content.AddAttribute(23, nameof(BradixMenuSubContent.HideWhenDetached), true);
+        }));
+
+        await cut.Find("[aria-haspopup='menu']").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("true");
+        });
+
+        JSRuntimeInvocation invocation = _module.Invocations.Last(call => call.Identifier == "registerPopperContent");
+        object? options = invocation.Arguments[4];
+        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
+        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+        var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
+
+        await Assert.That(selectors).IsEquivalentTo(["#submenu-boundary-a", "#submenu-boundary-b"]);
+        await Assert.That(sticky).IsEqualTo("always");
+        await Assert.That(hideWhenDetached).IsTrue();
+    }
+
     private RenderFragment CreateMenu(bool includeArrow = false, bool disableFirstItem = false, Action? onSelect = null,
         bool? open = null,
         bool defaultOpen = true,
-        Action<BradixMenuItemSelectEventArgs>? onSelectDetailed = null)
+        Action<BradixMenuItemSelectEventArgs>? onSelectDetailed = null,
+        Action<RenderTreeBuilder>? configureContent = null)
     {
         return builder =>
         {
@@ -634,6 +686,7 @@ public sealed class BradixMenuRenderTests : BunitContext
                 content.AddAttribute(3, nameof(BradixMenuPortal.ChildContent), (RenderFragment)(portal =>
                 {
                     portal.OpenComponent<BradixMenuContent>(0);
+                    configureContent?.Invoke(portal);
                     portal.AddAttribute(1, nameof(BradixMenuContent.ChildContent), (RenderFragment)(menuContent =>
                     {
                         menuContent.OpenComponent<BradixMenuItem>(0);
@@ -795,7 +848,8 @@ public sealed class BradixMenuRenderTests : BunitContext
 
     private static RenderFragment CreateSubmenuMenu(
         EventCallback<BradixFocusOutsideEventArgs> onSubFocusOutsideDetailed = default,
-        EventCallback<KeyboardEventArgs> onSubContentKeyDown = default)
+        EventCallback<KeyboardEventArgs> onSubContentKeyDown = default,
+        Action<RenderTreeBuilder>? configureSubContent = null)
     {
         return builder =>
         {
@@ -836,6 +890,7 @@ public sealed class BradixMenuRenderTests : BunitContext
                             sub.AddAttribute(4, nameof(BradixMenuPortal.ChildContent), (RenderFragment)(portalContent =>
                             {
                                 portalContent.OpenComponent<BradixMenuSubContent>(0);
+                                configureSubContent?.Invoke(portalContent);
                                 if (onSubFocusOutsideDetailed.HasDelegate)
                                     portalContent.AddAttribute(1, nameof(BradixMenuSubContent.OnFocusOutsideDetailed), onSubFocusOutsideDetailed);
                                 if (onSubContentKeyDown.HasDelegate)

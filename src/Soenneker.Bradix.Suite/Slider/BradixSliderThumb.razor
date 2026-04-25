@@ -61,21 +61,25 @@
             var percent = Slider.GetPercentForValue(Value.Value);
             string startEdge;
             string transform;
+            var direction = 1;
 
             if (Slider.Orientation == BradixOrientation.Horizontal)
             {
                 var fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
                 startEdge = fromLeft ? "left" : "right";
                 transform = "translateX(-50%)";
+                direction = fromLeft ? 1 : -1;
             }
             else
             {
                 var fromBottom = !Slider.Inverted;
                 startEdge = fromBottom ? "bottom" : "top";
                 transform = "translateY(50%)";
+                direction = fromBottom ? 1 : -1;
             }
 
-            var style = $"position: absolute; {startEdge}: {percent.ToString(System.Globalization.CultureInfo.InvariantCulture)}%; transform: {transform};";
+            var percentText = percent.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var style = $"--bradix-slider-thumb-percent: {percentText}; --bradix-slider-thumb-direction: {direction}; position: absolute; {startEdge}: calc({percentText}% + var(--bradix-slider-thumb-in-bounds-offset, 0px)); transform: {transform};";
             return BuildAttributes(("style", style));
         }
     }

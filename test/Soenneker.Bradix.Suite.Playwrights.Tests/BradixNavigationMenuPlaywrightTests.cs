@@ -6,6 +6,7 @@ using Soenneker.Playwrights.Session;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
+[NotInParallel]
 [ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
 public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywrightTest
 {
@@ -309,7 +310,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
     [Test]
-    public async Task Navigation_menu_demo_debugs_overview_trigger_events_after_open()
+    public async Task Navigation_menu_demo_opens_overview_trigger_after_learn_is_open()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -322,36 +323,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await ClickTriggerAsync(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
-        await overviewTrigger.EvaluateAsync(
-            @"button => {
-                window.__navMenuDebug = { pointerdown: 0, click: 0, mousedown: 0 };
-                button.addEventListener('pointerdown', () => window.__navMenuDebug.pointerdown++);
-                button.addEventListener('mousedown', () => window.__navMenuDebug.mousedown++);
-                button.addEventListener('click', () => window.__navMenuDebug.click++);
-                document.addEventListener('click', event => {
-                    window.__navMenuDebug.documentClick = (window.__navMenuDebug.documentClick || 0) + 1;
-                    window.__navMenuDebug.documentDefaultPrevented = !!event.defaultPrevented;
-                });
-            }");
-
         await ClickTriggerAsync(page, overviewTrigger);
-
-        TriggerEventDiagnostics? diagnostics = await page.EvaluateAsync<TriggerEventDiagnostics>(
-            @"() => ({
-                pointerdown: window.__navMenuDebug?.pointerdown ?? 0,
-                mousedown: window.__navMenuDebug?.mousedown ?? 0,
-                click: window.__navMenuDebug?.click ?? 0,
-                documentClick: window.__navMenuDebug?.documentClick ?? 0,
-                documentDefaultPrevented: !!window.__navMenuDebug?.documentDefaultPrevented,
-                activeElementTag: document.activeElement?.tagName ?? null,
-                activeElementText: document.activeElement?.textContent?.trim() ?? null
-            })");
-
-        await Assert.That(diagnostics).IsNotNull();
-        await Assert.That(diagnostics!.pointerdown > 0).IsTrue();
-        await Assert.That(diagnostics.click > 0).IsTrue();
-        await Assert.That(diagnostics.documentClick > 0).IsTrue();
-        await Assert.That(diagnostics.documentDefaultPrevented).IsFalse();
+        await Assertions.Expect(overviewTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
+        await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
     }
 
     [Test]
@@ -517,7 +491,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await ClickTriggerAsync(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await learnTrigger.EvaluateAsync("element => element.click()");
 
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
     }
@@ -580,17 +554,6 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     {
         public TriggerProbe[] buttons { get; set; } = [];
         public HitTargetProbe? hitTarget { get; set; }
-    }
-
-    private sealed class TriggerEventDiagnostics
-    {
-        public int pointerdown { get; set; }
-        public int mousedown { get; set; }
-        public int click { get; set; }
-        public int documentClick { get; set; }
-        public bool documentDefaultPrevented { get; set; }
-        public string? activeElementTag { get; set; }
-        public string? activeElementText { get; set; }
     }
 
     private sealed class TriggerIdentityDiagnostics

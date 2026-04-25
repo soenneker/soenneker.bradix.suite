@@ -54,6 +54,9 @@
                                              ArrowPadding="@ArrowPadding"
                                              AvoidCollisions="@AvoidCollisions"
                                              CollisionPadding="@CollisionPadding"
+                                             CollisionBoundarySelector="@CollisionBoundarySelector"
+                                             CollisionBoundarySelectors="@CollisionBoundarySelectors"
+                                             Sticky="@Sticky"
                                              HideWhenDetached="@HideWhenDetached"
                                              Style="@PositionerStyle"
                                              OnPlaced="@OnPlaced">
@@ -113,7 +116,7 @@ else
     public bool ForceMount { get; set; }
 
     [Parameter]
-    public BradixSelectPosition Position { get; set; } = BradixSelectPosition.ItemAligned;
+    public string Position { get; set; } = BradixSelectPosition.ItemAligned;
 
     [Parameter]
     public BradixSide Side { get; set; } = BradixSide.Bottom;
@@ -135,6 +138,15 @@ else
 
     [Parameter]
     public double CollisionPadding { get; set; }
+
+    [Parameter]
+    public string? CollisionBoundarySelector { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? CollisionBoundarySelectors { get; set; }
+
+    [Parameter]
+    public string Sticky { get; set; } = "partial";
 
     [Parameter]
     public bool HideWhenDetached { get; set; }
@@ -164,7 +176,7 @@ else
 
     internal bool CanScrollDown => _viewportRegistered && Math.Ceiling(_viewportScrollTop) < Math.Max(_viewportScrollHeight - _viewportHeight, 0);
 
-    private bool UseItemAlignedPosition => Position != BradixSelectPosition.Popper;
+    private bool UseItemAlignedPosition => !string.Equals(Position, BradixSelectPosition.Popper, StringComparison.OrdinalIgnoreCase);
     
     private bool ShouldDisableOutsidePointerEvents => Select?.CurrentOpen == true;
 

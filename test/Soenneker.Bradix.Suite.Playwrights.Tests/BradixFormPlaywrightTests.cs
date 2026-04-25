@@ -14,7 +14,7 @@ public sealed class BradixFormPlaywrightTests : BradixComponentPlaywrightTest
     {
     }
 
-[Test]
+    [Test]
     public async ValueTask Form_demo_surfaces_required_and_type_mismatch_messages()
     {
         await using BrowserSession session = await CreateSession();
@@ -49,6 +49,45 @@ public sealed class BradixFormPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(form).ToContainTextAsync("Please provide a valid email", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
         await Assertions.Expect(email).ToHaveAttributeAsync("aria-describedby", new Regex(".+"));
         await Assertions.Expect(email).ToHaveAttributeAsync("title", string.Empty);
+
+        sawPageError.Should().BeFalse();
+        consoleErrors.Should().BeEmpty();
+    }
+
+    [Test]
+    public async ValueTask Form_demo_runs_async_custom_matcher_through_browser_events()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+        List<string> consoleErrors = [];
+        var sawPageError = false;
+
+        page.Console += (_, message) =>
+        {
+            if (message.Type == "error")
+                consoleErrors.Add(message.Text);
+        };
+
+        page.PageError += (_, _) => sawPageError = true;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/form"));
+
+        ILocator form = page.Locator("form");
+        ILocator username = page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions { Name = "Username", Exact = true });
+        ILocator question = page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions { Name = "Question", Exact = true });
+
+        await username.FillAsync("taken");
+        await question.FocusAsync();
+
+        await Assertions.Expect(form).ToContainTextAsync("Username is already taken", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
+        await Assertions.Expect(username).ToHaveJSPropertyAsync("validationMessage", "This value is not valid");
+        await Assertions.Expect(username).ToHaveAttributeAsync("aria-describedby", new Regex(".+"));
+
+        await username.FillAsync("available");
+        await question.FocusAsync();
+
+        await Assertions.Expect(form).Not.ToContainTextAsync("Username is already taken", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
+        await Assertions.Expect(username).ToHaveJSPropertyAsync("validationMessage", string.Empty);
 
         sawPageError.Should().BeFalse();
         consoleErrors.Should().BeEmpty();

@@ -296,6 +296,56 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Submit_and_reset_compose_public_callbacks_with_server_error_clearing()
+    {
+        List<string> events = [];
+
+        IRenderedComponent<BradixForm> cut = Render<BradixForm>(parameters => parameters
+            .Add(form => form.OnSubmit, EventCallback.Factory.Create<EventArgs>(this, () => events.Add("submit")))
+            .Add(form => form.OnReset, EventCallback.Factory.Create<EventArgs>(this, () => events.Add("reset")))
+            .Add(form => form.OnClearServerErrors, EventCallback.Factory.Create(this, () => events.Add("clear")))
+            .Add(form => form.ChildContent, (RenderFragment)(builder =>
+            {
+                builder.OpenComponent<BradixFormSubmit>(0);
+                builder.AddAttribute(1, nameof(BradixFormSubmit.ChildContent), (RenderFragment)(contentBuilder =>
+                {
+                    contentBuilder.AddContent(0, "Send");
+                }));
+                builder.CloseComponent();
+            })));
+
+        await cut.Find("form").TriggerEventAsync("onsubmit", EventArgs.Empty);
+        await cut.Find("form").TriggerEventAsync("onreset", EventArgs.Empty);
+
+        await Assert.That(events).IsEquivalentTo(["submit", "clear", "reset", "clear"]);
+    }
+
+    [Test]
+    public async Task Invalid_controls_are_reported_through_public_callback_once_per_field()
+    {
+        IReadOnlyList<string>? invalidFields = null;
+
+        IRenderedComponent<BradixForm> cut = Render<BradixForm>(parameters => parameters
+            .Add(form => form.OnInvalid, EventCallback.Factory.Create<IReadOnlyList<string>>(this, fields => invalidFields = fields))
+            .Add(form => form.ChildContent, (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixFormField>(0);
+                contentBuilder.AddAttribute(1, nameof(BradixFormField.Name), "email");
+                contentBuilder.AddAttribute(2, nameof(BradixFormField.ChildContent), (RenderFragment)(fieldBuilder =>
+                {
+                    fieldBuilder.OpenComponent<BradixFormControl>(0);
+                    fieldBuilder.CloseComponent();
+                }));
+                contentBuilder.CloseComponent();
+            })));
+
+        await cut.Instance.HandleInvalidControls(["email", "email"]);
+
+        await Assert.That(invalidFields).IsNotNull();
+        await Assert.That(invalidFields!).IsEquivalentTo(["email"]);
+    }
+
+    [Test]
     public async Task Server_invalid_control_requests_focus_bridge_on_render()
     {
         Render<BradixForm>(parameters => parameters

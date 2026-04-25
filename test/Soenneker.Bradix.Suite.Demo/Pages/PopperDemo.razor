@@ -1,5 +1,7 @@
 @page "/popper"
 
+@using System.Collections.Generic
+
 <PageTitle>Bradix Popper</PageTitle>
 
 <section class="stack">
@@ -11,29 +13,33 @@
     <div class="demo-grid">
         <section class="card stack stack--compact">
             <h3>Default placement</h3>
-            <BradixPopper>
-                <BradixPopperAnchor>
-                    <button class="primitive__trigger" type="button">Anchor</button>
-                </BradixPopperAnchor>
+            <div id="popper-collision-boundary" class="popper-boundary">
+                <BradixPopper>
+                    <BradixPopperAnchor>
+                        <button class="primitive__trigger" type="button">Anchor</button>
+                    </BradixPopperAnchor>
 
-                <BradixPopperContent Class="popper-content"
-                                     Side="@BradixSide.Bottom"
-                                     Align="@BradixAlignment.Center"
-                                     SideOffset="8"
-                                     CollisionPadding="12"
-                                     OnPlaced="HandlePlaced">
-                    <p class="state-line">Placed: @_placedCount time(s)</p>
-                    <BradixPopperArrow Class="popper-arrow">
-                        <span class="popper-arrow-shape"></span>
-                    </BradixPopperArrow>
-                </BradixPopperContent>
-            </BradixPopper>
+                    <BradixPopperContent Class="popper-content"
+                                         Side="@BradixSide.Bottom"
+                                         Align="@BradixAlignment.Center"
+                                         SideOffset="8"
+                                         CollisionBoundarySelectors="_collisionBoundarySelectors"
+                                         CollisionPadding="12"
+                                         OnPlaced="HandlePlaced">
+                        <p class="state-line">Placed: @_placedCount time(s)</p>
+                        <BradixPopperArrow Class="popper-arrow">
+                            <span class="popper-arrow-shape"></span>
+                        </BradixPopperArrow>
+                    </BradixPopperContent>
+                </BradixPopper>
+            </div>
         </section>
 
     </div>
 </section>
 
 @code {
+    private static readonly IReadOnlyList<string> _collisionBoundarySelectors = ["#popper-collision-boundary"];
     private int _placedCount;
 
     private Task HandlePlaced()

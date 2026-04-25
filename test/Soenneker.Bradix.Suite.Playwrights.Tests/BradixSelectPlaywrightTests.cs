@@ -220,6 +220,64 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
     }
 
     [Test]
+    public async ValueTask Select_demo_item_aligned_content_keeps_selected_item_visible_within_viewport()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+        await page.SetViewportSizeAsync(360, 420);
+
+        await page.GotoAndWaitForReady(
+            $"{BaseUrl}select",
+            static p => p.Locator("[role='combobox']").First,
+            expectedTitle: "Select Demo");
+
+        ILocator trigger = page.Locator("[role='combobox']").First;
+        await trigger.ClickAsync();
+
+        ILocator pork = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Pork", Exact = true });
+        await pork.ClickAsync();
+
+        await Assertions.Expect(trigger).ToContainTextAsync("Pork");
+        await Assertions.Expect(trigger).ToBeFocusedAsync();
+
+        await trigger.ClickAsync();
+
+        ILocator listBox = page.Locator("[role='listbox'][data-position='item-aligned']:visible").First;
+        await Assertions.Expect(listBox).ToBeVisibleAsync();
+
+        ILocator selectedPork = listBox.GetByRole(AriaRole.Option, new LocatorGetByRoleOptions { Name = "Pork", Exact = true });
+        await Assertions.Expect(selectedPork).ToHaveAttributeAsync("data-state", "checked");
+        await Assertions.Expect(selectedPork).ToBeVisibleAsync();
+
+        bool contentPositionedWithinViewport = await page.EvaluateAsync<bool>(
+            """
+            () => {
+              const listbox = document.querySelector('[role="listbox"][data-position="item-aligned"][data-state="open"]');
+              const wrapper = document.querySelector('[data-radix-select-position="item-aligned"]');
+              const selected = listbox?.querySelector('[role="option"][data-state="checked"]');
+              if (!listbox || !wrapper || !selected) {
+                return false;
+              }
+
+              const listboxRect = listbox.getBoundingClientRect();
+              const wrapperRect = wrapper.getBoundingClientRect();
+              const selectedRect = selected.getBoundingClientRect();
+              const margin = 10;
+
+              return wrapperRect.top >= 0 &&
+                wrapperRect.bottom <= window.innerHeight &&
+                listboxRect.left >= margin &&
+                listboxRect.right <= window.innerWidth - margin &&
+                selectedRect.top >= listboxRect.top &&
+                selectedRect.bottom <= listboxRect.bottom &&
+                window.getComputedStyle(wrapper).position === 'fixed';
+            }
+            """);
+
+        await Assert.That(contentPositionedWithinViewport).IsTrue();
+    }
+
+    [Test]
     public async ValueTask Select_demo_supports_nested_select_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();

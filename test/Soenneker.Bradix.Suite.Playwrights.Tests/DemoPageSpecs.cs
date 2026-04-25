@@ -105,7 +105,7 @@ internal static class DemoPageSpecs
         new("/focus-guards", "FocusGuards", "FocusGuards", "Mount document-edge sentinels so portalled scopes can observe focus boundaries reliably.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle guards", Exact = true })),
         new("/focus-scope", "FocusScope", "FocusScope", "Trap or loop focus inside managed regions used by layered primitives.",
-            page => page.GetByText("Looping scope", new PageGetByTextOptions { Exact = true })),
+            page => page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Looping scope", Exact = true })),
         new("/popper", "Popper", "Popper", "Position floating content relative to anchors with placement metadata and collision handling.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Anchor", Exact = true })),
         new("/remove-scroll", "RemoveScroll", "RemoveScroll", "Lock body scrolling while preserving intended interaction inside modal surfaces.",

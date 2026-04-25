@@ -11,7 +11,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
     {
     }
 
-[Test]
+    [Test]
     public async ValueTask Slider_demo_rtl_keyboard_direction_matches_radix_behavior()
     {
         await using BrowserSession session = await CreateSession();
@@ -36,7 +36,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(rtlSection).ToContainTextAsync("Value: 75");
     }
 
-[Test]
+    [Test]
     public async ValueTask Slider_demo_minimum_spacing_prevents_thumbs_from_crossing()
     {
         await using BrowserSession session = await CreateSession();
@@ -65,7 +65,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(spacingSection).ToContainTextAsync("Values: 20, 40");
     }
 
-[Test]
+    [Test]
     public async ValueTask Slider_demo_home_and_end_keys_jump_to_minimum_and_maximum()
     {
         await using BrowserSession session = await CreateSession();
@@ -80,13 +80,15 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await page.Keyboard.PressAsync("Home");
 
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "0");
+        await AssertSliderThumbWithinRoot(page, slider);
 
         await page.Keyboard.PressAsync("End");
 
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "100");
+        await AssertSliderThumbWithinRoot(page, slider);
     }
 
-[Test]
+    [Test]
     public async ValueTask Slider_demo_controlled_buttons_and_keyboard_updates_stay_in_sync()
     {
         await using BrowserSession session = await CreateSession();
@@ -111,7 +113,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(controlledSection).ToContainTextAsync("Value: 70");
     }
 
-[Test]
+    [Test]
     public async ValueTask Slider_demo_horizontal_track_click_updates_value()
     {
         await using BrowserSession session = await CreateSession();
@@ -141,7 +143,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "80");
     }
 
-[Test]
+    [Test]
     public async ValueTask Slider_demo_updates_value_from_keyboard_input()
     {
         await using BrowserSession session = await CreateSession();
@@ -158,7 +160,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "51");
     }
 
-[Test]
+    [Test]
     public async ValueTask Slider_demo_vertical_track_click_and_keyboard_update_value()
     {
         await using BrowserSession session = await CreateSession();
@@ -193,6 +195,19 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "75");
         await Assertions.Expect(verticalSection).ToContainTextAsync("Value: 75");
+    }
+
+    private static async Task AssertSliderThumbWithinRoot(IPage page, ILocator slider)
+    {
+        await page.WaitForTimeoutAsync(50);
+
+        var thumbBox = await slider.BoundingBoxAsync();
+        var rootBox = await slider.Locator("xpath=ancestor::*[@role='group'][1]").BoundingBoxAsync();
+
+        await Assert.That(thumbBox).IsNotNull();
+        await Assert.That(rootBox).IsNotNull();
+        await Assert.That(thumbBox!.X).IsGreaterThanOrEqualTo(rootBox!.X - 1);
+        await Assert.That(thumbBox.X + thumbBox.Width).IsLessThanOrEqualTo(rootBox.X + rootBox.Width + 1);
     }
 }
 

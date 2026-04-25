@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Soenneker.Bradix;
 
@@ -64,8 +65,16 @@ public static class BradixTypeaheadMatcher
             return string.Empty;
         }
 
-        var isRepeated = search.Length > 1 && search.All(character => character == search[0]);
+        var isRepeated = search.Length > 1 && EnumerateJavaScriptStringIterator(search).All(character => character == search[0].ToString());
         return isRepeated ? search[0].ToString() : search;
+    }
+
+    private static IEnumerable<string> EnumerateJavaScriptStringIterator(string value)
+    {
+        foreach (Rune rune in value.EnumerateRunes())
+        {
+            yield return rune.ToString();
+        }
     }
 
     private static int IndexOf<TItem>(IReadOnlyList<TItem> items, TItem item, IEqualityComparer<TItem> comparer)

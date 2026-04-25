@@ -32,6 +32,15 @@ public interface IBradixPopoverContent : IAsyncDisposable {
     /// <summary>Padding used when resolving collisions.</summary>
     double CollisionPadding { get; set; }
 
+    /// <summary>CSS selector for an explicit Floating UI collision boundary.</summary>
+    string? CollisionBoundarySelector { get; set; }
+
+    /// <summary>CSS selectors for explicit Floating UI collision boundaries.</summary>
+    IReadOnlyList<string>? CollisionBoundarySelectors { get; set; }
+
+    /// <summary>How strongly shifted content sticks to the collision boundary.</summary>
+    string Sticky { get; set; }
+
     /// <summary>When true, hides the content if the anchor detaches.</summary>
     bool HideWhenDetached { get; set; }
 
