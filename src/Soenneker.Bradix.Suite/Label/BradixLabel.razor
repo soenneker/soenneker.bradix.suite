@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@using System.Threading
 @using Microsoft.JSInterop
 
 @inherits BradixComponent
@@ -15,6 +16,9 @@
 @code {
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
+    private readonly SemaphoreSlim _interopLock = new(1, 1);
+    private bool _registered;
+    private bool _disposed;
 
     [Parameter]
     public string? For { get; set; }
@@ -26,22 +30,61 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (!firstRender || _disposed)
             return;
 
-        _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterLabelTextSelectionGuard(_element, _dotNetReference);
+        await _interopLock.WaitAsync();
+
+        try
+        {
+            if (_disposed)
+                return;
+
+            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            await Interop.RegisterLabelTextSelectionGuard(_element, _dotNetReference);
+            _registered = true;
+        }
+        finally
+        {
+            _interopLock.Release();
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterLabelTextSelectionGuard(_element);
-        _dotNetReference?.Dispose();
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        await _interopLock.WaitAsync();
+
+        try
+        {
+            if (_registered)
+                await Interop.UnregisterLabelTextSelectionGuard(_element);
+
+            _registered = false;
+
+            if (_dotNetReference is not null)
+                _ = DisposeReferenceLater(_dotNetReference);
+
+            _dotNetReference = null;
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        finally
+        {
+            _interopLock.Release();
+        }
     }
 
     [JSInvokable]
     public Task HandleMouseDownFromJs(BradixDelegatedMouseEvent args)
     {
+        if (_disposed)
+            return Task.CompletedTask;
+
         return OnMouseDown.HasDelegate
             ? OnMouseDown.InvokeAsync(new MouseEventArgs
             {
@@ -55,4 +98,9 @@
             : Task.CompletedTask;
     }
 
+    private static async Task DisposeReferenceLater(DotNetObjectReference<object> dotNetReference)
+    {
+        await Task.Delay(5000);
+        dotNetReference.Dispose();
+    }
 }

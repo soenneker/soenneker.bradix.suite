@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 @using System.Linq
+@using System.Threading
 @using Microsoft.JSInterop
 
 @inherits BradixComponent
@@ -18,7 +19,9 @@
     private ElementReference _element;
     private ElementReference _arrow;
     private DotNetObjectReference<object>? _dotNetReference;
+    private readonly SemaphoreSlim _interopLock = new(1, 1);
     private bool _registered;
+    private bool _disposed;
     private string _placedSide = "bottom";
     private string _placedAlign = "center";
     private double _left;
@@ -102,6 +105,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed)
+            return;
+
         var hasExplicitAnchor = UseAnchor;
         var hasAnchorSelector = !string.IsNullOrWhiteSpace(AnchorSelector);
         var hasPopperAnchor = Popper?.HasAnchor == true;
@@ -115,82 +121,127 @@
             return;
         }
 
-        var options = CurrentOptions;
-        var hasArrow = !string.IsNullOrEmpty(_arrow.Id);
+        await _interopLock.WaitAsync();
 
-        if (!_registered)
+        try
         {
-            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            if (_disposed)
+                return;
 
-            if (hasVirtualAnchor)
+            var options = CurrentOptions;
+            var hasArrow = !string.IsNullOrEmpty(_arrow.Id);
+
+            if (!_registered)
             {
-                await Interop.RegisterVirtualPopperContent(_element, _arrow, _dotNetReference, Popper!.VirtualAnchorX, Popper.VirtualAnchorY, CreateOptionsPayload(options));
-                _lastVirtualAnchor = (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
-            }
-            else if (hasAnchorSelector)
-            {
-                await Interop.RegisterPopperContentBySelector(AnchorSelector!, _element, _arrow, _dotNetReference, CreateOptionsPayload(options));
-                _lastVirtualAnchor = null;
-            }
-            else
-            {
-                var anchor = hasExplicitAnchor ? Anchor : Popper!.AnchorElement;
-                await Interop.RegisterPopperContent(anchor, _element, _arrow, _dotNetReference, CreateOptionsPayload(options));
-                _lastVirtualAnchor = null;
+                _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+
+                if (hasVirtualAnchor)
+                {
+                    await Interop.RegisterVirtualPopperContent(_element, _arrow, _dotNetReference, Popper!.VirtualAnchorX, Popper.VirtualAnchorY, CreateOptionsPayload(options));
+                    _lastVirtualAnchor = (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
+                }
+                else if (hasAnchorSelector)
+                {
+                    await Interop.RegisterPopperContentBySelector(AnchorSelector!, _element, _arrow, _dotNetReference, CreateOptionsPayload(options));
+                    _lastVirtualAnchor = null;
+                }
+                else
+                {
+                    var anchor = hasExplicitAnchor ? Anchor : Popper!.AnchorElement;
+                    await Interop.RegisterPopperContent(anchor, _element, _arrow, _dotNetReference, CreateOptionsPayload(options));
+                    _lastVirtualAnchor = null;
+                }
+
+                _registered = true;
+                _lastOptions = options;
+                _lastHadArrow = hasArrow;
+                _lastAnchorSelector = AnchorSelector;
+                return;
             }
 
-            _registered = true;
-            _lastOptions = options;
-            _lastHadArrow = hasArrow;
-            _lastAnchorSelector = AnchorSelector;
-            return;
+            var virtualAnchorChanged = hasVirtualAnchor &&
+                                       _lastVirtualAnchor != (Popper!.VirtualAnchorX, Popper.VirtualAnchorY);
+            var anchorSelectorChanged = !string.Equals(_lastAnchorSelector, AnchorSelector, StringComparison.Ordinal);
+
+            if (_lastOptions != options || _lastHadArrow != hasArrow || virtualAnchorChanged || anchorSelectorChanged)
+            {
+                if (hasVirtualAnchor)
+                {
+                    await Interop.UpdateVirtualPopperContent(_element, _arrow, Popper!.VirtualAnchorX, Popper.VirtualAnchorY, CreateOptionsPayload(options));
+                    _lastVirtualAnchor = (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
+                }
+                else if (anchorSelectorChanged && hasAnchorSelector)
+                {
+                    await Interop.RegisterPopperContentBySelector(AnchorSelector!, _element, _arrow, _dotNetReference!, CreateOptionsPayload(options));
+                    _lastVirtualAnchor = null;
+                }
+                else
+                {
+                    await Interop.UpdatePopperContent(_element, _arrow, CreateOptionsPayload(options));
+                    _lastVirtualAnchor = null;
+                }
+
+                _lastOptions = options;
+                _lastHadArrow = hasArrow;
+                _lastAnchorSelector = AnchorSelector;
+            }
         }
-
-        var virtualAnchorChanged = hasVirtualAnchor &&
-                                   _lastVirtualAnchor != (Popper!.VirtualAnchorX, Popper.VirtualAnchorY);
-        var anchorSelectorChanged = !string.Equals(_lastAnchorSelector, AnchorSelector, StringComparison.Ordinal);
-
-        if (_lastOptions != options || _lastHadArrow != hasArrow || virtualAnchorChanged || anchorSelectorChanged)
+        finally
         {
-            if (hasVirtualAnchor)
-            {
-                await Interop.UpdateVirtualPopperContent(_element, _arrow, Popper!.VirtualAnchorX, Popper.VirtualAnchorY, CreateOptionsPayload(options));
-                _lastVirtualAnchor = (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
-            }
-            else if (anchorSelectorChanged && hasAnchorSelector)
-            {
-                await Interop.RegisterPopperContentBySelector(AnchorSelector!, _element, _arrow, _dotNetReference!, CreateOptionsPayload(options));
-                _lastVirtualAnchor = null;
-            }
-            else
-            {
-                await Interop.UpdatePopperContent(_element, _arrow, CreateOptionsPayload(options));
-                _lastVirtualAnchor = null;
-            }
-
-            _lastOptions = options;
-            _lastHadArrow = hasArrow;
-            _lastAnchorSelector = AnchorSelector;
+            _interopLock.Release();
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_registered)
-            await Interop.UnregisterPopperContent(_element);
+        if (_disposed)
+            return;
 
-        _dotNetReference?.Dispose();
+        _disposed = true;
+        await _interopLock.WaitAsync();
+
+        try
+        {
+            if (_registered)
+                await Interop.UnregisterPopperContent(_element);
+
+            _registered = false;
+
+            if (_dotNetReference is not null)
+                _ = DisposeReferenceLater(_dotNetReference);
+
+            _dotNetReference = null;
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        finally
+        {
+            _interopLock.Release();
+        }
     }
 
     internal void RegisterArrow(ElementReference element)
     {
+        if (_disposed)
+            return;
+
         _arrow = element;
         _ = InvokeAsync(StateHasChanged);
+    }
+
+    private static async Task DisposeReferenceLater(DotNetObjectReference<object> dotNetReference)
+    {
+        await Task.Delay(5000);
+        dotNetReference.Dispose();
     }
 
     [JSInvokable]
     public async Task HandlePositionChanged(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth, double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY)
     {
+        if (_disposed)
+            return;
+
         var unchanged = _left == left
                         && _top == top
                         && _placedSide == side
