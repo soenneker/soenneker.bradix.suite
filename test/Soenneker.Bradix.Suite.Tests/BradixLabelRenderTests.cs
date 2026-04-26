@@ -17,8 +17,7 @@ public sealed class BradixLabelRenderTests : BunitContext
         _module.SetupVoid("registerLabelTextSelectionGuard", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterLabelTextSelectionGuard", _ => true).SetVoidResult();
 
-        Services.AddScoped<BradixSuiteInterop>();
-        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
+        Services.AddBradixTestInterops();
     }
 
     [Test]

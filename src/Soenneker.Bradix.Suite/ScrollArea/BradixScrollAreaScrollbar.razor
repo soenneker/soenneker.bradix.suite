@@ -6,7 +6,7 @@
 
 @implements IBradixScrollAreaScrollbar
 
-@inject IBradixSuiteInterop Interop
+@inject IScrollAreaInterop ScrollAreaInterop
 
 @if (ScrollArea.ShouldRenderScrollbar(Orientation.Value, ForceMount))
 {
@@ -38,8 +38,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var orientation = Orientation.Value;
-        var shouldRender = ScrollArea.ShouldRenderScrollbar(orientation, ForceMount);
+        string orientation = Orientation.Value;
+        bool shouldRender = ScrollArea.ShouldRenderScrollbar(orientation, ForceMount);
 
         if (!shouldRender || !ScrollArea.HasViewport)
         {
@@ -47,7 +47,7 @@
 
             if (_registered)
             {
-                await Interop.UnregisterScrollAreaScrollbar(_scrollbar);
+                await ScrollAreaInterop.UnregisterScrollAreaScrollbar(_scrollbar);
                 _registered = false;
             }
 
@@ -59,7 +59,7 @@
         if (_dotNetReference is null)
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
 
-        await Interop.RegisterScrollAreaScrollbar(_scrollbar, _thumb, ScrollArea.ViewportElement, orientation, ScrollArea.ResolvedDirection, _dotNetReference);
+        await ScrollAreaInterop.RegisterScrollAreaScrollbar(_scrollbar, _thumb, ScrollArea.ViewportElement, orientation, ScrollArea.ResolvedDirection, _dotNetReference);
         _registered = true;
     }
 
@@ -68,7 +68,7 @@
         ScrollArea.UnregisterScrollbar(Orientation.Value);
 
         if (_registered)
-            await Interop.UnregisterScrollAreaScrollbar(_scrollbar);
+            await ScrollAreaInterop.UnregisterScrollAreaScrollbar(_scrollbar);
 
         _dotNetReference?.Dispose();
     }
@@ -100,7 +100,7 @@
 
     private string BuildScrollbarStyle()
     {
-        var baseStyle = ScrollArea.GetScrollbarStyle(Orientation.Value);
+        string baseStyle = ScrollArea.GetScrollbarStyle(Orientation.Value);
 
         return MergeStyleValues(baseStyle, Style)!;
     }

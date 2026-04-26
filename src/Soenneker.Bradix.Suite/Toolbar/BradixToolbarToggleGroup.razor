@@ -74,7 +74,7 @@
         if (IsSingle)
             return string.Equals(NormalizeSingleValue(IsSingleControlled ? Value : _uncontrolledValue), value, StringComparison.Ordinal);
 
-        var values = IsMultipleControlled ? Values ?? [] : _uncontrolledValues;
+        IReadOnlyCollection<string> values = IsMultipleControlled ? Values ?? [] : _uncontrolledValues;
         return values.Contains(value);
     }
 
@@ -86,7 +86,7 @@
             return;
         }
 
-        var next = (IsMultipleControlled ? Values?.ToList() : [.. _uncontrolledValues]) ?? [];
+        List<string> next = (IsMultipleControlled ? Values?.ToList() : [.. _uncontrolledValues]) ?? [];
 
         if (next.Contains(value, StringComparer.Ordinal))
             return;
@@ -103,7 +103,7 @@
             return;
         }
 
-        var next = (IsMultipleControlled ? Values?.ToList() : [.. _uncontrolledValues]) ?? [];
+        List<string> next = (IsMultipleControlled ? Values?.ToList() : [.. _uncontrolledValues]) ?? [];
 
         if (!next.Remove(value))
             return;
@@ -113,7 +113,7 @@
 
     private async Task SetSingleValue(string? value)
     {
-        var normalizedValue = NormalizeSingleValue(value);
+        string normalizedValue = NormalizeSingleValue(value);
 
         if (string.Equals(NormalizeSingleValue(IsSingleControlled ? Value : _uncontrolledValue), normalizedValue, StringComparison.Ordinal))
             return;
@@ -132,7 +132,7 @@
 
     private async Task SetMultipleValues(IReadOnlyCollection<string> values)
     {
-        var next = values.Distinct(StringComparer.Ordinal).ToList();
+        List<string> next = values.Distinct(StringComparer.Ordinal).ToList();
 
         if (!IsMultipleControlled)
             _uncontrolledValues = next;

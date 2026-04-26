@@ -5,7 +5,7 @@
 
 @implements IBradixHoverCardContent
 
-@inject IBradixSuiteInterop Interop
+@inject IHoverCardAvatarInterop HoverCardAvatarInterop
 
 @if (IsPresent)
 {
@@ -131,7 +131,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -146,7 +146,7 @@
         {
             if (_selectionContainmentRegistered)
             {
-                await Interop.UnregisterHoverCardSelectionContainment(_contentElement);
+                await HoverCardAvatarInterop.UnregisterHoverCardSelectionContainment(_contentElement);
                 _selectionContainmentRegistered = false;
             }
 
@@ -160,7 +160,7 @@
 
         if (!_tabNavigationDisabled)
         {
-            await Interop.DisableHoverCardContentTabNavigation(_contentElement);
+            await HoverCardAvatarInterop.DisableHoverCardContentTabNavigation(_contentElement);
             _tabNavigationDisabled = true;
         }
 
@@ -168,14 +168,14 @@
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterHoverCardSelectionContainment(_contentElement, _dotNetReference);
+        await HoverCardAvatarInterop.RegisterHoverCardSelectionContainment(_contentElement, _dotNetReference);
         _selectionContainmentRegistered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_selectionContainmentRegistered)
-            await Interop.UnregisterHoverCardSelectionContainment(_contentElement);
+            await HoverCardAvatarInterop.UnregisterHoverCardSelectionContainment(_contentElement);
 
         _dotNetReference?.Dispose();
     }
@@ -230,9 +230,9 @@
         if (OnInteractOutsideDetailed.HasDelegate)
             await OnInteractOutsideDetailed.InvokeAsync(args);
 
-        var shouldDismiss = string.Equals(args.OriginalEventType, "pointerdown", StringComparison.Ordinal) &&
-                            !_pointerDownOutsidePrevented &&
-                            !args.DefaultPrevented;
+        bool shouldDismiss = string.Equals(args.OriginalEventType, "pointerdown", StringComparison.Ordinal) &&
+                             !_pointerDownOutsidePrevented &&
+                             !args.DefaultPrevented;
 
         _pointerDownOutsidePrevented = false;
 
@@ -259,7 +259,7 @@
     private async Task HandlePointerDown(PointerEventArgs _)
     {
         if (_hasContentElement)
-            await Interop.BeginHoverCardSelectionContainment(_contentElement);
+            await HoverCardAvatarInterop.BeginHoverCardSelectionContainment(_contentElement);
 
         HoverCard?.NotifyContentPointerDown();
     }

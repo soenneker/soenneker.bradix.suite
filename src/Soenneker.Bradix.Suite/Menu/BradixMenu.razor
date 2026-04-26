@@ -7,7 +7,8 @@
 
 @implements IBradixMenu
 
-@inject IBradixSuiteInterop Interop
+@inject IKeyboardModeInterop KeyboardModeInterop
+@inject IControlsInterop ControlsInterop
 <BradixPopper @ref="_popper">
     <CascadingValue Name="BradixMenuRoot" Value="RootMenu">
         <CascadingValue Value="this">
@@ -91,13 +92,13 @@
             return;
         }
 
-        var controlledOpen = Open.Value;
+        bool controlledOpen = Open.Value;
 
         if (_lastControlledOpen == controlledOpen)
             return;
 
         if (controlledOpen && !_focusFirstItemOnOpen && _focusContentOnOpen)
-            _focusFirstItemOnOpen = await Interop.IsKeyboardInteractionMode();
+            _focusFirstItemOnOpen = await KeyboardModeInterop.IsKeyboardInteractionMode();
 
         if (!controlledOpen)
         {
@@ -144,16 +145,16 @@
 
     internal async Task<bool> HandleItemNavigation(IBradixMenuRovingItem item, string key, bool loop)
     {
-        var enabledItems = GetEnabledItems();
-        var currentIndex = enabledItems.IndexOf(item);
+        List<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
+        int currentIndex = enabledItems.IndexOf(item);
 
         if (currentIndex < 0)
             return false;
 
-        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, loop, out var targetIndex))
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, loop, out int targetIndex))
             return false;
 
-        var target = enabledItems[targetIndex];
+        IBradixMenuRovingItem target = enabledItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -162,10 +163,10 @@
 
     internal async Task HandleTypeahead(IBradixMenuRovingItem? currentItem, string key)
     {
-        var search = _typeahead.Append(key);
+        string search = _typeahead.Append(key);
         IReadOnlyList<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
 
-        var nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
+        IBradixMenuRovingItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
 
         if (nextItem is null)
             return;
@@ -192,21 +193,21 @@
 
     internal bool ConsumeFocusFirstItemOnOpen()
     {
-        var shouldFocusFirstItemOnOpen = _focusFirstItemOnOpen;
+        bool shouldFocusFirstItemOnOpen = _focusFirstItemOnOpen;
         _focusFirstItemOnOpen = false;
         return shouldFocusFirstItemOnOpen;
     }
 
     internal bool ConsumeFocusContentOnOpen()
     {
-        var shouldFocusContentOnOpen = _focusContentOnOpen;
+        bool shouldFocusContentOnOpen = _focusContentOnOpen;
         _focusContentOnOpen = true;
         return shouldFocusContentOnOpen;
     }
 
     internal async Task FocusFirstItem()
     {
-        var first = GetEnabledItems().FirstOrDefault();
+        IBradixMenuRovingItem? first = GetEnabledItems().FirstOrDefault();
         if (first is null)
             return;
 
@@ -217,7 +218,7 @@
 
     internal async Task FocusLastItem()
     {
-        var last = GetEnabledItems().LastOrDefault();
+        IBradixMenuRovingItem? last = GetEnabledItems().LastOrDefault();
         if (last is null)
             return;
 
@@ -265,7 +266,7 @@
 
         try
         {
-            await Interop.FocusElementPreventScroll(TriggerElement);
+            await ControlsInterop.FocusElementPreventScroll(TriggerElement);
         }
         catch
         {
@@ -283,7 +284,7 @@
             return;
 
         if (open && !_focusFirstItemOnOpen && _focusContentOnOpen)
-            _focusFirstItemOnOpen = await Interop.IsKeyboardInteractionMode();
+            _focusFirstItemOnOpen = await KeyboardModeInterop.IsKeyboardInteractionMode();
 
         if (Open is null)
             _uncontrolledOpen = open;
@@ -319,7 +320,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        var enabledItems = GetEnabledItems();
+        List<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
 
         if (enabledItems.Count == 0)
         {

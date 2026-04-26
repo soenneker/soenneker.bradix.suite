@@ -4,7 +4,7 @@
 
 @implements IBradixCollapsibleContent
 
-@inject IBradixSuiteInterop Interop
+@inject ICollapsibleInterop CollapsibleInterop
 <BradixPresence Present="Present"
                 Tag="div"
                 AdditionalAttributes="@ContentAttributes"
@@ -47,7 +47,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -70,7 +70,7 @@
             if (!string.IsNullOrWhiteSpace(Class))
                 attributes["class"] = Class;
 
-            var mergedStyle = BuildMergedStyle(attributes.TryGetValue("style", out var existingStyle) ? existingStyle?.ToString() : null);
+            string? mergedStyle = BuildMergedStyle(attributes.TryGetValue("style", out object? existingStyle) ? existingStyle?.ToString() : null);
 
             if (!string.IsNullOrWhiteSpace(mergedStyle))
                 attributes["style"] = mergedStyle;
@@ -93,7 +93,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_observing)
-            await Interop.UnobserveCollapsibleContent(_element);
+            await CollapsibleInterop.UnobserveCollapsibleContent(_element);
     }
 
     private async Task HandleElementCaptured(ElementReference element)
@@ -108,7 +108,7 @@
     {
         if (_observing)
         {
-            await Interop.UnobserveCollapsibleContent(_element);
+            await CollapsibleInterop.UnobserveCollapsibleContent(_element);
             _observing = false;
         }
 
@@ -127,7 +127,7 @@
         if (!_hasElement || _observing)
             return;
 
-        await Interop.ObserveCollapsibleContent(_element);
+        await CollapsibleInterop.ObserveCollapsibleContent(_element);
         _observing = true;
     }
 }

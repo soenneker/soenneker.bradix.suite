@@ -124,7 +124,7 @@
         if (ancestorIds is null)
             return false;
 
-        foreach (var ancestorId in ancestorIds)
+        foreach (string ancestorId in ancestorIds)
         {
             if (string.Equals(ancestorId, ResolvedTriggerId, StringComparison.Ordinal))
                 return true;

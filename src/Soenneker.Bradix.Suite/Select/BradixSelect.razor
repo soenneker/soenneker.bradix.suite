@@ -9,7 +9,8 @@
 @implements IBradixSelect
 @implements IAsyncDisposable
 
-@inject IBradixSuiteInterop Interop
+@inject IFormInterop FormInterop
+@inject IControlsInterop ControlsInterop
 <BradixPopper>
     <CascadingValue Value="this">
         @ChildContent
@@ -25,7 +26,7 @@
             <option value=""></option>
         }
 
-        @foreach (var entry in _items.Snapshot())
+        @foreach (BradixCollectionEntry<IBradixSelectCollectionItem> entry in _items.Snapshot())
         {
             <option value="@entry.Item.Value"
                     disabled="@entry.Item.Disabled">
@@ -205,7 +206,7 @@
     {
         if (HasTrigger && (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal)))
         {
-            var isFormControl = await Interop.IsFormControl(TriggerElement, Form);
+            bool isFormControl = await FormInterop.IsFormControl(TriggerElement, Form);
             _formControlStateResolved = true;
             _lastResolvedForm = Form;
 
@@ -227,7 +228,7 @@
         {
             if (_bubbleSelectRegistered)
             {
-                await Interop.UnregisterSelectBubbleInput(_bubbleSelectElement);
+                await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
                 _bubbleSelectRegistered = false;
             }
 
@@ -240,7 +241,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_bubbleSelectRegistered)
-            await Interop.UnregisterSelectBubbleInput(_bubbleSelectElement);
+            await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
 
         _dotNetReference?.Dispose();
     }
@@ -296,7 +297,7 @@
 
     internal Task FocusTrigger()
     {
-        return HasTrigger ? Interop.FocusElementPreventScroll(TriggerElement).AsTask() : Task.CompletedTask;
+        return HasTrigger ? ControlsInterop.FocusElementPreventScroll(TriggerElement).AsTask() : Task.CompletedTask;
     }
 
     internal async Task SetValue(string? value)
@@ -306,7 +307,7 @@
 
         UpdateCurrentText(GetItemText(value));
 
-        var isControlled = ValueChanged.HasDelegate;
+        bool isControlled = ValueChanged.HasDelegate;
 
         if (!isControlled)
             _uncontrolledValue = value;
@@ -375,7 +376,7 @@
         if (string.Equals(CurrentFocusedItemValue, value, StringComparison.Ordinal))
             return;
 
-        var previousValue = CurrentFocusedItemValue;
+        string? previousValue = CurrentFocusedItemValue;
         CurrentFocusedItemValue = value;
         _ = RefreshFocusedItems(previousValue, value);
         _ = InvokeAsync(StateHasChanged);
@@ -388,7 +389,7 @@
 
     internal async Task FocusSelectedOrFirstItem()
     {
-        var target = GetSelectedOrFirstEnabledItem();
+        IBradixSelectCollectionItem? target = GetSelectedOrFirstEnabledItem();
 
         if (target is null)
             return;
@@ -398,7 +399,7 @@
 
     internal async Task FocusFirstItem()
     {
-        var first = GetEnabledItems().FirstOrDefault();
+        IBradixSelectCollectionItem? first = GetEnabledItems().FirstOrDefault();
 
         if (first is null)
             return;
@@ -408,7 +409,7 @@
 
     internal async Task FocusLastItem()
     {
-        var last = GetEnabledItems().LastOrDefault();
+        IBradixSelectCollectionItem? last = GetEnabledItems().LastOrDefault();
 
         if (last is null)
             return;
@@ -418,10 +419,10 @@
 
     internal async Task HandleTriggerTypeahead(string key)
     {
-        var search = _typeahead.Append(key);
-        var enabledItems = GetEnabledItems();
-        var currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
-        var nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
+        string search = _typeahead.Append(key);
+        List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
+        IBradixSelectCollectionItem? currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
+        IBradixSelectCollectionItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
 
         if (nextItem is null)
             return;
@@ -431,10 +432,10 @@
 
     internal async Task HandleContentTypeahead(string key)
     {
-        var search = _typeahead.Append(key);
-        var enabledItems = GetEnabledItems();
-        var currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentFocusedItemValue, StringComparison.Ordinal));
-        var nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
+        string search = _typeahead.Append(key);
+        List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
+        IBradixSelectCollectionItem? currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentFocusedItemValue, StringComparison.Ordinal));
+        IBradixSelectCollectionItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
 
         if (nextItem is null)
             return;
@@ -456,22 +457,22 @@
                 return;
         }
 
-        var enabledItems = GetEnabledItems();
-        var currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentFocusedItemValue, StringComparison.Ordinal))
-                          ?? enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
+        List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
+        IBradixSelectCollectionItem? currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentFocusedItemValue, StringComparison.Ordinal))
+                                                   ?? enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
 
         if (currentItem is null)
             return;
 
-        var currentIndex = enabledItems.IndexOf(currentItem);
+        int currentIndex = enabledItems.IndexOf(currentItem);
 
         if (currentIndex < 0)
             return;
 
-        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, true, out var targetIndex))
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, true, out int targetIndex))
             return;
 
-        var target = enabledItems[targetIndex];
+        IBradixSelectCollectionItem target = enabledItems[targetIndex];
         await FocusItem(target);
     }
 
@@ -510,7 +511,7 @@
             return;
         }
 
-        var resolvedText = GetItemText(CurrentValue);
+        string? resolvedText = GetItemText(CurrentValue);
 
         if (!string.IsNullOrWhiteSpace(resolvedText))
             _currentText = resolvedText;
@@ -518,7 +519,7 @@
 
     private async Task FocusItem(IBradixSelectCollectionItem item)
     {
-        var previousValue = CurrentFocusedItemValue;
+        string? previousValue = CurrentFocusedItemValue;
         CurrentFocusedItemValue = item.Value;
         await RefreshFocusedItems(previousValue, item.Value);
         await InvokeAsync(StateHasChanged);
@@ -529,10 +530,10 @@
 
     private async Task RefreshFocusedItems(string? previousValue, string? nextValue)
     {
-        foreach (var entry in _items.Snapshot())
+        foreach (BradixCollectionEntry<IBradixSelectCollectionItem> entry in _items.Snapshot())
         {
-            var wasFocused = string.Equals(entry.Item.Value, previousValue, StringComparison.Ordinal);
-            var isFocused = string.Equals(entry.Item.Value, nextValue, StringComparison.Ordinal);
+            bool wasFocused = string.Equals(entry.Item.Value, previousValue, StringComparison.Ordinal);
+            bool isFocused = string.Equals(entry.Item.Value, nextValue, StringComparison.Ordinal);
 
             if (!wasFocused && !isFocused)
                 continue;
@@ -543,7 +544,7 @@
 
     internal IBradixSelectCollectionItem? GetSelectedOrFirstEnabledItem()
     {
-        var enabledItems = GetEnabledItems();
+        List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
         return enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal))
             ?? enabledItems.FirstOrDefault();
     }
@@ -589,7 +590,7 @@
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterSelectBubbleInput(_bubbleSelectElement, _dotNetReference);
+        await ControlsInterop.RegisterSelectBubbleInput(_bubbleSelectElement, _dotNetReference);
         _bubbleSelectRegistered = true;
     }
 
@@ -598,10 +599,10 @@
         if (!_hasBubbleSelectElement)
             return;
 
-        var nextValue = CurrentValue;
-        var dispatchEvent = _bubbleSelectValueInitialized && !string.Equals(_lastBubbleSelectValue, nextValue, StringComparison.Ordinal);
+        string? nextValue = CurrentValue;
+        bool dispatchEvent = _bubbleSelectValueInitialized && !string.Equals(_lastBubbleSelectValue, nextValue, StringComparison.Ordinal);
 
-        await Interop.SyncSelectBubbleInputValue(_bubbleSelectElement, nextValue, dispatchEvent);
+        await ControlsInterop.SyncSelectBubbleInputValue(_bubbleSelectElement, nextValue, dispatchEvent);
 
         _lastBubbleSelectValue = nextValue;
         _bubbleSelectValueInitialized = true;

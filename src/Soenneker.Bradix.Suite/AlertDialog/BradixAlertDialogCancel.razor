@@ -1,7 +1,7 @@
 @namespace Soenneker.Bradix
 
 @implements IBradixAlertDialogCancel
-@inject IBradixSuiteInterop Interop
+@inject IControlsInterop ControlsInterop
 <BradixDialogClose Class="@Class"
                    AriaLabel="@((string?)null)"
                    Style="@Style"
@@ -72,7 +72,7 @@
         try
         {
             await Task.Yield();
-            await Interop.FocusElementPreventScroll(_element);
+            await ControlsInterop.FocusElementPreventScroll(_element);
         }
         catch
         {

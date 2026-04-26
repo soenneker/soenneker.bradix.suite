@@ -3,7 +3,7 @@
 @inherits BradixComponent
 
 @implements IBradixPopper
-<CascadingValue Value="this">
+<CascadingValue Value="this" >
     @ChildContent
 </CascadingValue>
 
@@ -30,4 +30,5 @@
         HasAnchor = false;
         _ = InvokeAsync(StateHasChanged);
     }
+
 }

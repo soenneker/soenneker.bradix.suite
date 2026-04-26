@@ -6,7 +6,7 @@
 
 @implements IBradixDialogTrigger
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <button @ref="_button"
         @onclick="HandleClick"
         @attributes="ButtonAttributes">
@@ -45,7 +45,7 @@
         {
             Dialog?.RegisterTrigger(_button, ResolvedTriggerId);
             _dotNetReference = DotNetObjectReference.Create(this);
-            await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
                 readyMethod = nameof(HandleDelegatedInteractionReady),
                 click = new
@@ -71,7 +71,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterDelegatedInteraction(_button);
+        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
         _dotNetReference?.Dispose();
     }
 

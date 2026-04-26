@@ -6,7 +6,9 @@
 
 @implements IBradixSwitch
 
-@inject IBradixSuiteInterop Interop
+@inject IFormInterop FormInterop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject IControlsInterop ControlsInterop
 <CascadingValue Value="this">
     <button @ref="_buttonElement"
             @onclick="HandleClick"
@@ -134,8 +136,8 @@
         if (firstRender)
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterCheckboxRoot(_buttonElement, _dotNetReference, Form);
-            await Interop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new
+            await FormInterop.RegisterCheckboxRoot(_buttonElement, _dotNetReference, Form);
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new
             {
                 readyMethod = nameof(HandleDelegatedInteractionReady),
                 click = new
@@ -165,7 +167,7 @@
 
         if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
         {
-            var isFormControl = await Interop.IsFormControl(_buttonElement, Form);
+            bool isFormControl = await FormInterop.IsFormControl(_buttonElement, Form);
             _formControlStateResolved = true;
             _lastResolvedForm = Form;
 
@@ -179,8 +181,8 @@
 
         if (ShouldRenderBubbleInput)
         {
-            var dispatchEvent = _hasSyncedBubbleInput && _lastRenderedState != CurrentChecked;
-            await Interop.SyncCheckboxBubbleInputState(_bubbleInputElement, CurrentChecked, false, dispatchEvent);
+            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedState != CurrentChecked;
+            await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, CurrentChecked, false, dispatchEvent);
             _hasSyncedBubbleInput = true;
         }
 
@@ -191,8 +193,8 @@
     {
         if (_registered)
         {
-            await Interop.UnregisterDelegatedInteraction(_buttonElement);
-            await Interop.UnregisterCheckboxRoot(_buttonElement);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_buttonElement);
+            await FormInterop.UnregisterCheckboxRoot(_buttonElement);
         }
 
         _dotNetReference?.Dispose();

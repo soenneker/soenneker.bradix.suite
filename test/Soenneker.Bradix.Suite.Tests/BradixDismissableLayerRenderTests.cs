@@ -17,8 +17,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
         module.SetupVoid("registerDismissableLayerBranch", _ => true);
         module.SetupVoid("unregisterDismissableLayerBranch", _ => true);
 
-        Services.AddScoped<BradixSuiteInterop>();
-        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
+        Services.AddBradixTestInterops();
     }
 
     [Test]

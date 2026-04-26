@@ -2,7 +2,7 @@
 
 @implements IBradixRemoveScroll
 
-@inject IBradixSuiteInterop Interop
+@inject IPresenceOverlayInterop PresenceOverlayInterop
 
 @ChildContent
 @code {
@@ -19,13 +19,13 @@
         if (!firstRender)
             return;
 
-        await Interop.RegisterRemoveScroll(AllowPinchZoom);
+        await PresenceOverlayInterop.RegisterRemoveScroll(AllowPinchZoom);
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_registered)
-            await Interop.UnregisterRemoveScroll();
+            await PresenceOverlayInterop.UnregisterRemoveScroll();
     }
 }

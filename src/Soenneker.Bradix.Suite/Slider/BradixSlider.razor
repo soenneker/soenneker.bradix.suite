@@ -6,7 +6,7 @@
 
 @implements IBradixSlider
 
-@inject IBradixSuiteInterop Interop
+@inject IControlsInterop ControlsInterop
 <CascadingValue Value="this">
     <span @ref="_element"
           @attributes="RootAttributes">
@@ -109,7 +109,7 @@
             return;
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterSliderPointerBridge(_element, _dotNetReference);
+        await ControlsInterop.RegisterSliderPointerBridge(_element, _dotNetReference);
         _registered = true;
         await InvokeAsync(StateHasChanged);
     }
@@ -117,7 +117,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_registered)
-            await Interop.UnregisterSliderPointerBridge(_element);
+            await ControlsInterop.UnregisterSliderPointerBridge(_element);
 
         _dotNetReference?.Dispose();
     }
@@ -149,7 +149,7 @@
 
     internal string? GetThumbInputName(BradixSliderThumb thumb)
     {
-        var index = GetThumbIndex(thumb);
+        int index = GetThumbIndex(thumb);
 
         if (index < 0)
             return null;
@@ -204,10 +204,10 @@
         if (!PageKeys.Contains(args.Key) && !ArrowKeys.Contains(args.Key))
             return;
 
-        var isSkipKey = PageKeys.Contains(args.Key) || (args.ShiftKey && ArrowKeys.Contains(args.Key));
+        bool isSkipKey = PageKeys.Contains(args.Key) || (args.ShiftKey && ArrowKeys.Contains(args.Key));
         double multiplier = isSkipKey ? 10 : 1;
-        var direction = IsBackKey(args.Key) ? -1 : 1;
-        var currentValue = CurrentValues[index];
+        int direction = IsBackKey(args.Key) ? -1 : 1;
+        double currentValue = CurrentValues[index];
         await UpdateValue(currentValue + (Step * multiplier * direction), index, commit: true);
     }
 
@@ -226,8 +226,8 @@
             return;
         }
 
-        var nextValue = GetValueFromFractions(xFraction, yFraction);
-        var closestIndex = BradixSliderMath.GetClosestValueIndex(CurrentValues, nextValue);
+        double nextValue = GetValueFromFractions(xFraction, yFraction);
+        int closestIndex = BradixSliderMath.GetClosestValueIndex(CurrentValues, nextValue);
         CurrentThumbIndex = closestIndex;
         await UpdateValue(nextValue, closestIndex, commit: false);
     }
@@ -238,7 +238,7 @@
         if (Disabled)
             return Task.CompletedTask;
 
-        var nextValue = GetValueFromFractions(xFraction, yFraction);
+        double nextValue = GetValueFromFractions(xFraction, yFraction);
         return UpdateValue(nextValue, CurrentThumbIndex, commit: false);
     }
 
@@ -248,8 +248,8 @@
         if (Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
             return;
 
-        var previousValue = _valuesBeforeSlideStart.Count > CurrentThumbIndex ? _valuesBeforeSlideStart[CurrentThumbIndex] : CurrentValues[CurrentThumbIndex];
-        var nextValue = CurrentValues[CurrentThumbIndex];
+        double previousValue = _valuesBeforeSlideStart.Count > CurrentThumbIndex ? _valuesBeforeSlideStart[CurrentThumbIndex] : CurrentValues[CurrentThumbIndex];
+        double nextValue = CurrentValues[CurrentThumbIndex];
 
         if (previousValue != nextValue && OnValueCommit.HasDelegate)
             await OnValueCommit.InvokeAsync(CurrentValues.ToArray());
@@ -284,16 +284,16 @@
         if (atIndex < 0 || atIndex >= CurrentValues.Count)
             return;
 
-        var decimalCount = BradixSliderMath.GetDecimalCount(Step);
-        var snappedValue = BradixSliderMath.RoundValue(Math.Round((value - Min) / Step) * Step + Min, decimalCount);
-        var clampedValue = BradixSliderMath.Clamp(snappedValue, Min, Max);
+        int decimalCount = BradixSliderMath.GetDecimalCount(Step);
+        double snappedValue = BradixSliderMath.RoundValue(Math.Round((value - Min) / Step) * Step + Min, decimalCount);
+        double clampedValue = BradixSliderMath.Clamp(snappedValue, Min, Max);
 
-        var nextValues = BradixSliderMath.GetNextSortedValues(CurrentValues, clampedValue, atIndex);
+        List<double> nextValues = BradixSliderMath.GetNextSortedValues(CurrentValues, clampedValue, atIndex);
 
         if (!BradixSliderMath.HasMinStepsBetweenValues(nextValues, MinStepsBetweenThumbs * Step))
             return;
 
-        var nextIndex = nextValues.IndexOf(clampedValue);
+        int nextIndex = nextValues.IndexOf(clampedValue);
 
         if (nextValues.SequenceEqual(CurrentValues))
             return;
@@ -320,20 +320,20 @@
 
     private double GetValueFromFractions(double xFraction, double yFraction)
     {
-        var range = Max - Min;
+        double range = Max - Min;
 
         if (range <= 0)
             return Min;
 
         if (Orientation == BradixOrientation.Horizontal)
         {
-            var slidingFromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
+            bool slidingFromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
             return slidingFromLeft
                 ? Min + (xFraction * range)
                 : Max - (xFraction * range);
         }
 
-        var slidingFromBottom = !Inverted;
+        bool slidingFromBottom = !Inverted;
         return slidingFromBottom
             ? Max - (yFraction * range)
             : Min + (yFraction * range);
@@ -348,7 +348,7 @@
 
     private HashSet<string> GetHorizontalBackKeys()
     {
-        var fromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
+        bool fromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
         return fromLeft
             ? ["Home", "PageDown", "ArrowDown", "ArrowLeft"]
             : ["Home", "PageDown", "ArrowDown", "ArrowRight"];
@@ -356,7 +356,7 @@
 
     private HashSet<string> GetVerticalBackKeys()
     {
-        var fromBottom = !Inverted;
+        bool fromBottom = !Inverted;
         return fromBottom
             ? ["Home", "PageDown", "ArrowDown", "ArrowLeft"]
             : ["Home", "PageDown", "ArrowUp", "ArrowLeft"];

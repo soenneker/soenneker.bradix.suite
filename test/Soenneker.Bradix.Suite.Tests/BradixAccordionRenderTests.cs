@@ -24,8 +24,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
-        Services.AddScoped<BradixSuiteInterop>();
-        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
+        Services.AddBradixTestInterops();
     }
 
     [Test]

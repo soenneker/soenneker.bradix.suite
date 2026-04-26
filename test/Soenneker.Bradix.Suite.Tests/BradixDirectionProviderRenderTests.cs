@@ -17,7 +17,7 @@ public sealed class BradixDirectionProviderRenderTests : BunitContext
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
             builder.AddAttribute(2, nameof(BradixDirectionProvider.ChildContent), (RenderFragment)(content =>
             {
-                content.OpenComponent<DirectionProbe>(0);
+                content.OpenComponent<BradixDirectionProbe>(0);
                 content.CloseComponent();
             }));
             builder.CloseComponent();
@@ -35,7 +35,7 @@ public sealed class BradixDirectionProviderRenderTests : BunitContext
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "invalid");
             builder.AddAttribute(2, nameof(BradixDirectionProvider.ChildContent), (RenderFragment)(content =>
             {
-                content.OpenComponent<DirectionProbe>(0);
+                content.OpenComponent<BradixDirectionProbe>(0);
                 content.CloseComponent();
             }));
             builder.CloseComponent();
@@ -44,16 +44,4 @@ public sealed class BradixDirectionProviderRenderTests : BunitContext
         await Assert.That(cut.Find("[data-direction-probe]").GetAttribute("data-direction-probe")).IsEqualTo("ltr");
     }
 
-    private sealed class DirectionProbe : ComponentBase
-    {
-        [CascadingParameter(Name = "BradixDirection")]
-        public string? Direction { get; set; }
-
-        protected override void BuildRenderTree(RenderTreeBuilder builder)
-        {
-            builder.OpenElement(0, "div");
-            builder.AddAttribute(1, "data-direction-probe", Direction);
-            builder.CloseElement();
-        }
-    }
 }

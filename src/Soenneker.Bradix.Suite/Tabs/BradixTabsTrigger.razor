@@ -6,7 +6,8 @@
 
 @implements IBradixTabsTrigger
 
-@inject IBradixSuiteInterop Interop
+@inject IRovingFocusInterop RovingFocusInterop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <button @ref="_element"
         @onmousedown="HandleMouseDown"
         @onkeydown="HandleKeyDown"
@@ -81,8 +82,8 @@
         Tabs.RegisterTrigger(this);
         _registered = true;
         _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
-        await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+        await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
         {
             readyMethod = nameof(HandleDelegatedInteractionReady),
             mousedown = new
@@ -100,8 +101,8 @@
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterRovingFocusNavigationKeys(_element);
-        await Interop.UnregisterDelegatedInteraction(_element);
+        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
+        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
         _dotNetReference?.Dispose();
 
         if (_registered)

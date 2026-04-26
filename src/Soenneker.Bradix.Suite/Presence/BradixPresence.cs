@@ -6,13 +6,14 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
+using Soenneker.Atomics.ValueBools;
 
 namespace Soenneker.Bradix;
 
 public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 {
     [Inject]
-    public IBradixSuiteInterop Interop { get; set; } = null!;
+    public IPresenceOverlayInterop PresenceOverlayInterop { get; set; } = null!;
 
     [Parameter]
     public bool Present { get; set; }
@@ -41,7 +42,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
     private bool _exitSuspended;
     private bool _elementReferenceCaptured;
     private bool _forceExitAnimationFillModeForwards;
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
     private string _previousAnimationName = "none";
 
     protected override void OnParametersSet()
@@ -68,7 +69,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed)
+        if (_disposed.Read())
             return;
 
         if (_rendered)
@@ -86,7 +87,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
                 _dotNetReference ??= DotNetObjectReference.Create<object>(this);
                 try
                 {
-                    await Interop.RegisterPresence(_element, _dotNetReference);
+                    await PresenceOverlayInterop.RegisterPresence(_element, _dotNetReference);
                     _registered = true;
                 }
                 catch (Exception ex) when (ShouldIgnoreInteropException(ex))
@@ -98,11 +99,11 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
             if (_pendingExitEvaluation)
             {
                 _pendingExitEvaluation = false;
-                var snapshot = await Interop.GetPresenceState(_element);
+                BradixPresenceSnapshot snapshot = await PresenceOverlayInterop.GetPresenceState(_element);
 
-                var hasExitAnimation = snapshot.Display != "none"
-                                       && !string.Equals(snapshot.AnimationName, "none", StringComparison.Ordinal)
-                                       && !string.Equals(snapshot.AnimationName, _previousAnimationName, StringComparison.Ordinal);
+                bool hasExitAnimation = snapshot.Display != "none"
+                                        && !string.Equals(snapshot.AnimationName, "none", StringComparison.Ordinal)
+                                        && !string.Equals(snapshot.AnimationName, _previousAnimationName, StringComparison.Ordinal);
 
                 if (hasExitAnimation)
                 {
@@ -118,7 +119,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
         {
             try
             {
-                await Interop.UnregisterPresence(_element);
+                await PresenceOverlayInterop.UnregisterPresence(_element);
             }
             catch (Exception ex) when (ShouldIgnoreInteropException(ex))
             {
@@ -153,13 +154,14 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        _disposed = true;
+        if (!_disposed.TrySetTrue())
+            return;
 
         if (_registered)
         {
             try
             {
-                await Interop.UnregisterPresence(_element);
+                await PresenceOverlayInterop.UnregisterPresence(_element);
             }
             catch (Exception ex) when (ShouldIgnoreInteropException(ex))
             {
@@ -181,8 +183,8 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
     [JSInvokable]
     public async Task HandleAnimationEnd(string animationName, string? currentAnimationName = null)
     {
-        var normalizedEventAnimation = NormalizeAnimationName(animationName);
-        var activeAnimationName = NormalizeAnimationName(currentAnimationName);
+        string normalizedEventAnimation = NormalizeAnimationName(animationName);
+        string activeAnimationName = NormalizeAnimationName(currentAnimationName);
 
         if (!string.IsNullOrWhiteSpace(activeAnimationName) &&
             !string.Equals(activeAnimationName, "none", StringComparison.Ordinal) &&
@@ -210,7 +212,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
         if (_registered)
         {
-            await Interop.UnregisterPresence(_element);
+            await PresenceOverlayInterop.UnregisterPresence(_element);
             _registered = false;
         }
 
@@ -225,11 +227,11 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
     private Dictionary<string, object> BuildRenderAttributes()
     {
-        var attributes = BuildAttributes();
+        Dictionary<string, object> attributes = BuildAttributes();
 
         if (_forceExitAnimationFillModeForwards)
         {
-            if (attributes.TryGetValue("style", out var style) && style is string styleValue && !string.IsNullOrWhiteSpace(styleValue))
+            if (attributes.TryGetValue("style", out object? style) && style is string styleValue && !string.IsNullOrWhiteSpace(styleValue))
                 attributes["style"] = $"{styleValue.TrimEnd(';')}; animation-fill-mode: forwards;";
             else
                 attributes["style"] = "animation-fill-mode: forwards;";
@@ -245,7 +247,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
 
     private static string NormalizeAnimationName(string? animationName, string? fallback = null)
     {
-        var value = string.IsNullOrWhiteSpace(animationName) ? fallback : animationName;
+        string? value = string.IsNullOrWhiteSpace(animationName) ? fallback : animationName;
         return string.IsNullOrWhiteSpace(value) ? "none" : value;
     }
 
@@ -254,7 +256,7 @@ public sealed class BradixPresence : BradixComponent, IAsyncDisposable
         if (string.Equals(eventAnimationName, "none", StringComparison.Ordinal))
             return false;
 
-        var currentAnimations = currentAnimationName.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        string[] currentAnimations = currentAnimationName.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         return currentAnimations.Any(name => string.Equals(name, eventAnimationName, StringComparison.Ordinal));
     }
 

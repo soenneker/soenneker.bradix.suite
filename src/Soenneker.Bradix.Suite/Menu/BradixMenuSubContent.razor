@@ -135,7 +135,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -191,7 +191,7 @@
         if (OnContentKeyDown.HasDelegate)
             await OnContentKeyDown.InvokeAsync(args);
 
-        var isCloseKey = ParentMenu.ResolvedDirection == "rtl"
+        bool isCloseKey = ParentMenu.ResolvedDirection == "rtl"
             ? args.Key == "ArrowRight"
             : args.Key == "ArrowLeft";
 

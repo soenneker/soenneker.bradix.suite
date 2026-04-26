@@ -6,7 +6,7 @@
 
 @implements IBradixMenubarTriggerEntry
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <BradixMenuAnchor>
     <button @ref="_button"
             @onpointerdown="HandlePointerDown"
@@ -76,7 +76,7 @@
             await OnElementReferenceCaptured.InvokeAsync(_button);
 
         _dotNetReference ??= DotNetObjectReference.Create(this);
-        await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
         {
             keydown = new
             {
@@ -91,7 +91,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_delegatedInteractionRegistered)
-            await Interop.UnregisterDelegatedInteraction(_button);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
 
         if (_registered && Menubar is not null)
             Menubar.UnregisterTrigger(this);

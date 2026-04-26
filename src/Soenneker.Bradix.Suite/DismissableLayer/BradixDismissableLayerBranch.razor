@@ -4,7 +4,7 @@
 
 @implements IBradixDismissableLayerBranch
 
-@inject IBradixSuiteInterop Interop
+@inject IDismissableLayerInterop DismissableLayerInterop
 <div @ref="_element"
      @attributes="BranchAttributes">
     @ChildContent
@@ -23,13 +23,13 @@
         if (!firstRender)
             return;
 
-        await Interop.RegisterDismissableLayerBranch(_element);
+        await DismissableLayerInterop.RegisterDismissableLayerBranch(_element);
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_registered)
-            await Interop.UnregisterDismissableLayerBranch(_element);
+            await DismissableLayerInterop.UnregisterDismissableLayerBranch(_element);
     }
 }

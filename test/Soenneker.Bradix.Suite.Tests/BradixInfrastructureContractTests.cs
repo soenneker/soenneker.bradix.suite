@@ -13,7 +13,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     [Test]
     public async Task Base_component_merges_common_attributes_with_consumer_precedence()
     {
-        var component = new ExposedBradixComponent();
+        var component = new BradixExposedComponent();
         component.Configure(
             id: "owned-id",
             @class: "owned-class",
@@ -84,9 +84,6 @@ public sealed class BradixInfrastructureContractTests : BunitContext
         string[] requiredAssets =
         [
             "js/bradix.js",
-            "js/bradix/floating-ui-amd-guard.js",
-            "js/bradix/floating-ui-amd-restore.js",
-            "js/bradix/floating-ui-global-loader.js",
             "js/bradix/popper.js",
             "js/bradix/portal.js",
             "js/bradix/dismissableLayer.js",
@@ -122,19 +119,4 @@ public sealed class BradixInfrastructureContractTests : BunitContext
         return Directory.GetCurrentDirectory();
     }
 
-    private sealed class ExposedBradixComponent : BradixComponent
-    {
-        public void Configure(string id, string @class, string style, IReadOnlyDictionary<string, object> additionalAttributes)
-        {
-            Id = id;
-            Class = @class;
-            Style = style;
-            AdditionalAttributes = additionalAttributes;
-        }
-
-        public Dictionary<string, object> ExposeBuildAttributes(params (string Key, object? Value)[] values)
-        {
-            return BuildAttributes(values);
-        }
-    }
 }

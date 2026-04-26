@@ -8,7 +8,10 @@
 @implements IBradixMenuRovingItem
 @implements IBradixMenuItem
 
-@inject IBradixSuiteInterop Interop
+@inject IRovingFocusInterop RovingFocusInterop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject IDomInterop DomInterop
+@inject IControlsInterop ControlsInterop
 @if (RenderAsLink)
 {
     <a @ref="_element"
@@ -127,8 +130,8 @@ else
             Menu.RegisterItem(this);
             _registered = true;
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
-            await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
             {
                 keydown = new
                 {
@@ -141,7 +144,7 @@ else
 
         if (TextValue is null)
         {
-            var textContent = await Interop.GetTextContent(_element);
+            string textContent = await DomInterop.GetTextContent(_element);
 
             if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
                 _resolvedTextValue = textContent;
@@ -151,9 +154,9 @@ else
     public async ValueTask DisposeAsync()
     {
         if (_delegatedInteractionRegistered)
-            await Interop.UnregisterDelegatedInteraction(_element);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
 
-        await Interop.UnregisterRovingFocusNavigationKeys(_element);
+        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
 
         if (_registered)
             Menu.UnregisterItem(this);
@@ -161,7 +164,7 @@ else
         _dotNetReference?.Dispose();
     }
 
-    public ValueTask Focus() => Interop.FocusElementPreventScroll(_element);
+    public ValueTask Focus() => ControlsInterop.FocusElementPreventScroll(_element);
 
     private async Task HandleClick()
     {
@@ -195,7 +198,7 @@ else
         if (Disabled || args.Button != 0)
             return;
 
-        var shouldSelectOnPointerUp = !_isPointerDown;
+        bool shouldSelectOnPointerUp = !_isPointerDown;
         _isPointerDown = false;
 
         if (shouldSelectOnPointerUp)

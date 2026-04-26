@@ -6,7 +6,9 @@
 
 @implements IBradixSliderThumb
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject IFormInterop FormInterop
+@inject IControlsInterop ControlsInterop
 <span @attributes="WrapperAttributes">
     <span @ref="_element"
           @onfocus="HandleFocus"
@@ -58,21 +60,21 @@
                 return BuildAttributes(("style", "display: none;"));
             }
 
-            var percent = Slider.GetPercentForValue(Value.Value);
+            double percent = Slider.GetPercentForValue(Value.Value);
             string startEdge;
             string transform;
             var direction = 1;
 
             if (Slider.Orientation == BradixOrientation.Horizontal)
             {
-                var fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
+                bool fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
                 startEdge = fromLeft ? "left" : "right";
                 transform = "translateX(-50%)";
                 direction = fromLeft ? 1 : -1;
             }
             else
             {
-                var fromBottom = !Slider.Inverted;
+                bool fromBottom = !Slider.Inverted;
                 startEdge = fromBottom ? "bottom" : "top";
                 transform = "translateY(50%)";
                 direction = fromBottom ? 1 : -1;
@@ -88,7 +90,7 @@
     {
         get
         {
-            var attributes = BuildAttributes(
+            Dictionary<string, object> attributes = BuildAttributes(
                 ("role", "slider"),
                 ("aria-label", AriaLabel ?? BradixSliderMath.GetThumbLabel(Index, Slider.CurrentValues.Count)),
                 ("aria-valuemin", Slider.Min.ToString(System.Globalization.CultureInfo.InvariantCulture)),
@@ -131,7 +133,7 @@
             Slider.RegisterThumb(this);
             _registered = true;
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
             {
                 keydown = new
                 {
@@ -144,7 +146,7 @@
 
         if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Slider.Form, StringComparison.Ordinal))
         {
-            var isFormControl = await Interop.IsFormControl(_element, Slider.Form);
+            bool isFormControl = await FormInterop.IsFormControl(_element, Slider.Form);
             _formControlStateResolved = true;
             _lastResolvedForm = Slider.Form;
 
@@ -158,8 +160,8 @@
 
         if (ShouldRenderBubbleInput && Value is not null)
         {
-            var dispatchEvent = _hasSyncedBubbleInput && _lastRenderedValue != Value;
-            await Interop.SyncSliderBubbleInputValue(_bubbleInputElement, Value.Value, dispatchEvent);
+            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedValue != Value;
+            await ControlsInterop.SyncSliderBubbleInputValue(_bubbleInputElement, Value.Value, dispatchEvent);
             _hasSyncedBubbleInput = true;
         }
 
@@ -168,7 +170,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterDelegatedInteraction(_element);
+        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
         _dotNetReference?.Dispose();
 
         if (_registered)

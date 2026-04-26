@@ -8,11 +8,11 @@ public sealed class BradixCollectionRegistryTests
     [Test]
     public async Task Snapshot_returns_keys_in_registration_order()
     {
-        var registry = new BradixCollectionRegistry<DemoItem>();
+        var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();
 
-        registry.Register("alpha", new DemoItem("Alpha"));
-        registry.Register("beta", new DemoItem("Beta"));
-        registry.Register("blue", new DemoItem("Blue"));
+        registry.Register("alpha", new BradixCollectionRegistryDemoItem("Alpha"));
+        registry.Register("beta", new BradixCollectionRegistryDemoItem("Beta"));
+        registry.Register("blue", new BradixCollectionRegistryDemoItem("Blue"));
 
         await Assert.That(string.Join(",", registry.Snapshot().Select(entry => entry.Key))).IsEqualTo("alpha,beta,blue");
     }
@@ -20,14 +20,14 @@ public sealed class BradixCollectionRegistryTests
     [Test]
     public async Task Insert_repositions_existing_entry_without_duplication()
     {
-        var registry = new BradixCollectionRegistry<DemoItem>();
+        var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();
 
-        registry.Register("alpha", new DemoItem("Alpha"));
-        registry.Register("beta", new DemoItem("Beta"));
-        registry.Register("blue", new DemoItem("Blue"));
-        registry.Insert(0, "blue", new DemoItem("Blue"));
+        registry.Register("alpha", new BradixCollectionRegistryDemoItem("Alpha"));
+        registry.Register("beta", new BradixCollectionRegistryDemoItem("Beta"));
+        registry.Register("blue", new BradixCollectionRegistryDemoItem("Blue"));
+        registry.Insert(0, "blue", new BradixCollectionRegistryDemoItem("Blue"));
 
-        BradixCollectionEntry<DemoItem>[] snapshot = [.. registry.Snapshot()];
+        BradixCollectionEntry<BradixCollectionRegistryDemoItem>[] snapshot = [.. registry.Snapshot()];
 
         await Assert.That(string.Join(",", snapshot.Select(entry => entry.Key))).IsEqualTo("blue,alpha,beta");
     }
@@ -143,5 +143,4 @@ public sealed class BradixCollectionRegistryTests
         await Assert.That(string.Join(",", dictionary.Select(entry => entry.Key))).IsEqualTo("alpha,amber,beta");
     }
 
-    private sealed record DemoItem(string TextValue);
 }

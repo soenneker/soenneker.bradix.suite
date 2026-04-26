@@ -32,7 +32,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null ? new Dictionary<string, object>(AdditionalAttributes) : [];
+            Dictionary<string, object> attributes = AdditionalAttributes is not null ? new Dictionary<string, object>(AdditionalAttributes) : [];
 
             attributes["data-orientation"] = Accordion.Orientation.Value;
 

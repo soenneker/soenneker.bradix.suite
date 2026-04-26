@@ -6,8 +6,9 @@
 
 @using Soenneker.Blazor.Utils.Ids
 @using Microsoft.JSInterop
+@using Soenneker.Atomics.ValueBools
 
-@inject IBradixSuiteInterop Interop
+@inject INavigationMenuInterop NavigationMenuInterop
 
 @if (ShouldRenderViewport)
 {
@@ -26,7 +27,7 @@
     private string? _pendingContentRetryValue;
     private double _width;
     private double _height;
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
 
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
@@ -47,7 +48,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -66,12 +67,12 @@
 
             if (_width > 0 || _height > 0)
             {
-                var width = _width > 0 ? $"{_width.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
-                var height = _height > 0 ? $"{_height.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
+                string width = _width > 0 ? $"{_width.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
+                string height = _height > 0 ? $"{_height.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
                 sizeStyle = $"--radix-navigation-menu-viewport-width:{width};--radix-navigation-menu-viewport-height:{height};";
             }
 
-            var viewportStyle = NavigationMenu?.HasOpenItem == true
+            string viewportStyle = NavigationMenu?.HasOpenItem == true
                 ? string.Empty
                 : "pointer-events:none;";
 
@@ -90,12 +91,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed || NavigationMenu is null)
+        if (_disposed.Read() || NavigationMenu is null)
             return;
 
-        var contentValue = NavigationMenu.HasOpenItem ? NavigationMenu.CurrentValue : null;
+        string? contentValue = NavigationMenu.HasOpenItem ? NavigationMenu.CurrentValue : null;
 
-        if (string.IsNullOrWhiteSpace(contentValue) || !NavigationMenu.TryGetContent(contentValue, out var content))
+        if (string.IsNullOrWhiteSpace(contentValue) || !NavigationMenu.TryGetContent(contentValue, out ElementReference content))
         {
             if (!string.IsNullOrWhiteSpace(contentValue) &&
                 !string.Equals(_pendingContentRetryValue, contentValue, StringComparison.Ordinal))
@@ -103,7 +104,7 @@
                 _pendingContentRetryValue = contentValue;
                 await Task.Yield();
 
-                if (!_disposed &&
+                if (!_disposed.Read() &&
                     string.Equals(_pendingContentRetryValue, contentValue, StringComparison.Ordinal))
                 {
                     await InvokeAsync(StateHasChanged);
@@ -114,7 +115,7 @@
             {
                 try
                 {
-                    await Interop.UnregisterNavigationMenuViewport(_viewportElement);
+                    await NavigationMenuInterop.UnregisterNavigationMenuViewport(_viewportElement);
                 }
                 catch (Exception ex) when (ShouldIgnoreInteropException(ex))
                 {
@@ -133,11 +134,11 @@
         {
             if (string.Equals(_observedContentValue, contentValue, StringComparison.Ordinal))
             {
-                await Interop.UpdateNavigationMenuViewport(_viewportElement, content);
+                await NavigationMenuInterop.UpdateNavigationMenuViewport(_viewportElement, content);
             }
             else
             {
-                await Interop.RegisterNavigationMenuViewport(_viewportElement, content, _dotNetReference);
+                await NavigationMenuInterop.RegisterNavigationMenuViewport(_viewportElement, content, _dotNetReference);
                 _observedContentValue = contentValue;
             }
         }
@@ -148,13 +149,14 @@
 
     public async ValueTask DisposeAsync()
     {
-        _disposed = true;
+        if (!_disposed.TrySetTrue())
+            return;
 
         if (!string.IsNullOrWhiteSpace(_observedContentValue))
         {
             try
             {
-                await Interop.UnregisterNavigationMenuViewport(_viewportElement);
+                await NavigationMenuInterop.UnregisterNavigationMenuViewport(_viewportElement);
             }
             catch (Exception ex) when (ShouldIgnoreInteropException(ex))
             {
@@ -171,7 +173,7 @@
     [JSInvokable]
     public Task HandleViewportSizeChanged(double width, double height)
     {
-        if (_disposed)
+        if (_disposed.Read())
             return Task.CompletedTask;
 
         if (Math.Abs(_width - width) < 0.1 &&

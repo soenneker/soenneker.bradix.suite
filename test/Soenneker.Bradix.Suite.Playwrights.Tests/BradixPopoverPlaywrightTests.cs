@@ -133,7 +133,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(content).ToBeVisibleAsync();
 
         ILocator main = page.Locator(".docs-shell__main");
-        var mainBox = await main.BoundingBoxAsync();
+        LocatorBoundingBoxResult? mainBox = await main.BoundingBoxAsync();
         await Assert.That(mainBox).IsNotNull();
         await page.Mouse.ClickAsync(mainBox!.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);
 
@@ -184,7 +184,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(controlledContent).ToBeVisibleAsync();
 
         ILocator main = page.Locator(".docs-shell__main");
-        var mainBox = await main.BoundingBoxAsync();
+        LocatorBoundingBoxResult? mainBox = await main.BoundingBoxAsync();
         await Assert.That(mainBox).IsNotNull();
         await page.Mouse.ClickAsync(mainBox!.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);
 
@@ -193,12 +193,5 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(controlledContent).Not.ToBeVisibleAsync();
     }
 
-    private sealed class PopoverRoleProbe
-    {
-        public string? role { get; set; }
-        public string? ariaLabel { get; set; }
-        public string? dataState { get; set; }
-        public string? selectedText { get; set; }
-    }
 }
 

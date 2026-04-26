@@ -6,7 +6,7 @@
 
 @implements IBradixSelectTrigger
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <BradixDismissableLayerBranch>
     <BradixPopperAnchor>
         <button @ref="_button"
@@ -53,7 +53,7 @@
         {
             Select?.RegisterTrigger(_button);
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
                 pointerdown = new
                 {
@@ -76,7 +76,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_delegatedInteractionRegistered)
-            await Interop.UnregisterDelegatedInteraction(_button);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
 
         _dotNetReference?.Dispose();
     }

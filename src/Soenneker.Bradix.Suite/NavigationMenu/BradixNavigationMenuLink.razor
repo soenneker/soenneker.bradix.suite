@@ -1,13 +1,14 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using Soenneker.Atomics.ValueBools
 
 @inherits BradixComponent
 
 @implements IBradixNavigationMenuLink
 @implements IBradixNavigationMenuFocusGroupItem
 
-@inject IBradixSuiteInterop Interop
+@inject IRovingFocusInterop RovingFocusInterop
 <a @ref="_element"
    @onclick="HandleClick"
    @onfocus="HandleFocus"
@@ -21,7 +22,7 @@
     private DotNetObjectReference<BradixNavigationMenuLink>? _dotNetReference;
     private bool _registered;
     private bool _rovingFocusBridgeReady;
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
     private RootLinkRegistration? _rootRegistration;
     private bool _focusGroupRegistered;
 
@@ -63,7 +64,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _disposed)
+        if (!firstRender || _disposed.Read())
             return;
 
         if (NavigationMenu?.IsRootMenu == true && !IsInContent && Item is not null)
@@ -85,7 +86,7 @@
 
         try
         {
-            await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+            await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
             _registered = true;
         }
         catch (Exception ex) when (ShouldIgnoreInteropException(ex))
@@ -95,13 +96,14 @@
 
     public async ValueTask DisposeAsync()
     {
-        _disposed = true;
+        if (!_disposed.TrySetTrue())
+            return;
 
         if (_registered)
         {
             try
             {
-                await Interop.UnregisterRovingFocusNavigationKeys(_element);
+                await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
             }
             catch (Exception ex) when (ShouldIgnoreInteropException(ex))
             {
@@ -160,7 +162,7 @@
         if (Item is null)
             return;
 
-        if (NavigationMenu.TryGetTrigger(Item.ResolvedValue, out var trigger))
+        if (NavigationMenu.TryGetTrigger(Item.ResolvedValue, out IBradixNavigationMenuRegisteredTrigger trigger))
             await NavigationMenu.HandleTriggerNavigation(trigger, args);
     }
 

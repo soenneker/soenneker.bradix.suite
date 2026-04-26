@@ -7,7 +7,10 @@
 
 @implements IBradixSelectContent
 
-@inject IBradixSuiteInterop Interop
+@inject ISelectInterop SelectInterop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject IPresenceOverlayInterop PresenceOverlayInterop
+@inject IControlsInterop ControlsInterop
 
 @if (Select?.CurrentOpen == true || ForceMount)
 {
@@ -189,7 +192,7 @@ else
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -226,37 +229,37 @@ else
 
             if (_itemAlignedRegistered)
             {
-                await Interop.UnregisterSelectItemAlignedPosition(_wrapperElement);
+                await SelectInterop.UnregisterSelectItemAlignedPosition(_wrapperElement);
                 _itemAlignedRegistered = false;
             }
 
             if (_viewportRegistered)
             {
-                await Interop.UnregisterSelectViewport(_viewportElement);
+                await SelectInterop.UnregisterSelectViewport(_viewportElement);
                 _viewportRegistered = false;
             }
 
             if (_pointerTrackerRegistered)
             {
-                await Interop.UnregisterSelectContentPointerTracker(_contentElement);
+                await SelectInterop.UnregisterSelectContentPointerTracker(_contentElement);
                 _pointerTrackerRegistered = false;
             }
 
             if (_delegatedInteractionRegistered)
             {
-                await Interop.UnregisterDelegatedInteraction(_contentElement);
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
                 _delegatedInteractionRegistered = false;
             }
 
             if (_windowDismissRegistered)
             {
-                await Interop.UnregisterSelectWindowDismiss(_contentElement);
+                await SelectInterop.UnregisterSelectWindowDismiss(_contentElement);
                 _windowDismissRegistered = false;
             }
 
             if (_hideOthersRegistered)
             {
-                await Interop.UnregisterHideOthers(_contentElement);
+                await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
                 _hideOthersRegistered = false;
             }
 
@@ -274,22 +277,22 @@ else
         StopAutoScroll();
 
         if (_itemAlignedRegistered)
-            await Interop.UnregisterSelectItemAlignedPosition(_wrapperElement);
+            await SelectInterop.UnregisterSelectItemAlignedPosition(_wrapperElement);
 
         if (_viewportRegistered)
-            await Interop.UnregisterSelectViewport(_viewportElement);
+            await SelectInterop.UnregisterSelectViewport(_viewportElement);
 
         if (_pointerTrackerRegistered)
-            await Interop.UnregisterSelectContentPointerTracker(_contentElement);
+            await SelectInterop.UnregisterSelectContentPointerTracker(_contentElement);
 
         if (_delegatedInteractionRegistered)
-            await Interop.UnregisterDelegatedInteraction(_contentElement);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
 
         if (_windowDismissRegistered)
-            await Interop.UnregisterSelectWindowDismiss(_contentElement);
+            await SelectInterop.UnregisterSelectWindowDismiss(_contentElement);
 
         if (_hideOthersRegistered)
-            await Interop.UnregisterHideOthers(_contentElement);
+            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
 
         _dotNetReference?.Dispose();
     }
@@ -300,7 +303,7 @@ else
         _hasViewportElement = true;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterSelectViewport(_viewportElement, _viewportContentElement, _wrapperElement, _dotNetReference);
+        await SelectInterop.RegisterSelectViewport(_viewportElement, _viewportContentElement, _wrapperElement, _dotNetReference);
         _viewportRegistered = true;
     }
 
@@ -320,7 +323,7 @@ else
             return;
 
         Select?.SetFocusedItem(null);
-        await Interop.FocusElementPreventScroll(_contentElement);
+        await ControlsInterop.FocusElementPreventScroll(_contentElement);
     }
 
     internal Task StartAutoScroll(bool upward)
@@ -461,19 +464,19 @@ else
         if (Select is null || !UseItemAlignedPosition || !_hasContentElement || !_hasViewportElement || !Select.HasTrigger || !Select.HasValueNode)
             return;
 
-        var selectedItem = Select.GetSelectedOrFirstEnabledItem();
+        IBradixSelectCollectionItem? selectedItem = Select.GetSelectedOrFirstEnabledItem();
 
         if (selectedItem is null || !selectedItem.HasItemTextElement)
             return;
 
         if (_itemAlignedRegistered)
         {
-            await Interop.UpdateSelectItemAlignedPosition(_wrapperElement, _contentElement, _viewportElement, Select.TriggerElement, Select.ValueNodeElement,
+            await SelectInterop.UpdateSelectItemAlignedPosition(_wrapperElement, _contentElement, _viewportElement, Select.TriggerElement, Select.ValueNodeElement,
                 selectedItem.ItemElement, selectedItem.ItemTextElement, Select.ResolvedDirection);
         }
         else
         {
-            await Interop.RegisterSelectItemAlignedPosition(_wrapperElement, _contentElement, _viewportElement, Select.TriggerElement, Select.ValueNodeElement,
+            await SelectInterop.RegisterSelectItemAlignedPosition(_wrapperElement, _contentElement, _viewportElement, Select.TriggerElement, Select.ValueNodeElement,
                 selectedItem.ItemElement, selectedItem.ItemTextElement, Select.ResolvedDirection);
             _itemAlignedRegistered = true;
 
@@ -489,10 +492,10 @@ else
             if (Select is null)
                 return;
 
-            var item = Select.GetSelectedOrFirstEnabledItem();
+            IBradixSelectCollectionItem? item = Select.GetSelectedOrFirstEnabledItem();
 
             if (item is not null)
-                await Interop.ScrollSelectViewportByItem(_viewportElement, item.ItemElement, upward, cancellationToken);
+                await SelectInterop.ScrollSelectViewportByItem(_viewportElement, item.ItemElement, upward, cancellationToken);
 
             try
             {
@@ -511,7 +514,7 @@ else
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterSelectContentPointerTracker(_contentElement, _dotNetReference, Select.TriggerPointerDownX, Select.TriggerPointerDownY);
+        await SelectInterop.RegisterSelectContentPointerTracker(_contentElement, _dotNetReference, Select.TriggerPointerDownX, Select.TriggerPointerDownY);
         _pointerTrackerRegistered = true;
     }
 
@@ -521,7 +524,7 @@ else
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
+        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
         {
             keydown = new
             {
@@ -539,7 +542,7 @@ else
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterSelectWindowDismiss(_contentElement, _dotNetReference);
+        await SelectInterop.RegisterSelectWindowDismiss(_contentElement, _dotNetReference);
         _windowDismissRegistered = true;
     }
 
@@ -548,7 +551,7 @@ else
         if (!_hasContentElement || _hideOthersRegistered)
             return;
 
-        await Interop.RegisterHideOthers(_contentElement);
+        await PresenceOverlayInterop.RegisterHideOthers(_contentElement);
         _hideOthersRegistered = true;
     }
 

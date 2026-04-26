@@ -7,7 +7,7 @@
 
 @implements IBradixNavigationMenuIndicator
 
-@inject IBradixSuiteInterop Interop
+@inject INavigationMenuInterop NavigationMenuInterop
 
 @if (ForceMount || NavigationMenu?.HasOpenItem == true)
 {
@@ -39,7 +39,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -54,7 +54,7 @@
     {
         get
         {
-            var orientation = NavigationMenu?.Orientation ?? BradixOrientation.Horizontal;
+            BradixOrientation orientation = NavigationMenu?.Orientation ?? BradixOrientation.Horizontal;
             var baseStyle = "position:absolute;";
 
             if (_size.HasValue && _offset.HasValue)
@@ -75,17 +75,17 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var navigationMenu = NavigationMenu;
+        BradixNavigationMenu? navigationMenu = NavigationMenu;
 
         if (!_hasElement ||
             navigationMenu is null ||
             !navigationMenu.HasIndicatorTrack ||
             !navigationMenu.HasOpenItem ||
-            !navigationMenu.TryGetOpenTrigger(out var trigger))
+            !navigationMenu.TryGetOpenTrigger(out IBradixNavigationMenuRegisteredTrigger trigger))
         {
             if (_registered)
             {
-                await Interop.UnregisterNavigationMenuIndicator(_element);
+                await NavigationMenuInterop.UnregisterNavigationMenuIndicator(_element);
                 _registered = false;
             }
 
@@ -96,11 +96,11 @@
 
         if (_registered)
         {
-            await Interop.UpdateNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, navigationMenu.Orientation.Value);
+            await NavigationMenuInterop.UpdateNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, navigationMenu.Orientation.Value);
         }
         else
         {
-            await Interop.RegisterNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, _dotNetReference,
+            await NavigationMenuInterop.RegisterNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, _dotNetReference,
                 navigationMenu.Orientation.Value);
             _registered = true;
         }
@@ -109,7 +109,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_registered)
-            await Interop.UnregisterNavigationMenuIndicator(_element);
+            await NavigationMenuInterop.UnregisterNavigationMenuIndicator(_element);
 
         _dotNetReference?.Dispose();
     }

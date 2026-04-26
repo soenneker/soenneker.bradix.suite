@@ -530,45 +530,5 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await page.Mouse.ClickAsync(box!.X + (box.Width / 2), box.Y + (box.Height / 2));
     }
 
-    private sealed class HitTargetProbe
-    {
-        public string? tagName { get; set; }
-        public string? id { get; set; }
-        public string? text { get; set; }
-        public string? ariaLabelledBy { get; set; }
-        public string? dataState { get; set; }
-    }
-
-    private sealed class TriggerProbe
-    {
-        public string? text { get; set; }
-        public string? id { get; set; }
-        public string? ariaExpanded { get; set; }
-        public double width { get; set; }
-        public double height { get; set; }
-        public double left { get; set; }
-        public double top { get; set; }
-    }
-
-    private sealed class TriggerDiagnostics
-    {
-        public TriggerProbe[] buttons { get; set; } = [];
-        public HitTargetProbe? hitTarget { get; set; }
-    }
-
-    private sealed class TriggerIdentityDiagnostics
-    {
-        public bool isConnected { get; set; }
-        public string? outerHtml { get; set; }
-    }
-
-    private sealed class TriggerIdentityAfterOpenDiagnostics
-    {
-        public bool isSameNode { get; set; }
-        public bool previousIsConnected { get; set; }
-        public bool currentIsConnected { get; set; }
-        public string? outerHtml { get; set; }
-    }
-
 }
 

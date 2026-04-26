@@ -21,7 +21,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public BradixOrderedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> entries)
     {
-        foreach (var entry in entries)
+        foreach (KeyValuePair<TKey, TValue> entry in entries)
         {
             Set(entry.Key, entry.Value);
         }
@@ -62,10 +62,10 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public BradixOrderedDictionary<TKey, TValue> Insert(int index, TKey key, TValue value)
     {
-        var has = _map.ContainsKey(key);
-        var length = _keys.Count;
-        var actualIndex = index >= 0 ? index : length + index;
-        var safeIndex = actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
+        bool has = _map.ContainsKey(key);
+        int length = _keys.Count;
+        int actualIndex = index >= 0 ? index : length + index;
+        int safeIndex = actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
 
         if (safeIndex == -1 || (has && safeIndex == Count - 1))
         {
@@ -80,7 +80,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
         if (has)
         {
-            var existingIndex = _keys.IndexOf(key);
+            int existingIndex = _keys.IndexOf(key);
             if (existingIndex >= 0)
             {
                 _keys.RemoveAt(existingIndex);
@@ -92,7 +92,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
             }
         }
 
-        var targetIndex = Math.Clamp(actualIndex, 0, _keys.Count);
+        int targetIndex = Math.Clamp(actualIndex, 0, _keys.Count);
         _keys.Insert(targetIndex, key);
         _map[key] = value;
 
@@ -101,7 +101,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public bool Delete(TKey key)
     {
-        var removed = _map.Remove(key);
+        bool removed = _map.Remove(key);
 
         if (removed)
         {
@@ -164,43 +164,43 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public BradixOrderedDictionary<TKey, TValue> SetBefore(TKey key, TKey newKey, TValue value)
     {
-        var index = IndexOf(key);
+        int index = IndexOf(key);
         return index < 0 ? this : Insert(index, newKey, value);
     }
 
     public BradixOrderedDictionary<TKey, TValue> SetAfter(TKey key, TKey newKey, TValue value)
     {
-        var index = IndexOf(key);
+        int index = IndexOf(key);
         return index < 0 ? this : Insert(index + 1, newKey, value);
     }
 
     public TValue? From(TKey key, int offset)
     {
-        var index = IndexOf(key);
+        int index = IndexOf(key);
         if (index < 0)
         {
             return default;
         }
 
-        var destination = Math.Clamp(index + offset, 0, Count - 1);
+        int destination = Math.Clamp(index + offset, 0, Count - 1);
         return At(destination);
     }
 
     public TKey? KeyFrom(TKey key, int offset)
     {
-        var index = IndexOf(key);
+        int index = IndexOf(key);
         if (index < 0)
         {
             return default;
         }
 
-        var destination = Math.Clamp(index + offset, 0, Count - 1);
+        int destination = Math.Clamp(index + offset, 0, Count - 1);
         return KeyAt(destination);
     }
 
     public KeyValuePair<TKey, TValue>? Find(Predicate<KeyValuePair<TKey, TValue>> predicate)
     {
-        foreach (var entry in this)
+        foreach (KeyValuePair<TKey, TValue> entry in this)
         {
             if (predicate(entry))
             {
@@ -215,7 +215,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     {
         var index = 0;
 
-        foreach (var entry in this)
+        foreach (KeyValuePair<TKey, TValue> entry in this)
         {
             if (predicate(entry))
             {
@@ -244,7 +244,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     {
         var reversed = new BradixOrderedDictionary<TKey, TValue>();
 
-        for (var i = _keys.Count - 1; i >= 0; i--)
+        for (int i = _keys.Count - 1; i >= 0; i--)
         {
             TKey key = _keys[i];
             reversed.Set(key, _map[key]);
@@ -255,7 +255,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        foreach (var key in _keys)
+        foreach (TKey key in _keys)
         {
             yield return new KeyValuePair<TKey, TValue>(key, _map[key]);
         }
@@ -273,13 +273,13 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
             return -1;
         }
 
-        var normalized = index >= 0 ? index : count + index;
+        int normalized = index >= 0 ? index : count + index;
         return normalized < 0 || normalized >= count ? -1 : normalized;
     }
 
     private bool TryGetKeyAt(int index, out TKey key)
     {
-        var safeIndex = NormalizeLookupIndex(index, _keys.Count);
+        int safeIndex = NormalizeLookupIndex(index, _keys.Count);
         if (safeIndex < 0)
         {
             key = default!;

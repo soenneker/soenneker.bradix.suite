@@ -4,7 +4,7 @@
 
 @implements IBradixPortal
 
-@inject IBradixSuiteInterop Interop
+@inject IPortalInterop PortalInterop
 <div @ref="_element"
      @attributes="PortalAttributes">
     @ChildContent
@@ -27,12 +27,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var containerChanged = !_lastContainerCaptured || !EqualityComparer<ElementReference>.Default.Equals(_lastContainer, Container);
+        bool containerChanged = !_lastContainerCaptured || !EqualityComparer<ElementReference>.Default.Equals(_lastContainer, Container);
 
         if (_mounted && !firstRender && !containerChanged && string.Equals(_lastContainerSelector, ContainerSelector, StringComparison.Ordinal))
             return;
 
-        await Interop.MountPortal(_element, ContainerSelector, Container);
+        await PortalInterop.MountPortal(_element, ContainerSelector, Container);
         _mounted = true;
         _lastContainer = Container;
         _lastContainerCaptured = true;
@@ -42,6 +42,6 @@
     public async ValueTask DisposeAsync()
     {
         if (_mounted)
-            await Interop.UnmountPortal(_element);
+            await PortalInterop.UnmountPortal(_element);
     }
 }

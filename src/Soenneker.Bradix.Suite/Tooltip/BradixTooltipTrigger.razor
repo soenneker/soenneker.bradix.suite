@@ -6,7 +6,7 @@
 
 @implements IBradixTooltipTrigger
 
-@inject IBradixSuiteInterop Interop
+@inject ITooltipInterop TooltipInterop
 <BradixPopperAnchor>
     <button @ref="_triggerElement"
             @onclick="HandleClick"
@@ -44,12 +44,12 @@
 
         Tooltip.RegisterTrigger(_triggerElement);
         _dotNetReference = DotNetObjectReference.Create(this);
-        await Interop.RegisterTooltipTrigger(_triggerElement, _dotNetReference);
+        await TooltipInterop.RegisterTooltipTrigger(_triggerElement, _dotNetReference);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterTooltipTrigger(_triggerElement);
+        await TooltipInterop.UnregisterTooltipTrigger(_triggerElement);
         _dotNetReference?.Dispose();
     }
 

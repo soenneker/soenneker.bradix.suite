@@ -7,7 +7,8 @@
 @implements IBradixSelectCollectionItem
 @implements IBradixSelectItem
 
-@inject IBradixSuiteInterop Interop
+@inject IDomInterop DomInterop
+@inject IControlsInterop ControlsInterop
 <CascadingValue Value="this">
     <div @ref="_element"
          @onclick="HandleClick"
@@ -97,7 +98,7 @@
 
         if (TextValue is null && !_hasItemTextElement && string.IsNullOrWhiteSpace(_resolvedTextValue))
         {
-            var textContent = await Interop.GetTextContent(_element);
+            string textContent = await DomInterop.GetTextContent(_element);
 
             if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
             {
@@ -116,9 +117,9 @@
 
     }
 
-    ValueTask IBradixSelectCollectionItem.Focus() => Interop.FocusElementPreventScroll(_element);
+    ValueTask IBradixSelectCollectionItem.Focus() => ControlsInterop.FocusElementPreventScroll(_element);
 
-    ValueTask IBradixSelectCollectionItem.ScrollIntoView() => Interop.ScrollElementIntoViewNearest(_element);
+    ValueTask IBradixSelectCollectionItem.ScrollIntoView() => ControlsInterop.ScrollElementIntoViewNearest(_element);
 
     ValueTask IBradixSelectCollectionItem.Refresh() => new(InvokeAsync(StateHasChanged));
 
@@ -169,7 +170,7 @@
         if (Disabled || Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
-        var isTypingAhead = Select.HasActiveTypeahead;
+        bool isTypingAhead = Select.HasActiveTypeahead;
 
         if (isTypingAhead && args.Key is " " or "Spacebar")
             return;
@@ -223,7 +224,7 @@
         }
 
         Select.SetFocusedItem(Value);
-        await Interop.FocusElementPreventScroll(_element);
+        await ControlsInterop.FocusElementPreventScroll(_element);
     }
 
     private async Task HandlePointerLeave(PointerEventArgs _)

@@ -5,7 +5,7 @@
 @using Soenneker.Blazor.Utils.Ids
 @implements IBradixToggleGroupItem
 
-@inject IBradixSuiteInterop Interop
+@inject IRovingFocusInterop RovingFocusInterop
 <BradixToggle @ref="_toggle"
               Id="@Id"
               Class="@Class"
@@ -48,7 +48,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : [];
 
@@ -95,13 +95,13 @@
         _registered = true;
 
         if (Group.RovingFocus && _toggle is not null)
-            await Interop.RegisterRovingFocusNavigationKeys(_toggle.Element);
+            await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_toggle.Element);
     }
 
     public async ValueTask DisposeAsync()
     {
         if (Group.RovingFocus && _toggle is not null)
-            await Interop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
+            await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
 
         if (_registered)
             Group.UnregisterItem(this);

@@ -8,7 +8,8 @@
 @implements IBradixToolbarRovingItem
 @implements IBradixToolbarLink
 
-@inject IBradixSuiteInterop Interop
+@inject IRovingFocusInterop RovingFocusInterop
+@inject IControlsInterop ControlsInterop
 <a @ref="_element"
    @onclick="HandleClick"
    @onmousedown="HandleMouseDown"
@@ -69,12 +70,12 @@
         Toolbar.RegisterItem(this);
         _registered = true;
         _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+        await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterRovingFocusNavigationKeys(_element);
+        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
         _dotNetReference?.Dispose();
 
         if (_registered)
@@ -110,7 +111,7 @@
 
         if (args.Key is " " or "Spacebar")
         {
-            await Interop.ClickElement(_element);
+            await ControlsInterop.ClickElement(_element);
             return;
         }
 

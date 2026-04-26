@@ -88,7 +88,7 @@
         if (IsSingle)
             return string.Equals(Value ?? _uncontrolledValue, value, StringComparison.Ordinal);
 
-        var values = Values ?? _uncontrolledValues;
+        IReadOnlyCollection<string> values = Values ?? _uncontrolledValues;
         return values.Contains(value);
     }
 
@@ -100,7 +100,7 @@
             return;
         }
 
-        var next = Values is not null
+        List<string> next = Values is not null
             ? Values.Distinct(StringComparer.Ordinal).ToList()
             : [.. _uncontrolledValues];
 
@@ -122,7 +122,7 @@
             return;
         }
 
-        var next = Values is not null
+        List<string> next = Values is not null
             ? Values.Distinct(StringComparer.Ordinal).ToList()
             : [.. _uncontrolledValues];
 
@@ -145,19 +145,19 @@
 
     internal async Task HandleTriggerKeyDown(BradixAccordionTrigger trigger, KeyboardEventArgs args)
     {
-        var enabledTriggers = _triggers
-                              .Where(item => !item.IsDisabled)
-                              .ToList();
+        List<BradixAccordionTrigger> enabledTriggers = _triggers
+                                                       .Where(item => !item.IsDisabled)
+                                                       .ToList();
 
         if (enabledTriggers.Count == 0)
             return;
 
-        var currentIndex = enabledTriggers.IndexOf(trigger);
+        int currentIndex = enabledTriggers.IndexOf(trigger);
 
         if (currentIndex < 0)
             return;
 
-        var nextIndex = currentIndex;
+        int nextIndex = currentIndex;
 
         switch (args.Key)
         {

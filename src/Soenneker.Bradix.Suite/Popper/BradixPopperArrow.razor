@@ -37,7 +37,7 @@
         if (Content is null)
             return Style ?? string.Empty;
 
-        var oppositeSide = Content.PlacedSide switch
+        string oppositeSide = Content.PlacedSide switch
         {
             "top" => "bottom",
             "right" => "left",

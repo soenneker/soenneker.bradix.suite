@@ -5,14 +5,6 @@ using System.Linq;
 
 namespace Soenneker.Bradix.Suite.Demo;
 
-public sealed record DemoPageLink(string Route, string Title, string Category, string Description)
-{
-    public string Href => Route == "/" ? string.Empty : Route.TrimStart('/');
-    public string Slug => Route == "/" ? "overview" : Route.Trim('/').Replace('-', ' ');
-}
-
-public sealed record DemoPageGroup(string Title, string Description, IReadOnlyList<DemoPageLink> Pages);
-
 public static class DemoCatalog
 {
     public static readonly DemoPageLink Overview = new("/",

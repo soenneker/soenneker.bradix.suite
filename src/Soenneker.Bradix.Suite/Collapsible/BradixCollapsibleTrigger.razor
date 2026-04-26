@@ -6,7 +6,7 @@
 
 @implements IBradixCollapsibleTrigger
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <button @ref="_element"
         @onclick="HandleClick"
         @onkeydown="HandleKeyDown"
@@ -59,7 +59,7 @@
             return;
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
         {
             readyMethod = nameof(HandleDelegatedInteractionReady),
             click = new
@@ -73,7 +73,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterDelegatedInteraction(_element);
+        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
         _dotNetReference?.Dispose();
     }
 

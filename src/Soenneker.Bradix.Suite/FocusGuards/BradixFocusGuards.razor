@@ -2,7 +2,7 @@
 
 @implements IBradixFocusGuards
 
-@inject IBradixSuiteInterop Interop
+@inject IPresenceOverlayInterop PresenceOverlayInterop
 
 @ChildContent
 @code {
@@ -16,13 +16,13 @@
         if (!firstRender)
             return;
 
-        await Interop.RegisterFocusGuards();
+        await PresenceOverlayInterop.RegisterFocusGuards();
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_registered)
-            await Interop.UnregisterFocusGuards();
+            await PresenceOverlayInterop.UnregisterFocusGuards();
     }
 }

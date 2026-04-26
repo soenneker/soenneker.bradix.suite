@@ -4,7 +4,7 @@
 
 @implements IBradixNavigationMenuContent
 
-@inject IBradixSuiteInterop Interop
+@inject INavigationMenuInterop NavigationMenuInterop
 
 @if (ShouldRenderContent)
 {
@@ -83,7 +83,7 @@
         {
             if (_focusBridgeRegistered)
             {
-                await Interop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
+                await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
                 _focusBridgeRegistered = false;
             }
 
@@ -98,16 +98,16 @@
 
         if (NavigationMenu is not null &&
             Item is not null &&
-            NavigationMenu.TryGetFocusProxy(Item.ResolvedValue, out var startProxy) &&
-            NavigationMenu.TryGetTrigger(Item.ResolvedValue, out var trigger))
+            NavigationMenu.TryGetFocusProxy(Item.ResolvedValue, out ElementReference startProxy) &&
+            NavigationMenu.TryGetTrigger(Item.ResolvedValue, out IBradixNavigationMenuRegisteredTrigger trigger))
         {
             if (_focusBridgeRegistered)
             {
-                await Interop.UpdateNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
+                await NavigationMenuInterop.UpdateNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
             }
             else
             {
-                await Interop.RegisterNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
+                await NavigationMenuInterop.RegisterNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
                 _focusBridgeRegistered = true;
             }
         }
@@ -117,7 +117,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -134,7 +134,7 @@
             attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? BradixOrientation.Horizontal.Value;
             attributes["aria-labelledby"] = Item?.TriggerId ?? string.Empty;
 
-            var motion = ResolveMotion();
+            string motion = ResolveMotion();
             if (!string.IsNullOrWhiteSpace(motion))
                 attributes["data-motion"] = motion;
 
@@ -145,7 +145,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_focusBridgeRegistered)
-            await Interop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
+            await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
 
         if (_registered && Item is not null)
             NavigationMenu?.UnregisterContent(Item.ResolvedValue);
@@ -216,13 +216,13 @@
             return string.Empty;
         }
 
-        var values = NavigationMenu.GetOrderedTriggerValues();
-        var index = values.IndexOf(NavigationMenu.CurrentValue);
-        var previousIndex = values.IndexOf(NavigationMenu.PreviousValue);
-        var activeIndex = values.IndexOf(Item.ResolvedValue);
+        List<string> values = NavigationMenu.GetOrderedTriggerValues();
+        int index = values.IndexOf(NavigationMenu.CurrentValue);
+        int previousIndex = values.IndexOf(NavigationMenu.PreviousValue);
+        int activeIndex = values.IndexOf(Item.ResolvedValue);
 
-        var isSelected = Item.ResolvedValue == NavigationMenu.CurrentValue;
-        var wasSelected = activeIndex == previousIndex;
+        bool isSelected = Item.ResolvedValue == NavigationMenu.CurrentValue;
+        bool wasSelected = activeIndex == previousIndex;
 
         if (!isSelected && !wasSelected)
             return string.Empty;

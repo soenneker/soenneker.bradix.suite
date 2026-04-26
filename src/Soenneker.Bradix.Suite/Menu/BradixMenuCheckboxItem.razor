@@ -81,7 +81,7 @@
         if (OnSelect.HasDelegate)
             await OnSelect.InvokeAsync();
 
-        var nextState = GetNextState(CurrentChecked);
+        BradixCheckboxCheckedState nextState = GetNextState(CurrentChecked);
 
         if (Checked is null)
             _uncontrolledChecked = nextState;

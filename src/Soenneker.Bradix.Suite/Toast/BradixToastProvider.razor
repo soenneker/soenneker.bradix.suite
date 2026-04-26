@@ -86,7 +86,7 @@
 
         IsClosePaused = true;
 
-        foreach (var toast in _toasts.ToArray())
+        foreach (BradixToast toast in _toasts.ToArray())
         {
             await toast.Pause();
         }
@@ -99,7 +99,7 @@
 
         IsClosePaused = false;
 
-        foreach (var toast in _toasts.ToArray())
+        foreach (BradixToast toast in _toasts.ToArray())
         {
             await toast.Resume();
         }

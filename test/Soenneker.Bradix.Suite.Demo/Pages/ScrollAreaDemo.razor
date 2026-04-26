@@ -33,7 +33,7 @@
         <BradixScrollArea Class="scroll-area-root scroll-area-demo__horizontal" Type="@BradixScrollAreaType.Always" Style="width: 18rem;">
             <BradixScrollAreaViewport Class="scroll-area-viewport">
                 <div style="display: flex; width: max-content; gap: 0.75rem; padding: 0.75rem;">
-                    @foreach (var release in Releases)
+                    @foreach ((string Title, string Description) release in Releases)
                     {
                         <article style="width: 11rem; flex: 0 0 auto; border: 1px solid var(--gray-a6); border-radius: 0.75rem; padding: 0.75rem; background: white;">
                             <div style="font-weight: 600;">@release.Title</div>
@@ -58,7 +58,7 @@
             <BradixScrollArea Class="scroll-area-root" Type="@BradixScrollAreaType.Always" Style="width: 18rem; height: 14rem;" dir="rtl">
                 <BradixScrollAreaViewport Class="scroll-area-viewport" style="text-align: right;">
                     <div class="scroll-area-demo__content">
-                        @foreach (var note in ArabicNotes)
+                        @foreach ((string Title, string Description) note in ArabicNotes)
                         {
                             <article style="padding: 0.75rem 0; border-bottom: 1px solid var(--gray-a5);">
                                 <div style="font-weight: 600;">@note.Title</div>

@@ -4,7 +4,7 @@
 
 @implements IBradixSelectItemText
 
-@inject IBradixSuiteInterop Interop
+@inject IDomInterop DomInterop
 <span @ref="_element"
       @attributes="ItemTextAttributes">
     @ChildContent
@@ -30,7 +30,7 @@
         if (Item.TextValue is not null)
             return;
 
-        var text = await Interop.GetTextContent(_element);
+        string text = await DomInterop.GetTextContent(_element);
 
         if (string.Equals(_lastResolvedText, text, StringComparison.Ordinal))
             return;

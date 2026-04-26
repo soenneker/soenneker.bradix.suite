@@ -114,11 +114,11 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        var focusableTriggers = _triggers
-                                .Where(candidate => !candidate.IsDisabled)
-                                .ToList();
+        List<BradixTabsTrigger> focusableTriggers = _triggers
+                                                    .Where(candidate => !candidate.IsDisabled)
+                                                    .ToList();
 
-        var currentIndex = focusableTriggers.IndexOf(trigger);
+        int currentIndex = focusableTriggers.IndexOf(trigger);
 
         if (currentIndex < 0)
             return;
@@ -130,12 +130,12 @@
                 currentIndex,
                 focusableTriggers.Count,
                 loop,
-                out var targetIndex))
+                out int targetIndex))
         {
             return;
         }
 
-        var target = focusableTriggers[targetIndex];
+        BradixTabsTrigger target = focusableTriggers[targetIndex];
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -161,9 +161,9 @@
 
     private void EnsureCurrentTabStopId()
     {
-        var focusableTriggers = _triggers
-                                .Where(item => !item.IsDisabled)
-                                .ToList();
+        List<BradixTabsTrigger> focusableTriggers = _triggers
+                                                    .Where(item => !item.IsDisabled)
+                                                    .ToList();
 
         if (focusableTriggers.Count == 0)
         {
@@ -174,7 +174,7 @@
         if (CurrentTabStopId is not null && focusableTriggers.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
             return;
 
-        var activeTrigger = focusableTriggers.FirstOrDefault(item => item.IsSelected);
+        BradixTabsTrigger? activeTrigger = focusableTriggers.FirstOrDefault(item => item.IsSelected);
         CurrentTabStopId = activeTrigger?.TabStopId ?? focusableTriggers[0].TabStopId;
     }
 }

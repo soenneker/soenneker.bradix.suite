@@ -6,7 +6,7 @@
 
 @implements IBradixToastViewport
 
-@inject IBradixSuiteInterop Interop
+@inject IToastInterop ToastInterop
 <div @ref="_wrapperElement"
      @attributes="RegionAttributes">
     @if (Provider?.ToastCount > 0)
@@ -90,8 +90,8 @@
         if (firstRender)
             Provider?.RegisterViewport(ResolvedViewportId);
 
-        var hasToasts = Provider?.ToastCount > 0;
-        var hotkeySignature = string.Join("\u001F", Hotkey);
+        bool hasToasts = Provider?.ToastCount > 0;
+        string hotkeySignature = string.Join("\u001F", Hotkey);
 
         if (!firstRender &&
             _registered &&
@@ -102,7 +102,7 @@
         }
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterToastViewport(_wrapperElement, _viewportElement, _headFocusProxy, _tailFocusProxy, Hotkey, _dotNetReference);
+        await ToastInterop.RegisterToastViewport(_wrapperElement, _viewportElement, _headFocusProxy, _tailFocusProxy, Hotkey, _dotNetReference);
         _registered = true;
         _lastRegisteredHasToasts = hasToasts;
         _lastRegisteredHotkeySignature = hotkeySignature;
@@ -113,7 +113,7 @@
         Provider?.UnregisterViewport();
 
         if (_registered)
-            await Interop.UnregisterToastViewport(_viewportElement);
+            await ToastInterop.UnregisterToastViewport(_viewportElement);
 
         _dotNetReference?.Dispose();
     }

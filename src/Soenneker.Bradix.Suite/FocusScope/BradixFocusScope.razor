@@ -6,7 +6,7 @@
 
 @implements IBradixFocusScope
 
-@inject IBradixSuiteInterop Interop
+@inject IFocusScopeInterop FocusScopeInterop
 <div @ref="_element"
      @attributes="ScopeAttributes">
     @ChildContent
@@ -53,7 +53,7 @@
         if (firstRender)
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterFocusScope(_element, _dotNetReference, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus);
+            await FocusScopeInterop.RegisterFocusScope(_element, _dotNetReference, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus);
             _registered = true;
             _lastLoop = Loop;
             _lastTrapped = Trapped;
@@ -64,7 +64,7 @@
 
         if (_lastLoop != Loop || _lastTrapped != Trapped || _lastPreventMountAutoFocus != PreventMountAutoFocus || _lastPreventUnmountAutoFocus != PreventUnmountAutoFocus)
         {
-            await Interop.UpdateFocusScope(_element, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus);
+            await FocusScopeInterop.UpdateFocusScope(_element, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus);
             _lastLoop = Loop;
             _lastTrapped = Trapped;
             _lastPreventMountAutoFocus = PreventMountAutoFocus;
@@ -74,13 +74,13 @@
 
     public async ValueTask DisposeAsync()
     {
-        var unmountAutoFocusPrevented = PreventUnmountAutoFocus;
+        bool unmountAutoFocusPrevented = PreventUnmountAutoFocus;
 
         if (OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate)
             unmountAutoFocusPrevented = await HandleUnmountAutoFocusCore(new BradixAutoFocusEventArgs()) || unmountAutoFocusPrevented;
 
         if (_registered)
-            await Interop.UnregisterFocusScope(_element, unmountAutoFocusPrevented);
+            await FocusScopeInterop.UnregisterFocusScope(_element, unmountAutoFocusPrevented);
 
         _dotNetReference?.Dispose();
     }

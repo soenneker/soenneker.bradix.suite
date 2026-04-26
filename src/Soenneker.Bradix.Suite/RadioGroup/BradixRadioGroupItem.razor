@@ -7,7 +7,10 @@
 
 @implements IBradixRadioGroupItem
 
-@inject IBradixSuiteInterop Interop
+@inject IRovingFocusInterop RovingFocusInterop
+@inject IRadioGroupInterop RadioGroupInterop
+@inject IFormInterop FormInterop
+@inject IControlsInterop ControlsInterop
 <CascadingValue Value="this">
     <button @ref="_element"
             @onclick="HandleClick"
@@ -125,14 +128,14 @@
             Group.RegisterItem(this);
             _registered = true;
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
-            await Interop.RegisterRadioGroupItemKeys(_element);
+            await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+            await RadioGroupInterop.RegisterRadioGroupItemKeys(_element);
             _lastRenderedChecked = IsChecked;
         }
 
         if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
         {
-            var isFormControl = await Interop.IsFormControl(_element, Form);
+            bool isFormControl = await FormInterop.IsFormControl(_element, Form);
             _formControlStateResolved = true;
             _lastResolvedForm = Form;
 
@@ -146,8 +149,8 @@
 
         if (ShouldRenderBubbleInput)
         {
-            var dispatchEvent = _hasSyncedBubbleInput && _lastRenderedChecked != IsChecked;
-            await Interop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, false, dispatchEvent);
+            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedChecked != IsChecked;
+            await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, false, dispatchEvent);
             _hasSyncedBubbleInput = true;
         }
 
@@ -156,8 +159,8 @@
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterRovingFocusNavigationKeys(_element);
-        await Interop.UnregisterRadioGroupItemKeys(_element);
+        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
+        await RadioGroupInterop.UnregisterRadioGroupItemKeys(_element);
         _dotNetReference?.Dispose();
 
         if (_registered)

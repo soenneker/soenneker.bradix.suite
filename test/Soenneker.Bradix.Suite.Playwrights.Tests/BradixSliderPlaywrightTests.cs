@@ -128,7 +128,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(defaultSection.Locator("[data-js-ready='true']")).ToBeVisibleAsync();
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "50");
 
-        var trackBox = await track.BoundingBoxAsync();
+        LocatorBoundingBoxResult? trackBox = await track.BoundingBoxAsync();
         await Assert.That(trackBox).IsNotNull();
 
         await track.ClickAsync(new LocatorClickOptions
@@ -175,7 +175,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-orientation", "vertical");
 
         ILocator verticalRoot = verticalSection.Locator(".slider-root--vertical");
-        var rootBox = await verticalRoot.BoundingBoxAsync();
+        LocatorBoundingBoxResult? rootBox = await verticalRoot.BoundingBoxAsync();
         await Assert.That(rootBox).IsNotNull();
 
         await verticalRoot.ClickAsync(new LocatorClickOptions
@@ -201,8 +201,8 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
     {
         await page.WaitForTimeoutAsync(50);
 
-        var thumbBox = await slider.BoundingBoxAsync();
-        var rootBox = await slider.Locator("xpath=ancestor::*[@role='group'][1]").BoundingBoxAsync();
+        LocatorBoundingBoxResult? thumbBox = await slider.BoundingBoxAsync();
+        LocatorBoundingBoxResult? rootBox = await slider.Locator("xpath=ancestor::*[@role='group'][1]").BoundingBoxAsync();
 
         await Assert.That(thumbBox).IsNotNull();
         await Assert.That(rootBox).IsNotNull();

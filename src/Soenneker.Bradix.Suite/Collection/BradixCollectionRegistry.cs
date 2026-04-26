@@ -52,5 +52,3 @@ public sealed class BradixCollectionRegistry<TItem>
         _items.Clear();
     }
 }
-
-public sealed record BradixCollectionEntry<TItem>(string Key, TItem Item);

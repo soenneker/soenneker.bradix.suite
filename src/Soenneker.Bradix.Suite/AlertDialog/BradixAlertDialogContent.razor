@@ -2,7 +2,7 @@
 
 @implements IBradixAlertDialogContent
 
-@inject IBradixSuiteInterop Interop
+@inject IControlsInterop ControlsInterop
 <CascadingValue Value="this">
     <BradixDialogContent Class="@Class"
                          Style="@Style"
@@ -185,15 +185,15 @@
 
     private async Task<bool> TryFocusCancelAsync()
     {
-        if (await Interop.FocusFirstMatchingDescendant(_contentElement, "[data-bradix-alert-dialog-cancel]"))
+        if (await ControlsInterop.FocusFirstMatchingDescendant(_contentElement, "[data-bradix-alert-dialog-cancel]"))
             return true;
 
         if (_hasCancelElement)
         {
-            await Interop.FocusElementPreventScroll(_cancelElement);
+            await ControlsInterop.FocusElementPreventScroll(_cancelElement);
             return true;
         }
 
-        return await Interop.FocusFirstMatchingDescendant(_contentElement, "[autofocus]");
+        return await ControlsInterop.FocusFirstMatchingDescendant(_contentElement, "[autofocus]");
     }
 }

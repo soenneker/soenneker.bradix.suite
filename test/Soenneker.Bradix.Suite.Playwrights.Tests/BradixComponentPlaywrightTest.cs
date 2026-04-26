@@ -12,7 +12,7 @@ public abstract class BradixComponentPlaywrightTest : PlaywrightUnitTest
 
     protected static async Task ClickJustOutsideActiveDialogAsync(IPage page, ILocator dialog)
     {
-        var box = await dialog.BoundingBoxAsync();
+        LocatorBoundingBoxResult? box = await dialog.BoundingBoxAsync();
         await Assert.That(box).IsNotNull();
         float x = box!.X > 40 ? box.X - 20 : box.X + box.Width + 20;
         float y = box.Y > 40 ? box.Y - 20 : box.Y + 20;

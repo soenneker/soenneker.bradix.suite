@@ -5,7 +5,9 @@
 
 @implements IBradixMenuContentController
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject IPresenceOverlayInterop PresenceOverlayInterop
+@inject IControlsInterop ControlsInterop
 
 @if (ShouldRenderContainer)
 {
@@ -151,7 +153,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -173,7 +175,7 @@
 
     protected override void OnParametersSet()
     {
-        var present = IsPresent;
+        bool present = IsPresent;
 
         if (_wasPresent && !present)
             _isExiting = true;
@@ -186,13 +188,13 @@
     {
         if (_delegatedInteractionRegistered)
         {
-            await Interop.UnregisterDelegatedInteraction(_contentElement);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
             _delegatedInteractionRegistered = false;
         }
 
         if (_hideOthersRegistered)
         {
-            await Interop.UnregisterHideOthers(_layerElement);
+            await PresenceOverlayInterop.UnregisterHideOthers(_layerElement);
             _hideOthersRegistered = false;
         }
 
@@ -229,7 +231,7 @@
             return Task.CompletedTask;
 
         Menu?.ClearCurrentTabStop();
-        return Interop.FocusElementPreventScroll(_contentElement).AsTask();
+        return ControlsInterop.FocusElementPreventScroll(_contentElement).AsTask();
     }
 
     internal void SetSubmenuPointerGrace(string? tabStopId, bool active)
@@ -312,7 +314,7 @@
         if (args.Key == "Tab")
             return;
 
-        var isContentTarget = string.Equals(args.TargetId, ResolvedContentId, StringComparison.Ordinal);
+        bool isContentTarget = string.Equals(args.TargetId, ResolvedContentId, StringComparison.Ordinal);
 
         if (isContentTarget && args.Key.Length == 1)
         {
@@ -460,7 +462,7 @@
 
         if (Menu?.Modal == true && !_hideOthersRegistered)
         {
-            await Interop.RegisterHideOthers(_layerElement);
+            await PresenceOverlayInterop.RegisterHideOthers(_layerElement);
             _hideOthersRegistered = true;
         }
     }
@@ -477,13 +479,13 @@
         _submenuPointerGraceItems.Clear();
 
         if (_contentElement.Id is not null)
-            await Interop.UnregisterDelegatedInteraction(_contentElement);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
 
         Menu?.ClearContent(_contentElement);
 
         if (_hideOthersRegistered)
         {
-            await Interop.UnregisterHideOthers(_layerElement);
+            await PresenceOverlayInterop.UnregisterHideOthers(_layerElement);
             _hideOthersRegistered = false;
         }
     }
@@ -495,11 +497,11 @@
 
         _pendingOpenAutoFocus = false;
 
-        var shouldFocusContent = Menu.ConsumeFocusContentOnOpen();
-        var shouldFocusFirstItem = Menu.ConsumeFocusFirstItemOnOpen();
+        bool shouldFocusContent = Menu.ConsumeFocusContentOnOpen();
+        bool shouldFocusFirstItem = Menu.ConsumeFocusFirstItemOnOpen();
 
         if (shouldFocusContent)
-            await Interop.FocusElementPreventScroll(_contentElement);
+            await ControlsInterop.FocusElementPreventScroll(_contentElement);
 
         if (shouldFocusFirstItem)
             await Menu.FocusFirstItem();
@@ -514,7 +516,7 @@
         if (!_delegatedInteractionRegistered)
         {
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
             {
                 focusout = new
                 {
@@ -537,7 +539,7 @@
 
     private bool IsWithinContent(string? targetId, IReadOnlyList<string>? ancestorIds)
     {
-        var contentId = ResolvedContentId;
+        string? contentId = ResolvedContentId;
 
         if (string.IsNullOrWhiteSpace(contentId))
             return false;

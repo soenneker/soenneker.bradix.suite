@@ -23,8 +23,6 @@ public sealed class BradixMenubarRenderTests : BunitContext
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("registerDismissableLayerBranch", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayerBranch", _ => true).SetVoidResult();
-        _module.SetupVoid("registerMenubarDocumentDismiss", _ => true).SetVoidResult();
-        _module.SetupVoid("unregisterMenubarDocumentDismiss", _ => true).SetVoidResult();
         _module.SetupVoid("registerPopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("updatePopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPopperContent", _ => true).SetVoidResult();
@@ -44,11 +42,13 @@ public sealed class BradixMenubarRenderTests : BunitContext
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(false);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Share");
+        _module.SetupVoid("registerMenubarDocumentDismiss", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterMenubarDocumentDismiss", _ => true).SetVoidResult();
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 
-        Services.AddScoped<BradixSuiteInterop>();
-        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
+        Services.AddBradixTestInterops();
+        Services.AddScoped<IMenubarInterop, MenubarInterop>();
     }
 
     [Test]

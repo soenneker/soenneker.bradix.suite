@@ -15,6 +15,28 @@ public static class BradixSuiteRegistrar
         services.AddModuleImportUtilAsScoped()
                 .AddResourceLoaderAsScoped();
         services.TryAddScoped<IBradixSuiteInterop, BradixSuiteInterop>();
+        services.TryAddScoped<ICollapsibleInterop, CollapsibleInterop>();
+        services.TryAddScoped<IControlsInterop, ControlsInterop>();
+        services.TryAddScoped<IDelegatedInteractionInterop, DelegatedInteractionInterop>();
+        services.TryAddScoped<IDismissableLayerInterop, DismissableLayerInterop>();
+        services.TryAddScoped<IDomInterop, DomInterop>();
+        services.TryAddScoped<IFocusScopeInterop, FocusScopeInterop>();
+        services.TryAddScoped<IFormInterop, FormInterop>();
+        services.TryAddScoped<IHoverCardAvatarInterop, HoverCardAvatarInterop>();
+        services.TryAddScoped<IKeyboardModeInterop, KeyboardModeInterop>();
+        services.TryAddScoped<ILabelInterop, LabelInterop>();
+        services.TryAddScoped<IMenuInterop, MenuInterop>();
+        services.TryAddScoped<IMenubarInterop, MenubarInterop>();
+        services.TryAddScoped<INavigationMenuInterop, NavigationMenuInterop>();
+        services.TryAddScoped<IPopperInterop, PopperInterop>();
+        services.TryAddScoped<IPortalInterop, PortalInterop>();
+        services.TryAddScoped<IPresenceOverlayInterop, PresenceOverlayInterop>();
+        services.TryAddScoped<IRadioGroupInterop, RadioGroupInterop>();
+        services.TryAddScoped<IRovingFocusInterop, RovingFocusInterop>();
+        services.TryAddScoped<IScrollAreaInterop, ScrollAreaInterop>();
+        services.TryAddScoped<ISelectInterop, SelectInterop>();
+        services.TryAddScoped<IToastInterop, ToastInterop>();
+        services.TryAddScoped<ITooltipInterop, TooltipInterop>();
 
         return services;
     }

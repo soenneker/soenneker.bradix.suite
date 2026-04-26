@@ -24,7 +24,7 @@ public sealed class BradixSlot : BradixComponent
         builder.OpenElement(0, ElementName);
         var sequence = 1;
 
-        foreach ((var key, var value) in BuildMergedAttributes())
+        foreach ((string key, object value) in BuildMergedAttributes())
         {
             AddAttribute(builder, sequence++, key, value);
         }
@@ -35,14 +35,14 @@ public sealed class BradixSlot : BradixComponent
 
     private Dictionary<string, object> BuildMergedAttributes()
     {
-        var merged = BuildAttributes();
+        Dictionary<string, object> merged = BuildAttributes();
 
         if (ChildAttributes is null)
             return merged;
 
-        foreach ((var key, var value) in ChildAttributes)
+        foreach ((string key, object value) in ChildAttributes)
         {
-            if (merged.TryGetValue(key, out var slotValue))
+            if (merged.TryGetValue(key, out object? slotValue))
             {
                 if (IsEventHandler(key))
                 {
@@ -71,12 +71,12 @@ public sealed class BradixSlot : BradixComponent
 
     private object ComposeEventHandlers(object childValue, object slotValue)
     {
-        var argumentType = ResolveEventArgumentType(childValue) ??
-                           ResolveEventArgumentType(slotValue) ??
-                           typeof(object);
+        Type argumentType = ResolveEventArgumentType(childValue) ??
+                            ResolveEventArgumentType(slotValue) ??
+                            typeof(object);
 
-        var method = typeof(BradixSlot).GetMethod(nameof(CreateComposedEventCallback), BindingFlags.Instance | BindingFlags.NonPublic)!
-                                       .MakeGenericMethod(argumentType);
+        MethodInfo method = typeof(BradixSlot).GetMethod(nameof(CreateComposedEventCallback), BindingFlags.Instance | BindingFlags.NonPublic)!
+                                              .MakeGenericMethod(argumentType);
 
         return method.Invoke(this, [childValue, slotValue])!;
     }
@@ -99,8 +99,8 @@ public sealed class BradixSlot : BradixComponent
                 return;
             case MulticastDelegate @delegate:
             {
-                var parameters = @delegate.Method.GetParameters();
-                var result = parameters.Length == 0
+                ParameterInfo[] parameters = @delegate.Method.GetParameters();
+                object? result = parameters.Length == 0
                     ? @delegate.DynamicInvoke()
                     : @delegate.DynamicInvoke(argument);
 
@@ -113,12 +113,12 @@ public sealed class BradixSlot : BradixComponent
             }
             default:
             {
-                var invokeAsync = handler.GetType().GetMethod("InvokeAsync", [typeof(object)]);
+                MethodInfo? invokeAsync = handler.GetType().GetMethod("InvokeAsync", [typeof(object)]);
 
                 if (invokeAsync is null)
                     return;
 
-                var result = invokeAsync.Invoke(handler, [argument]);
+                object? result = invokeAsync.Invoke(handler, [argument]);
 
                 if (result is Task task)
                     await task;
@@ -134,11 +134,11 @@ public sealed class BradixSlot : BradixComponent
     {
         if (handler is MulticastDelegate @delegate)
         {
-            var parameters = @delegate.Method.GetParameters();
+            ParameterInfo[] parameters = @delegate.Method.GetParameters();
             return parameters.Length > 0 ? parameters[0].ParameterType : typeof(object);
         }
 
-        var type = handler.GetType();
+        Type type = handler.GetType();
 
         if (type == typeof(EventCallback))
             return typeof(object);
@@ -191,12 +191,12 @@ public sealed class BradixSlot : BradixComponent
                 return;
         }
 
-        var type = value.GetType();
+        Type type = value.GetType();
 
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(EventCallback<>))
         {
-            var method = typeof(BradixSlot).GetMethod(nameof(AddTypedEventCallback), BindingFlags.Static | BindingFlags.NonPublic)!
-                                           .MakeGenericMethod(type.GetGenericArguments()[0]);
+            MethodInfo method = typeof(BradixSlot).GetMethod(nameof(AddTypedEventCallback), BindingFlags.Static | BindingFlags.NonPublic)!
+                                                  .MakeGenericMethod(type.GetGenericArguments()[0]);
 
             method.Invoke(null, [builder, sequence, key, value]);
             return;

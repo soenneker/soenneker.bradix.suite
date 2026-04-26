@@ -54,7 +54,7 @@
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;
 
-        var isControlled = ValueChanged.HasDelegate;
+        bool isControlled = ValueChanged.HasDelegate;
 
         if (!isControlled)
             _uncontrolledValue = value;

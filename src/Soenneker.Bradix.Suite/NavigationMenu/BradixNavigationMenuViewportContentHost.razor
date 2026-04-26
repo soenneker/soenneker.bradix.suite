@@ -4,7 +4,7 @@
 
 @implements IBradixNavigationMenuViewportContentHost
 
-@inject IBradixSuiteInterop Interop
+@inject INavigationMenuInterop NavigationMenuInterop
 <BradixPresence Present="@Present"
                 Tag="div">
     <BradixDismissableLayer DisableOutsidePointerEvents="false"
@@ -60,7 +60,7 @@
     {
         get
         {
-            var attributes = Registration.AdditionalAttributes is not null
+            Dictionary<string, object> attributes = Registration.AdditionalAttributes is not null
                 ? new Dictionary<string, object>(Registration.AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -97,16 +97,16 @@
             await OnContentElementCaptured.InvokeAsync(_contentElement);
 
         if (NavigationMenu is not null &&
-            NavigationMenu.TryGetFocusProxy(Registration.Value, out var startProxy) &&
-            NavigationMenu.TryGetTrigger(Registration.Value, out var trigger))
+            NavigationMenu.TryGetFocusProxy(Registration.Value, out ElementReference startProxy) &&
+            NavigationMenu.TryGetTrigger(Registration.Value, out IBradixNavigationMenuRegisteredTrigger trigger))
         {
             if (_focusBridgeRegistered)
             {
-                await Interop.UpdateNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
+                await NavigationMenuInterop.UpdateNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
             }
             else
             {
-                await Interop.RegisterNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
+                await NavigationMenuInterop.RegisterNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
                 _focusBridgeRegistered = true;
             }
         }
@@ -115,7 +115,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_focusBridgeRegistered)
-            await Interop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
+            await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
 
         NavigationMenu?.UnregisterContent(Registration.Value);
     }

@@ -6,7 +6,7 @@
 
 @implements IBradixDropdownMenuTrigger
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <BradixDismissableLayerBranch>
     <BradixMenuAnchor>
         <button @ref="_button"
@@ -64,7 +64,7 @@
                 await OnElementReferenceCaptured.InvokeAsync(_button);
 
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
                 keydown = new
                 {
@@ -79,7 +79,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_delegatedInteractionRegistered)
-            await Interop.UnregisterDelegatedInteraction(_button);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
 
         _dotNetReference?.Dispose();
     }

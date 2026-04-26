@@ -7,7 +7,7 @@
 
 @implements IBradixForm
 
-@inject IBradixSuiteInterop Interop
+@inject IFormInterop FormInterop
 <CascadingValue Value="this">
     <form @ref="_formElement"
           @onsubmit="HandleSubmit"
@@ -50,28 +50,28 @@
             return;
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterFormRoot(_formElement, _dotNetReference);
+        await FormInterop.RegisterFormRoot(_formElement, _dotNetReference);
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_registered)
-            await Interop.UnregisterFormRoot(_formElement);
+            await FormInterop.UnregisterFormRoot(_formElement);
 
         _dotNetReference?.Dispose();
     }
 
     internal BradixFormValiditySnapshot? GetFieldValidity(string fieldName)
     {
-        return _validityMap.TryGetValue(fieldName, out var validity)
+        return _validityMap.TryGetValue(fieldName, out BradixFormValiditySnapshot? validity)
             ? validity
             : null;
     }
 
     internal string? GetFieldDescription(string fieldName)
     {
-        if (!_messageIdsByField.TryGetValue(fieldName, out var ids) || ids.Count == 0)
+        if (!_messageIdsByField.TryGetValue(fieldName, out HashSet<string>? ids) || ids.Count == 0)
             return null;
 
         return string.Join(" ", ids);
@@ -79,8 +79,8 @@
 
     internal bool GetFieldCustomError(string fieldName, string matcherId)
     {
-        return _customErrorsByField.TryGetValue(fieldName, out var fieldErrors) &&
-               fieldErrors.TryGetValue(matcherId, out var matches) &&
+        return _customErrorsByField.TryGetValue(fieldName, out Dictionary<string, bool>? fieldErrors) &&
+               fieldErrors.TryGetValue(matcherId, out bool matches) &&
                matches;
     }
 
@@ -104,7 +104,7 @@
 
     internal void RegisterFieldCustomMatcher(string fieldName, BradixFormCustomMatcherEntry entry)
     {
-        if (!_customMatchersByField.TryGetValue(fieldName, out var fieldEntries))
+        if (!_customMatchersByField.TryGetValue(fieldName, out Dictionary<string, BradixFormCustomMatcherEntry>? fieldEntries))
         {
             fieldEntries = new Dictionary<string, BradixFormCustomMatcherEntry>(StringComparer.Ordinal);
             _customMatchersByField[fieldName] = fieldEntries;
@@ -115,7 +115,7 @@
 
     internal void UnregisterFieldCustomMatcher(string fieldName, string matcherId)
     {
-        if (!_customMatchersByField.TryGetValue(fieldName, out var fieldEntries))
+        if (!_customMatchersByField.TryGetValue(fieldName, out Dictionary<string, BradixFormCustomMatcherEntry>? fieldEntries))
             return;
 
         fieldEntries.Remove(matcherId);
@@ -123,7 +123,7 @@
         if (fieldEntries.Count == 0)
             _customMatchersByField.Remove(fieldName);
 
-        if (_customErrorsByField.TryGetValue(fieldName, out var fieldErrors))
+        if (_customErrorsByField.TryGetValue(fieldName, out Dictionary<string, bool>? fieldErrors))
         {
             fieldErrors.Remove(matcherId);
 
@@ -134,21 +134,21 @@
 
     internal async Task UpdateControlState(ElementReference element, string fieldName, BradixFormControlSnapshot snapshot)
     {
-        var version = NextValidationVersion(fieldName);
-        var validity = snapshot.Validity ?? new BradixFormValiditySnapshot();
+        long version = NextValidationVersion(fieldName);
+        BradixFormValiditySnapshot validity = snapshot.Validity ?? new BradixFormValiditySnapshot();
 
         if (HasBuiltInError(validity))
         {
-            await Interop.SetFormControlCustomValidity(element, null);
+            await FormInterop.SetFormControlCustomValidity(element, null);
             SetFieldCustomErrors(fieldName, null);
             SetFieldValidity(fieldName, validity);
             return;
         }
 
-        if (!_customMatchersByField.TryGetValue(fieldName, out var matcherEntries) ||
+        if (!_customMatchersByField.TryGetValue(fieldName, out Dictionary<string, BradixFormCustomMatcherEntry>? matcherEntries) ||
             matcherEntries.Count == 0)
         {
-            await Interop.SetFormControlCustomValidity(element, null);
+            await FormInterop.SetFormControlCustomValidity(element, null);
             SetFieldCustomErrors(fieldName, null);
             SetFieldValidity(fieldName, validity);
             return;
@@ -157,9 +157,9 @@
         Dictionary<string, bool> syncResults = [];
         List<BradixFormCustomMatcherEntry> asyncMatchers = [];
 
-        foreach (var entry in matcherEntries.Values)
+        foreach (BradixFormCustomMatcherEntry entry in matcherEntries.Values)
         {
-            var task = entry.Match(snapshot.Value, snapshot.FormData);
+            ValueTask<bool> task = entry.Match(snapshot.Value, snapshot.FormData);
 
             if (task.IsCompletedSuccessfully)
             {
@@ -170,11 +170,11 @@
             asyncMatchers.Add(entry);
         }
 
-        var hasSyncErrors = syncResults.Values.Any(static value => value);
+        bool hasSyncErrors = syncResults.Values.Any(static value => value);
 
-        await Interop.SetFormControlCustomValidity(element, hasSyncErrors ? _defaultInvalidMessage : null);
+        await FormInterop.SetFormControlCustomValidity(element, hasSyncErrors ? _defaultInvalidMessage : null);
 
-        var syncValidity = await Interop.GetFormControlValidity(element);
+        BradixFormValiditySnapshot syncValidity = await FormInterop.GetFormControlValidity(element);
         SetFieldCustomErrors(fieldName, syncResults);
         SetFieldValidity(fieldName, syncValidity);
 
@@ -183,7 +183,7 @@
 
         Dictionary<string, bool> asyncResults = new(syncResults, StringComparer.Ordinal);
 
-        foreach (var entry in asyncMatchers)
+        foreach (BradixFormCustomMatcherEntry entry in asyncMatchers)
         {
             asyncResults[entry.Id] = await entry.Match(snapshot.Value, snapshot.FormData);
 
@@ -191,11 +191,11 @@
                 return;
         }
 
-        var hasAsyncErrors = asyncResults.Values.Any(static value => value);
+        bool hasAsyncErrors = asyncResults.Values.Any(static value => value);
 
-        await Interop.SetFormControlCustomValidity(element, hasAsyncErrors ? _defaultInvalidMessage : null);
+        await FormInterop.SetFormControlCustomValidity(element, hasAsyncErrors ? _defaultInvalidMessage : null);
 
-        var asyncValidity = await Interop.GetFormControlValidity(element);
+        BradixFormValiditySnapshot asyncValidity = await FormInterop.GetFormControlValidity(element);
 
         if (!IsLatestValidation(fieldName, version))
             return;
@@ -206,7 +206,7 @@
 
     internal void RegisterFieldMessageId(string fieldName, string id)
     {
-        if (!_messageIdsByField.TryGetValue(fieldName, out var ids))
+        if (!_messageIdsByField.TryGetValue(fieldName, out HashSet<string>? ids))
         {
             ids = new HashSet<string>(StringComparer.Ordinal);
             _messageIdsByField[fieldName] = ids;
@@ -218,7 +218,7 @@
 
     internal void UnregisterFieldMessageId(string fieldName, string id)
     {
-        if (!_messageIdsByField.TryGetValue(fieldName, out var ids))
+        if (!_messageIdsByField.TryGetValue(fieldName, out HashSet<string>? ids))
             return;
 
         if (ids.Remove(id))
@@ -244,7 +244,7 @@
         if (OnReset.HasDelegate)
             await OnReset.InvokeAsync(args);
 
-        await Interop.ClearFormCustomValidity(_formElement);
+        await FormInterop.ClearFormCustomValidity(_formElement);
 
         _validityMap.Clear();
         _customErrorsByField.Clear();
@@ -271,7 +271,7 @@
 
     private long NextValidationVersion(string fieldName)
     {
-        var next = _validationVersions.TryGetValue(fieldName, out var current)
+        long next = _validationVersions.TryGetValue(fieldName, out long current)
             ? current + 1
             : 1;
 
@@ -281,7 +281,7 @@
 
     private bool IsLatestValidation(string fieldName, long version)
     {
-        return _validationVersions.TryGetValue(fieldName, out var current) && current == version;
+        return _validationVersions.TryGetValue(fieldName, out long current) && current == version;
     }
 
     private void SetFieldCustomErrors(string fieldName, IReadOnlyDictionary<string, bool>? errors)
@@ -310,7 +310,7 @@
         if (string.IsNullOrWhiteSpace(fieldName))
             return;
 
-        if (_controlsByField.TryGetValue(fieldName, out var existing) && string.Equals(existing.Id, element.Id, StringComparison.Ordinal))
+        if (_controlsByField.TryGetValue(fieldName, out ElementReference existing) && string.Equals(existing.Id, element.Id, StringComparison.Ordinal))
             _controlsByField.Remove(fieldName);
     }
 
@@ -319,12 +319,12 @@
     {
         string[] distinctFieldNames = fieldNames.Distinct(StringComparer.Ordinal).ToArray();
 
-        foreach (var fieldName in distinctFieldNames)
+        foreach (string fieldName in distinctFieldNames)
         {
-            if (!_controlsByField.TryGetValue(fieldName, out var element))
+            if (!_controlsByField.TryGetValue(fieldName, out ElementReference element))
                 continue;
 
-            var snapshot = await Interop.GetFormControlState(element);
+            BradixFormControlSnapshot snapshot = await FormInterop.GetFormControlState(element);
             await UpdateControlState(element, fieldName, snapshot);
         }
 

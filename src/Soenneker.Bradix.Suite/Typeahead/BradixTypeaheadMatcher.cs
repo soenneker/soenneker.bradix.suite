@@ -17,14 +17,14 @@ public static class BradixTypeaheadMatcher
             return null;
         }
 
-        var normalizedSearch = NormalizeSearch(search);
-        var currentMatchIndex = currentMatch is null ? -1 : IndexOf(values, currentMatch, StringComparer.Ordinal);
-        var wrappedValues = WrapArray(values, Math.Max(currentMatchIndex, 0));
-        var excludeCurrentMatch = normalizedSearch.Length == 1;
+        string normalizedSearch = NormalizeSearch(search);
+        int currentMatchIndex = currentMatch is null ? -1 : IndexOf(values, currentMatch, StringComparer.Ordinal);
+        IReadOnlyList<string> wrappedValues = WrapArray(values, Math.Max(currentMatchIndex, 0));
+        bool excludeCurrentMatch = normalizedSearch.Length == 1;
 
-        var nextMatch = wrappedValues
-                        .Where(value => !excludeCurrentMatch || !string.Equals(value, currentMatch, StringComparison.Ordinal))
-                        .FirstOrDefault(value => value.StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase));
+        string? nextMatch = wrappedValues
+                            .Where(value => !excludeCurrentMatch || !string.Equals(value, currentMatch, StringComparison.Ordinal))
+                            .FirstOrDefault(value => value.StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase));
 
         return string.Equals(nextMatch, currentMatch, StringComparison.Ordinal) ? null : nextMatch;
     }
@@ -39,19 +39,19 @@ public static class BradixTypeaheadMatcher
 
         comparer ??= EqualityComparer<TItem>.Default;
 
-        var normalizedSearch = NormalizeSearch(search);
-        var currentItemIndex = currentItem is null ? -1 : IndexOf(items, currentItem, comparer);
-        var wrappedItems = WrapArray(items, Math.Max(currentItemIndex, 0));
-        var excludeCurrentItem = normalizedSearch.Length == 1 && currentItem is not null;
+        string normalizedSearch = NormalizeSearch(search);
+        int currentItemIndex = currentItem is null ? -1 : IndexOf(items, currentItem, comparer);
+        IReadOnlyList<TItem> wrappedItems = WrapArray(items, Math.Max(currentItemIndex, 0));
+        bool excludeCurrentItem = normalizedSearch.Length == 1 && currentItem is not null;
 
-        var nextItem = wrappedItems.FirstOrDefault(item =>
+        TItem? nextItem = wrappedItems.FirstOrDefault(item =>
         {
             if (excludeCurrentItem && currentItem is not null && comparer.Equals(item, currentItem))
             {
                 return false;
             }
 
-            var textValue = textSelector(item) ?? string.Empty;
+            string textValue = textSelector(item) ?? string.Empty;
             return textValue.StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase);
         });
 
@@ -65,7 +65,7 @@ public static class BradixTypeaheadMatcher
             return string.Empty;
         }
 
-        var isRepeated = search.Length > 1 && EnumerateJavaScriptStringIterator(search).All(character => character == search[0].ToString());
+        bool isRepeated = search.Length > 1 && EnumerateJavaScriptStringIterator(search).All(character => character == search[0].ToString());
         return isRepeated ? search[0].ToString() : search;
     }
 

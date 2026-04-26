@@ -6,7 +6,7 @@
 
 @implements IBradixAccordionTrigger
 
-@inject IBradixSuiteInterop Interop
+@inject IRovingFocusInterop RovingFocusInterop
 <BradixCollapsibleTrigger @ref="_trigger"
                           Id="@Item.TriggerId"
                           Class="@Class"
@@ -43,7 +43,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : [];
 
@@ -69,7 +69,7 @@
         if (_trigger is not null)
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterRovingFocusNavigationKeys(_trigger.Element, _dotNetReference);
+            await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_trigger.Element, _dotNetReference);
         }
     }
 
@@ -81,7 +81,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_trigger is not null)
-            await Interop.UnregisterRovingFocusNavigationKeys(_trigger.Element);
+            await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_trigger.Element);
 
         _dotNetReference?.Dispose();
     }

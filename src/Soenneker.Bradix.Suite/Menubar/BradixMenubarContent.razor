@@ -6,7 +6,8 @@
 @implements IBradixMenuContentController
 @implements IBradixMenubarContent
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject IControlsInterop ControlsInterop
 
 @if (ShouldRenderContainer)
 {
@@ -125,7 +126,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -151,7 +152,7 @@
 
     protected override void OnParametersSet()
     {
-        var present = IsPresent;
+        bool present = IsPresent;
 
         if (_wasPresent && !present)
             _isExiting = true;
@@ -164,7 +165,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_delegatedInteractionRegistered)
-            await Interop.UnregisterDelegatedInteraction(_contentElement);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
 
         _submenuPointerGraceItems.Clear();
         _dotNetReference?.Dispose();
@@ -187,7 +188,7 @@
         if (MenubarMenu?.WasKeyboardTriggerOpen == true)
             await Menu.FocusFirstItem();
         else
-            await Interop.FocusElementPreventScroll(_contentElement);
+            await ControlsInterop.FocusElementPreventScroll(_contentElement);
     }
 
     private async Task HandleCloseAutoFocus(BradixAutoFocusEventArgs args)
@@ -277,8 +278,8 @@
         if (args.Key == "Tab")
             return;
 
-        var contentId = ResolvedContentId;
-        var isContentTarget = !string.IsNullOrWhiteSpace(contentId) && string.Equals(args.TargetId, contentId, StringComparison.Ordinal);
+        string? contentId = ResolvedContentId;
+        bool isContentTarget = !string.IsNullOrWhiteSpace(contentId) && string.Equals(args.TargetId, contentId, StringComparison.Ordinal);
 
         if (isContentTarget && args.Key.Length == 1)
         {
@@ -307,11 +308,11 @@
         if (Menubar is null || MenubarMenu is null || string.IsNullOrWhiteSpace(contentId))
             return;
 
-        var previousMenuKey = Menubar.ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
-        var isPreviousKey = previousMenuKey == args.Key;
-        var isNextKey = !isPreviousKey;
-        var isInsideNestedContent = !string.IsNullOrWhiteSpace(args.ClosestMenubarContentId)
-                                    && !string.Equals(args.ClosestMenubarContentId, contentId, StringComparison.Ordinal);
+        string previousMenuKey = Menubar.ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
+        bool isPreviousKey = previousMenuKey == args.Key;
+        bool isNextKey = !isPreviousKey;
+        bool isInsideNestedContent = !string.IsNullOrWhiteSpace(args.ClosestMenubarContentId)
+                                     && !string.Equals(args.ClosestMenubarContentId, contentId, StringComparison.Ordinal);
 
         if (isNextKey && args.IsMenubarSubTrigger)
             return;
@@ -339,7 +340,7 @@
     {
         if (_delegatedInteractionRegistered)
         {
-            await Interop.UnregisterDelegatedInteraction(_contentElement);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
             _delegatedInteractionRegistered = false;
         }
 
@@ -355,7 +356,7 @@
         if (!_delegatedInteractionRegistered)
         {
             _dotNetReference ??= DotNetObjectReference.Create(this);
-            await Interop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
             {
                 focusout = new
                 {
@@ -375,7 +376,7 @@
 
     private bool IsWithinContent(string? targetId, IReadOnlyList<string>? ancestorIds)
     {
-        var contentId = ResolvedContentId;
+        string? contentId = ResolvedContentId;
 
         if (string.IsNullOrWhiteSpace(contentId))
             return false;
@@ -416,7 +417,7 @@
             return Task.CompletedTask;
 
         Menu?.ClearCurrentTabStop();
-        return Interop.FocusElementPreventScroll(_contentElement).AsTask();
+        return ControlsInterop.FocusElementPreventScroll(_contentElement).AsTask();
     }
 
     void IBradixMenuContentController.SetSubmenuPointerGrace(string? tabStopId, bool active)

@@ -8,7 +8,7 @@
 
 @implements IBradixMenubar
 
-@inject IBradixSuiteInterop Interop
+@inject IMenubarInterop MenubarInterop
 <CascadingValue Value="this">
     <div @ref="_element"
          @attributes="RootAttributes">
@@ -72,14 +72,14 @@
             return;
 
         _dotNetReference = DotNetObjectReference.Create(this);
-        await Interop.RegisterMenubarDocumentDismiss(_element, _dotNetReference, MenubarId);
+        await MenubarInterop.RegisterMenubarDocumentDismiss(_element, _dotNetReference, MenubarId);
         _documentDismissRegistered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_documentDismissRegistered)
-            await Interop.UnregisterMenubarDocumentDismiss(_element);
+            await MenubarInterop.UnregisterMenubarDocumentDismiss(_element);
 
         _dotNetReference?.Dispose();
     }
@@ -136,7 +136,7 @@
 
     internal async Task ToggleMenu(string value)
     {
-        var nextValue = string.Equals(CurrentValue, value, StringComparison.Ordinal)
+        string? nextValue = string.Equals(CurrentValue, value, StringComparison.Ordinal)
             ? null
             : value;
 
@@ -149,16 +149,16 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        var focusableTriggers = GetFocusableTriggers();
-        var currentIndex = focusableTriggers.IndexOf(trigger);
+        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
+        int currentIndex = focusableTriggers.IndexOf(trigger);
 
         if (currentIndex < 0)
             return;
 
-        if (!BradixRovingFocusNavigator.TryGetTargetIndex(args.Key, "horizontal", ResolvedDirection, currentIndex, focusableTriggers.Count, Loop, out var targetIndex))
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(args.Key, "horizontal", ResolvedDirection, currentIndex, focusableTriggers.Count, Loop, out int targetIndex))
             return;
 
-        var target = focusableTriggers[targetIndex];
+        IBradixMenubarTriggerEntry target = focusableTriggers[targetIndex];
         CurrentTabStopId = target.Value;
         await target.Focus();
 
@@ -170,25 +170,25 @@
 
     internal async Task MoveToAdjacentMenu(string value, string key)
     {
-        var focusableTriggers = GetFocusableTriggers();
-        var candidateValues = focusableTriggers.Select(trigger => trigger.Value).ToList();
+        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
+        List<string> candidateValues = focusableTriggers.Select(trigger => trigger.Value).ToList();
 
-        var previousMenuKey = ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
-        var isPreviousKey = string.Equals(previousMenuKey, key, StringComparison.Ordinal);
+        string previousMenuKey = ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
+        bool isPreviousKey = string.Equals(previousMenuKey, key, StringComparison.Ordinal);
 
         if (isPreviousKey)
             candidateValues.Reverse();
 
-        var currentIndex = candidateValues.IndexOf(value);
+        int currentIndex = candidateValues.IndexOf(value);
 
         if (currentIndex < 0)
             return;
 
-        var rotatedValues = Loop
+        List<string> rotatedValues = Loop
             ? WrapArray(candidateValues, currentIndex + 1)
             : candidateValues.Skip(currentIndex + 1).ToList();
 
-        var nextValue = rotatedValues.FirstOrDefault();
+        string? nextValue = rotatedValues.FirstOrDefault();
 
         if (string.IsNullOrWhiteSpace(nextValue))
             return;
@@ -213,7 +213,7 @@
         if (ancestorIds is null)
             return false;
 
-        foreach (var ancestorId in ancestorIds)
+        foreach (string ancestorId in ancestorIds)
         {
             if (IsRegisteredTriggerId(ancestorId))
                 return true;
@@ -227,7 +227,7 @@
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;
 
-        var isControlled = ValueChanged.HasDelegate;
+        bool isControlled = ValueChanged.HasDelegate;
 
         if (!isControlled)
             _uncontrolledValue = value;
@@ -251,7 +251,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        var focusableTriggers = GetFocusableTriggers();
+        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
 
         if (focusableTriggers.Count == 0)
         {

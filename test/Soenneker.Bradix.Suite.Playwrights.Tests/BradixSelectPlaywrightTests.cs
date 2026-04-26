@@ -345,7 +345,7 @@ public sealed class BradixSelectPlaywrightTests : PlaywrightUnitTest
 
     private static async Task ClickJustOutsideAsync(IPage page, ILocator locator)
     {
-        var box = await locator.BoundingBoxAsync();
+        LocatorBoundingBoxResult? box = await locator.BoundingBoxAsync();
         await Assert.That(box).IsNotNull();
         float x = box!.X > 40 ? box.X - 20 : box.X + box.Width + 20;
         float y = box.Y > 40 ? box.Y - 20 : box.Y + 20;

@@ -4,7 +4,7 @@
 
 @implements IBradixDialogContent
 
-@inject IBradixSuiteInterop Interop
+@inject IPresenceOverlayInterop PresenceOverlayInterop
 
 @if (ShouldRenderContainer)
 {
@@ -105,7 +105,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -125,7 +125,7 @@
 
     protected override void OnParametersSet()
     {
-        var present = IsPresent;
+        bool present = IsPresent;
 
         if (_wasPresent && !present)
             _isExiting = true;
@@ -138,7 +138,7 @@
     {
         if (_hideOthersRegistered)
         {
-            await Interop.UnregisterHideOthers(_contentElement);
+            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
             _hideOthersRegistered = false;
         }
     }
@@ -149,7 +149,7 @@
 
         if (Dialog?.Modal == true && !_hideOthersRegistered)
         {
-            await Interop.RegisterHideOthers(_contentElement);
+            await PresenceOverlayInterop.RegisterHideOthers(_contentElement);
             _hideOthersRegistered = true;
         }
 
@@ -212,8 +212,8 @@ ResetState:
         if (OnPointerDownOutsideDetailed.HasDelegate)
             await OnPointerDownOutsideDetailed.InvokeAsync(args);
 
-        var ctrlLeftClick = args.OriginalEvent.Button == 0 && args.OriginalEvent.CtrlKey;
-        var isRightClick = args.OriginalEvent.Button == 2 || ctrlLeftClick;
+        bool ctrlLeftClick = args.OriginalEvent.Button == 0 && args.OriginalEvent.CtrlKey;
+        bool isRightClick = args.OriginalEvent.Button == 2 || ctrlLeftClick;
 
         if (isRightClick)
             args.PreventDefault();
@@ -284,7 +284,7 @@ ResetState:
 
         if (_hideOthersRegistered)
         {
-            await Interop.UnregisterHideOthers(_contentElement);
+            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
             _hideOthersRegistered = false;
         }
 

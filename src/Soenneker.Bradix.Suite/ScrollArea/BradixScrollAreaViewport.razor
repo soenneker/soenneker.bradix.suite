@@ -6,7 +6,7 @@
 
 @implements IBradixScrollAreaViewport
 
-@inject IBradixSuiteInterop Interop
+@inject IScrollAreaInterop ScrollAreaInterop
 <style nonce="@Nonce">
     [data-radix-scroll-area-viewport] { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
     [data-radix-scroll-area-viewport]::-webkit-scrollbar { display: none; }
@@ -37,14 +37,14 @@
         if (_dotNetReference is null)
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
 
-        await Interop.RegisterScrollAreaViewport(_viewport, _content, _dotNetReference);
+        await ScrollAreaInterop.RegisterScrollAreaViewport(_viewport, _content, _dotNetReference);
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_registered)
-            await Interop.UnregisterScrollAreaViewport(_viewport);
+            await ScrollAreaInterop.UnregisterScrollAreaViewport(_viewport);
 
         _dotNetReference?.Dispose();
     }
@@ -56,8 +56,8 @@
 
     private string BuildViewportStyle()
     {
-        var overflowX = ScrollArea.ScrollbarXMounted ? "scroll" : "hidden";
-        var overflowY = ScrollArea.ScrollbarYMounted ? "scroll" : "hidden";
+        string overflowX = ScrollArea.ScrollbarXMounted ? "scroll" : "hidden";
+        string overflowY = ScrollArea.ScrollbarYMounted ? "scroll" : "hidden";
         var baseStyle = $"overflow-x: {overflowX}; overflow-y: {overflowY};";
 
         return MergeStyleValues(baseStyle, Style)!;

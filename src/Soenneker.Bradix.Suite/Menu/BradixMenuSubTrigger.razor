@@ -9,7 +9,10 @@
 @implements IBradixMenuRovingItem
 @implements IBradixMenuSubTrigger
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject IDomInterop DomInterop
+@inject IMenuInterop MenuInterop
+@inject IControlsInterop ControlsInterop
 <div @ref="_element"
      @onclick="HandleClick"
      @onfocus="HandleFocus"
@@ -84,7 +87,7 @@
             SubMenu.RegisterTrigger(_element);
             SubMenu.RegisterAnchor(_element);
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
             {
                 keydown = new
                 {
@@ -98,7 +101,7 @@
 
         if (TextValue is null)
         {
-            var textContent = await Interop.GetTextContent(_element);
+            string textContent = await DomInterop.GetTextContent(_element);
 
             if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
                 _resolvedTextValue = textContent;
@@ -114,13 +117,13 @@
             ParentMenu.UnregisterItem(this);
 
         if (_delegatedInteractionRegistered)
-            await Interop.UnregisterDelegatedInteraction(_element);
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
 
-        await Interop.CancelMenuSubmenuPointerGrace(_element);
+        await MenuInterop.CancelMenuSubmenuPointerGrace(_element);
         _dotNetReference?.Dispose();
     }
 
-    public ValueTask Focus() => Interop.FocusElementPreventScroll(_element);
+    public ValueTask Focus() => ControlsInterop.FocusElementPreventScroll(_element);
 
     private async Task HandleClick()
     {
@@ -131,7 +134,7 @@
         await CancelPointerGrace();
         SubMenu.SetFocusContentOnOpen(false);
         SubMenu.SetFocusFirstItemOnOpen(false);
-        await Interop.FocusElementPreventScroll(_element);
+        await ControlsInterop.FocusElementPreventScroll(_element);
         await SubMenu.SetOpen(true);
     }
 
@@ -159,7 +162,7 @@
         if (ParentMenu.IsTypeaheadActive && args.Key is " " or "Spacebar")
             return;
 
-        var isOpenKey = ParentMenu.ResolvedDirection == "rtl"
+        bool isOpenKey = ParentMenu.ResolvedDirection == "rtl"
             ? args.Key is "ArrowLeft" or "Enter" or " " or "Spacebar"
             : args.Key is "ArrowRight" or "Enter" or " " or "Spacebar";
 
@@ -257,7 +260,7 @@
 
         try
         {
-            started = await Interop.BeginMenuSubmenuPointerGrace(_element, SubMenu.ContentElement, args.ClientX, args.ClientY, _dotNetReference);
+            started = await MenuInterop.BeginMenuSubmenuPointerGrace(_element, SubMenu.ContentElement, args.ClientX, args.ClientY, _dotNetReference);
         }
         catch
         {
@@ -276,7 +279,7 @@
         if (!_pointerGraceActive)
             return;
 
-        await Interop.CancelMenuSubmenuPointerGrace(_element);
+        await MenuInterop.CancelMenuSubmenuPointerGrace(_element);
         ClearPointerGraceState();
     }
 

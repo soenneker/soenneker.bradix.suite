@@ -6,7 +6,7 @@
 
 @implements IBradixDialogClose
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <button @onclick="HandleClick"
         @ref="_button"
         @attributes="ButtonAttributes">
@@ -48,7 +48,7 @@
             await OnElementReferenceCaptured.InvokeAsync(_button);
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
         {
             readyMethod = nameof(HandleDelegatedInteractionReady),
             click = new
@@ -71,7 +71,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterDelegatedInteraction(_button);
+        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
         _dotNetReference?.Dispose();
     }
 

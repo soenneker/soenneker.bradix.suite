@@ -1,13 +1,13 @@
 @namespace Soenneker.Bradix
 
-@using System.Threading
 @using Microsoft.JSInterop
+@using Soenneker.Atomics.ValueBools
 
 @inherits BradixComponent
 
 @implements IBradixLabel
 
-@inject IBradixSuiteInterop Interop
+@inject ILabelInterop LabelInterop
 <label @ref="_element"
        @attributes="LabelAttributes" >
     @ChildContent
@@ -16,9 +16,9 @@
 @code {
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
-    private readonly SemaphoreSlim _interopLock = new(1, 1);
+    private Task? _registrationTask;
     private bool _registered;
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
 
     [Parameter]
     public string? For { get; set; }
@@ -30,59 +30,56 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _disposed)
+        if (!firstRender || _disposed.Read())
             return;
 
-        await _interopLock.WaitAsync();
+        _registrationTask ??= RegisterAsync();
+        await _registrationTask;
+    }
 
-        try
-        {
-            if (_disposed)
-                return;
+    private async Task RegisterAsync()
+    {
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await LabelInterop.RegisterLabelTextSelectionGuard(_element, _dotNetReference);
 
-            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await Interop.RegisterLabelTextSelectionGuard(_element, _dotNetReference);
-            _registered = true;
-        }
-        finally
+        if (_disposed.Read())
         {
-            _interopLock.Release();
+            await LabelInterop.UnregisterLabelTextSelectionGuard(_element);
+            return;
         }
+
+        _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (!_disposed.TrySetTrue())
             return;
-
-        _disposed = true;
-        await _interopLock.WaitAsync();
 
         try
         {
+            if (_registrationTask is not null)
+                await _registrationTask;
+
             if (_registered)
-                await Interop.UnregisterLabelTextSelectionGuard(_element);
-
-            _registered = false;
-
-            if (_dotNetReference is not null)
-                _ = DisposeReferenceLater(_dotNetReference);
-
-            _dotNetReference = null;
+                await LabelInterop.UnregisterLabelTextSelectionGuard(_element);
         }
         catch (JSDisconnectedException)
         {
         }
-        finally
-        {
-            _interopLock.Release();
-        }
+
+        _registered = false;
+
+        if (_dotNetReference is not null)
+            _ = DisposeReferenceLater(_dotNetReference);
+
+        _dotNetReference = null;
     }
 
     [JSInvokable]
     public Task HandleMouseDownFromJs(BradixDelegatedMouseEvent args)
     {
-        if (_disposed)
+        if (_disposed.Read())
             return Task.CompletedTask;
 
         return OnMouseDown.HasDelegate

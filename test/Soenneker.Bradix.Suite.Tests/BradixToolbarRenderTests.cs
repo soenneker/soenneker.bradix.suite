@@ -21,8 +21,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
         _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true);
         _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true);
         _module.SetupVoid("clickElement", _ => true);
-        Services.AddScoped<BradixSuiteInterop>();
-        Services.AddScoped<IBradixSuiteInterop>(sp => sp.GetRequiredService<BradixSuiteInterop>());
+        Services.AddBradixTestInterops();
     }
 
     [Test]

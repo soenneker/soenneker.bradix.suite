@@ -99,7 +99,7 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
         await Assert.That(contentBox).IsNotNull();
 
         var availableHeight = await content.EvaluateAsync<string>("element => getComputedStyle(element).getPropertyValue('--radix-popper-available-height')");
-        var parsedAvailableHeight = double.Parse(availableHeight.Replace("px", string.Empty), System.Globalization.CultureInfo.InvariantCulture);
+        double parsedAvailableHeight = double.Parse(availableHeight.Replace("px", string.Empty), System.Globalization.CultureInfo.InvariantCulture);
 
         await Assert.That(anchorBox!.X).IsGreaterThanOrEqualTo(boundaryBox!.X - 1);
         await Assert.That(anchorBox.X + anchorBox.Width).IsLessThanOrEqualTo(boundaryBox.X + boundaryBox.Width + 1);

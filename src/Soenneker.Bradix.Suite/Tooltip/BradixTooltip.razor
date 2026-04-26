@@ -7,7 +7,7 @@
 
 @implements IBradixTooltip
 
-@inject IBradixSuiteInterop Interop
+@inject ITooltipInterop TooltipInterop
 <BradixPopper>
     <CascadingValue Value="this">
         @ChildContent
@@ -192,7 +192,7 @@
         _openedWithDelay = open && delayed;
 
         if (open)
-            await Interop.DispatchTooltipOpen(ContentId);
+            await TooltipInterop.DispatchTooltipOpen(ContentId);
 
         if (OpenChanged.HasDelegate)
             await OpenChanged.InvokeAsync(open);

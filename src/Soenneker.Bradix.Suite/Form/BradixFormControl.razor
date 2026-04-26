@@ -4,7 +4,7 @@
 
 @implements IBradixFormControl
 
-@inject IBradixSuiteInterop Interop
+@inject IFormInterop FormInterop
 <input @ref="_element"
        @oninvalid:preventDefault="true"
        @oninvalid="HandleInvalid"
@@ -68,10 +68,10 @@
             _registeredWithForm = true;
         }
 
-        var serverInvalid = Field?.ServerInvalid == true;
+        bool serverInvalid = Field?.ServerInvalid == true;
 
         if (serverInvalid && (_lastServerInvalid != true || firstRender))
-            await Interop.FocusServerInvalidFormControl(_element);
+            await FormInterop.FocusServerInvalidFormControl(_element);
 
         _lastServerInvalid = serverInvalid;
     }
@@ -86,19 +86,19 @@
 
     private async Task HandleInvalid()
     {
-        var snapshot = await Interop.GetFormControlState(_element);
+        BradixFormControlSnapshot snapshot = await FormInterop.GetFormControlState(_element);
         await HandleControlStateChanged(snapshot);
     }
 
     private async Task HandleChange(ChangeEventArgs _)
     {
-        var snapshot = await Interop.GetFormControlState(_element);
+        BradixFormControlSnapshot snapshot = await FormInterop.GetFormControlState(_element);
         await HandleControlStateChanged(snapshot);
     }
 
     private async Task HandleInput(ChangeEventArgs _)
     {
-        await Interop.SetFormControlCustomValidity(_element, null);
+        await FormInterop.SetFormControlCustomValidity(_element, null);
 
         if (!string.IsNullOrWhiteSpace(ResolvedName))
             Form?.ClearFieldValidation(ResolvedName);

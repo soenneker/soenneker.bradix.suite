@@ -32,7 +32,7 @@ public abstract class BradixComponent : ComponentBase, IBradixComponent
         MergeClassAttribute(attributes, Class);
         MergeStyleAttribute(attributes, Style);
 
-        foreach ((var key, var value) in values)
+        foreach ((string key, object? value) in values)
         {
             SetAttribute(attributes, key, value);
         }
@@ -40,7 +40,7 @@ public abstract class BradixComponent : ComponentBase, IBradixComponent
         if (AdditionalAttributes is null || AdditionalAttributes.Count == 0)
             return attributes;
 
-        foreach ((var key, var value) in AdditionalAttributes)
+        foreach ((string key, var value) in AdditionalAttributes)
         {
             if (string.Equals(key, "class", StringComparison.OrdinalIgnoreCase))
             {
@@ -67,9 +67,9 @@ public abstract class BradixComponent : ComponentBase, IBradixComponent
         if (value.IsNullOrWhiteSpace())
             return;
 
-        if (attributes.TryGetValue("class", out var existing) && existing is not null)
+        if (attributes.TryGetValue("class", out object? existing) && existing is not null)
         {
-            var existingText = existing.ToString() ?? string.Empty;
+            string existingText = existing.ToString() ?? string.Empty;
 
             attributes["class"] = existingText.IsNullOrWhiteSpace() ? value : $"{existingText} {value}";
             return;
@@ -83,9 +83,9 @@ public abstract class BradixComponent : ComponentBase, IBradixComponent
         if (value.IsNullOrWhiteSpace())
             return;
 
-        if (attributes.TryGetValue("style", out var existing) && existing is not null)
+        if (attributes.TryGetValue("style", out object? existing) && existing is not null)
         {
-            var existingText = existing.ToString() ?? string.Empty;
+            string existingText = existing.ToString() ?? string.Empty;
 
             if (existingText.IsNullOrWhiteSpace())
             {
@@ -93,7 +93,7 @@ public abstract class BradixComponent : ComponentBase, IBradixComponent
                 return;
             }
 
-            var trimmed = existingText.TrimEnd();
+            string trimmed = existingText.TrimEnd();
 
             attributes["style"] = trimmed.EndsWith(';') ? $"{trimmed} {value}" : $"{trimmed}; {value}";
             return;
@@ -110,7 +110,7 @@ public abstract class BradixComponent : ComponentBase, IBradixComponent
         if (newValue.IsNullOrWhiteSpace())
             return existingValue;
 
-        var trimmed = existingValue!.TrimEnd();
+        string trimmed = existingValue!.TrimEnd();
         return trimmed.EndsWith(';') ? $"{trimmed} {newValue}" : $"{trimmed}; {newValue}";
     }
 

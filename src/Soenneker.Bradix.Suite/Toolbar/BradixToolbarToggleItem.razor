@@ -8,7 +8,7 @@
 @implements IBradixToolbarRovingItem
 @implements IBradixToolbarToggleItem
 
-@inject IBradixSuiteInterop Interop
+@inject IRovingFocusInterop RovingFocusInterop
 <button @ref="_element"
         @onclick="HandleClick"
         @onmousedown="HandleMouseDown"
@@ -51,7 +51,7 @@
     {
         get
         {
-            var attributes = BuildAttributes(
+            Dictionary<string, object> attributes = BuildAttributes(
                 ("type", "button"),
                 ("data-state", IsPressed ? "on" : "off"),
                 ("data-disabled", IsDisabled ? string.Empty : null),
@@ -94,12 +94,12 @@
         Toolbar.RegisterItem(this);
         _registered = true;
         _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await Interop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+        await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterRovingFocusNavigationKeys(_element);
+        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
         _dotNetReference?.Dispose();
 
         if (_registered)

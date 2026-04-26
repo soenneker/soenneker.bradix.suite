@@ -9,7 +9,7 @@ internal static class BradixSliderMath
 {
     public static IReadOnlyList<double> NormalizeValues(IEnumerable<double>? values, double min, double max)
     {
-        var normalized = values?.Select(value => Clamp(value, min, max)).OrderBy(value => value).ToList() ?? [];
+        List<double> normalized = values?.Select(value => Clamp(value, min, max)).OrderBy(value => value).ToList() ?? [];
         return normalized.Count == 0 ? [min] : normalized;
     }
 
@@ -26,12 +26,12 @@ internal static class BradixSliderMath
 
     public static double ConvertValueToPercentage(double value, double min, double max)
     {
-        var range = max - min;
+        double range = max - min;
 
         if (range <= 0)
             return 0;
 
-        var percentage = ((value - min) / range) * 100;
+        double percentage = ((value - min) / range) * 100;
         return Clamp(percentage, 0, 100);
     }
 
@@ -45,7 +45,7 @@ internal static class BradixSliderMath
 
         for (var i = 0; i < values.Count; i++)
         {
-            var distance = Math.Abs(values[i] - nextValue);
+            double distance = Math.Abs(values[i] - nextValue);
 
             if (distance < closestDistance)
             {
@@ -59,7 +59,7 @@ internal static class BradixSliderMath
 
     public static List<double> GetNextSortedValues(IReadOnlyList<double> previousValues, double nextValue, int atIndex)
     {
-        var nextValues = previousValues.ToList();
+        List<double> nextValues = previousValues.ToList();
 
         if (atIndex < 0 || atIndex >= nextValues.Count)
             return nextValues;
@@ -85,13 +85,13 @@ internal static class BradixSliderMath
 
     public static int GetDecimalCount(double value)
     {
-        var segments = value.ToString(CultureInfo.InvariantCulture).Split('.');
+        string[] segments = value.ToString(CultureInfo.InvariantCulture).Split('.');
         return segments.Length > 1 ? segments[1].Length : 0;
     }
 
     public static double RoundValue(double value, int decimalCount)
     {
-        var rounder = Math.Pow(10, decimalCount);
+        double rounder = Math.Pow(10, decimalCount);
         return Math.Round(value * rounder) / rounder;
     }
 

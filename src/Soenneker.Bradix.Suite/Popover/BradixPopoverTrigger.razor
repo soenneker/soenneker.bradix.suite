@@ -6,7 +6,7 @@
 
 @implements IBradixPopoverTrigger
 
-@inject IBradixSuiteInterop Interop
+@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <BradixDismissableLayerBranch>
     @if (Popover?.HasCustomAnchor == true)
     {
@@ -65,7 +65,7 @@
             if (Popover?.HasCustomAnchor != true)
                 Popper?.RegisterAnchor(_button);
             _dotNetReference = DotNetObjectReference.Create(this);
-            await Interop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
             {
                 readyMethod = nameof(HandleDelegatedInteractionReady),
                 click = new
@@ -91,7 +91,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        await Interop.UnregisterDelegatedInteraction(_button);
+        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
         _dotNetReference?.Dispose();
     }
 

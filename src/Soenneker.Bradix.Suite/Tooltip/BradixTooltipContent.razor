@@ -5,7 +5,8 @@
 
 @implements IBradixTooltipContent
 
-@inject IBradixSuiteInterop Interop
+@inject ITooltipInterop TooltipInterop
+@inject IDomInterop DomInterop
 
 @if (IsPresent)
 {
@@ -127,7 +128,7 @@
     {
         get
         {
-            var attributes = AdditionalAttributes is not null
+            Dictionary<string, object> attributes = AdditionalAttributes is not null
                 ? new Dictionary<string, object>(AdditionalAttributes)
                 : new Dictionary<string, object>();
 
@@ -149,7 +150,7 @@
         {
             if (_contentRegistered)
             {
-                await Interop.UnregisterTooltipContent(_contentElement);
+                await TooltipInterop.UnregisterTooltipContent(_contentElement);
                 _contentRegistered = false;
             }
 
@@ -158,15 +159,15 @@
 
         _dotNetReference ??= DotNetObjectReference.Create(this);
 
-        var hoverableContent = !Tooltip.EffectiveDisableHoverableContent;
-        var triggerId = Tooltip.TriggerElement.Id;
-        var shouldRegister = !_contentRegistered ||
-                             _lastHoverableContent != hoverableContent ||
-                             !string.Equals(_lastTriggerId, triggerId, StringComparison.Ordinal);
+        bool hoverableContent = !Tooltip.EffectiveDisableHoverableContent;
+        string triggerId = Tooltip.TriggerElement.Id;
+        bool shouldRegister = !_contentRegistered ||
+                              _lastHoverableContent != hoverableContent ||
+                              !string.Equals(_lastTriggerId, triggerId, StringComparison.Ordinal);
 
         if (shouldRegister)
         {
-            await Interop.RegisterTooltipContent(_contentElement, Tooltip.TriggerElement, _dotNetReference, Tooltip.ContentId,
+            await TooltipInterop.RegisterTooltipContent(_contentElement, Tooltip.TriggerElement, _dotNetReference, Tooltip.ContentId,
                 hoverableContent);
             _contentRegistered = true;
             _lastHoverableContent = hoverableContent;
@@ -175,7 +176,7 @@
 
         if (string.IsNullOrWhiteSpace(AriaLabel))
         {
-            var textContent = await Interop.GetTextContent(_contentElement);
+            string textContent = await DomInterop.GetTextContent(_contentElement);
 
             if (!string.Equals(_accessibleLabel, textContent, StringComparison.Ordinal))
             {
@@ -188,7 +189,7 @@
     public async ValueTask DisposeAsync()
     {
         if (_contentRegistered)
-            await Interop.UnregisterTooltipContent(_contentElement);
+            await TooltipInterop.UnregisterTooltipContent(_contentElement);
 
         _dotNetReference?.Dispose();
     }
