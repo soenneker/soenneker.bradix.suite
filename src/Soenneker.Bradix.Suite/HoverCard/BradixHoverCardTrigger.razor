@@ -4,8 +4,12 @@
 
 @implements IBradixHoverCardTrigger
 <BradixPopperAnchor>
-    <button @onpointerenter="HandlePointerEnter"
+    <button @ref="_triggerElement"
+            @onpointerenter="HandlePointerEnter"
             @onpointerleave="HandlePointerLeave"
+            @onmouseenter="HandleMouseEnter"
+            @onmousemove="HandleMouseMove"
+            @onmouseleave="HandleMouseLeave"
             @onfocus="HandleFocus"
             @onblur="HandleBlur"
             @ontouchstart:preventDefault="true"
@@ -15,6 +19,9 @@
 </BradixPopperAnchor>
 
 @code {
+    private bool _hasMouseMoveOpened;
+    private ElementReference _triggerElement;
+
     [CascadingParameter]
     private BradixHoverCard? HoverCard { get; set; }
 
@@ -22,11 +29,20 @@
         ("type", "button"),
         ("data-state", HoverCard?.CurrentOpen == true ? "open" : "closed"));
 
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            HoverCard?.RegisterAnchor(_triggerElement);
+
+        return Task.CompletedTask;
+    }
+
     private Task HandlePointerEnter(PointerEventArgs args)
     {
         if (args.PointerType == "touch")
             return Task.CompletedTask;
 
+        _hasMouseMoveOpened = true;
         return HoverCard?.HandleTriggerEnter() ?? Task.CompletedTask;
     }
 
@@ -35,6 +51,27 @@
         if (args.PointerType == "touch")
             return Task.CompletedTask;
 
+        _hasMouseMoveOpened = false;
+        return HoverCard?.HandleTriggerLeave() ?? Task.CompletedTask;
+    }
+
+    private Task HandleMouseEnter()
+    {
+        return HandleMouseMove();
+    }
+
+    private Task HandleMouseMove()
+    {
+        if (_hasMouseMoveOpened)
+            return Task.CompletedTask;
+
+        _hasMouseMoveOpened = true;
+        return HoverCard?.HandleTriggerEnter() ?? Task.CompletedTask;
+    }
+
+    private Task HandleMouseLeave()
+    {
+        _hasMouseMoveOpened = false;
         return HoverCard?.HandleTriggerLeave() ?? Task.CompletedTask;
     }
 

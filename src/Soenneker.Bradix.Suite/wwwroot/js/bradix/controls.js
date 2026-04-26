@@ -528,9 +528,19 @@ export function registerOneTimePasswordInput(element, dotNetRef) {
     dotNetRef.invokeMethodAsync("HandlePaste", event.clipboardData?.getData("Text") || "");
   };
 
+  const focus = () => {
+    dotNetRef?.invokeMethodAsync("HandleManagedFocus").catch(() => {});
+  };
+
+  const blur = () => {
+    dotNetRef?.invokeMethodAsync("HandleManagedBlur").catch(() => {});
+  };
+
   element.addEventListener("keydown", keydown);
   element.addEventListener("paste", paste);
-  oneTimePasswordInputHandlers.set(element, { keydown, paste });
+  element.addEventListener("focus", focus);
+  element.addEventListener("blur", blur);
+  oneTimePasswordInputHandlers.set(element, { keydown, paste, focus, blur });
   dotNetRef?.invokeMethodAsync("HandleManagedKeyBridgeReady").catch(() => {});
 }
 
@@ -543,5 +553,7 @@ export function unregisterOneTimePasswordInput(element) {
 
   element.removeEventListener("keydown", handlers.keydown);
   element.removeEventListener("paste", handlers.paste);
+  element.removeEventListener("focus", handlers.focus);
+  element.removeEventListener("blur", handlers.blur);
   oneTimePasswordInputHandlers.delete(element);
 }

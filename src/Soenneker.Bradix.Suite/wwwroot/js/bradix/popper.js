@@ -67,6 +67,29 @@ function getCollisionBoundary(options) {
   return boundary;
 }
 
+function getImplicitCollisionBoundary(reference) {
+  const contextElement = reference?.contextElement instanceof Element ? reference.contextElement : null;
+
+  if (!contextElement) {
+    return null;
+  }
+
+  let element = contextElement.parentElement;
+
+  while (element && element !== document.body && element !== document.documentElement) {
+    const style = globalThis.getComputedStyle?.(element);
+    const overflow = `${style?.overflow || ""} ${style?.overflowX || ""} ${style?.overflowY || ""}`;
+
+    if (/(auto|scroll|hidden|clip)/.test(overflow)) {
+      return element;
+    }
+
+    element = element.parentElement;
+  }
+
+  return null;
+}
+
 function alignToOrigin(align) {
   return {
     start: "0%",
@@ -133,7 +156,8 @@ async function updateRegisteredPopperContent(content) {
   const arrowHeight = arrowRect?.height || 0;
   const collisionPadding = getCollisionPadding(options);
   const collisionBoundary = getCollisionBoundary(options);
-  const hasExplicitBoundaries = collisionBoundary.length > 0;
+  const resolvedCollisionBoundary = collisionBoundary;
+  const hasCollisionBoundaries = resolvedCollisionBoundary.length > 0;
   let availableWidth = 0;
   let availableHeight = 0;
   let anchorWidth = 0;
@@ -141,9 +165,17 @@ async function updateRegisteredPopperContent(content) {
 
   const detectOverflowOptions = {
     padding: collisionPadding,
-    boundary: collisionBoundary,
-    rootBoundary: hasExplicitBoundaries ? "document" : "viewport",
+    rootBoundary: hasCollisionBoundaries ? "document" : "viewport",
     altBoundary: false
+  };
+
+  if (hasCollisionBoundaries) {
+    detectOverflowOptions.boundary = resolvedCollisionBoundary;
+  }
+
+  const flipOverflowOptions = {
+    ...detectOverflowOptions,
+    altBoundary: true
   };
 
   const middleware = [
@@ -155,13 +187,13 @@ async function updateRegisteredPopperContent(content) {
 
   if (options.avoidCollisions !== false) {
     middleware.push(
+      floating.flip(flipOverflowOptions),
       floating.shift({
         mainAxis: true,
         crossAxis: false,
         limiter: options.sticky === "always" ? undefined : floating.limitShift(),
         ...detectOverflowOptions
-      }),
-      floating.flip(detectOverflowOptions)
+      })
     );
   }
 
@@ -265,14 +297,26 @@ function getAnchorRect(anchor) {
   return anchor.firstElementChild.getBoundingClientRect();
 }
 
+function getAnchorContextElement(anchor) {
+  const rect = anchor.getBoundingClientRect();
+
+  if ((rect.width > 0 || rect.height > 0) || !(anchor.firstElementChild instanceof Element)) {
+    return anchor;
+  }
+
+  return anchor.firstElementChild;
+}
+
 function createAnchorReference(anchor) {
+  const contextElement = getAnchorContextElement(anchor);
+
   return {
-    contextElement: anchor,
+    contextElement,
     getBoundingClientRect() {
       return getAnchorRect(anchor);
     },
     getClientRects() {
-      return anchor.getClientRects?.() ?? [];
+      return contextElement.getClientRects?.() ?? [];
     }
   };
 }
