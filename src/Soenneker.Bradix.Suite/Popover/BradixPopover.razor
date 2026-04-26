@@ -103,12 +103,14 @@
         TriggerElement = element;
         ResolvedTriggerId = string.IsNullOrWhiteSpace(triggerId) ? DefaultTriggerId : triggerId;
         HasTrigger = true;
+        _ = InvokeAsync(StateHasChanged);
     }
 
     public void RegisterAnchor(ElementReference element)
     {
         AnchorElement = element;
         HasAnchor = true;
+        _ = InvokeAsync(StateHasChanged);
     }
 
     public bool ContainsTriggerTarget(string? targetId, IEnumerable<string>? ancestorIds)
