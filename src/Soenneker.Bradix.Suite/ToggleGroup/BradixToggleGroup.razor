@@ -21,7 +21,7 @@
     private string? CascadedDirection { get; set; }
 
     [Parameter]
-    public BradixSelectionMode Type { get; set; } = BradixSelectionMode.Single;
+    public SelectionMode Type { get; set; } = SelectionMode.Single;
 
     [Parameter]
     public bool Disabled { get; set; }
@@ -33,7 +33,7 @@
     public bool Loop { get; set; } = true;
 
     [Parameter]
-    public BradixOrientation? Orientation { get; set; }
+    public Orientation? Orientation { get; set; }
 
     [Parameter]
     public string? Dir { get; set; }
@@ -68,7 +68,7 @@
 
     internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
-    private bool IsSingle => Type != BradixSelectionMode.Multiple;
+    private bool IsSingle => Type != SelectionMode.Multiple;
 
     private string? NormalizedOrientation => Orientation?.Value;
 

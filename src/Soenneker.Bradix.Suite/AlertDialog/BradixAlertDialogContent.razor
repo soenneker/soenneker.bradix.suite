@@ -89,7 +89,7 @@
         _hasCancelElement = true;
         _ = InvokeAsync(async () =>
         {
-            await FocusCancelIfPendingAsync();
+            await FocusCancelIfPending();
             await InvokeAsync(StateHasChanged);
         });
     }
@@ -113,14 +113,14 @@
 
         args.PreventDefault();
         _pendingCancelFocus = true;
-        await FocusCancelIfPendingAsync();
+        await FocusCancelIfPending();
     }
 
     private Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)
     {
         args.PreventDefault();
         _pendingCancelFocus = true;
-        _ = InvokeAsync(FocusCancelIfPendingAsync);
+        _ = InvokeAsync(FocusCancelIfPending);
         return Task.CompletedTask;
     }
 
@@ -128,7 +128,7 @@
     {
         args.PreventDefault();
         _pendingCancelFocus = true;
-        _ = InvokeAsync(FocusCancelIfPendingAsync);
+        _ = InvokeAsync(FocusCancelIfPending);
         return Task.CompletedTask;
     }
 
@@ -137,18 +137,18 @@
         if (!firstRender)
         {
             if (Dialog?.CurrentOpen == true && !_didFocusCancelForCurrentOpen)
-                _ = InvokeAsync(FocusCancelForOpenAsync);
+                _ = InvokeAsync(FocusCancelForOpen);
             else if (Dialog?.CurrentOpen != true)
                 _didFocusCancelForCurrentOpen = false;
         }
 
         if (_pendingCancelFocus)
-            _ = InvokeAsync(FocusCancelIfPendingAsync);
+            _ = InvokeAsync(FocusCancelIfPending);
 
         return Task.CompletedTask;
     }
 
-    private async Task FocusCancelIfPendingAsync()
+    private async Task FocusCancelIfPending()
     {
         if (!_pendingCancelFocus)
             return;
@@ -156,7 +156,7 @@
         try
         {
             await Task.Yield();
-            if (await TryFocusCancelAsync())
+            if (await TryFocusCancel())
             {
                 _pendingCancelFocus = false;
                 _didFocusCancelForCurrentOpen = true;
@@ -167,7 +167,7 @@
         }
     }
 
-    private async Task FocusCancelForOpenAsync()
+    private async Task FocusCancelForOpen()
     {
         if (Dialog?.CurrentOpen != true)
             return;
@@ -175,7 +175,7 @@
         try
         {
             await Task.Yield();
-            if (await TryFocusCancelAsync())
+            if (await TryFocusCancel())
                 _didFocusCancelForCurrentOpen = true;
         }
         catch
@@ -183,7 +183,7 @@
         }
     }
 
-    private async Task<bool> TryFocusCancelAsync()
+    private async Task<bool> TryFocusCancel()
     {
         if (await ControlsInterop.FocusFirstMatchingDescendant(_contentElement, "[data-bradix-alert-dialog-cancel]"))
             return true;

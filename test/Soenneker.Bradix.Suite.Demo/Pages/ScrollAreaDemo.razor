@@ -4,7 +4,7 @@
 
 <section class="website-demo-page">
     <section class="card website-demo-card">
-        <BradixScrollArea Class="scroll-area-root" Type="@BradixScrollAreaType.Always" Style="width: 18rem; height: 14rem;">
+        <BradixScrollArea Class="scroll-area-root" Type="@ScrollAreaType.Always" Style="width: 18rem; height: 14rem;">
             <BradixScrollAreaViewport Class="scroll-area-viewport">
                 <div class="scroll-area-demo__content">
                     <div class="scroll-area-demo__heading">Tags</div>
@@ -14,10 +14,10 @@
                     }
                 </div>
             </BradixScrollAreaViewport>
-            <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="@BradixOrientation.Vertical">
+            <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="@Orientation.Vertical">
                 <BradixScrollAreaThumb Class="scroll-area-thumb" />
             </BradixScrollAreaScrollbar>
-            <BradixScrollAreaScrollbar Class="scroll-area-scrollbar scroll-area-scrollbar--horizontal" Orientation="@BradixOrientation.Horizontal">
+            <BradixScrollAreaScrollbar Class="scroll-area-scrollbar scroll-area-scrollbar--horizontal" Orientation="@Orientation.Horizontal">
                 <BradixScrollAreaThumb Class="scroll-area-thumb" />
             </BradixScrollAreaScrollbar>
             <BradixScrollAreaCorner Class="scroll-area-corner" />
@@ -30,7 +30,7 @@
             <p>Horizontal overflow should scroll inside the viewport without introducing vertical movement.</p>
         </div>
 
-        <BradixScrollArea Class="scroll-area-root scroll-area-demo__horizontal" Type="@BradixScrollAreaType.Always" Style="width: 18rem;">
+        <BradixScrollArea Class="scroll-area-root scroll-area-demo__horizontal" Type="@ScrollAreaType.Always" Style="width: 18rem;">
             <BradixScrollAreaViewport Class="scroll-area-viewport">
                 <div style="display: flex; width: max-content; gap: 0.75rem; padding: 0.75rem;">
                     @foreach ((string Title, string Description) release in Releases)
@@ -42,7 +42,7 @@
                     }
                 </div>
             </BradixScrollAreaViewport>
-            <BradixScrollAreaScrollbar Class="scroll-area-scrollbar scroll-area-scrollbar--horizontal" Orientation="@BradixOrientation.Horizontal">
+            <BradixScrollAreaScrollbar Class="scroll-area-scrollbar scroll-area-scrollbar--horizontal" Orientation="@Orientation.Horizontal">
                 <BradixScrollAreaThumb Class="scroll-area-thumb" />
             </BradixScrollAreaScrollbar>
         </BradixScrollArea>
@@ -55,7 +55,7 @@
         </div>
 
         <BradixDirectionProvider Dir="rtl">
-            <BradixScrollArea Class="scroll-area-root" Type="@BradixScrollAreaType.Always" Style="width: 18rem; height: 14rem;" dir="rtl">
+            <BradixScrollArea Class="scroll-area-root" Type="@ScrollAreaType.Always" Style="width: 18rem; height: 14rem;" dir="rtl">
                 <BradixScrollAreaViewport Class="scroll-area-viewport" style="text-align: right;">
                     <div class="scroll-area-demo__content">
                         @foreach ((string Title, string Description) note in ArabicNotes)
@@ -67,7 +67,7 @@
                         }
                     </div>
                 </BradixScrollAreaViewport>
-                <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="@BradixOrientation.Vertical">
+                <BradixScrollAreaScrollbar Class="scroll-area-scrollbar" Orientation="@Orientation.Vertical">
                     <BradixScrollAreaThumb Class="scroll-area-thumb" />
                 </BradixScrollAreaScrollbar>
             </BradixScrollArea>

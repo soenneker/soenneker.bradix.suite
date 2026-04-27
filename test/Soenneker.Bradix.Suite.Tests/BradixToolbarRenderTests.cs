@@ -195,7 +195,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
 
                 contentBuilder.OpenComponent<BradixToolbarToggleGroup>(40);
                 contentBuilder.AddAttribute(44, nameof(BradixToolbarToggleGroup.Class), "toolbar-single-group");
-                contentBuilder.AddAttribute(41, nameof(BradixToolbarToggleGroup.Type), (object) BradixSelectionMode.Single);
+                contentBuilder.AddAttribute(41, nameof(BradixToolbarToggleGroup.Type), (object) SelectionMode.Single);
                 contentBuilder.AddAttribute(42, nameof(BradixToolbarToggleGroup.DefaultValue), "center");
                 contentBuilder.AddAttribute(43, nameof(BradixToolbarToggleGroup.ChildContent), (RenderFragment) (groupBuilder =>
                 {

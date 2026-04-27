@@ -31,7 +31,7 @@ public interface IBradixSlider : IAsyncDisposable {
     bool Disabled { get; set; }
 
     /// <summary>Gets or sets the slider orientation.</summary>
-    BradixOrientation Orientation { get; set; }
+    Orientation Orientation { get; set; }
 
     /// <summary>Gets or sets the text direction override.</summary>
     string? Dir { get; set; }

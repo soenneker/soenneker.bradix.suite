@@ -21,7 +21,7 @@ public interface IBradixNavigationMenu
     EventCallback<string?> OnValueChange { get; set; }
 
     /// <summary>Layout orientation.</summary>
-    BradixOrientation Orientation { get; set; }
+    Orientation Orientation { get; set; }
 
     /// <summary>Explicit text direction override.</summary>
     string? Dir { get; set; }

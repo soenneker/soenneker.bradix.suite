@@ -11,7 +11,7 @@ public interface IBradixAccordion
     /// <summary>
     /// Gets or sets the accordion behavior mode.
     /// </summary>
-    BradixSelectionMode Type { get; set; }
+    SelectionMode Type { get; set; }
 
     /// <summary>
     /// Gets or sets whether the entire accordion is disabled.
@@ -21,7 +21,7 @@ public interface IBradixAccordion
     /// <summary>
     /// Gets or sets the layout orientation.
     /// </summary>
-    BradixOrientation Orientation { get; set; }
+    Orientation Orientation { get; set; }
 
     /// <summary>
     /// Gets or sets the text direction override for the accordion.

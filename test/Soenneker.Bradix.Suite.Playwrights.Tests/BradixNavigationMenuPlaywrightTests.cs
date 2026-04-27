@@ -26,11 +26,11 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
         ILocator viewport = page.Locator(".nav-menu-viewport");
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToContainTextAsync("Radix Primitives", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
 
-        await ClickTriggerAsync(page, overviewTrigger);
+        await ClickTrigger(page, overviewTrigger);
         await Assertions.Expect(overviewTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToContainTextAsync("Introduction", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
@@ -102,11 +102,11 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
         ILocator viewport = page.Locator(".nav-menu-viewport");
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToContainTextAsync("Radix Primitives", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
 
-        await ClickTriggerAsync(page, overviewTrigger);
+        await ClickTrigger(page, overviewTrigger);
         await Assertions.Expect(overviewTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToContainTextAsync("Introduction", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
@@ -124,11 +124,11 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
         ILocator viewport = page.Locator(".nav-menu-viewport");
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToContainTextAsync("Learn body", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
 
-        await ClickTriggerAsync(page, overviewTrigger);
+        await ClickTrigger(page, overviewTrigger);
         await Assertions.Expect(overviewTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToContainTextAsync("Overview body", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
@@ -145,12 +145,12 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Radix Primitives", Exact = true }))
                         .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 3000 });
 
-        await ClickTriggerAsync(page, overviewTrigger);
+        await ClickTrigger(page, overviewTrigger);
         await Assertions.Expect(overviewTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Introduction", Exact = true }))
@@ -168,7 +168,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator viewport = page.Locator(".nav-menu-viewport");
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToContainTextAsync("Radix Primitives", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
 
@@ -197,7 +197,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(overviewTrigger).ToHaveAttributeAsync("aria-expanded", "false");
         await Assertions.Expect(page.Locator(".nav-menu-viewport")).ToHaveCountAsync(0);
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
 
         ILocator activeLink = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Radix Primitives", Exact = true });
         await Assertions.Expect(activeLink).ToHaveAttributeAsync("aria-current", "page");
@@ -214,7 +214,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
 
         ILocator primitives = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Radix Primitives", Exact = true });
         ILocator stitches = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Stitches", Exact = true });
@@ -266,7 +266,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
         TriggerDiagnostics? diagnostics = await page.EvaluateAsync<TriggerDiagnostics>(
@@ -320,10 +320,10 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
-        await ClickTriggerAsync(page, overviewTrigger);
+        await ClickTrigger(page, overviewTrigger);
         await Assertions.Expect(overviewTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
     }
@@ -339,10 +339,10 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
-        await ClickTriggerAsync(page, overviewTrigger);
+        await ClickTrigger(page, overviewTrigger);
 
         string? immediate = await overviewTrigger.GetAttributeAsync("aria-expanded");
         await page.WaitForTimeoutAsync(300);
@@ -362,10 +362,10 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
-        await ClickTriggerAsync(page, overviewTrigger);
+        await ClickTrigger(page, overviewTrigger);
         await Assertions.Expect(overviewTrigger).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false");
     }
@@ -398,7 +398,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assert.That(before).IsNotNull();
         await Assert.That(before!.isConnected).IsTrue();
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
         TriggerIdentityAfterOpenDiagnostics? after = await page.EvaluateAsync<TriggerIdentityAfterOpenDiagnostics>(
@@ -448,7 +448,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
         ILocator viewport = page.Locator(".nav-menu-viewport");
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
         await overviewTrigger.EvaluateAsync("element => element.click()");
@@ -468,7 +468,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
         await overviewTrigger.FocusAsync();
@@ -488,7 +488,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
         await learnTrigger.EvaluateAsync("element => element.click()");
@@ -512,10 +512,10 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
 
-        await ClickTriggerAsync(page, learnTrigger);
+        await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
-        await ClickTriggerAsync(page, overviewTrigger);
+        await ClickTrigger(page, overviewTrigger);
         await page.WaitForTimeoutAsync(250);
 
         await Assert.That(pageErrors).IsEmpty();
@@ -523,7 +523,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assert.That(consoleMessages.Any(message => message.Contains("Unhandled exception rendering component", System.StringComparison.Ordinal))).IsFalse();
     }
 
-    private static async Task ClickTriggerAsync(IPage page, ILocator trigger)
+    private static async Task ClickTrigger(IPage page, ILocator trigger)
     {
         LocatorBoundingBoxResult? box = await trigger.BoundingBoxAsync();
         await Assert.That(box).IsNotNull();

@@ -36,7 +36,7 @@
     public bool Disabled { get; set; }
 
     [Parameter]
-    public BradixOrientation Orientation { get; set; } = BradixOrientation.Horizontal;
+    public Orientation Orientation { get; set; } = Orientation.Horizontal;
 
     [Parameter]
     public string? Dir { get; set; }
@@ -325,7 +325,7 @@
         if (range <= 0)
             return Min;
 
-        if (Orientation == BradixOrientation.Horizontal)
+        if (Orientation == Orientation.Horizontal)
         {
             bool slidingFromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
             return slidingFromLeft
@@ -341,7 +341,7 @@
 
     private bool IsBackKey(string key)
     {
-        return Orientation == BradixOrientation.Horizontal
+        return Orientation == Orientation.Horizontal
             ? GetHorizontalBackKeys().Contains(key)
             : GetVerticalBackKeys().Contains(key);
     }

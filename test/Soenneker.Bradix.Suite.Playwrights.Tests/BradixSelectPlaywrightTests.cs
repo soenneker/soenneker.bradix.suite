@@ -90,7 +90,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assert.That(renderedOutsideMain).IsTrue();
 
-        await ClickJustOutsideAsync(page, listBox);
+        await ClickJustOutside(page, listBox);
 
         await Assertions.Expect(trigger)
                         .ToHaveAttributeAsync("aria-expanded", "false");
@@ -343,7 +343,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(result).ToContainTextAsync("framework=astro");
     }
 
-    private static async Task ClickJustOutsideAsync(IPage page, ILocator locator)
+    private static async Task ClickJustOutside(IPage page, ILocator locator)
     {
         LocatorBoundingBoxResult? box = await locator.BoundingBoxAsync();
         await Assert.That(box).IsNotNull();

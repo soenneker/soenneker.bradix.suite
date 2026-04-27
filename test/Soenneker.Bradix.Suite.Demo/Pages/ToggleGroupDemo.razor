@@ -6,7 +6,7 @@
     <section class="card website-demo-card">
         <h1>Single selection</h1>
         <BradixToggleGroup Class="toggle-group"
-                           Type="@BradixSelectionMode.Single"
+                           Type="@SelectionMode.Single"
                            DefaultValue="center"
                            aria-label="Text alignment">
             <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="left">L</BradixToggleGroupItem>
@@ -18,7 +18,7 @@
     <section class="card website-demo-card">
         <h1>Multiple selection</h1>
         <BradixToggleGroup Class="toggle-group"
-                           Type="@BradixSelectionMode.Multiple"
+                           Type="@SelectionMode.Multiple"
                            DefaultValues='["bold"]'
                            aria-label="Text formatting">
             <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="bold">Bold</BradixToggleGroupItem>
@@ -30,8 +30,8 @@
     <section class="card website-demo-card">
         <h1>Vertical with disabled item</h1>
         <BradixToggleGroup Class="toggle-group toggle-group--vertical"
-                           Type="@BradixSelectionMode.Single"
-                           Orientation="@BradixOrientation.Vertical"
+                           Type="@SelectionMode.Single"
+                           Orientation="@Orientation.Vertical"
                            DefaultValue="top"
                            aria-label="Vertical alignment">
             <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="top">Top</BradixToggleGroupItem>
@@ -43,7 +43,7 @@
     <section class="card website-demo-card">
         <h1>Disabled group</h1>
         <BradixToggleGroup Class="toggle-group"
-                           Type="@BradixSelectionMode.Single"
+                           Type="@SelectionMode.Single"
                            DefaultValue="left"
                            Disabled="true"
                            aria-label="Disabled alignment">
@@ -57,7 +57,7 @@
         <h1>RTL single selection</h1>
         <div dir="rtl">
             <BradixToggleGroup Class="toggle-group"
-                               Type="@BradixSelectionMode.Single"
+                               Type="@SelectionMode.Single"
                                DefaultValue="center"
                                Dir="rtl"
                                aria-label="RTL alignment">

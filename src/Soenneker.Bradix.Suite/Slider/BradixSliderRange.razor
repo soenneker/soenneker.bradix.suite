@@ -24,7 +24,7 @@
         string startEdge;
         string endEdge;
 
-        if (Slider.Orientation == BradixOrientation.Horizontal)
+        if (Slider.Orientation == Orientation.Horizontal)
         {
             bool fromLeft = (Slider.ResolvedDirection == "ltr" && !Slider.Inverted) || (Slider.ResolvedDirection == "rtl" && Slider.Inverted);
             startEdge = fromLeft ? "left" : "right";

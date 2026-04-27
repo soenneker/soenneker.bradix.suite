@@ -45,7 +45,7 @@
 
             attributes["aria-hidden"] = "true";
             attributes["data-state"] = NavigationMenu?.HasOpenItem == true ? "visible" : "hidden";
-            attributes["data-orientation"] = (NavigationMenu?.Orientation ?? BradixOrientation.Horizontal).Value;
+            attributes["data-orientation"] = (NavigationMenu?.Orientation ?? Orientation.Horizontal).Value;
             return attributes;
         }
     }
@@ -54,12 +54,12 @@
     {
         get
         {
-            BradixOrientation orientation = NavigationMenu?.Orientation ?? BradixOrientation.Horizontal;
+            Orientation orientation = NavigationMenu?.Orientation ?? Orientation.Horizontal;
             var baseStyle = "position:absolute;";
 
             if (_size.HasValue && _offset.HasValue)
             {
-                if (orientation == BradixOrientation.Vertical)
+                if (orientation == Orientation.Vertical)
                 {
                     baseStyle += $" top:0;height:{_size.Value.ToString(CultureInfo.InvariantCulture)}px;transform:translateY({_offset.Value.ToString(CultureInfo.InvariantCulture)}px);";
                 }

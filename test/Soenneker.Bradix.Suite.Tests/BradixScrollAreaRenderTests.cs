@@ -27,7 +27,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     [Test]
     public async Task Always_scroll_area_renders_scrollbar_parts()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Always, includeHorizontal: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Always, includeHorizontal: true));
 
         await Assert.That(cut.FindAll("[data-orientation]").Count).IsEqualTo(2);
         await Assert.That(cut.Markup).DoesNotContain("data-bradix-scroll-area-thumb");
@@ -36,7 +36,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     [Test]
     public async Task Auto_scroll_area_mounts_scrollbar_when_overflow_detected()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Auto));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Auto));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await Assert.That(cut.FindAll("[data-state='visible']")).IsEmpty();
@@ -49,7 +49,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     [Test]
     public async Task Auto_scroll_area_keeps_viewport_overflow_hidden_until_scrollbar_is_rendered()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Auto));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Auto));
 
         IElement viewport = cut.Find("[data-radix-scroll-area-viewport]");
 
@@ -60,7 +60,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     [Test]
     public async Task Hover_scroll_area_shows_scrollbar_on_hover()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Hover));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Hover));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
@@ -73,7 +73,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     [Test]
     public async Task Hover_scroll_area_hides_after_scroll_hide_delay_on_pointer_leave()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Hover, scrollHideDelay: 10));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Hover, scrollHideDelay: 10));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
@@ -94,7 +94,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     [Test]
     public async Task Scroll_type_hides_after_scroll_end_and_scroll_hide_delay()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Scroll, scrollHideDelay: 20));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Scroll, scrollHideDelay: 20));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 40, 500, 500, 100, 100);
@@ -112,7 +112,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     [Test]
     public async Task Scroll_type_keeps_scrollbar_visible_while_pointer_is_over_it()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Scroll, scrollHideDelay: 20));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Scroll, scrollHideDelay: 20));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 40, 500, 500, 100, 100);
@@ -133,7 +133,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     [Test]
     public async Task Corner_renders_when_both_scrollbars_visible()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: BradixScrollAreaType.Always, includeHorizontal: true, includeCorner: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Always, includeHorizontal: true, includeCorner: true));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
 
         await root.Instance.HandleViewportMetricsChanged(0, 0, 500, 500, 100, 100);
@@ -152,7 +152,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
             builder.AddAttribute(1, nameof(BradixDirectionProvider.Dir), "rtl");
             builder.AddAttribute(2, nameof(BradixDirectionProvider.ChildContent), (RenderFragment)(contentBuilder =>
             {
-                CreateScrollArea(type: BradixScrollAreaType.Always)(contentBuilder);
+                CreateScrollArea(type: ScrollAreaType.Always)(contentBuilder);
             }));
             builder.CloseComponent();
         });
@@ -181,7 +181,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
         await Assert.That(cut.Find("style").GetAttribute("nonce")).IsEqualTo("csp-nonce");
     }
 
-    private static RenderFragment CreateScrollArea(BradixScrollAreaType type, bool includeHorizontal = false, bool includeCorner = false, int? scrollHideDelay = null)
+    private static RenderFragment CreateScrollArea(ScrollAreaType type, bool includeHorizontal = false, bool includeCorner = false, int? scrollHideDelay = null)
     {
         return builder =>
         {
@@ -202,7 +202,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
                 contentBuilder.CloseComponent();
 
                 contentBuilder.OpenComponent<BradixScrollAreaScrollbar>(10);
-                contentBuilder.AddAttribute(11, nameof(BradixScrollAreaScrollbar.Orientation), (object) BradixOrientation.Vertical);
+                contentBuilder.AddAttribute(11, nameof(BradixScrollAreaScrollbar.Orientation), (object) Orientation.Vertical);
                 contentBuilder.AddAttribute(12, nameof(BradixScrollAreaScrollbar.Class), "scrollbar");
                 contentBuilder.AddAttribute(13, nameof(BradixScrollAreaScrollbar.ChildContent), (RenderFragment)(scrollbarBuilder =>
                 {
@@ -215,7 +215,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
                 if (includeHorizontal)
                 {
                     contentBuilder.OpenComponent<BradixScrollAreaScrollbar>(20);
-                    contentBuilder.AddAttribute(21, nameof(BradixScrollAreaScrollbar.Orientation), (object) BradixOrientation.Horizontal);
+                    contentBuilder.AddAttribute(21, nameof(BradixScrollAreaScrollbar.Orientation), (object) Orientation.Horizontal);
                     contentBuilder.AddAttribute(22, nameof(BradixScrollAreaScrollbar.Class), "scrollbar");
                     contentBuilder.AddAttribute(23, nameof(BradixScrollAreaScrollbar.ChildContent), (RenderFragment)(scrollbarBuilder =>
                     {

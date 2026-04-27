@@ -38,31 +38,31 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     [Test]
     public async Task Shared_enum_tokens_match_radix_string_contracts()
     {
-        await Assert.That(BradixAlignment.Start.Value).IsEqualTo("start");
-        await Assert.That(BradixAlignment.Center.Value).IsEqualTo("center");
-        await Assert.That(BradixAlignment.End.Value).IsEqualTo("end");
-        await Assert.That(BradixOrientation.Horizontal.Value).IsEqualTo("horizontal");
-        await Assert.That(BradixOrientation.Vertical.Value).IsEqualTo("vertical");
-        await Assert.That(BradixSide.Top.Value).IsEqualTo("top");
-        await Assert.That(BradixSide.Right.Value).IsEqualTo("right");
-        await Assert.That(BradixSide.Bottom.Value).IsEqualTo("bottom");
-        await Assert.That(BradixSide.Left.Value).IsEqualTo("left");
-        await Assert.That(BradixSelectPosition.ItemAligned.Value).IsEqualTo("item-aligned");
-        await Assert.That(BradixSelectPosition.Popper.Value).IsEqualTo("popper");
-        await Assert.That(BradixSelectionMode.Single.Value).IsEqualTo("single");
-        await Assert.That(BradixSelectionMode.Multiple.Value).IsEqualTo("multiple");
-        await Assert.That(BradixScrollAreaType.Hover.Value).IsEqualTo("hover");
-        await Assert.That(BradixScrollAreaType.Scroll.Value).IsEqualTo("scroll");
-        await Assert.That(BradixScrollAreaType.Auto.Value).IsEqualTo("auto");
-        await Assert.That(BradixScrollAreaType.Always.Value).IsEqualTo("always");
-        await Assert.That(BradixSwipeDirection.Up.Value).IsEqualTo("up");
-        await Assert.That(BradixSwipeDirection.Down.Value).IsEqualTo("down");
-        await Assert.That(BradixSwipeDirection.Left.Value).IsEqualTo("left");
-        await Assert.That(BradixSwipeDirection.Right.Value).IsEqualTo("right");
-        await Assert.That(BradixTabsActivationMode.Automatic.Value).IsEqualTo("automatic");
-        await Assert.That(BradixTabsActivationMode.Manual.Value).IsEqualTo("manual");
-        await Assert.That(BradixToastType.Foreground.Value).IsEqualTo("foreground");
-        await Assert.That(BradixToastType.Background.Value).IsEqualTo("background");
+        await Assert.That(Alignment.Start.Value).IsEqualTo("start");
+        await Assert.That(Alignment.Center.Value).IsEqualTo("center");
+        await Assert.That(Alignment.End.Value).IsEqualTo("end");
+        await Assert.That(Orientation.Horizontal.Value).IsEqualTo("horizontal");
+        await Assert.That(Orientation.Vertical.Value).IsEqualTo("vertical");
+        await Assert.That(Soenneker.Bradix.Side.Top.Value).IsEqualTo("top");
+        await Assert.That(Soenneker.Bradix.Side.Right.Value).IsEqualTo("right");
+        await Assert.That(Soenneker.Bradix.Side.Bottom.Value).IsEqualTo("bottom");
+        await Assert.That(Soenneker.Bradix.Side.Left.Value).IsEqualTo("left");
+        await Assert.That(SelectPosition.ItemAligned.Value).IsEqualTo("item-aligned");
+        await Assert.That(SelectPosition.Popper.Value).IsEqualTo("popper");
+        await Assert.That(SelectionMode.Single.Value).IsEqualTo("single");
+        await Assert.That(SelectionMode.Multiple.Value).IsEqualTo("multiple");
+        await Assert.That(ScrollAreaType.Hover.Value).IsEqualTo("hover");
+        await Assert.That(ScrollAreaType.Scroll.Value).IsEqualTo("scroll");
+        await Assert.That(ScrollAreaType.Auto.Value).IsEqualTo("auto");
+        await Assert.That(ScrollAreaType.Always.Value).IsEqualTo("always");
+        await Assert.That(SwipeDirection.Up.Value).IsEqualTo("up");
+        await Assert.That(SwipeDirection.Down.Value).IsEqualTo("down");
+        await Assert.That(SwipeDirection.Left.Value).IsEqualTo("left");
+        await Assert.That(SwipeDirection.Right.Value).IsEqualTo("right");
+        await Assert.That(TabsActivationMode.Automatic.Value).IsEqualTo("automatic");
+        await Assert.That(TabsActivationMode.Manual.Value).IsEqualTo("manual");
+        await Assert.That(ToastType.Foreground.Value).IsEqualTo("foreground");
+        await Assert.That(ToastType.Background.Value).IsEqualTo("background");
     }
 
     [Test]

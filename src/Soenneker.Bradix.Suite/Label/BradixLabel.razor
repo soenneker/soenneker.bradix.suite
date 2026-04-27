@@ -33,11 +33,11 @@
         if (!firstRender || _disposed.Read())
             return;
 
-        _registrationTask ??= RegisterAsync();
+        _registrationTask ??= Register();
         await _registrationTask;
     }
 
-    private async Task RegisterAsync()
+    private async Task Register()
     {
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await LabelInterop.RegisterLabelTextSelectionGuard(_element, _dotNetReference);

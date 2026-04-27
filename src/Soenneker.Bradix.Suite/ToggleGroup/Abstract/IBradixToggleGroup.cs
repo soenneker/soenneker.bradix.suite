@@ -24,7 +24,7 @@ public interface IBradixToggleGroup
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     /// <summary>Gets or sets the selection mode.</summary>
-    BradixSelectionMode Type { get; set; }
+    SelectionMode Type { get; set; }
 
     /// <summary>Gets or sets whether the entire group is disabled.</summary>
     bool Disabled { get; set; }
@@ -36,7 +36,7 @@ public interface IBradixToggleGroup
     bool Loop { get; set; }
 
     /// <summary>Gets or sets the orientation.</summary>
-    BradixOrientation? Orientation { get; set; }
+    Orientation? Orientation { get; set; }
 
     /// <summary>Gets or sets the text direction override.</summary>
     string? Dir { get; set; }

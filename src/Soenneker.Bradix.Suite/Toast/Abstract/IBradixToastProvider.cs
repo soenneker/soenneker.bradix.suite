@@ -30,7 +30,7 @@ public interface IBradixToastProvider
     int Duration { get; set; }
 
     /// <summary>Gets or sets the swipe direction.</summary>
-    BradixSwipeDirection SwipeDirection { get; set; }
+    SwipeDirection SwipeDirection { get; set; }
 
     /// <summary>Gets or sets the swipe distance threshold.</summary>
     double SwipeThreshold { get; set; }

@@ -24,7 +24,7 @@ public interface IBradixToolbarToggleGroup
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     /// <summary>Gets or sets the selection mode.</summary>
-    BradixSelectionMode Type { get; set; }
+    SelectionMode Type { get; set; }
 
     /// <summary>Gets or sets whether the group is disabled.</summary>
     bool Disabled { get; set; }

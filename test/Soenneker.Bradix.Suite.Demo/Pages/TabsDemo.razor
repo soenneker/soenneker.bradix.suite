@@ -99,7 +99,7 @@
         <p>Arrow keys should move focus without changing selection until Space or Enter activates the focused tab.</p>
         <BradixTabs Class="tabs-root"
                     DefaultValue="manual-account"
-                    ActivationMode="@BradixTabsActivationMode.Manual">
+                    ActivationMode="@TabsActivationMode.Manual">
             <BradixTabsList Class="tabs-list" aria-label="Manual tabs example">
                 <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="manual-account">Manual Account</BradixTabsTrigger>
                 <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="manual-password">Manual Password</BradixTabsTrigger>
@@ -118,7 +118,7 @@
         <p>Vertical tabs should use up and down arrows to move focus and selection.</p>
         <BradixTabs Class="tabs-root"
                     DefaultValue="vertical-account"
-                    Orientation="@BradixOrientation.Vertical">
+                    Orientation="@Orientation.Vertical">
             <BradixTabsList Class="tabs-list" aria-label="Vertical tabs example">
                 <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="vertical-account">Vertical Account</BradixTabsTrigger>
                 <BradixTabsTrigger Class="primitive__trigger tabs-trigger" Value="vertical-password">Vertical Password</BradixTabsTrigger>

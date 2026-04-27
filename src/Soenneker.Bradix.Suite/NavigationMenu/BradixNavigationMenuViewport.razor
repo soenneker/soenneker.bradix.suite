@@ -54,7 +54,7 @@
 
             attributes["id"] = ResolvedViewportId;
             attributes["data-state"] = NavigationMenu?.HasOpenItem == true ? "open" : "closed";
-            attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? BradixOrientation.Horizontal.Value;
+            attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? Orientation.Horizontal.Value;
             return attributes;
         }
     }

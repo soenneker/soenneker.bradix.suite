@@ -40,7 +40,7 @@ public interface IBradixToast : IAsyncDisposable {
     bool ForceMount { get; set; }
 
     /// <summary>Gets or sets the toast type.</summary>
-    BradixToastType Type { get; set; }
+    ToastType Type { get; set; }
 
     /// <summary>Gets or sets the auto-close duration in milliseconds.</summary>
     int? Duration { get; set; }

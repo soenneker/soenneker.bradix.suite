@@ -22,13 +22,13 @@
     private string? CascadedDirection { get; set; }
 
     [Parameter]
-    public BradixSelectionMode Type { get; set; } = BradixSelectionMode.Single;
+    public SelectionMode Type { get; set; } = SelectionMode.Single;
 
     [Parameter]
     public bool Disabled { get; set; }
 
     [Parameter]
-    public BradixOrientation Orientation { get; set; } = BradixOrientation.Vertical;
+    public Orientation Orientation { get; set; } = Orientation.Vertical;
 
     [Parameter]
     public string? Dir { get; set; }
@@ -60,11 +60,11 @@
     [Parameter]
     public EventCallback<IReadOnlyCollection<string>> OnValuesChange { get; set; }
 
-    internal bool IsCollapsible => Type == BradixSelectionMode.Multiple || Collapsible;
+    internal bool IsCollapsible => Type == SelectionMode.Multiple || Collapsible;
     internal string GroupId => _groupId ??= BlazorIdGenerator.New("bradix-accordion-group");
     internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
-    private bool IsSingle => Type == BradixSelectionMode.Single;
+    private bool IsSingle => Type == SelectionMode.Single;
 
     private IReadOnlyDictionary<string, object> RootAttributes => BuildAttributes(
         ("data-orientation", Orientation.Value),
@@ -167,18 +167,18 @@
             case "End":
                 nextIndex = enabledTriggers.Count - 1;
                 break;
-            case "ArrowDown" when Orientation.Value == BradixOrientation.VerticalValue:
+            case "ArrowDown" when Orientation.Value == Orientation.VerticalValue:
                 nextIndex = (currentIndex + 1) % enabledTriggers.Count;
                 break;
-            case "ArrowUp" when Orientation.Value == BradixOrientation.VerticalValue:
+            case "ArrowUp" when Orientation.Value == Orientation.VerticalValue:
                 nextIndex = (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;
                 break;
-            case "ArrowRight" when Orientation.Value == BradixOrientation.HorizontalValue:
+            case "ArrowRight" when Orientation.Value == Orientation.HorizontalValue:
                 nextIndex = ResolvedDirection == "rtl"
                     ? (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count
                     : (currentIndex + 1) % enabledTriggers.Count;
                 break;
-            case "ArrowLeft" when Orientation.Value == BradixOrientation.HorizontalValue:
+            case "ArrowLeft" when Orientation.Value == Orientation.HorizontalValue:
                 nextIndex = ResolvedDirection == "rtl"
                     ? (currentIndex + 1) % enabledTriggers.Count
                     : (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;

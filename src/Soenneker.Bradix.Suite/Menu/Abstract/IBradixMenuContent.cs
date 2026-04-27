@@ -15,13 +15,13 @@ public interface IBradixMenuContent : IAsyncDisposable {
     bool Loop { get; set; }
 
     /// <summary>Gets or sets the preferred popper side.</summary>
-    BradixSide Side { get; set; }
+    Side Side { get; set; }
 
     /// <summary>Gets or sets the offset from the side edge.</summary>
     double SideOffset { get; set; }
 
     /// <summary>Gets or sets the alignment along the cross axis.</summary>
-    BradixAlignment Align { get; set; }
+    Alignment Align { get; set; }
 
     /// <summary>Gets or sets the alignment offset.</summary>
     double AlignOffset { get; set; }

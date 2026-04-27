@@ -25,13 +25,13 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         ILocator animatedTrigger = singleDemo.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Can it be animated?", Exact = true });
 
         await accessibleTrigger.PressAsync("ArrowDown");
-        await ExpectActiveElementAsync(page, unstyledTrigger);
+        await ExpectActiveElement(page, unstyledTrigger);
 
         await unstyledTrigger.PressAsync("End");
-        await ExpectActiveElementAsync(page, animatedTrigger);
+        await ExpectActiveElement(page, animatedTrigger);
 
         await animatedTrigger.PressAsync("Home");
-        await ExpectActiveElementAsync(page, accessibleTrigger);
+        await ExpectActiveElement(page, accessibleTrigger);
 
         ILocator disabledDemo = page.GetByRole(AriaRole.Region, new PageGetByRoleOptions { Name = "Disabled accordion demo", Exact = true });
         ILocator enabledTrigger = disabledDemo.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Can I access account history?", Exact = true });
@@ -41,7 +41,7 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         await Assertions.Expect(disabledTrigger).ToBeDisabledAsync();
 
         await enabledTrigger.PressAsync("ArrowDown");
-        await ExpectActiveElementAsync(page, trailingTrigger);
+        await ExpectActiveElement(page, trailingTrigger);
 
         await disabledTrigger.ClickAsync(new LocatorClickOptions { Force = true });
         await Assertions.Expect(disabledTrigger).ToHaveAttributeAsync("aria-expanded", "false");
@@ -53,13 +53,13 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         ILocator thirdHorizontalTrigger = horizontalDemo.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Third horizontal item", Exact = true });
 
         await firstHorizontalTrigger.PressAsync("ArrowLeft");
-        await ExpectActiveElementAsync(page, secondHorizontalTrigger);
+        await ExpectActiveElement(page, secondHorizontalTrigger);
 
         await secondHorizontalTrigger.PressAsync("ArrowRight");
-        await ExpectActiveElementAsync(page, firstHorizontalTrigger);
+        await ExpectActiveElement(page, firstHorizontalTrigger);
 
         await firstHorizontalTrigger.PressAsync("ArrowRight");
-        await ExpectActiveElementAsync(page, thirdHorizontalTrigger);
+        await ExpectActiveElement(page, thirdHorizontalTrigger);
     }
 
 [Test]

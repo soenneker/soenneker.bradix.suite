@@ -30,7 +30,7 @@ public abstract class BradixComponentPlaywrightTest : PlaywrightUnitTest
         return session;
     }
 
-    protected static async Task ClickJustOutsideActiveDialogAsync(IPage page, ILocator dialog)
+    protected static async Task ClickJustOutsideActiveDialog(IPage page, ILocator dialog)
     {
         LocatorBoundingBoxResult? box = await dialog.BoundingBoxAsync();
         await Assert.That(box).IsNotNull();
@@ -39,7 +39,7 @@ public abstract class BradixComponentPlaywrightTest : PlaywrightUnitTest
         await page.Mouse.ClickAsync(x, y);
     }
 
-    protected static async Task ExpectActiveElementAsync(IPage page, ILocator locator)
+    protected static async Task ExpectActiveElement(IPage page, ILocator locator)
     {
         string? id = await locator.GetAttributeAsync("id");
         await Assert.That(string.IsNullOrWhiteSpace(id)).IsFalse();
@@ -49,11 +49,11 @@ public abstract class BradixComponentPlaywrightTest : PlaywrightUnitTest
             id);
     }
 
-    protected static async Task<bool> WaitForDialogTabBoundaryAsync(ILocator dialog, bool first, int attempts = 12)
+    protected static async Task<bool> WaitForDialogTabBoundary(ILocator dialog, bool first, int attempts = 12)
     {
         for (var i = 0; i < attempts; i++)
         {
-            if (await ActiveElementMatchesDialogTabBoundaryAsync(dialog, first))
+            if (await ActiveElementMatchesDialogTabBoundary(dialog, first))
                 return true;
 
             await Task.Delay(25);
@@ -62,7 +62,7 @@ public abstract class BradixComponentPlaywrightTest : PlaywrightUnitTest
         return false;
     }
 
-    private static Task<bool> ActiveElementMatchesDialogTabBoundaryAsync(ILocator dialog, bool first)
+    private static Task<bool> ActiveElementMatchesDialogTabBoundary(ILocator dialog, bool first)
     {
         return dialog.EvaluateAsync<bool>(
             @"(element, isFirst) => {

@@ -318,7 +318,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     [Test]
     public async Task Popper_position_forwards_collision_boundary_selectors_and_sticky()
     {
-        _ = Render(CreateSelect(defaultOpen: true, position: BradixSelectPosition.Popper, configureContent: content =>
+        _ = Render(CreateSelect(defaultOpen: true, position: SelectPosition.Popper, configureContent: content =>
         {
             content.AddAttribute(20, nameof(BradixSelectContent.CollisionBoundarySelector), "#select-boundary-a");
             content.AddAttribute(21, nameof(BradixSelectContent.CollisionBoundarySelectors), new[] { "#select-boundary-b", "#select-boundary-a" });

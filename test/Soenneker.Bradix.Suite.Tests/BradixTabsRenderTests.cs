@@ -51,7 +51,7 @@ public sealed class BradixTabsRenderTests : BunitContext
 
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(
             defaultValue: "tab1",
-            activationMode: BradixTabsActivationMode.Manual,
+            activationMode: TabsActivationMode.Manual,
             onValueChange: EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
 
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
@@ -140,13 +140,13 @@ public sealed class BradixTabsRenderTests : BunitContext
     [Test]
     public async Task Vertical_tabs_list_exposes_vertical_aria_orientation()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", orientation: BradixOrientation.Vertical));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", orientation: Orientation.Vertical));
 
         await Assert.That(cut.Find("[role='tablist']").GetAttribute("aria-orientation")).IsEqualTo("vertical");
     }
 
-    private static RenderFragment CreateTabs(string? defaultValue = null, BradixTabsActivationMode? activationMode = null, EventCallback<string?> onValueChange = default,
-        bool forceMount = false, BradixOrientation? orientation = null, string? dir = null)
+    private static RenderFragment CreateTabs(string? defaultValue = null, TabsActivationMode? activationMode = null, EventCallback<string?> onValueChange = default,
+        bool forceMount = false, Orientation? orientation = null, string? dir = null)
     {
         return builder =>
         {
@@ -155,8 +155,8 @@ public sealed class BradixTabsRenderTests : BunitContext
             if (defaultValue is not null)
                 builder.AddAttribute(1, nameof(BradixTabs.DefaultValue), defaultValue);
 
-            builder.AddAttribute(2, nameof(BradixTabs.ActivationMode), (object) (activationMode ?? BradixTabsActivationMode.Automatic));
-            builder.AddAttribute(6, nameof(BradixTabs.Orientation), (object) (orientation ?? BradixOrientation.Horizontal));
+            builder.AddAttribute(2, nameof(BradixTabs.ActivationMode), (object) (activationMode ?? TabsActivationMode.Automatic));
+            builder.AddAttribute(6, nameof(BradixTabs.Orientation), (object) (orientation ?? Orientation.Horizontal));
 
             if (dir is not null)
                 builder.AddAttribute(7, nameof(BradixTabs.Dir), dir);

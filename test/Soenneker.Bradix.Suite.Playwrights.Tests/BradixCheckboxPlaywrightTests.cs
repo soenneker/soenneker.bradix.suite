@@ -18,7 +18,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
-        await WaitForCheckboxRootAsync(page, "#email-updates-checkbox");
+        await WaitForCheckboxRoot(page, "#email-updates-checkbox");
 
         ILocator emailUpdates = page.Locator("#email-updates-checkbox");
         ILocator projectPermissions = page.Locator("#project-permissions-checkbox");
@@ -55,7 +55,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
-        await WaitForCheckboxRootAsync(page, "#ownership-checkbox");
+        await WaitForCheckboxRoot(page, "#ownership-checkbox");
 
         ILocator checkbox = page.Locator("#ownership-checkbox");
 
@@ -76,7 +76,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
-        await WaitForCheckboxRootAsync(page, "#terms-checkbox");
+        await WaitForCheckboxRoot(page, "#terms-checkbox");
 
         ILocator checkbox = page.Locator("#terms-checkbox");
         await Assertions.Expect(checkbox).ToHaveAttributeAsync("aria-checked", "true");
@@ -93,7 +93,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
-        await WaitForCheckboxRootAsync(page, "#terms-checkbox");
+        await WaitForCheckboxRoot(page, "#terms-checkbox");
 
         ILocator checkbox = page.Locator("#terms-checkbox");
         await Assertions.Expect(checkbox).ToHaveAttributeAsync("aria-checked", "true");
@@ -108,7 +108,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         await Assertions.Expect(checkbox).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-    private static Task WaitForCheckboxRootAsync(IPage page, string selector)
+    private static Task WaitForCheckboxRoot(IPage page, string selector)
     {
         return page.WaitForFunctionAsync(
             "selector => document.querySelector(selector)?.hasAttribute('data-bradix-checkbox-root') === true",

@@ -42,7 +42,7 @@
 
     internal bool IsFocusable => !IsDisabled;
 
-    private bool IsSingle => Group.Type != BradixSelectionMode.Multiple;
+    private bool IsSingle => Group.Type != SelectionMode.Multiple;
 
     private Dictionary<string, object> ToggleAttributes
     {

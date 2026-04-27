@@ -24,7 +24,7 @@ else
 
 @code {
     [Parameter]
-    public BradixOrientation Orientation { get; set; } = BradixOrientation.Horizontal;
+    public Orientation Orientation { get; set; } = Orientation.Horizontal;
 
     [Parameter]
     public bool Decorative { get; set; }
@@ -38,13 +38,13 @@ else
     [Parameter]
     public IReadOnlyDictionary<string, object>? ChildAttributes { get; set; }
 
-    private BradixOrientation ResolvedOrientation => Orientation;
+    private Orientation ResolvedOrientation => Orientation;
 
     private string ResolvedChildElementName => ChildElementName ?? string.Empty;
 
     private Dictionary<string, object> SeparatorAttributes => BuildAttributes(
         ("role", Decorative ? "none" : "separator"),
-        ("aria-orientation", !Decorative && ResolvedOrientation == BradixOrientation.Vertical ? BradixOrientation.Vertical.Value : null),
+        ("aria-orientation", !Decorative && ResolvedOrientation == Orientation.Vertical ? Orientation.Vertical.Value : null),
         ("data-orientation", ResolvedOrientation.Value));
 
     protected override void OnParametersSet()

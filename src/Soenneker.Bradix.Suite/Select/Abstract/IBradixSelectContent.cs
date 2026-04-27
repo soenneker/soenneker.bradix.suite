@@ -28,16 +28,16 @@ public interface IBradixSelectContent : IAsyncDisposable {
     bool ForceMount { get; set; }
 
     /// <summary>Gets or sets the positioning mode.</summary>
-    string Position { get; set; }
+    SelectPosition Position { get; set; }
 
     /// <summary>Gets or sets the popper side.</summary>
-    BradixSide Side { get; set; }
+    Side Side { get; set; }
 
     /// <summary>Gets or sets the popper side offset.</summary>
     double SideOffset { get; set; }
 
     /// <summary>Gets or sets the popper alignment.</summary>
-    BradixAlignment Align { get; set; }
+    Alignment Align { get; set; }
 
     /// <summary>Gets or sets the popper alignment offset.</summary>
     double AlignOffset { get; set; }

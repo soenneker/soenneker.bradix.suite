@@ -48,13 +48,13 @@
     private string? Direction { get; set; }
 
     [Parameter]
-    public BradixSide Side { get; set; } = BradixSide.Bottom;
+    public Side Side { get; set; } = Soenneker.Bradix.Side.Bottom;
 
     [Parameter]
     public double SideOffset { get; set; }
 
     [Parameter]
-    public BradixAlignment Align { get; set; } = BradixAlignment.Center;
+    public Alignment Align { get; set; } = Alignment.Center;
 
     [Parameter]
     public double AlignOffset { get; set; }
@@ -121,7 +121,7 @@
 
         if (!_registered)
         {
-            _registrationTask ??= RegisterAsync(hasExplicitAnchor, hasAnchorSelector, hasVirtualAnchor, options, hasArrow);
+            _registrationTask ??= Register(hasExplicitAnchor, hasAnchorSelector, hasVirtualAnchor, options, hasArrow);
             await _registrationTask;
             return;
         }
@@ -181,7 +181,7 @@
         _dotNetReference = null;
     }
 
-    private async Task RegisterAsync(bool hasExplicitAnchor, bool hasAnchorSelector, bool hasVirtualAnchor,
+    private async Task Register(bool hasExplicitAnchor, bool hasAnchorSelector, bool hasVirtualAnchor,
         (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options,
         bool hasArrow)
     {

@@ -23,7 +23,7 @@ public sealed class BradixSeparatorRenderTests : BunitContext
     public async Task Separator_vertical_sets_aria_orientation()
     {
         IRenderedComponent<BradixSeparator> cut = Render<BradixSeparator>(parameters => parameters
-            .Add(separator => separator.Orientation, BradixOrientation.Vertical));
+            .Add(separator => separator.Orientation, Orientation.Vertical));
 
         IElement separator = cut.Find("div");
 
@@ -37,7 +37,7 @@ public sealed class BradixSeparatorRenderTests : BunitContext
     {
         IRenderedComponent<BradixSeparator> cut = Render<BradixSeparator>(parameters => parameters
             .Add(separator => separator.Decorative, true)
-            .Add(separator => separator.Orientation, BradixOrientation.Vertical));
+            .Add(separator => separator.Orientation, Orientation.Vertical));
 
         IElement separator = cut.Find("div");
 

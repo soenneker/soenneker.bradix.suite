@@ -95,7 +95,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         await page.Keyboard.PressAsync("Tab");
         await Assertions.Expect(cancel).ToBeFocusedAsync();
 
-        await ClickJustOutsideActiveDialogAsync(page, dialog);
+        await ClickJustOutsideActiveDialog(page, dialog);
 
         await Assertions.Expect(dialog).ToBeVisibleAsync();
         await Assertions.Expect(dialog).ToHaveAttributeAsync("data-state", "open");

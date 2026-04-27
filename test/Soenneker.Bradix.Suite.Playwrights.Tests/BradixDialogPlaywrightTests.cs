@@ -68,13 +68,13 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(dialog).ToBeVisibleAsync();
         await Assertions.Expect(dialog).ToHaveAttributeAsync("aria-modal", "true");
-        await Assert.That(await WaitForDialogTabBoundaryAsync(dialog, first: true)).IsTrue();
+        await Assert.That(await WaitForDialogTabBoundary(dialog, first: true)).IsTrue();
 
         await page.Keyboard.PressAsync("Shift+Tab");
-        await Assert.That(await WaitForDialogTabBoundaryAsync(dialog, first: false)).IsTrue();
+        await Assert.That(await WaitForDialogTabBoundary(dialog, first: false)).IsTrue();
 
         await page.Keyboard.PressAsync("Tab");
-        await Assert.That(await WaitForDialogTabBoundaryAsync(dialog, first: true)).IsTrue();
+        await Assert.That(await WaitForDialogTabBoundary(dialog, first: true)).IsTrue();
 
         await page.Keyboard.PressAsync("Escape");
 
@@ -146,7 +146,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Edit profile", Exact = true });
         await Assertions.Expect(dialog).ToBeVisibleAsync();
 
-        await ClickJustOutsideActiveDialogAsync(page, dialog);
+        await ClickJustOutsideActiveDialog(page, dialog);
 
         await Assertions.Expect(dialog).Not.ToBeVisibleAsync();
     }

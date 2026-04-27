@@ -45,7 +45,7 @@ public interface IBradixRadioGroup
     EventCallback<string?> OnValueChange { get; set; }
 
     /// <summary>Gets or sets the orientation.</summary>
-    BradixOrientation? Orientation { get; set; }
+    Orientation? Orientation { get; set; }
 
     /// <summary>Gets or sets the text direction override.</summary>
     string? Dir { get; set; }

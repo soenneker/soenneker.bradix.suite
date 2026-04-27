@@ -31,7 +31,7 @@
     private string? CascadedDirection { get; set; }
 
     [Parameter]
-    public BradixScrollAreaType Type { get; set; } = BradixScrollAreaType.Hover;
+    public ScrollAreaType Type { get; set; } = ScrollAreaType.Hover;
 
     [Parameter]
     public string? Dir { get; set; }
@@ -165,10 +165,10 @@
 
         return Type.Value switch
         {
-            BradixScrollAreaType.AlwaysValue => true,
-            BradixScrollAreaType.AutoValue => overflow,
-            BradixScrollAreaType.HoverValue => overflow && IsHovering,
-            BradixScrollAreaType.ScrollValue => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
+            ScrollAreaType.AlwaysValue => true,
+            ScrollAreaType.AutoValue => overflow,
+            ScrollAreaType.HoverValue => overflow && IsHovering,
+            ScrollAreaType.ScrollValue => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
             _ => overflow && IsHovering
         };
     }
@@ -182,10 +182,10 @@
 
         return Type.Value switch
         {
-            BradixScrollAreaType.AlwaysValue => true,
-            BradixScrollAreaType.AutoValue => overflow,
-            BradixScrollAreaType.HoverValue => overflow && IsHovering,
-            BradixScrollAreaType.ScrollValue => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
+            ScrollAreaType.AlwaysValue => true,
+            ScrollAreaType.AutoValue => overflow,
+            ScrollAreaType.HoverValue => overflow && IsHovering,
+            ScrollAreaType.ScrollValue => overflow && (orientation == "horizontal" ? IsScrollingX : IsScrollingY),
             _ => overflow && IsHovering
         };
     }
@@ -231,7 +231,7 @@
         return $"height: {verticalThumbSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translate3d(0, {verticalOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}px, 0);";
     }
 
-    internal bool ShouldRenderCorner => Type != BradixScrollAreaType.Scroll && ScrollbarXMounted && ScrollbarYMounted && IsScrollbarVisible("horizontal") && IsScrollbarVisible("vertical");
+    internal bool ShouldRenderCorner => Type != ScrollAreaType.Scroll && ScrollbarXMounted && ScrollbarYMounted && IsScrollbarVisible("horizontal") && IsScrollbarVisible("vertical");
 
     internal string GetCornerStyle()
     {
@@ -250,7 +250,7 @@
             return InvokeAsync(StateHasChanged);
         }
 
-        if (Type == BradixScrollAreaType.Hover)
+        if (Type == ScrollAreaType.Hover)
         {
             _hoverHideTokenSource?.Cancel();
             _hoverHideTokenSource?.Dispose();
@@ -283,7 +283,7 @@
         ViewportWidth = viewportWidth;
         ViewportHeight = viewportHeight;
 
-        if (Type == BradixScrollAreaType.Scroll)
+        if (Type == ScrollAreaType.Scroll)
         {
             if (xChanged)
                 NotifyScrollActivity(true);

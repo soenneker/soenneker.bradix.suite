@@ -74,14 +74,14 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> semantic = Render(builder =>
         {
             builder.OpenComponent<BradixSeparator>(0);
-            builder.AddAttribute(1, nameof(BradixSeparator.Orientation), (object) BradixOrientation.Vertical);
+            builder.AddAttribute(1, nameof(BradixSeparator.Orientation), (object) Orientation.Vertical);
             builder.CloseComponent();
         });
 
         IRenderedComponent<ContainerFragment> decorative = Render(builder =>
         {
             builder.OpenComponent<BradixSeparator>(0);
-            builder.AddAttribute(1, nameof(BradixSeparator.Orientation), (object) BradixOrientation.Vertical);
+            builder.AddAttribute(1, nameof(BradixSeparator.Orientation), (object) Orientation.Vertical);
             builder.AddAttribute(2, nameof(BradixSeparator.Decorative), true);
             builder.CloseComponent();
         });
@@ -100,7 +100,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
             builder.OpenComponent<BradixSeparator>(0);
             builder.AddAttribute(1, nameof(BradixSeparator.AsChild), true);
             builder.AddAttribute(2, nameof(BradixSeparator.ChildElementName), "span");
-            builder.AddAttribute(3, nameof(BradixSeparator.Orientation), (object) BradixOrientation.Vertical);
+            builder.AddAttribute(3, nameof(BradixSeparator.Orientation), (object) Orientation.Vertical);
             builder.AddAttribute(4, nameof(BradixSeparator.ChildAttributes), new Dictionary<string, object>
             {
                 ["data-test-separator"] = "true"
