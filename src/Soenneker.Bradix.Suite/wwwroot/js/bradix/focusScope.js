@@ -80,13 +80,17 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
       ? scope.lastFocusedElement
       : scope.element;
 
-    focusElement(target, true);
-
-    queueMicrotask(() => {
+    const restore = () => {
       const activeElement = document.activeElement;
-      if (!scope.paused && scope.trapped && activeElement && !scope.element.contains(activeElement)) {
+      if (!scope.paused && scope.trapped && (!activeElement || !scope.element.contains(activeElement))) {
         focusElement(target, true);
       }
+    };
+
+    focusElement(target, true);
+    queueMicrotask(() => {
+      restore();
+      requestAnimationFrame(restore);
     });
   };
 

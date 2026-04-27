@@ -48,7 +48,32 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
 
     if (isHotkeyPressed) {
       focusElement(viewport, false);
+      requestAnimationFrame(() => focusElement(viewport, false));
     }
+  };
+  const focusToastFromViewport = (backwards) => {
+    if (backwards) {
+      focusElement(resolvedHeadProxy, false);
+      return;
+    }
+
+    const toastItems = Array.from(viewport.querySelectorAll('[data-radix-toast-root]'));
+    const target = toastItems.length > 0 ? toastItems[toastItems.length - 1] : null;
+    focusElement(target, false);
+
+    if (document.activeElement !== target) {
+      focusElement(resolvedTailProxy, false);
+    }
+  };
+  const documentTabKeydown = (event) => {
+    const isMetaKey = event.altKey || event.ctrlKey || event.metaKey;
+    if (event.key !== "Tab" || isMetaKey || document.activeElement !== viewport) {
+      return;
+    }
+
+    event.preventDefault();
+    focusToastFromViewport(event.shiftKey);
+    requestAnimationFrame(() => focusToastFromViewport(event.shiftKey));
   };
   const focusin = () => invokePause();
   const focusout = (event) => {
@@ -76,8 +101,10 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
 
     const backwards = event.shiftKey;
     const targetIsViewport = event.target === viewport;
-    if (targetIsViewport && backwards) {
-      focusElement(resolvedHeadProxy, false);
+    if (targetIsViewport) {
+      event.preventDefault();
+      focusToastFromViewport(backwards);
+      requestAnimationFrame(() => focusToastFromViewport(backwards));
       return;
     }
 
@@ -102,6 +129,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
   };
 
   document.addEventListener("keydown", keydown);
+  document.addEventListener("keydown", documentTabKeydown, true);
   if (resolvedWrapper) {
     resolvedWrapper.addEventListener("focusin", focusin);
     resolvedWrapper.addEventListener("focusout", focusout);
@@ -121,6 +149,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
   toastViewportHandlers.set(viewport, {
     wrapper: resolvedWrapper,
     keydown,
+    documentTabKeydown,
     focusin,
     focusout,
     pointermove,
@@ -143,6 +172,7 @@ export function unregisterToastViewport(viewport) {
   }
 
   document.removeEventListener("keydown", handlers.keydown);
+  document.removeEventListener("keydown", handlers.documentTabKeydown, true);
   if (handlers.wrapper) {
     handlers.wrapper.removeEventListener("focusin", handlers.focusin);
     handlers.wrapper.removeEventListener("focusout", handlers.focusout);

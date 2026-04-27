@@ -1,6 +1,7 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using System.Threading
 
 @inherits BradixComponent
 
@@ -20,6 +21,8 @@
     private bool? _lastTrapped;
     private bool? _lastPreventMountAutoFocus;
     private bool? _lastPreventUnmountAutoFocus;
+    private bool _disposed;
+    private readonly CancellationTokenSource _disposeCts = new();
 
     [Parameter]
     public bool Loop { get; set; }
@@ -50,10 +53,30 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed)
+            return;
+
         if (firstRender)
         {
-            _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await FocusScopeInterop.RegisterFocusScope(_element, _dotNetReference, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus);
+            DotNetObjectReference<object> dotNetReference = DotNetObjectReference.Create<object>(this);
+            _dotNetReference = dotNetReference;
+
+            try
+            {
+                await FocusScopeInterop.RegisterFocusScope(_element, dotNetReference, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus, _disposeCts.Token);
+            }
+            catch (OperationCanceledException) when (_disposed)
+            {
+                return;
+            }
+            catch (ObjectDisposedException) when (_disposed)
+            {
+                return;
+            }
+
+            if (_disposed)
+                return;
+
             _registered = true;
             _lastLoop = Loop;
             _lastTrapped = Trapped;
@@ -64,7 +87,22 @@
 
         if (_lastLoop != Loop || _lastTrapped != Trapped || _lastPreventMountAutoFocus != PreventMountAutoFocus || _lastPreventUnmountAutoFocus != PreventUnmountAutoFocus)
         {
-            await FocusScopeInterop.UpdateFocusScope(_element, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus);
+            try
+            {
+                await FocusScopeInterop.UpdateFocusScope(_element, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus, _disposeCts.Token);
+            }
+            catch (OperationCanceledException) when (_disposed)
+            {
+                return;
+            }
+            catch (ObjectDisposedException) when (_disposed)
+            {
+                return;
+            }
+
+            if (_disposed)
+                return;
+
             _lastLoop = Loop;
             _lastTrapped = Trapped;
             _lastPreventMountAutoFocus = PreventMountAutoFocus;
@@ -74,6 +112,8 @@
 
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
+        await _disposeCts.CancelAsync();
         bool unmountAutoFocusPrevented = PreventUnmountAutoFocus;
 
         if (OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate)
@@ -83,6 +123,8 @@
             await FocusScopeInterop.UnregisterFocusScope(_element, unmountAutoFocusPrevented);
 
         _dotNetReference?.Dispose();
+        _dotNetReference = null;
+        _disposeCts.Dispose();
     }
 
     [JSInvokable]

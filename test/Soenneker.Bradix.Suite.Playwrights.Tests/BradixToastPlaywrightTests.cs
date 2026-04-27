@@ -74,8 +74,9 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
         ILocator viewport = page.Locator("ol.toast-demo__viewport");
         ILocator toast = page.Locator(".toast-demo__root[data-state='open']").Filter(new LocatorFilterOptions { HasText = "Scheduled: Catch up" });
         await Assertions.Expect(toast).ToBeVisibleAsync();
+        await Assertions.Expect(viewport.Locator("[data-radix-toast-root]")).ToBeVisibleAsync();
 
-        await page.EvaluateAsync("document.dispatchEvent(new KeyboardEvent('keydown', { code: 'F8', key: 'F8', bubbles: true }))");
+        await page.Keyboard.PressAsync("F8");
         await Assertions.Expect(viewport).ToBeFocusedAsync();
 
         await page.Keyboard.PressAsync("Tab");

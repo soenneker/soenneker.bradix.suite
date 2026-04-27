@@ -87,7 +87,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         ILocator action = dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Yes, delete account", Exact = true });
 
         await Assertions.Expect(dialog).ToBeVisibleAsync();
-        await Assert.That(await cancel.EvaluateAsync<bool>("element => document.activeElement === element")).IsTrue();
+        await Assertions.Expect(cancel).ToBeFocusedAsync();
 
         await page.Keyboard.PressAsync("Shift+Tab");
         await Assertions.Expect(action).ToBeFocusedAsync();

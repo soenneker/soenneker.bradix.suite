@@ -2656,6 +2656,10 @@ input[type="radio"] {
         grid-template-columns: 1fr;
     }
 
+    .docs-shell__main {
+        order: -1;
+    }
+
     .docs-shell__sidebar {
         position: static;
         max-height: none;
@@ -2706,6 +2710,12 @@ input[type="radio"] {
     button,
     button[type="button"],
     button[type="submit"] {
+        box-sizing: border-box;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .website-demo-card {
         width: 100%;
     }
 }

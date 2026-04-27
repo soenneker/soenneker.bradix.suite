@@ -41,6 +41,7 @@
                         Class="@Class"
                         Style="@ResolvedStyle"
                         AdditionalAttributes="@ToastAttributes"
+                        OnKeyDown="HandleKeyDown"
                         OnElementReferenceCaptured="HandleElementReferenceCaptured"
                         OnExitComplete="HandleExitComplete">
             @ChildContent
@@ -436,6 +437,23 @@
 
         if (!eventArgs.DefaultPrevented)
             await Close();
+    }
+
+    private Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (!string.Equals(args.Key, "Escape", StringComparison.Ordinal))
+            return Task.CompletedTask;
+
+        return HandleDelegatedKeyDown(new BradixDelegatedKeyboardEvent
+        {
+            Key = args.Key,
+            Code = args.Code,
+            CtrlKey = args.CtrlKey,
+            ShiftKey = args.ShiftKey,
+            AltKey = args.AltKey,
+            MetaKey = args.MetaKey,
+            Repeat = args.Repeat
+        });
     }
 
     private Task HandlePointerDown(PointerEventArgs args)
