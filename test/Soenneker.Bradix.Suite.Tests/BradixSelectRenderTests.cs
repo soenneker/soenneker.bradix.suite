@@ -487,7 +487,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         await Assert.That(prevented).IsTrue();
     }
 
-    private static RenderFragment CreateSelect(bool defaultOpen = false, string? defaultValue = null, string? position = null, bool includeScrollButtons = false,
+    private static RenderFragment CreateSelect(bool defaultOpen = false, string? defaultValue = null, SelectPosition? position = null, bool includeScrollButtons = false,
         Action<RenderTreeBuilder>? configureContent = null)
     {
         return builder =>
@@ -514,7 +514,7 @@ public sealed class BradixSelectRenderTests : BunitContext
                 {
                     portal.OpenComponent<BradixSelectContent>(0);
                     if (position is not null)
-                        portal.AddAttribute(1, nameof(BradixSelectContent.Position), position);
+                        portal.AddAttribute(1, nameof(BradixSelectContent.Position), (object)position);
 
                     configureContent?.Invoke(portal);
 
