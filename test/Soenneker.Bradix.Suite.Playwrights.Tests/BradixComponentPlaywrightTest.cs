@@ -1,13 +1,33 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
+using Soenneker.Playwrights.Session;
+using Soenneker.Playwrights.TestEnvironment.Options;
 using Soenneker.Playwrights.Tests.Unit;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 public abstract class BradixComponentPlaywrightTest : PlaywrightUnitTest
 {
+    private const int DefaultTimeoutMs = 5_000;
+    private const int DefaultNavigationTimeoutMs = 10_000;
+
+    static BradixComponentPlaywrightTest()
+    {
+        Assertions.SetDefaultExpectTimeout(DefaultTimeoutMs);
+    }
+
     protected BradixComponentPlaywrightTest(BradixPlaywrightHost host) : base(host)
     {
+    }
+
+    protected new async ValueTask<BrowserSession> CreateSession(PlaywrightSessionOptions? sessionOptions = null, CancellationToken cancellationToken = default)
+    {
+        BrowserSession session = await base.CreateSession(sessionOptions, cancellationToken);
+        session.Page.SetDefaultTimeout(DefaultTimeoutMs);
+        session.Page.SetDefaultNavigationTimeout(DefaultNavigationTimeoutMs);
+
+        return session;
     }
 
     protected static async Task ClickJustOutsideActiveDialogAsync(IPage page, ILocator dialog)

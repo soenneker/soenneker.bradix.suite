@@ -14,8 +14,8 @@ public sealed class PopperInterop : IPopperInterop
     private readonly IResourceLoader _resourceLoader;
 
     private const string _modulePath = "./_content/Soenneker.Bradix.Suite/js/bradix/popper.js";
-    private const string _floatingUiCorePath = "./_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.core.umd.min.js";
-    private const string _floatingUiDomPath = "./_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.dom.umd.min.js";
+    private const string _floatingUiCorePath = "./_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.core.global-loader.js";
+    private const string _floatingUiDomPath = "./_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.dom.global-loader.js";
     public PopperInterop(IModuleImportUtil moduleImportUtil, IResourceLoader resourceLoader)
     {
         _moduleImportUtil = moduleImportUtil;

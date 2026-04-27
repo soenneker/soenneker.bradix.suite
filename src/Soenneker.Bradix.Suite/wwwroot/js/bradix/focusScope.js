@@ -58,8 +58,21 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     preventMountAutoFocus: !!preventMountAutoFocus,
     preventUnmountAutoFocus: !!preventUnmountAutoFocus,
     paused: false,
+    awaitingMountAutoFocus: false,
     lastFocusedElement: null,
     previouslyFocusedElement: document.activeElement instanceof HTMLElement ? document.activeElement : null
+  };
+
+  const tryMountAutoFocusCandidate = () => focusFirst(removeLinks(getTabbableCandidates(scope.element)), true);
+
+  const completeMountAutoFocusIfFocused = () => {
+    const activeElement = document.activeElement;
+    if (activeElement && scope.element.contains(activeElement) && activeElement !== scope.element) {
+      scope.awaitingMountAutoFocus = false;
+      return true;
+    }
+
+    return false;
   };
 
   const focusLastInsideScope = () => {
@@ -106,19 +119,27 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
   };
 
   const mutationObserver = new MutationObserver((mutations) => {
-    if (!scope.trapped) {
-      return;
+    if (scope.awaitingMountAutoFocus && !scope.paused) {
+      for (const mutation of mutations) {
+        if (mutation.addedNodes.length > 0 || mutation.type === "attributes") {
+          tryMountAutoFocusCandidate();
+          completeMountAutoFocusIfFocused();
+          break;
+        }
+      }
     }
 
-    const focusedElement = document.activeElement;
-    if (focusedElement !== document.body) {
-      return;
-    }
+    if (scope.trapped) {
+      const focusedElement = document.activeElement;
+      if (focusedElement !== document.body) {
+        return;
+      }
 
-    for (const mutation of mutations) {
-      if (mutation.removedNodes.length > 0) {
-        focusElement(scope.element, false);
-        break;
+      for (const mutation of mutations) {
+        if (mutation.removedNodes.length > 0) {
+          focusElement(scope.element, false);
+          break;
+        }
       }
     }
   });
@@ -161,7 +182,7 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
   document.addEventListener("focusin", focusin);
   document.addEventListener("focusout", focusout);
   scope.element.addEventListener("keydown", keydown);
-  mutationObserver.observe(scope.element, { childList: true, subtree: true });
+  mutationObserver.observe(scope.element, { attributes: true, attributeFilter: ["data-state", "hidden", "style"], childList: true, subtree: true });
 
   const handlers = { scope, focusin, focusout, keydown, mutationObserver };
   focusScopeHandlers.set(element, handlers);
@@ -177,8 +198,8 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     }
 
     if (!scope.preventMountAutoFocus && !mountAutoFocusPrevented) {
-      const tryFocusFirstCandidate = () => focusFirst(removeLinks(getTabbableCandidates(scope.element)), true);
-      tryFocusFirstCandidate();
+      scope.awaitingMountAutoFocus = true;
+      tryMountAutoFocusCandidate();
       if (document.activeElement === previous) {
         focusElement(scope.element, false);
       }
@@ -188,19 +209,23 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
           return;
         }
 
-        const activeElement = document.activeElement;
-        if (activeElement && scope.element.contains(activeElement) && activeElement !== scope.element) {
+        if (completeMountAutoFocusIfFocused()) {
           return;
         }
 
-        if (!tryFocusFirstCandidate() && (document.activeElement === previous || document.activeElement === document.body)) {
+        if (!tryMountAutoFocusCandidate() && (document.activeElement === previous || document.activeElement === document.body)) {
           focusElement(scope.element, false);
         }
+
+        completeMountAutoFocusIfFocused();
       };
 
       requestAnimationFrame(retryMountAutoFocus);
       setTimeout(retryMountAutoFocus, 0);
       setTimeout(retryMountAutoFocus, 50);
+      setTimeout(retryMountAutoFocus, 100);
+      setTimeout(retryMountAutoFocus, 250);
+      setTimeout(retryMountAutoFocus, 500);
     }
   }
 }

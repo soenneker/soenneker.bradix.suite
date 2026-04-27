@@ -10,6 +10,8 @@
 
 @code {
     private ElementReference _element;
+    private bool _popperRegistered;
+    private bool _popoverRegistered;
 
     [CascadingParameter]
     private BradixPopper? Popper { get; set; }
@@ -22,10 +24,16 @@
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!_popperRegistered && Popper is not null)
         {
-            Popper?.RegisterAnchor(_element);
-            Popover?.RegisterAnchor(_element);
+            Popper.RegisterAnchor(_element);
+            _popperRegistered = true;
+        }
+
+        if (!_popoverRegistered && Popover is not null)
+        {
+            Popover.RegisterAnchor(_element);
+            _popoverRegistered = true;
         }
 
         return Task.CompletedTask;

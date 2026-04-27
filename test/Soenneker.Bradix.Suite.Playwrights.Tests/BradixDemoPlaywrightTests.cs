@@ -8,7 +8,7 @@ using Soenneker.Playwrights.Tests.Unit;
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 [ClassDataSource<BradixPlaywrightHost>(Shared = SharedType.PerTestSession)]
-public sealed class BradixDemoPlaywrightTests : PlaywrightUnitTest
+public sealed class BradixDemoPlaywrightTests : BradixComponentPlaywrightTest
 {
     public BradixDemoPlaywrightTests(BradixPlaywrightHost host) : base(host)
     {

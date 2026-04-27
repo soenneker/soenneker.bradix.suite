@@ -11,6 +11,12 @@ const rovingFocusKeys = new Set([
   "PageUp",
   "PageDown"
 ]);
+const rovingFocusSelectionKeys = new Set([
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "ArrowDown"
+]);
 
 export function registerRovingFocusNavigationKeys(element, dotNetRef) {
   if (!element) {
@@ -62,7 +68,7 @@ export function registerRovingFocusNavigationKeys(element, dotNetRef) {
     setTimeout(() => {
       target.focus();
 
-      if (clickOnFocus) {
+      if (clickOnFocus && rovingFocusSelectionKeys.has(event.key)) {
         target.click();
       }
     }, 0);

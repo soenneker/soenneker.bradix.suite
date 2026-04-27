@@ -13,6 +13,8 @@
     <button @ref="_buttonElement"
             @onclick="HandleClick"
             @onclick:stopPropagation="ShouldRenderBubbleInput"
+            @onkeydown="HandleKeyDown"
+            @onkeydown:preventDefault="true"
             @attributes="ButtonAttributes">
         @ChildContent
     </button>
@@ -146,12 +148,6 @@
                     currentTargetOnly = false,
                     stopPropagation = true
                 },
-                keydown = new
-                {
-                    keys = new[] { "Enter" },
-                    method = nameof(HandleDelegatedEnterKeyDown),
-                    preventDefault = true
-                }
             });
             _registered = true;
         }
@@ -238,6 +234,11 @@
     public Task HandleDelegatedEnterKeyDown(BradixDelegatedKeyboardEvent _)
     {
         return Disabled ? Task.CompletedTask : SetChecked(!CurrentChecked);
+    }
+
+    private Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        return args.Key == "Enter" && !Disabled ? SetChecked(!CurrentChecked) : Task.CompletedTask;
     }
 
     private async Task SetChecked(bool value)
