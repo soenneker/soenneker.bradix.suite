@@ -6,32 +6,35 @@
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Bradix.Suite
 
-**Radix-inspired, unstyled UI primitives for Blazor.**
+**Radix-inspired UI primitives for Blazor.**
 
-`Soenneker.Bradix.Suite` gives Blazor teams the same kind of composable primitive layer that made Radix compelling in the React world: dialogs, menus, popovers, selects, tabs, tooltips, scroll areas, form primitives, focus management, and the hard browser behavior that usually turns into a pile of one-off fixes.
+`Soenneker.Bradix.Suite` is the behavioral foundation for building serious Blazor UI. It gives product teams a Radix-style primitive layer: dialogs, menus, popovers, selects, tabs, tooltips, scroll areas, form primitives, focus management, layered interactions, and the browser behavior that usually becomes scattered application code.
 
-This package is for teams that want:
+Bradix is intentionally **unstyled**. It handles structure, state, accessibility-minded interaction patterns, and JavaScript interop while leaving the visual system to your app, design system, or a higher-level component library.
+
+Use Bradix when you want:
 
 - primitives instead of opinionated components
-- accessibility-minded behavior without fighting the platform
-- full control over styling and design systems
-- a serious foundation for building product UI in Blazor
+- accessible interaction patterns without rewriting browser edge cases
+- full control over styling, tokens, markup, and design-system wrappers
+- reusable behavior that can support many product components
+- one Blazor package instead of a mix of hand-rolled overlay, focus, and menu logic
 
-It is **not** a theme, and it does **not** try to hide complexity behind magical abstractions. It gives you the right low-level building blocks so your app can stay consistent, accessible, and maintainable as it grows.
+Bradix is not a theme and not a high-level application component kit. It is the layer you build on when consistency, accessibility, and long-term maintainability matter.
 
 ## Why Bradix
 
-Bradix optimizes for **foundations**.
+Most UI libraries start with finished components. Bradix starts one layer lower, where the hard behavior lives.
 
-- **Composable APIs**: use trigger/content/item/viewport-style building blocks instead of giant all-in-one controls.
-- **Unstyled by default**: bring your own CSS, tokens, and brand system.
-- **Real browser behavior**: focus scopes, dismissable layers, portals, popper positioning, roving focus, form participation, and more are handled through a dedicated interop layer.
-- **Blazor-native consumption**: install one NuGet package, register services, and start composing primitives.
-- **Broad surface area**: the suite already covers core primitives, overlays, menus, forms, and infrastructure needed to build on top of them.
+- **Composable parts**: build with root, trigger, content, item, viewport, overlay, portal, and indicator pieces instead of monolithic controls.
+- **Design-system freedom**: apply your own CSS, Tailwind utilities, tokens, or component wrappers without fighting built-in styles.
+- **Hard behavior included**: focus scopes, dismissable layers, portals, positioning, roving focus, keyboard interaction, scroll locking, and form participation are handled by the suite.
+- **Blazor-native setup**: install one NuGet package, register services, and use the primitives directly in Razor.
+- **Broad primitive coverage**: overlays, disclosure, navigation, menus, forms, input controls, and infrastructure primitives live together in one suite.
 
 ## What Ships Today
 
-Bradix is a **single package** with a broad set of primitives.
+Bradix ships as a single package with the primitives commonly needed to build polished application UI.
 
 ### Core utilities
 
@@ -53,7 +56,7 @@ Bradix is a **single package** with a broad set of primitives.
 
 `Collection`, `DismissableLayer`, `FocusGuards`, `FocusScope`, `Popper`, `RemoveScroll`
 
-If you want to see the suite the way consumers will actually use it, the best place to start is the live demo:
+See the primitives in context:
 
 [Open the demo site](https://soenneker.github.io/soenneker.bradix.suite)
 
@@ -130,46 +133,12 @@ Bradix uses a composition model. Instead of a monolithic `DialogComponent`, you 
 }
 ```
 
-That example shows the design philosophy of the library:
+That example shows the design philosophy:
 
 - state can be controlled from your component
 - primitives stay narrowly focused
 - markup stays explicit
 - styling stays entirely in your hands
-
-## What To Expect
-
-### 1. Unstyled on purpose
-
-Bradix gives you structure, semantics, behavior, and composition. It does not impose a visual system. That means you can align it with your product instead of trying to undo somebody else's design choices.
-
-### 2. Built around serious UI behavior
-
-This suite is not just wrappers around HTML tags. A large portion of the library exists to solve the browser behavior that makes primitive libraries valuable in the first place: layered interactions, keyboard navigation, focus restoration, content positioning, scroll locking, form integration, and related interop.
-
-### 3. Familiar controlled and uncontrolled patterns
-
-Components such as `BradixDialog` support patterns like:
-
-- `Open`
-- `DefaultOpen`
-- `OpenChanged`
-- `OnOpenChange`
-
-That keeps the primitives flexible enough for product code, demos, and design-system wrappers.
-
-### 4. Designed for composition
-
-Many primitives follow a Radix-style structure:
-
-- root
-- trigger
-- portal
-- overlay
-- content
-- item / indicator / viewport / separator depending on the primitive
-
-This is the right model when you care about long-term UI consistency and extensibility.
 
 ## Quality Bar
 
@@ -180,15 +149,13 @@ Bradix is backed by more than static samples:
 - Playwright end-to-end coverage against a running demo app
 - CI packaging and verification workflows
 
-Consumers should be able to trust behavior, not just screenshots.
-
 ## Is Bradix A Port Of Radix UI?
 
 No. Bradix is **Radix-inspired**, not an official Radix port and not a perfect drop-in parity promise with the React packages.
 
 The goal is to bring the same philosophy to Blazor:
 
-- small composable primitives (typically named the name as Radix)
+- small composable primitives
 - strong behavioral foundations
 - accessibility-minded interaction patterns
 - design-system freedom
