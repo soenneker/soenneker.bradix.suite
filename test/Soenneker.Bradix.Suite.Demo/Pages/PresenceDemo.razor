@@ -2,15 +2,8 @@
 
 <PageTitle>Bradix Presence</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixPresence</h2>
-        <p>Keeps a node mounted while its exit animation runs, then unmounts it cleanly when the animation finishes.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Animated mount / unmount</h3>
+<section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
             <div class="button-row">
                 <button class="primitive__trigger" type="button" @onclick="TogglePresent">Toggle presence</button>
                 <span class="state-line">Present: <strong>@_present</strong></span>
@@ -22,9 +15,7 @@
                             OnExitComplete="HandleExitComplete">
                 <p class="state-line">This node stays mounted for the close animation.</p>
             </BradixPresence>
-        </section>
-
-    </div>
+    </section>
 </section>
 
 @code {

@@ -2,15 +2,8 @@
 
 <PageTitle>Bradix RemoveScroll</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixRemoveScroll</h2>
-        <p>Locks page scrolling while its content is mounted, providing the modal scroll policy used by dialog and modal popover families.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Mounted scroll lock</h3>
+<section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
             <button class="primitive__trigger" type="button" @onclick="@(() => _mounted = !_mounted)">
                 Toggle scroll lock
             </button>
@@ -25,8 +18,7 @@
                     </div>
                 </BradixRemoveScroll>
             }
-        </section>
-    </div>
+    </section>
 </section>
 
 @code {

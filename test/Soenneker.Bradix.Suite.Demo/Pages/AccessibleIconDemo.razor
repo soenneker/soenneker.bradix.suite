@@ -2,16 +2,9 @@
 
 <PageTitle>Bradix AccessibleIcon</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixAccessibleIcon</h2>
-        <p>Makes icon-only UI affordances readable to assistive technology by hiding the visual icon subtree and supplying a meaningful screen-reader label.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Icon-only button</h3>
-            <p class="state-line"><strong>Panel:</strong> @(_panelClosed ? "Closed" : "Open")</p>
+<section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
+        <p class="state-line"><strong>Panel:</strong> @(_panelClosed ? "Closed" : "Open")</p>
             <button type="button"
                     class="primitive__trigger icon-button"
                     @onclick="TogglePanel">
@@ -21,10 +14,7 @@
                     </svg>
                 </BradixAccessibleIcon>
             </button>
-            <p class="state-line">The button keeps its visual icon-only presentation while exposing a readable accessible name.</p>
-        </section>
-
-    </div>
+    </section>
 </section>
 
 @code {

@@ -360,3 +360,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Demo-generated source mirror for browser examples
+test/Soenneker.Bradix.Suite.Demo/wwwroot/_sources/

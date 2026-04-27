@@ -2,15 +2,8 @@
 
 <PageTitle>Bradix Slot</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h2>BradixSlot</h2>
-        <p>Provides an honest Blazor-native slot target for native elements by merging slot props with child-target attributes, including child-first event composition and child precedence for conflicting attributes.</p>
-    </header>
-
-    <div class="demo-grid">
-        <section class="card stack stack--compact">
-            <h3>Merged attributes</h3>
+<section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
             <BradixSlot ElementName="button"
                         Id="slot-button"
                         Class="primitive__trigger"
@@ -18,10 +11,7 @@
                         ChildAttributes="@_buttonChildAttributes">
                 Child target wins duplicate attributes
             </BradixSlot>
-        </section>
-
-
-    </div>
+    </section>
 </section>
 
 @code {

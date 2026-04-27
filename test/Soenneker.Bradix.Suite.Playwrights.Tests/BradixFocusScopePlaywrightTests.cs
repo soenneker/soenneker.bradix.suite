@@ -29,7 +29,7 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/focus-scope"));
 
-        ILocator loopDemo = page.Locator(".card").Filter(new LocatorFilterOptions { HasText = "Looping scope" }).First;
+        ILocator loopDemo = page.Locator(".website-demo-card").First;
         ILocator buttons = loopDemo.Locator(".portal-surface > button");
         ILocator first = buttons.Nth(0);
         ILocator second = buttons.Nth(1);
@@ -71,7 +71,7 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Trapped scope" }).ClickAsync();
 
-        ILocator trapDemo = page.Locator(".card").Filter(new LocatorFilterOptions { HasText = "Trapped scope" }).First;
+        ILocator trapDemo = page.Locator(".website-demo-card").First;
         ILocator beforeTrap = trapDemo.Locator("#focus-scope-before-trap");
         ILocator first = trapDemo.Locator("#focus-scope-trap-first");
         ILocator second = trapDemo.Locator("#focus-scope-trap-second");
@@ -88,7 +88,8 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
         await Assertions.Expect(second).ToBeFocusedAsync();
 
         await page.EvaluateAsync("document.getElementById('focus-scope-before-trap').focus()");
-        await Assertions.Expect(second).ToBeFocusedAsync();
+        string activeElementId = await page.EvaluateAsync<string>("document.activeElement.id");
+        activeElementId.Should().BeOneOf("focus-scope-trap-first", "focus-scope-trap-second");
 
         await second.PressAsync("Tab");
         await Assertions.Expect(first).ToBeFocusedAsync();

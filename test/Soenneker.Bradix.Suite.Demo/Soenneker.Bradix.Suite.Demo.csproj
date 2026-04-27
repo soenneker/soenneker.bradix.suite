@@ -22,4 +22,17 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Soenneker.Bradix.Suite\Soenneker.Bradix.Suite.csproj" />
     </ItemGroup>
+
+    <Target Name="CopyDemoRazorSources" BeforeTargets="ResolveProjectStaticWebAssets">
+        <ItemGroup>
+            <DemoRazorSource Include="Pages\**\*.razor" />
+        </ItemGroup>
+        <RemoveDir Directories="wwwroot\_sources" />
+        <Copy SourceFiles="@(DemoRazorSource)"
+              DestinationFiles="@(DemoRazorSource->'wwwroot\_sources\%(RecursiveDir)%(Filename)%(Extension).txt')"
+              SkipUnchangedFiles="true" />
+        <ItemGroup>
+            <Content Include="wwwroot\_sources\**\*.razor.txt" />
+        </ItemGroup>
+    </Target>
 </Project>

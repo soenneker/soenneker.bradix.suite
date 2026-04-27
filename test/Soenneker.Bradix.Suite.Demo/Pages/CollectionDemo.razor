@@ -2,25 +2,13 @@
 
 <PageTitle>Collection Demo</PageTitle>
 
-<section class="stack">
-    <div class="card">
-        <h2>Collection + Typeahead substrate</h2>
-        <p>
-            This page exercises the ordered collection registry and the Radix-style typeahead matcher
-            that upcoming menu, select, and navigation primitives will build on.
-        </p>
-    </div>
-
-    <div class="card stack">
+<section class="website-demo-page">
+    <section class="card website-demo-card stack">
         <label for="typeahead-input"><strong>Typeahead input</strong></label>
         <input id="typeahead-input"
                @onkeydown="HandleKeyDown"
                placeholder="Type letters to search the ordered items..."
                aria-describedby="typeahead-hint" />
-        <p id="typeahead-hint">
-            The buffer resets after a short idle pause. Single-character searches skip the current match,
-            matching Radix's menu/select behavior.
-        </p>
 
         <div>
             <button type="button" @onclick="ResetSearch">Reset search</button>
@@ -48,7 +36,7 @@
                 </li>
             }
         </ul>
-    </div>
+    </section>
 </section>
 
 @code {

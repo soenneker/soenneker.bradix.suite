@@ -2,19 +2,9 @@
 
 <PageTitle>Menu Demo</PageTitle>
 
-<section class="stack">
-    <div class="card">
-        <h2>Menu</h2>
-        <p>
-            Shared menu substrate with ordered items, roving tab stop, typeahead, popper positioning,
-            modal isolation, grouping, separators, and arrow support.
-        </p>
-    </div>
-
-    <div class="grid">
-        <article class="card stack">
-            <h3>Modal menu</h3>
-
+<section class="website-demo-page">
+    <div class="website-demo-row">
+        <article class="card website-demo-card stack">
             <BradixMenu Open="@_modalOpen" OpenChanged="HandleModalOpenChanged">
                 <BradixMenuAnchor>
                     <button type="button" @onclick="ToggleModalMenu">Open modal menu</button>
@@ -92,9 +82,7 @@
             <p><strong>Sort:</strong> @_sortValue</p>
         </article>
 
-        <article class="card stack">
-            <h3>Non-modal menu</h3>
-
+        <article class="card website-demo-card stack">
             <BradixMenu Open="@_nonModalOpen" OpenChanged="HandleNonModalOpenChanged" Modal="false">
                 <BradixMenuAnchor>
                     <button type="button" @onclick="ToggleNonModalMenu">Open non-modal menu</button>

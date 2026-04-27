@@ -2,7 +2,7 @@
 @implements IDisposable
 @inject NavigationManager Navigation
 
-<div class="docs-shell">
+<div class="@(CurrentPage is not null && CurrentPage.Route != "/" ? "docs-shell docs-shell--component" : "docs-shell")">
     <header class="docs-shell__header">
         <NavLink href="@DemoCatalog.Overview.Href" Match="NavLinkMatch.All" class="docs-shell__brand-link">
             <span class="eyebrow">Bradix</span>
@@ -34,14 +34,26 @@
         </aside>
 
         <main class="docs-shell__main">
-            @if (CurrentPage is not null && CurrentPage.Route != "/")
-            {
-                <DemoPageIntro Title="@CurrentPage.Title"
-                               Description="@CurrentPage.Description" />
-            }
-
             <div class="@(CurrentPage is not null && CurrentPage.Route != "/" ? "docs-shell__content docs-shell__content--component" : "docs-shell__content")">
-                @Body
+                @if (CurrentPage is not null && CurrentPage.Route != "/")
+                {
+                    <header class="component-docs-header">
+                        <h1>@CurrentPage.Title</h1>
+                        <p>@CurrentPage.Description</p>
+                    </header>
+
+                    <section class="component-example" aria-label="@($"{CurrentPage.Title} example")">
+                        <div class="component-example__preview">
+                            @Body
+                        </div>
+
+                        <DemoSourcePanel Route="@CurrentPage.Route" />
+                    </section>
+                }
+                else
+                {
+                    @Body
+                }
             </div>
         </main>
     </div>
