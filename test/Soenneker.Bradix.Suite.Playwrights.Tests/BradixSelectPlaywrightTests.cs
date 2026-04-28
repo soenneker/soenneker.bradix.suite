@@ -300,7 +300,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(listBox).ToBeVisibleAsync();
 
         ILocator remix = listBox.GetByRole(AriaRole.Option, new LocatorGetByRoleOptions { Name = "Remix", Exact = true });
-        await remix.ClickAsync();
+        await remix.FocusAsync();
+        await Assertions.Expect(remix).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Enter");
 
         await Assertions.Expect(dialog).ToBeVisibleAsync();
         await Assertions.Expect(trigger).ToContainTextAsync("Remix");

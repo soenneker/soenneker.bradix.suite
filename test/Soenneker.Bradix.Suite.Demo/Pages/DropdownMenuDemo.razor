@@ -5,7 +5,13 @@
 <section class="website-demo-page">
     <section class="card website-demo-card">
         <BradixDropdownMenu>
-            <BradixDropdownMenuTrigger Class="popover-demo__icon-button" aria-label="Customise options">≡</BradixDropdownMenuTrigger>
+            <BradixDropdownMenuTrigger Class="popover-demo__icon-button"
+                                       Style="width:35px;min-width:35px;height:35px;border-radius:9999px;background:white;color:var(--violet-11);box-shadow:0 2px 10px var(--black-a7);font-size:15px;"
+                                       aria-label="Customise options">
+                <svg class="demo-trigger-icon" viewBox="0 0 15 15" aria-hidden="true">
+                    <path d="M2 4h11M2 7.5h11M2 11h11" />
+                </svg>
+            </BradixDropdownMenuTrigger>
 
             <BradixDropdownMenuPortal>
                 <BradixDropdownMenuContent Class="menu-surface stack stack--compact" SideOffset="5">

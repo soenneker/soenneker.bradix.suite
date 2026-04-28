@@ -11,7 +11,9 @@
                               Style="position:relative;">
             <BradixNavigationMenuList Class="nav-menu-list">
                 <BradixNavigationMenuItem Value="learn">
-                    <BradixNavigationMenuTrigger Class="primitive__trigger">Learn</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">
+                        Learn <span class="nav-menu-caret" aria-hidden="true"></span>
+                    </BradixNavigationMenuTrigger>
                     <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content nav-menu-content--learn">
                         <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives"
                                                   Active="@(_activeLink == "primitives")"
@@ -37,7 +39,9 @@
                 </BradixNavigationMenuItem>
 
                 <BradixNavigationMenuItem Value="overview">
-                    <BradixNavigationMenuTrigger Class="primitive__trigger">Overview</BradixNavigationMenuTrigger>
+                    <BradixNavigationMenuTrigger Class="primitive__trigger">
+                        Overview <span class="nav-menu-caret" aria-hidden="true"></span>
+                    </BradixNavigationMenuTrigger>
                     <BradixNavigationMenuContent Class="nav-surface stack stack--compact nav-menu-content nav-menu-content--overview">
                         <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/overview/introduction">Introduction</BradixNavigationMenuLink>
                         <BradixNavigationMenuLink Href="https://www.radix-ui.com/primitives/docs/overview/getting-started">Getting started</BradixNavigationMenuLink>

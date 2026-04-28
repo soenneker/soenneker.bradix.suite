@@ -224,7 +224,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await view.PressAsync("Home");
         await Assertions.Expect(file).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(view).ToHaveAttributeAsync("aria-expanded", "false");
-        await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("New file");
+        await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("New Tab");
     }
 }
 

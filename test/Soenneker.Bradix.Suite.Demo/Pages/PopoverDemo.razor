@@ -5,8 +5,15 @@
 <section class="website-demo-page">
     <section class="card website-demo-card">
         <BradixPopover>
-            <BradixPopoverTrigger Class="popover-demo__icon-button" aria-label="Update dimensions">
-                ≡
+            <BradixPopoverTrigger Class="popover-demo__icon-button"
+                                  Style="width:35px;min-width:35px;height:35px;border-radius:9999px;background:white;color:var(--violet-11);box-shadow:0 2px 10px var(--black-a7);font-size:15px;"
+                                  aria-label="Update dimensions">
+                <svg class="demo-trigger-icon" viewBox="0 0 15 15" aria-hidden="true">
+                    <path d="M2 4.5h11M2 7.5h11M2 10.5h11" />
+                    <circle cx="5.25" cy="4.5" r="1.25" />
+                    <circle cx="9.75" cy="7.5" r="1.25" />
+                    <circle cx="6.75" cy="10.5" r="1.25" />
+                </svg>
             </BradixPopoverTrigger>
             <BradixPopoverPortal>
                 <BradixPopoverContent Class="popover-demo__content" SideOffset="5">
@@ -51,7 +58,9 @@
             </div>
 
             <BradixPopover Open="@_controlledOpen" OpenChanged="HandleControlledOpenChanged">
-                <BradixPopoverTrigger Class="popover-demo__icon-button" aria-label="Edit controlled dimensions">
+                <BradixPopoverTrigger Class="popover-demo__icon-button"
+                                      Style="width:35px;min-width:35px;height:35px;border-radius:9999px;background:white;color:var(--violet-11);box-shadow:0 2px 10px var(--black-a7);font-size:15px;"
+                                      aria-label="Edit controlled dimensions">
                     Edit dimensions
                 </BradixPopoverTrigger>
                 <BradixPopoverPortal>
@@ -70,8 +79,10 @@
     </section>
 
     <section class="card website-demo-card">
-        <BradixPopover DefaultOpen="true">
-            <BradixPopoverTrigger Class="popover-demo__icon-button" aria-label="Open custom listbox">
+        <BradixPopover>
+            <BradixPopoverTrigger Class="popover-demo__icon-button"
+                                  Style="width:35px;min-width:35px;height:35px;border-radius:9999px;background:white;color:var(--violet-11);box-shadow:0 2px 10px var(--black-a7);font-size:15px;"
+                                  aria-label="Open custom listbox">
                 List
             </BradixPopoverTrigger>
             <BradixPopoverPortal>

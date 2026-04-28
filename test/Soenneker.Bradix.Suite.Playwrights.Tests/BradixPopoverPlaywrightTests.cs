@@ -21,6 +21,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open custom listbox", Exact = true });
+        await trigger.ClickAsync();
         await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
 
         var popupState = await page.EvaluateAsync<PopoverRoleProbe>(
@@ -120,6 +121,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
 
         ILocator customRoleTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open custom listbox", Exact = true });
+        await customRoleTrigger.ClickAsync();
         await Assertions.Expect(customRoleTrigger).ToHaveAttributeAsync("aria-expanded", "true");
         await customRoleTrigger.ClickAsync();
         await Assertions.Expect(customRoleTrigger).ToHaveAttributeAsync("aria-expanded", "false");
@@ -150,6 +152,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
 
         ILocator customRoleTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open custom listbox", Exact = true });
+        await customRoleTrigger.ClickAsync();
         await Assertions.Expect(customRoleTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
         ILocator toggle = page.Locator("#popover-controlled-toggle");

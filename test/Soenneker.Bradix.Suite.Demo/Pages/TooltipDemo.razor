@@ -5,31 +5,20 @@
 <section class="website-demo-page">
     <section class="card website-demo-card">
         <BradixTooltipProvider DelayDuration="150">
-            <div style="display:flex; gap:1rem; align-items:center; justify-content:center; flex-wrap:wrap;">
-                <BradixTooltip>
-                    <BradixTooltipTrigger Class="tooltip-demo__button">+</BradixTooltipTrigger>
-                    <BradixTooltipPortal>
-                        <BradixTooltipContent Class="tooltip-demo__content" SideOffset="5">
-                            Add to library
-                            <BradixTooltipArrow>
-                                <span class="tooltip-arrow-shape"></span>
-                            </BradixTooltipArrow>
-                        </BradixTooltipContent>
-                    </BradixTooltipPortal>
-                </BradixTooltip>
-
-                <BradixTooltip>
-                    <BradixTooltipTrigger Class="tooltip-demo__button">Top</BradixTooltipTrigger>
-                    <BradixTooltipPortal>
-                        <BradixTooltipContent Class="tooltip-demo__content" SideOffset="5">
-                            Default placement
-                            <BradixTooltipArrow>
-                                <span class="tooltip-arrow-shape"></span>
-                            </BradixTooltipArrow>
-                        </BradixTooltipContent>
-                    </BradixTooltipPortal>
-                </BradixTooltip>
-            </div>
+            <BradixTooltip>
+                <BradixTooltipTrigger Class="tooltip-demo__button"
+                                      Style="width:35px;min-width:35px;height:35px;border-radius:9999px;background:white;color:var(--violet-11);box-shadow:0 2px 10px var(--black-a7);font-size:15px;">
+                    +
+                </BradixTooltipTrigger>
+                <BradixTooltipPortal>
+                    <BradixTooltipContent Class="tooltip-demo__content" SideOffset="5">
+                        Add to library
+                        <BradixTooltipArrow>
+                            <span class="tooltip-arrow-shape"></span>
+                        </BradixTooltipArrow>
+                    </BradixTooltipContent>
+                </BradixTooltipPortal>
+            </BradixTooltip>
         </BradixTooltipProvider>
     </section>
 </section>
@@ -54,6 +43,7 @@
 
                         <BradixTooltip>
                             <BradixTooltipTrigger Class="tooltip-demo__button"
+                                                  Style="width:35px;min-width:35px;height:35px;border-radius:9999px;background:white;color:var(--violet-11);box-shadow:0 2px 10px var(--black-a7);font-size:15px;"
                                                   aria-label="Show nested tooltip">
                                 ?
                             </BradixTooltipTrigger>

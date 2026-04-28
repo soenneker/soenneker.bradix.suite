@@ -19,27 +19,10 @@
                     <BradixFormLabel Class="form-demo__label">Question</BradixFormLabel>
                     <BradixFormMessage Class="form-demo__message" Match="@((object)"valueMissing")">Please enter a question</BradixFormMessage>
                 </div>
-                <BradixFormControl Class="form-demo__input" required="required" />
-            </BradixFormField>
-
-            <BradixFormField Class="form-demo__field" Name="username" ControlId="form-demo-username">
-                <div class="form-demo__label-row">
-                    <BradixFormLabel Class="form-demo__label">Username</BradixFormLabel>
-                    <BradixFormMessage Class="form-demo__message" Match="@((Func<string?, BradixFormDataSnapshot, Task<bool>>)UsernameTaken)">Username is already taken</BradixFormMessage>
-                </div>
-                <BradixFormControl Id="form-demo-username" Class="form-demo__input" />
+                <BradixFormControl Class="form-demo__input form-demo__input--question" required="required" />
             </BradixFormField>
 
             <BradixFormSubmit Class="form-demo__submit">Post question</BradixFormSubmit>
         </BradixForm>
     </section>
 </section>
-
-@code {
-    private static async Task<bool> UsernameTaken(string? value, BradixFormDataSnapshot _)
-    {
-        await Task.Delay(50);
-        return string.Equals(value, "taken", StringComparison.OrdinalIgnoreCase);
-    }
-}
-

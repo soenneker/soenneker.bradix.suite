@@ -4,34 +4,38 @@
 
 <section class="website-demo-page">
     <section class="card website-demo-card" data-testid="bradix-menubar-demo">
-        <BradixMenubar Value="@_currentMenu" ValueChanged="HandleCurrentMenuChanged">
+        <BradixMenubar Class="menubar-demo__root" Value="@_currentMenu" ValueChanged="HandleCurrentMenuChanged">
                 <BradixMenubarMenu Value="file">
-                    <BradixMenubarTrigger>File</BradixMenubarTrigger>
+                    <BradixMenubarTrigger Class="menubar-demo__trigger">File</BradixMenubarTrigger>
                     <BradixMenubarPortal>
-                        <BradixMenubarContent Class="card stack" SideOffset="6">
-                            <BradixMenubarItem TextValue="New file" OnSelect='@(() => SetSelection("New file"))'>New file</BradixMenubarItem>
-                            <BradixMenubarItem TextValue="Open" OnSelect='@(() => SetSelection("Open"))'>Open</BradixMenubarItem>
+                        <BradixMenubarContent Class="menu-surface" SideOffset="4">
+                            <BradixMenubarItem TextValue="New Tab" OnSelect='@(() => SetSelection("New Tab"))'>New Tab <span class="menu-demo__shortcut">⌘ T</span></BradixMenubarItem>
+                            <BradixMenubarItem TextValue="New Window" OnSelect='@(() => SetSelection("New Window"))'>New Window <span class="menu-demo__shortcut">⌘ N</span></BradixMenubarItem>
+                            <BradixMenubarItem TextValue="New Incognito Window" Disabled>New Incognito Window</BradixMenubarItem>
+                            <BradixMenubarSeparator />
                             <BradixMenubarSub>
                                 <BradixMenubarSubTrigger TextValue="Share">Share</BradixMenubarSubTrigger>
                                 <BradixMenubarPortal>
-                                    <BradixMenubarSubContent Class="card stack" SideOffset="6">
+                                    <BradixMenubarSubContent Class="menu-surface" SideOffset="2">
                                         <BradixMenubarItem TextValue="Copy link" OnSelect='@(() => SetSelection("Copy link"))'>Copy link</BradixMenubarItem>
                                         <BradixMenubarItem TextValue="Email" OnSelect='@(() => SetSelection("Email"))'>Email</BradixMenubarItem>
                                     </BradixMenubarSubContent>
                                 </BradixMenubarPortal>
                             </BradixMenubarSub>
+                            <BradixMenubarSeparator />
+                            <BradixMenubarItem TextValue="Print" OnSelect='@(() => SetSelection("Print"))'>Print... <span class="menu-demo__shortcut">⌘ P</span></BradixMenubarItem>
                         </BradixMenubarContent>
                     </BradixMenubarPortal>
                 </BradixMenubarMenu>
 
                 <BradixMenubarMenu Value="edit">
-                    <BradixMenubarTrigger>Edit</BradixMenubarTrigger>
+                    <BradixMenubarTrigger Class="menubar-demo__trigger">Edit</BradixMenubarTrigger>
                     <BradixMenubarPortal>
-                        <BradixMenubarContent Class="card stack" SideOffset="6">
+                        <BradixMenubarContent Class="menu-surface" SideOffset="4">
                             <BradixMenubarSub>
                                 <BradixMenubarSubTrigger TextValue="Share">Share</BradixMenubarSubTrigger>
                                 <BradixMenubarPortal>
-                                    <BradixMenubarSubContent Class="card stack" SideOffset="6">
+                                    <BradixMenubarSubContent Class="menu-surface" SideOffset="4">
                                         <BradixMenubarItem TextValue="Copy link" OnSelect='@(() => SetSelection("Copy link"))'>Copy link</BradixMenubarItem>
                                         <BradixMenubarItem TextValue="Email" OnSelect='@(() => SetSelection("Email"))'>Email</BradixMenubarItem>
                                     </BradixMenubarSubContent>
@@ -58,9 +62,9 @@
                 </BradixMenubarMenu>
 
                 <BradixMenubarMenu Value="view">
-                    <BradixMenubarTrigger>View</BradixMenubarTrigger>
+                    <BradixMenubarTrigger Class="menubar-demo__trigger">View</BradixMenubarTrigger>
                     <BradixMenubarPortal>
-                        <BradixMenubarContent Class="card stack" SideOffset="6">
+                        <BradixMenubarContent Class="menu-surface" SideOffset="4">
                             <BradixMenubarLabel>Sort by</BradixMenubarLabel>
                             <BradixMenubarRadioGroup Value="@_sort" ValueChanged="HandleSortChanged">
                                 <BradixMenubarRadioItem Value="name" CloseOnSelect="false">
@@ -83,9 +87,9 @@
                 </BradixMenubarMenu>
 
                 <BradixMenubarMenu Value="profiles">
-                    <BradixMenubarTrigger>Profiles</BradixMenubarTrigger>
+                    <BradixMenubarTrigger Class="menubar-demo__trigger">Profiles</BradixMenubarTrigger>
                     <BradixMenubarPortal>
-                        <BradixMenubarContent Class="card stack" SideOffset="6">
+                        <BradixMenubarContent Class="menu-surface" SideOffset="4">
                             <BradixMenubarRadioGroup Value="@_sort" ValueChanged="HandleSortChanged">
                                 <BradixMenubarRadioItem Value="andy" CloseOnSelect="false">
                                     <span>Andy</span>
@@ -113,20 +117,20 @@
     </section>
 
     <section class="card website-demo-card" data-testid="bradix-menubar-rtl-demo">
-        <BradixMenubar Dir="rtl" Class="stack">
+        <BradixMenubar Dir="rtl" Class="menubar-demo__root">
             <BradixMenubarMenu Value="file-rtl">
-                <BradixMenubarTrigger>ملف</BradixMenubarTrigger>
+                <BradixMenubarTrigger Class="menubar-demo__trigger">ملف</BradixMenubarTrigger>
                 <BradixMenubarPortal>
-                    <BradixMenubarContent Class="card stack" SideOffset="6">
+                    <BradixMenubarContent Class="menu-surface" SideOffset="4">
                         <BradixMenubarItem TextValue="علامة تبويب جديدة">علامة تبويب جديدة</BradixMenubarItem>
                     </BradixMenubarContent>
                 </BradixMenubarPortal>
             </BradixMenubarMenu>
 
             <BradixMenubarMenu Value="view-rtl">
-                <BradixMenubarTrigger>عرض</BradixMenubarTrigger>
+                <BradixMenubarTrigger Class="menubar-demo__trigger">عرض</BradixMenubarTrigger>
                 <BradixMenubarPortal>
-                    <BradixMenubarContent Class="card stack" SideOffset="6">
+                    <BradixMenubarContent Class="menu-surface" SideOffset="4">
                         <BradixMenubarItem TextValue="إظهار الشريط الجانبي">إظهار الشريط الجانبي</BradixMenubarItem>
                     </BradixMenubarContent>
                 </BradixMenubarPortal>
