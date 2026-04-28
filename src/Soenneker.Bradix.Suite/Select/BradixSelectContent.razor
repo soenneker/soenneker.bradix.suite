@@ -8,7 +8,6 @@
 @implements IBradixSelectContent
 
 @inject ISelectInterop SelectInterop
-@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 @inject IPresenceOverlayInterop PresenceOverlayInterop
 @inject IControlsInterop ControlsInterop
 
@@ -103,7 +102,6 @@ else
     private bool _pointerTrackerRegistered;
     private bool _keyboardRegistered;
     private bool _windowDismissRegistered;
-    private bool _delegatedInteractionRegistered;
     private bool _hideOthersRegistered;
     private double _viewportScrollTop;
     private double _viewportScrollHeight;
@@ -249,12 +247,6 @@ else
                 _pointerTrackerRegistered = false;
             }
 
-            if (_delegatedInteractionRegistered)
-            {
-                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
-                _delegatedInteractionRegistered = false;
-            }
-
             if (_keyboardRegistered)
             {
                 await SelectInterop.UnregisterSelectContentKeyboard(_contentElement);
@@ -294,9 +286,6 @@ else
 
         if (_pointerTrackerRegistered)
             await SelectInterop.UnregisterSelectContentPointerTracker(_contentElement);
-
-        if (_delegatedInteractionRegistered)
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
 
         if (_keyboardRegistered)
             await SelectInterop.UnregisterSelectContentKeyboard(_contentElement);
@@ -475,7 +464,13 @@ else
             return;
 
         if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
+        {
             await Select.HandleContentNavigation(args.Key);
+            return;
+        }
+
+        if (args.Key.Length == 1)
+            await Select.HandleContentTypeahead(args.Key);
     }
 
     private async Task UpdateItemAlignedPosition()
@@ -535,24 +530,6 @@ else
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await SelectInterop.RegisterSelectContentPointerTracker(_contentElement, _dotNetReference, Select.TriggerPointerDownX, Select.TriggerPointerDownY);
         _pointerTrackerRegistered = true;
-    }
-
-    private async Task EnsureDelegatedInteraction()
-    {
-        if (!_hasContentElement || _delegatedInteractionRegistered)
-            return;
-
-        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
-        {
-            keydown = new
-            {
-                method = nameof(HandleDelegatedContentKeyDown),
-                currentTargetOnly = false,
-                preventDefaultKeys = new[] { "Tab", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown" }
-            }
-        });
-        _delegatedInteractionRegistered = true;
     }
 
     private async Task EnsureKeyboard()

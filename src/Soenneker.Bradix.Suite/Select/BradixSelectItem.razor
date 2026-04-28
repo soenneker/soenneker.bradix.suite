@@ -230,7 +230,7 @@
 
     private async Task HandlePointerLeave(PointerEventArgs _)
     {
-        if (Content is null || !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
+        if (Content is null || !_isFocused || !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
             return;
 
         await Content.FocusContent();

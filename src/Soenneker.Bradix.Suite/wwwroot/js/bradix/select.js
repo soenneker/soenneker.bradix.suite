@@ -13,6 +13,8 @@ const selectContentKeyboardKeys = new Set([
   "PageDown"
 ]);
 
+const TYPEAHEAD_RESET_MS = 700;
+
 function invokeDotNetSafely(dotNetRef, methodName, ...args) {
   try {
     const invocation = dotNetRef?.invokeMethodAsync?.(methodName, ...args);
@@ -155,6 +157,11 @@ export function registerSelectContentKeyboard(content, dotNetRef) {
 
   unregisterSelectContentKeyboard(content);
 
+  const registration = {
+    search: "",
+    searchResetTimeout: 0
+  };
+
   const keydown = (event) => {
     if (event.ctrlKey || event.altKey || event.metaKey || event.key === "Tab") {
       return;
@@ -167,22 +174,17 @@ export function registerSelectContentKeyboard(content, dotNetRef) {
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation?.();
-    invokeDotNetSafely(dotNetRef, "HandleDelegatedContentKeyDown", {
-      key: event.key || "",
-      code: event.code || "",
-      ctrlKey: !!event.ctrlKey,
-      shiftKey: !!event.shiftKey,
-      altKey: !!event.altKey,
-      metaKey: !!event.metaKey,
-      repeat: !!event.repeat,
-      defaultPrevented: !!event.defaultPrevented,
-      targetId: event.target instanceof HTMLElement && event.target.id ? event.target.id : "",
-      ancestorIds: []
-    });
+
+    if (focusSelectContentKeyboardTarget(content, event.key, registration)) {
+      return;
+    }
+
+    invokeDotNetSafely(dotNetRef, "HandleDelegatedContentKeyDown", createSelectKeyboardEventSnapshot(event));
   };
 
   content.addEventListener("keydown", keydown, true);
-  selectContentKeyboardHandlers.set(content, { keydown });
+  registration.keydown = keydown;
+  selectContentKeyboardHandlers.set(content, registration);
 }
 
 export function unregisterSelectContentKeyboard(content) {
@@ -197,7 +199,101 @@ export function unregisterSelectContentKeyboard(content) {
   }
 
   content.removeEventListener("keydown", handlers.keydown, true);
+  clearTimeout(handlers.searchResetTimeout);
   selectContentKeyboardHandlers.delete(content);
+}
+
+function createSelectKeyboardEventSnapshot(event) {
+  return {
+    key: event.key || "",
+    code: event.code || "",
+    ctrlKey: !!event.ctrlKey,
+    shiftKey: !!event.shiftKey,
+    altKey: !!event.altKey,
+    metaKey: !!event.metaKey,
+    repeat: !!event.repeat,
+    defaultPrevented: !!event.defaultPrevented,
+    targetId: event.target instanceof HTMLElement && event.target.id ? event.target.id : "",
+    ancestorIds: []
+  };
+}
+
+function focusSelectContentKeyboardTarget(content, key, registration) {
+  const options = getEnabledSelectOptions(content);
+
+  if (options.length === 0) {
+    return false;
+  }
+
+  const current = getCurrentSelectOption(content, options);
+  let target = null;
+
+  switch (key) {
+    case "Home":
+    case "PageUp":
+      target = options[0];
+      break;
+    case "End":
+    case "PageDown":
+      target = options[options.length - 1];
+      break;
+    case "ArrowUp":
+      target = getAdjacentSelectOption(options, current, -1);
+      break;
+    case "ArrowDown":
+      target = getAdjacentSelectOption(options, current, 1);
+      break;
+    default:
+      if (key.length === 1) {
+        target = getTypeaheadSelectOption(options, current, key, registration);
+      }
+      break;
+  }
+
+  if (!target) {
+    return false;
+  }
+
+  target.focus({ preventScroll: true });
+  target.scrollIntoView({ block: "nearest" });
+  return true;
+}
+
+function getEnabledSelectOptions(content) {
+  return Array.from(content.querySelectorAll("[role='option']"))
+    .filter(option => !option.hasAttribute("data-disabled") && option.getAttribute("aria-disabled") !== "true");
+}
+
+function getCurrentSelectOption(content, options) {
+  const active = document.activeElement instanceof HTMLElement && content.contains(document.activeElement)
+    ? document.activeElement.closest("[role='option']")
+    : null;
+
+  if (active && options.includes(active)) {
+    return active;
+  }
+
+  return options.find(option => option.hasAttribute("data-highlighted"))
+    || options.find(option => option.getAttribute("data-state") === "checked")
+    || options[0];
+}
+
+function getAdjacentSelectOption(options, current, delta) {
+  const currentIndex = Math.max(options.indexOf(current), 0);
+  const nextIndex = (currentIndex + delta + options.length) % options.length;
+  return options[nextIndex];
+}
+
+function getTypeaheadSelectOption(options, current, key, registration) {
+  clearTimeout(registration.searchResetTimeout);
+  registration.search += key.toLowerCase();
+  registration.searchResetTimeout = setTimeout(() => {
+    registration.search = "";
+  }, TYPEAHEAD_RESET_MS);
+
+  const currentIndex = Math.max(options.indexOf(current), -1);
+  const ordered = options.slice(currentIndex + 1).concat(options.slice(0, currentIndex + 1));
+  return ordered.find(option => (option.textContent || "").trim().toLowerCase().startsWith(registration.search));
 }
 
 export function scrollSelectViewportByItem(viewport, item, upward) {
