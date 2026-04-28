@@ -5,19 +5,14 @@
 @using Soenneker.Blazor.Utils.Ids
 @implements IBradixAccordionItem
 
-<CascadingValue Value="this">
-    <BradixCollapsible Id="@BaseId"
-                       Class="@Class"
-                       Style="@Style"
-                       Open="@IsOpen"
-                       Disabled="@IsDisabled"
-                       OnOpenChange="HandleOpenChange"
-                       AdditionalAttributes="ItemAttributes">
+<CascadingValue Value="this" >
+    <BradixCollapsible Id="@BaseId" Class="@Class" Style="@Style" Open="@IsOpen" Disabled="@IsDisabled" OnOpenChange="HandleOpenChange" AdditionalAttributes="ItemAttributes" >
         @ChildContent
     </BradixCollapsible>
 </CascadingValue>
 
 @code {
+
     [CascadingParameter]
     internal BradixAccordion Accordion { get; set; } = null!;
 
@@ -46,9 +41,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
-                ? new Dictionary<string, object>(AdditionalAttributes)
-                : [];
+            Dictionary<string, object> attributes = AdditionalAttributes is not null ? new Dictionary<string, object>(AdditionalAttributes) : [];
 
             attributes["data-orientation"] = Accordion.Orientation.Value;
 
@@ -58,8 +51,7 @@
 
     private Task HandleOpenChange(bool open)
     {
-        return open
-            ? Accordion.OpenItem(Value)
-            : Accordion.CloseItem(Value);
+        return open ? Accordion.OpenItem(Value) : Accordion.CloseItem(Value);
     }
+
 }
