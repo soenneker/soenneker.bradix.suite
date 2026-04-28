@@ -46,10 +46,12 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
 
-        await Assertions.Expect(page.GetByText("Make changes to your account here. Click save when you're done.")).ToBeVisibleAsync();
+        ILocator defaultDemo = page.Locator(".website-demo-card").Filter(new LocatorFilterOptions { HasText = "Account" }).First;
+
+        await Assertions.Expect(defaultDemo.GetByText("Make changes to your account here. Click save when you're done.", new LocatorGetByTextOptions { Exact = true })).ToBeVisibleAsync();
         await page.GetByRole(AriaRole.Tab, new PageGetByRoleOptions { Name = "Password", Exact = true }).ClickAsync();
 
-        await Assertions.Expect(page.GetByText("Change your password here. After saving, you'll be logged out.")).ToBeVisibleAsync();
+        await Assertions.Expect(defaultDemo.GetByText("Change your password here. After saving, you'll be logged out.", new LocatorGetByTextOptions { Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByLabel("Current password")).ToBeVisibleAsync();
     }
 

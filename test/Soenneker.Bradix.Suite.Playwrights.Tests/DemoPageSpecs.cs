@@ -9,7 +9,7 @@ internal static class DemoPageSpecs
 {
     private static readonly IReadOnlyList<DemoPageSpec> _all =
     [
-        new("/", "Overview", "Bradix primitives", "Simple demos for each primitive, modeled after the straightforward presentation style of the Radix docs.",
+        new("/", "Overview", "Bradix primitives", "Modern Blazor components for the interaction work that usually gets messy: focus, layering, keyboard behavior, portals, and composed state.",
             page => page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Bradix primitives", Exact = true })),
         new("/accessible-icon", "AccessibleIcon", "AccessibleIcon",
             "Hide decorative glyphs from assistive technology while exposing a reliable accessible name.",
@@ -37,7 +37,7 @@ internal static class DemoPageSpecs
         new("/alert-dialog", "AlertDialog", "AlertDialog", "Present destructive confirmations with modal semantics and protected dismissal.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Delete account", Exact = true })),
         new("/collapsible", "Collapsible", "Collapsible", "Toggle content visibility while preserving trigger, content, and measurement behavior.",
-            page => page.GetByText("starred 3 repositories")),
+            page => page.Locator(".component-example__preview").GetByText("starred 3 repositories")),
         new("/dialog", "Dialog", "Dialog", "Build modal and non-modal dialogs with layering, restoration, and accessible naming.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true })),
         new("/hover-card", "HoverCard", "HoverCard", "Preview contextual information with delayed hover and focus interactions.",

@@ -59,7 +59,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await viewTrigger.ClickAsync();
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Sort by");
 
-        await page.Locator(".demo-page-intro h1").ClickAsync();
+        await page.Locator(".component-docs-header h1").ClickAsync();
 
         await Assertions.Expect(viewTrigger).ToHaveAttributeAsync("aria-expanded", "false");
         await Assertions.Expect(page.Locator("[role='menu']:visible")).ToHaveCountAsync(0);

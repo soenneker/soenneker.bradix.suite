@@ -172,7 +172,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToContainTextAsync("Radix Primitives", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
 
-        await page.Locator(".demo-page-intro h1").ClickAsync();
+        await page.Locator(".component-docs-header h1").ClickAsync();
 
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToHaveCountAsync(0, new LocatorAssertionsToHaveCountOptions { Timeout = 3000 });

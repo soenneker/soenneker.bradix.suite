@@ -3,28 +3,106 @@
 
 <PageTitle>Bradix Component Library Demo</PageTitle>
 
-<section class="stack">
-    <header class="stack stack--compact">
-        <h1>Bradix primitives</h1>
-        <p class="lede">Simple demos for each primitive, modeled after the straightforward presentation style of the Radix docs.</p>
+<section class="overview-page">
+    <header class="overview-hero">
+        <div class="overview-hero__content">
+            <p class="eyebrow">Bradix Suite</p>
+            <h1>Bradix primitives</h1>
+            <p class="overview-hero__lede">Modern Blazor components for the interaction work that usually gets messy: focus, layering, keyboard behavior, portals, and composed state.</p>
+
+            <div class="overview-hero__actions" aria-label="Featured component demos">
+                <NavLink href="/popover" class="demo-link">Explore overlays</NavLink>
+                <NavLink href="/form" class="demo-link demo-link--subtle">Build forms</NavLink>
+                <NavLink href="/navigation-menu" class="demo-link demo-link--subtle">Shape navigation</NavLink>
+            </div>
+        </div>
+
+        <dl class="overview-proof" aria-label="Bradix library summary">
+            <div>
+                <dt>@DemoCatalog.ComponentCount</dt>
+                <dd>primitives</dd>
+            </div>
+            <div>
+                <dt>5</dt>
+                <dd>focused families</dd>
+            </div>
+            <div>
+                <dt>0</dt>
+                <dd>design lock-in</dd>
+            </div>
+        </dl>
     </header>
 
-    @foreach (DemoPageGroup group in DemoCatalog.Groups)
-    {
-        <section class="catalog-group">
-            <header class="catalog-group__header">
-                <h2>@group.Title</h2>
-            </header>
+    <section class="overview-section">
+        <header class="overview-section__header">
+            <h2>Use the hard parts without carrying the complexity.</h2>
+            <p>Bradix keeps the primitives small and composable while handling the browser details that make production UI brittle.</p>
+        </header>
 
-            <div class="simple-link-list">
-                @foreach (DemoPageLink demoPage in group.Pages)
-                {
-                    <NavLink href="@demoPage.Href" class="simple-link-list__item">
-                        <span>@demoPage.Title</span>
-                        <span>@demoPage.Description</span>
-                    </NavLink>
-                }
-            </div>
-        </section>
-    }
+        <div class="overview-value-grid">
+            <article class="overview-value">
+                <h3>Accessible by default</h3>
+                <p>Roving focus, labels, dismissal, modal behavior, and keyboard interactions are built into the primitive instead of rebuilt per feature.</p>
+            </article>
+            <article class="overview-value">
+                <h3>Unstyled composition</h3>
+                <p>Bring your own markup, tokens, and layout while keeping the behavior contract stable across the suite.</p>
+            </article>
+            <article class="overview-value">
+                <h3>Blazor-first ergonomics</h3>
+                <p>State, events, portals, and JS interop are packaged around normal Razor usage so app code stays direct.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="overview-section">
+        <header class="overview-section__header">
+            <h2>Start with a real interaction.</h2>
+            <p>These demos cover the pieces most likely to reveal whether a component library is solid.</p>
+        </header>
+
+        <div class="overview-entry-grid">
+            <NavLink href="/dialog" class="overview-entry">
+                <span>Dialog</span>
+                <span>Modal focus, dismissal, and layered content.</span>
+            </NavLink>
+            <NavLink href="/popover" class="overview-entry">
+                <span>Popover</span>
+                <span>Floating content with collision-aware positioning.</span>
+            </NavLink>
+            <NavLink href="/select" class="overview-entry">
+                <span>Select</span>
+                <span>Keyboard selection without native styling limits.</span>
+            </NavLink>
+            <NavLink href="/checkbox" class="overview-entry">
+                <span>Checkbox</span>
+                <span>Form-ready state with accessible indicators.</span>
+            </NavLink>
+            <NavLink href="/tabs" class="overview-entry">
+                <span>Tabs</span>
+                <span>Controlled and uncontrolled panels with roving focus.</span>
+            </NavLink>
+            <NavLink href="/navigation-menu" class="overview-entry">
+                <span>Navigation Menu</span>
+                <span>Structured app and website navigation patterns.</span>
+            </NavLink>
+        </div>
+    </section>
+
+    <section class="overview-section">
+        <header class="overview-section__header">
+            <h2>Organized around the jobs your UI has to do.</h2>
+        </header>
+
+        <div class="overview-category-grid">
+            @foreach (DemoPageGroup group in DemoCatalog.Groups)
+            {
+                <NavLink href="@group.Pages[0].Href" class="overview-category">
+                    <span>@group.Title</span>
+                    <span>@group.Description</span>
+                    <strong>@group.Pages.Count demos</strong>
+                </NavLink>
+            }
+        </div>
+    </section>
 </section>
