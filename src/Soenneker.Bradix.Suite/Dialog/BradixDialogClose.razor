@@ -5,8 +5,8 @@
 @inherits BradixComponent
 
 @implements IBradixDialogClose
-
 @inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject IControlsInterop ControlsInterop
 <button @onclick="HandleClick"
         @ref="_button"
         @attributes="ButtonAttributes">
@@ -63,7 +63,10 @@
     private async Task HandleClick()
     {
         if (!Disabled && Dialog is not null && !_delegatedInteractionReady)
+        {
+            await ControlsInterop.FocusElementByIdDeferred(Dialog.ResolvedTriggerId);
             await Dialog.SetOpen(false);
+        }
 
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync();
@@ -86,7 +89,10 @@
     public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
     {
         if (!Disabled && Dialog is not null)
+        {
+            await ControlsInterop.FocusElementByIdDeferred(Dialog.ResolvedTriggerId);
             await Dialog.SetOpen(false);
+        }
 
         if (OnClick.HasDelegate)
         {

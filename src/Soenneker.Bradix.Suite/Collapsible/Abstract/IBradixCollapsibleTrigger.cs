@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -8,7 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Describes the public API of <see cref="BradixCollapsibleTrigger"/>.
 /// </summary>
-public interface IBradixCollapsibleTrigger : IAsyncDisposable {
+public interface IBradixCollapsibleTrigger {
     /// <summary>
     /// Gets or sets the callback invoked when the trigger is clicked.
     /// </summary>
@@ -28,16 +27,4 @@ public interface IBradixCollapsibleTrigger : IAsyncDisposable {
     /// Gets or sets whether this trigger is disabled independently of the root collapsible.
     /// </summary>
     bool Disabled { get; set; }
-
-
-    /// <summary>
-    /// Called when delegated interaction handling is ready on the trigger element.
-    /// </summary>
-    Task HandleDelegatedInteractionReady();
-
-    /// <summary>
-    /// Handles a delegated click routed from JavaScript.
-    /// </summary>
-    /// <param name="mouseEvent">The delegated mouse event payload.</param>
-    Task HandleDelegatedClick(BradixDelegatedMouseEvent mouseEvent);
 }

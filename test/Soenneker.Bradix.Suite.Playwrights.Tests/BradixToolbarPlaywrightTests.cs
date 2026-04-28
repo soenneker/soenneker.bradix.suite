@@ -19,12 +19,12 @@ public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toolbar"));
 
-        ILocator bold = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "B", Exact = true }).First;
-        ILocator italic = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "I", Exact = true }).First;
-        ILocator strikethrough = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "S", Exact = true }).First;
-        ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "L", Exact = true }).First;
-        ILocator center = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "C", Exact = true }).First;
-        ILocator right = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "R", Exact = true }).First;
+        ILocator bold = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Bold", Exact = true }).First;
+        ILocator italic = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Italic", Exact = true }).First;
+        ILocator strikethrough = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Strike through", Exact = true }).First;
+        ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Left aligned", Exact = true }).First;
+        ILocator center = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Center aligned", Exact = true }).First;
+        ILocator right = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Right aligned", Exact = true }).First;
         ILocator edited = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Edited 2 hours ago", Exact = true });
         ILocator share = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Share", Exact = true });
         ILocator print = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Print", Exact = true });
@@ -70,9 +70,9 @@ public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toolbar"));
 
-        ILocator bold = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "B", Exact = true }).First;
-        ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "L", Exact = true }).First;
-        ILocator center = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "C", Exact = true }).First;
+        ILocator bold = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Bold", Exact = true }).First;
+        ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Left aligned", Exact = true }).First;
+        ILocator center = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Center aligned", Exact = true }).First;
 
         await bold.ClickAsync();
         await left.ClickAsync();

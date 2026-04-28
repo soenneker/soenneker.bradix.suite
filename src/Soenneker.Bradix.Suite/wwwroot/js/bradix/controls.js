@@ -414,6 +414,17 @@ export function focusElementById(elementId) {
   focusElement(document.getElementById(elementId), false);
 }
 
+export function focusElementByIdDeferred(elementId) {
+  if (!elementId) {
+    return;
+  }
+
+  const focus = () => focusElement(document.getElementById(elementId), false);
+  setTimeout(focus, 0);
+  setTimeout(focus, 50);
+  setTimeout(focus, 150);
+}
+
 export function focusElementPreventScroll(element) {
   focusElement(element, false);
 }

@@ -116,6 +116,9 @@
         await _disposeCts.CancelAsync();
         bool unmountAutoFocusPrevented = PreventUnmountAutoFocus;
 
+        if (_registered && Trapped)
+            await FocusScopeInterop.UpdateFocusScope(_element, Loop, false, PreventMountAutoFocus, PreventUnmountAutoFocus);
+
         if (OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate)
             unmountAutoFocusPrevented = await HandleUnmountAutoFocusCore(new BradixAutoFocusEventArgs()) || unmountAutoFocusPrevented;
 

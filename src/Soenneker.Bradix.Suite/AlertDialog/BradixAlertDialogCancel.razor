@@ -1,7 +1,6 @@
 @namespace Soenneker.Bradix
 
 @implements IBradixAlertDialogCancel
-@inject IControlsInterop ControlsInterop
 <BradixDialogClose Class="@Class"
                    AriaLabel="@((string?)null)"
                    Style="@Style"
@@ -15,9 +14,6 @@
 @code {
     [CascadingParameter]
     private BradixAlertDialogContent? Content { get; set; }
-
-    [CascadingParameter]
-    private BradixDialog? Dialog { get; set; }
 
     private ElementReference _element;
 
@@ -48,9 +44,6 @@
                 ["data-bradix-alert-dialog-cancel"] = "true"
             };
 
-            if (!attributes.ContainsKey("autofocus"))
-                attributes["autofocus"] = true;
-
             return attributes;
         }
     }
@@ -60,22 +53,5 @@
         _element = element;
         Content?.RegisterCancelElement(element);
         return Task.CompletedTask;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-
-        if (!firstRender || Dialog?.CurrentOpen != true)
-            return;
-
-        try
-        {
-            await Task.Yield();
-            await ControlsInterop.FocusElementPreventScroll(_element);
-        }
-        catch
-        {
-        }
     }
 }

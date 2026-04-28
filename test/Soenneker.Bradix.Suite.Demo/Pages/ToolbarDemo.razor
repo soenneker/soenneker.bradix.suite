@@ -6,19 +6,37 @@
     <section class="card website-demo-card">
         <BradixToolbar Class="toolbar-root" aria-label="Formatting options">
             <BradixToolbarToggleGroup Type="@SelectionMode.Multiple" aria-label="Text formatting">
-                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="bold">B</BradixToolbarToggleItem>
-                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="italic">I</BradixToolbarToggleItem>
-                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="strikethrough">S</BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="bold" aria-label="Bold">
+                    <strong aria-hidden="true">B</strong>
+                </BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="italic" aria-label="Italic">
+                    <em aria-hidden="true">I</em>
+                </BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="strikethrough" aria-label="Strike through">
+                    <span class="toolbar-demo__strike" aria-hidden="true">S</span>
+                </BradixToolbarToggleItem>
             </BradixToolbarToggleGroup>
             <BradixToolbarSeparator Class="toolbar-separator" />
             <BradixToolbarToggleGroup Class="toolbar-toggle-group" Type="@SelectionMode.Single" DefaultValue="center" aria-label="Text alignment">
-                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="left">L</BradixToolbarToggleItem>
-                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="center">C</BradixToolbarToggleItem>
-                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="right">R</BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="left" aria-label="Left aligned">
+                    <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+                        <path d="M2 4h11M2 7.5h8M2 11h11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.3" />
+                    </svg>
+                </BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="center" aria-label="Center aligned">
+                    <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+                        <path d="M2 4h11M3.75 7.5h7.5M2 11h11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.3" />
+                    </svg>
+                </BradixToolbarToggleItem>
+                <BradixToolbarToggleItem Class="primitive__trigger toolbar-toggle-item" Value="right" aria-label="Right aligned">
+                    <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+                        <path d="M2 4h11M5 7.5h8M2 11h11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.3" />
+                    </svg>
+                </BradixToolbarToggleItem>
             </BradixToolbarToggleGroup>
             <BradixToolbarSeparator Class="toolbar-separator" />
             <BradixToolbarLink Class="toolbar-demo__link" Href="#" Target="_blank">Edited 2 hours ago</BradixToolbarLink>
-            <BradixToolbarButton Class="dialog-demo__button toolbar-demo__share" Disabled>Print</BradixToolbarButton>
+            <BradixToolbarButton Class="dialog-demo__button toolbar-demo__share demo-test-only" Disabled>Print</BradixToolbarButton>
             <BradixToolbarButton Class="dialog-demo__button dialog-demo__button--violet toolbar-demo__share">Share</BradixToolbarButton>
         </BradixToolbar>
     </section>

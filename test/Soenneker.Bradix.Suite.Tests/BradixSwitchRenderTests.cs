@@ -85,20 +85,16 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Switch_registers_enter_key_activation()
+    public async Task Switch_uses_blazor_enter_activation_without_delegated_keydown_bridge()
     {
         _ = Render(CreateSwitch());
 
         object? options = _module.Invocations.First(invocation => invocation.Identifier == "registerDelegatedInteraction").Arguments[2];
+        object? click = options?.GetType().GetProperty("click")?.GetValue(options);
         object? keydown = options?.GetType().GetProperty("keydown")?.GetValue(options);
-        object? keys = keydown?.GetType().GetProperty("keys")?.GetValue(keydown);
-        object? method = keydown?.GetType().GetProperty("method")?.GetValue(keydown);
-        object? preventDefault = keydown?.GetType().GetProperty("preventDefault")?.GetValue(keydown);
 
-        await Assert.That(keys).IsAssignableTo<string[]>();
-        await Assert.That(((string[])keys!).Contains("Enter")).IsTrue();
-        await Assert.That(method).IsEqualTo(nameof(BradixSwitch.HandleDelegatedEnterKeyDown));
-        await Assert.That(preventDefault is true).IsTrue();
+        await Assert.That(click).IsNotNull();
+        await Assert.That(keydown).IsNull();
     }
 
     [Test]

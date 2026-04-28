@@ -4,6 +4,7 @@
 
 @using Soenneker.Blazor.Utils.Ids
 @implements IBradixDialog
+@inject IControlsInterop ControlsInterop
 
 <CascadingValue Value="this">
     @ChildContent
@@ -133,6 +134,18 @@
         if (!HasTrigger)
             return;
 
+        if (!string.IsNullOrWhiteSpace(ResolvedTriggerId))
+        {
+            try
+            {
+                await ControlsInterop.FocusElementById(ResolvedTriggerId);
+                return;
+            }
+            catch
+            {
+            }
+        }
+
         try
         {
             await TriggerElement.FocusAsync();
@@ -141,4 +154,5 @@
         {
         }
     }
+
 }

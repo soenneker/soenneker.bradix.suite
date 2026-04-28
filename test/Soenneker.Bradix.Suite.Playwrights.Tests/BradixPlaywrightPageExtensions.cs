@@ -10,7 +10,9 @@ internal static class BradixPlaywrightPageExtensions
 {
     public static async ValueTask OpenDemoPage(this IPage page, string baseUrl, DemoPageSpec spec)
     {
-        await page.OpenPage(baseUrl, spec.Route, async currentPage =>
+        string route = spec.Route == "/" ? spec.Route : $"{spec.Route}?testScenarios=true";
+
+        await page.OpenPage(baseUrl, route, async currentPage =>
                   {
                       await Assertions.Expect(currentPage.Locator(".docs-shell__main"))
                                       .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 15000 });

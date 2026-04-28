@@ -11,7 +11,7 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
     {
     }
 
-[Test]
+    [Test]
     public async ValueTask Collapsible_demo_disabled_trigger_stays_open_and_force_mounted_content_remains_hidden_in_dom()
     {
         await using BrowserSession session = await CreateSession();
@@ -39,7 +39,7 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(forceMountContent).ToContainTextAsync("Force mounted details remain in the DOM while closed.");
     }
 
-[Test]
+    [Test]
     public async ValueTask Collapsible_demo_reveals_additional_repositories_when_opened()
     {
         await using BrowserSession session = await CreateSession();
@@ -56,6 +56,40 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(demoCard.Locator(".collapsible-demo__root")).ToContainTextAsync("@radix-ui/colors");
         await Assertions.Expect(demoCard.Locator(".collapsible-demo__root")).ToContainTextAsync("@radix-ui/themes");
+    }
+
+    [Test]
+    public async ValueTask Collapsible_demo_enter_key_opens_trigger()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsible"));
+
+        ILocator demoCard = page.Locator(".website-demo-card").Filter(new LocatorFilterOptions { HasText = "@peduarte starred 3 repositories" }).First;
+        ILocator trigger = demoCard.GetByRole(AriaRole.Button);
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "false");
+
+        await trigger.PressAsync("Enter");
+
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
+    }
+
+    [Test]
+    public async ValueTask Collapsible_demo_space_key_opens_trigger()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsible"));
+
+        ILocator demoCard = page.Locator(".website-demo-card").Filter(new LocatorFilterOptions { HasText = "@peduarte starred 3 repositories" }).First;
+        ILocator trigger = demoCard.GetByRole(AriaRole.Button);
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "false");
+
+        await trigger.PressAsync("Space");
+
+        await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
     }
 }
 

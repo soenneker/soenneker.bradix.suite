@@ -129,7 +129,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Aspect_ratio_renders_wrapper_and_absolute_content_slot()
+    public async Task Aspect_ratio_uses_native_css_ratio_with_absolute_content_slot()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -145,7 +145,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
         IElement wrapper = cut.Find("[data-radix-aspect-ratio-wrapper]");
         IElement content = wrapper.Children[0];
 
-        await Assert.That(wrapper.GetAttribute("style")).Contains("padding-bottom");
+        await Assert.That(wrapper.GetAttribute("style")).Contains("aspect-ratio");
         await Assert.That(content.GetAttribute("style")).Contains("position: absolute");
         await Assert.That(content.TextContent).IsEqualTo("content");
     }

@@ -16,8 +16,6 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         module.SetupVoid("unobserveCollapsibleContent", _ => true).SetVoidResult();
         module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
-        module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
-        module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
         Services.AddBradixTestInterops();

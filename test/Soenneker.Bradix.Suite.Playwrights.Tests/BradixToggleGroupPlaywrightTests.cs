@@ -19,8 +19,8 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
 
-        ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "L", Exact = true });
-        ILocator center = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "C", Exact = true });
+        ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Left aligned", Exact = true });
+        ILocator center = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Center aligned", Exact = true });
 
         await Assertions.Expect(center).ToHaveAttributeAsync("aria-checked", "true");
 

@@ -1,12 +1,8 @@
 @namespace Soenneker.Bradix
 
-@using Microsoft.JSInterop
-
 @inherits BradixComponent
 
 @implements IBradixPopoverTrigger
-
-@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <BradixDismissableLayerBranch>
     @if (Popover?.HasCustomAnchor == true)
     {
@@ -30,8 +26,6 @@
 
 @code {
     private ElementReference _button;
-    private bool _delegatedInteractionReady;
-    private DotNetObjectReference<BradixPopoverTrigger>? _dotNetReference;
 
     [CascadingParameter]
     private BradixPopover? Popover { get; set; }
@@ -64,17 +58,6 @@
             Popover?.RegisterTrigger(_button, ResolvedTriggerId);
             if (Popover?.HasCustomAnchor != true)
                 Popper?.RegisterAnchor(_button);
-            _dotNetReference = DotNetObjectReference.Create(this);
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
-            {
-                readyMethod = nameof(HandleDelegatedInteractionReady),
-                click = new
-                {
-                    method = nameof(HandleDelegatedClick),
-                    currentTargetOnly = false,
-                    stopPropagation = true
-                }
-            });
         }
 
         if (Popover?.HasCustomAnchor != true && Popper is not null && !Popper.HasAnchor && !Popper.HasVirtualAnchor)
@@ -83,47 +66,12 @@
         return;
     }
 
-    private async Task HandleClick()
-    {
-        if (!Disabled && Popover is not null && !_delegatedInteractionReady)
-            await Popover.ToggleOpen();
-
-        if (OnClick.HasDelegate)
-            await OnClick.InvokeAsync();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
-        _dotNetReference?.Dispose();
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedInteractionReady()
-    {
-        _delegatedInteractionReady = true;
-        return Task.CompletedTask;
-    }
-
-    [JSInvokable]
-    public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
+    private async Task HandleClick(MouseEventArgs args)
     {
         if (!Disabled && Popover is not null)
             await Popover.ToggleOpen();
 
         if (OnClick.HasDelegate)
-        {
-            await OnClick.InvokeAsync(new MouseEventArgs
-            {
-                Detail = args.Detail,
-                Button = args.Button,
-                CtrlKey = args.CtrlKey,
-                ShiftKey = args.ShiftKey,
-                AltKey = args.AltKey,
-                MetaKey = args.MetaKey,
-                PageX = args.PageX,
-                PageY = args.PageY
-            });
-        }
+            await OnClick.InvokeAsync(args);
     }
 }

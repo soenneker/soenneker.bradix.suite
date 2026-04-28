@@ -40,16 +40,6 @@ public interface IBradixTabsTrigger : IAsyncDisposable {
     /// <summary>Gets or sets the callback invoked on focus.</summary>
     EventCallback<FocusEventArgs> OnFocus { get; set; }
 
-
-    /// <summary>Called from script when delegated interaction wiring is ready.</summary>
-    Task HandleDelegatedInteractionReady();
-
-    /// <summary>Called from script for delegated mouse down handling.</summary>
-    Task HandleDelegatedMouseDown(BradixDelegatedMouseEvent _);
-
     /// <summary>Called from script when the roving-focus bridge is ready.</summary>
     Task HandleRovingFocusBridgeReady();
-
-    /// <summary>Called from script for delegated key handling.</summary>
-    Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args);
 }

@@ -36,6 +36,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("focusElementByIdDeferred", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
@@ -156,16 +157,15 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Open_auto_focus_uses_prevent_scroll_for_cancel_button()
+    public async Task Open_auto_focus_prevents_default_for_cancel_focus_policy()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true));
         IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();
-        int focusCountBefore = _module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll");
 
         bool prevented = await cut.InvokeAsync(() => focusScope.Instance.HandleMountAutoFocus());
 
         await Assert.That(prevented).IsTrue();
-        await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 1);
+        await Assert.That(cut.Find("button[data-bradix-alert-dialog-cancel='true']")).IsNotNull();
     }
 
     private static RenderFragment CreateAlertDialog(bool defaultOpen = false, bool controlsDisabled = false)

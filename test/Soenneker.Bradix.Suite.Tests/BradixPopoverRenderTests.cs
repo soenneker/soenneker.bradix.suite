@@ -36,8 +36,6 @@ public sealed class BradixPopoverRenderTests : BunitContext
         _module.SetupVoid("unregisterHideOthers", _ => true).SetVoidResult();
         _module.SetupVoid("registerRemoveScroll", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRemoveScroll", _ => true).SetVoidResult();
-        _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
-        _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 

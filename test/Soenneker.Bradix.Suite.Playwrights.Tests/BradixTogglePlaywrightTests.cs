@@ -28,6 +28,38 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
+    public async ValueTask Toggle_demo_enter_key_updates_pressed_state()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle"));
+
+        ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle italic", Exact = true });
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-pressed", "false");
+
+        await toggle.PressAsync("Enter");
+
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-pressed", "true");
+    }
+
+    [Test]
+    public async ValueTask Toggle_demo_space_key_updates_pressed_state()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle"));
+
+        ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle italic", Exact = true });
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-pressed", "false");
+
+        await toggle.PressAsync("Space");
+
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-pressed", "true");
+    }
+
+    [Test]
     public async ValueTask Toggle_demo_controlled_buttons_and_disabled_state_stay_in_sync()
     {
         await using BrowserSession session = await CreateSession();

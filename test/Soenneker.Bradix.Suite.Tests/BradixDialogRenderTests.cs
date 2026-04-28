@@ -36,6 +36,7 @@ public sealed class BradixDialogRenderTests : BunitContext
         _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
+        _module.SetupVoid("focusElementByIdDeferred", _ => true).SetVoidResult();
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 

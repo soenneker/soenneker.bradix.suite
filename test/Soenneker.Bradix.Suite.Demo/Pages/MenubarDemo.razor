@@ -81,6 +81,34 @@
                         </BradixMenubarContent>
                     </BradixMenubarPortal>
                 </BradixMenubarMenu>
+
+                <BradixMenubarMenu Value="profiles">
+                    <BradixMenubarTrigger>Profiles</BradixMenubarTrigger>
+                    <BradixMenubarPortal>
+                        <BradixMenubarContent Class="card stack" SideOffset="6">
+                            <BradixMenubarRadioGroup Value="@_sort" ValueChanged="HandleSortChanged">
+                                <BradixMenubarRadioItem Value="andy" CloseOnSelect="false">
+                                    <span>Andy</span>
+                                    <BradixMenubarItemIndicator>
+                                        <span>(o)</span>
+                                    </BradixMenubarItemIndicator>
+                                </BradixMenubarRadioItem>
+                                <BradixMenubarRadioItem Value="benoit" CloseOnSelect="false">
+                                    <span>Benoît</span>
+                                    <BradixMenubarItemIndicator>
+                                        <span>(o)</span>
+                                    </BradixMenubarItemIndicator>
+                                </BradixMenubarRadioItem>
+                                <BradixMenubarRadioItem Value="luis" CloseOnSelect="false">
+                                    <span>Luis</span>
+                                    <BradixMenubarItemIndicator>
+                                        <span>(o)</span>
+                                    </BradixMenubarItemIndicator>
+                                </BradixMenubarRadioItem>
+                            </BradixMenubarRadioGroup>
+                        </BradixMenubarContent>
+                    </BradixMenubarPortal>
+                </BradixMenubarMenu>
             </BradixMenubar>
     </section>
 

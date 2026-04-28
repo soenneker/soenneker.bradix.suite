@@ -13,17 +13,4 @@ public interface IBradixAccordionTrigger : IDisposable, IAsyncDisposable {
     /// Gets or sets the callback invoked when a key is pressed on the trigger.
     /// </summary>
     EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
-
-
-
-    /// <summary>
-    /// Called when delegated keyboard handling is ready on the host element.
-    /// </summary>
-    Task HandleDelegatedInteractionReady();
-
-    /// <summary>
-    /// Handles a delegated keydown event forwarded from JavaScript.
-    /// </summary>
-    /// <param name="args">The delegated keyboard event payload.</param>
-    Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args);
 }

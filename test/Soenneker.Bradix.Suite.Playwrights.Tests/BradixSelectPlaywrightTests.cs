@@ -283,7 +283,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReady($"{BaseUrl}select", static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true }),
+        await page.GotoAndWaitForReady($"{BaseUrl}select?testScenarios=true", static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true }),
             expectedTitle: "Select Demo");
 
         ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true });
@@ -313,7 +313,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}select",
+            $"{BaseUrl}select?testScenarios=true",
             static p => p.GetByTestId("select-native-form-result"),
             expectedTitle: "Select Demo");
 

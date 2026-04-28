@@ -1,12 +1,8 @@
 @namespace Soenneker.Bradix
 
-@using Microsoft.JSInterop
-
 @inherits BradixComponent
 
 @implements IBradixToggle
-
-@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <button @ref="_element"
         @onclick="HandleClick"
         @onmousedown="HandleMouseDown"
@@ -19,9 +15,7 @@
 @code {
     private bool _initialized;
     private bool _uncontrolledPressed;
-    private bool _delegatedInteractionReady;
     private ElementReference _element;
-    private DotNetObjectReference<object>? _dotNetReference;
 
     [Parameter]
     public bool? Pressed { get; set; }
@@ -72,30 +66,6 @@
         _initialized = true;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-            return;
-
-        _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
-        {
-            readyMethod = nameof(HandleDelegatedInteractionReady),
-            click = new
-            {
-                method = nameof(HandleDelegatedClick),
-                currentTargetOnly = false,
-                stopPropagation = true
-            }
-        });
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
-        _dotNetReference?.Dispose();
-    }
-
     internal ValueTask Focus()
     {
         return _element.FocusAsync();
@@ -106,7 +76,7 @@
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);
 
-        if (_delegatedInteractionReady || Disabled)
+        if (Disabled)
             return;
 
         await SetPressed(!IsPressed);
@@ -145,18 +115,5 @@
             await OnPressedChange.InvokeAsync(pressed);
 
         await InvokeAsync(StateHasChanged);
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedInteractionReady()
-    {
-        _delegatedInteractionReady = true;
-        return Task.CompletedTask;
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
-    {
-        return Disabled ? Task.CompletedTask : SetPressed(!IsPressed);
     }
 }

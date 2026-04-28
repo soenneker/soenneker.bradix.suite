@@ -11,10 +11,6 @@ public sealed class BradixToggleRenderTests : BunitContext
 {
     public BradixToggleRenderTests()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("registerDelegatedInteraction", _ => true);
-        module.SetupVoid("unregisterDelegatedInteraction", _ => true);
-
         Services.AddBradixTestInterops();
     }
 

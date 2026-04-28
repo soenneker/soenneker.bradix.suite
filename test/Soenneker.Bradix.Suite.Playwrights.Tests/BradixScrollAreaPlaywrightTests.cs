@@ -31,7 +31,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenPage(BaseUrl, "/scroll-area", async currentPage =>
+        await page.OpenPage(BaseUrl, "/scroll-area?testScenarios=true", async currentPage =>
         {
             await Assertions.Expect(currentPage.Locator(".scroll-area-demo__horizontal")).ToBeVisibleAsync();
             await Assertions.Expect(currentPage.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "RTL notes", Exact = true })).ToBeVisibleAsync();

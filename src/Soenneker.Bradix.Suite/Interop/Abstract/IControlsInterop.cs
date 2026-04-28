@@ -44,6 +44,8 @@ public interface IControlsInterop : IAsyncDisposable
 
     ValueTask FocusElementById(string? elementId, CancellationToken cancellationToken = default);
 
+    ValueTask FocusElementByIdDeferred(string? elementId, CancellationToken cancellationToken = default);
+
     ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default);
 
     ValueTask<bool> FocusFirstMatchingDescendant(ElementReference element, string selector, CancellationToken cancellationToken = default);

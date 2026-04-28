@@ -1,12 +1,8 @@
 @namespace Soenneker.Bradix
 
-@using Microsoft.JSInterop
-
 @inherits BradixComponent
 
 @implements IBradixDialogTrigger
-
-@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <button @ref="_button"
         @onclick="HandleClick"
         @attributes="ButtonAttributes">
@@ -15,8 +11,6 @@
 
 @code {
     private ElementReference _button;
-    private bool _delegatedInteractionReady;
-    private DotNetObjectReference<BradixDialogTrigger>? _dotNetReference;
 
     [CascadingParameter]
     private BradixDialog? Dialog { get; set; }
@@ -42,65 +36,15 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
-        {
             Dialog?.RegisterTrigger(_button, ResolvedTriggerId);
-            _dotNetReference = DotNetObjectReference.Create(this);
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
-            {
-                readyMethod = nameof(HandleDelegatedInteractionReady),
-                click = new
-                {
-                    method = nameof(HandleDelegatedClick),
-                    currentTargetOnly = false,
-                    stopPropagation = true
-                }
-            });
-        }
-
-        return;
     }
 
-    private async Task HandleClick()
-    {
-        if (!Disabled && Dialog is not null && !_delegatedInteractionReady)
-            await Dialog.ToggleOpen();
-
-        if (OnClick.HasDelegate)
-            await OnClick.InvokeAsync();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
-        _dotNetReference?.Dispose();
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedInteractionReady()
-    {
-        _delegatedInteractionReady = true;
-        return Task.CompletedTask;
-    }
-
-    [JSInvokable]
-    public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
+    private async Task HandleClick(MouseEventArgs args)
     {
         if (!Disabled && Dialog is not null)
             await Dialog.ToggleOpen();
 
         if (OnClick.HasDelegate)
-        {
-            await OnClick.InvokeAsync(new MouseEventArgs
-            {
-                Detail = args.Detail,
-                Button = args.Button,
-                CtrlKey = args.CtrlKey,
-                ShiftKey = args.ShiftKey,
-                AltKey = args.AltKey,
-                MetaKey = args.MetaKey,
-                PageX = args.PageX,
-                PageY = args.PageY
-            });
-        }
+            await OnClick.InvokeAsync(args);
     }
 }

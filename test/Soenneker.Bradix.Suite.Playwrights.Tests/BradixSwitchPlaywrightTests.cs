@@ -11,7 +11,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
     {
     }
 
-[Test]
+    [Test]
     public async ValueTask Switch_demo_controlled_buttons_and_clicks_stay_in_sync()
     {
         await using BrowserSession session = await CreateSession();
@@ -35,7 +35,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(controlledSection).ToContainTextAsync("State: checked");
     }
 
-[Test]
+    [Test]
     public async ValueTask Switch_demo_form_reset_restores_default_checked_state()
     {
         await using BrowserSession session = await CreateSession();
@@ -61,7 +61,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(product).ToHaveAttributeAsync("aria-checked", "false");
     }
 
-[Test]
+    [Test]
     public async ValueTask Switch_demo_toggles_checked_state()
     {
         await using BrowserSession session = await CreateSession();
@@ -77,7 +77,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "true");
     }
 
-[Test]
+    [Test]
     public async ValueTask Switch_demo_enter_key_toggles_focused_switch()
     {
         await using BrowserSession session = await CreateSession();
@@ -87,6 +87,20 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
 
         ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
         await toggle.PressAsync("Enter");
+
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "true");
+    }
+
+    [Test]
+    public async ValueTask Switch_demo_space_key_toggles_focused_switch()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switch"));
+
+        ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
+        await toggle.PressAsync("Space");
 
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "true");
     }

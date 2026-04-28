@@ -90,7 +90,6 @@
         _ = InvokeAsync(async () =>
         {
             await FocusCancelIfPending();
-            await InvokeAsync(StateHasChanged);
         });
     }
 

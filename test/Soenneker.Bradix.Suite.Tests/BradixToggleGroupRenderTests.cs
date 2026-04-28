@@ -17,8 +17,6 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
-        module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
-        module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         Services.AddBradixTestInterops();
     }
 

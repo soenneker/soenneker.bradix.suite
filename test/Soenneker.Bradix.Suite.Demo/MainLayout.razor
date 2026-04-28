@@ -2,7 +2,7 @@
 @implements IDisposable
 @inject NavigationManager Navigation
 
-<div class="@(CurrentPage is not null ? "docs-shell docs-shell--component" : "docs-shell")">
+<div class="@BuildShellClass()">
     <header class="docs-shell__header">
         <NavLink href="@DemoCatalog.Overview.Href" Match="NavLinkMatch.All" class="docs-shell__brand-link">
             <span class="eyebrow">Bradix</span>
@@ -61,6 +61,7 @@
 
 @code {
     private DemoPageLink? CurrentPage;
+    private bool ShowTestScenarios;
 
     private IReadOnlyList<DemoPageGroup> FilteredGroups => DemoCatalog.Groups;
 
@@ -78,8 +79,17 @@
 
     private void UpdateCurrentPage()
     {
-        string route = DemoCatalog.NormalizeRoute(Navigation.ToBaseRelativePath(Navigation.Uri));
+        string relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        string route = DemoCatalog.NormalizeRoute(relativePath);
         CurrentPage = DemoCatalog.Find(route);
+        ShowTestScenarios = relativePath.Contains("testScenarios=true", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string BuildShellClass()
+    {
+        string shellClass = CurrentPage is not null ? "docs-shell docs-shell--component" : "docs-shell";
+
+        return ShowTestScenarios ? $"{shellClass} docs-shell--test-scenarios" : shellClass;
     }
 
     public void Dispose()

@@ -35,6 +35,8 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.SetupVoid("scrollSelectViewportByItem", _ => true).SetVoidResult();
         _module.SetupVoid("registerSelectContentPointerTracker", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterSelectContentPointerTracker", _ => true).SetVoidResult();
+        _module.SetupVoid("registerSelectContentKeyboard", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterSelectContentKeyboard", _ => true).SetVoidResult();
         _module.SetupVoid("registerSelectWindowDismiss", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterSelectWindowDismiss", _ => true).SetVoidResult();
         _module.SetupVoid("registerHideOthers", _ => true).SetVoidResult();

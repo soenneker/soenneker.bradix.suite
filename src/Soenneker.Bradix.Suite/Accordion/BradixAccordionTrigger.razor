@@ -106,30 +106,9 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReady()
-    {
-        return HandleRovingFocusBridgeReady();
-    }
-
-    [JSInvokable]
     public Task HandleRovingFocusBridgeReady()
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
-    {
-        return HandleKeyDown(new KeyboardEventArgs
-        {
-            Key = args.Key,
-            Code = args.Code,
-            CtrlKey = args.CtrlKey,
-            ShiftKey = args.ShiftKey,
-            AltKey = args.AltKey,
-            MetaKey = args.MetaKey,
-            Repeat = args.Repeat
-        });
     }
 }

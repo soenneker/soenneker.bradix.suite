@@ -1092,6 +1092,12 @@ input[type="radio"] {
     letter-spacing: 0.05em;
 }
 
+.otp-slot.text-input {
+    width: 2.9rem;
+    min-height: 2.9rem;
+    padding: 0;
+}
+
 .surface-note {
     padding: 0.85rem 0.95rem;
     border-left: 3px solid var(--blue-a7, rgba(37, 99, 235, 0.28));
@@ -1519,10 +1525,23 @@ input[type="radio"] {
     justify-content: center;
 }
 
+.docs-shell--component:not(.docs-shell--test-scenarios) .component-example__preview > .website-demo-page:not(:first-child) {
+    display: none;
+}
+
 .component-example__preview .website-demo-page > .website-demo-card {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+}
+
+.docs-shell--component:not(.docs-shell--test-scenarios) .component-example__preview .website-demo-page > .website-demo-card:not(:first-child) {
+    display: none;
+}
+
+.docs-shell--component:not(.docs-shell--test-scenarios) .component-example__preview .avatar-demo__case--test-only,
+.docs-shell--component:not(.docs-shell--test-scenarios) .component-example__preview .demo-test-only {
+    display: none;
 }
 
 .docs-shell__content--component .website-demo-card,
@@ -1544,6 +1563,7 @@ input[type="radio"] {
     box-shadow: none;
 }
 
+.component-example__preview .website-demo-card > h1,
 .component-example__preview .website-demo-card > h2,
 .component-example__preview .website-demo-card > h3,
 .component-example__preview .website-demo-card > .card__header {
@@ -1729,53 +1749,6 @@ input[type="radio"] {
 
 .accordion-demo__trigger[data-state="open"] .accordion-demo__chevron {
     transform: rotate(180deg);
-}
-
-.component-example__preview .accordion-demo__root {
-    width: 376px;
-    max-width: min(100%, 376px);
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.36);
-}
-
-.component-example__preview .accordion-demo__item {
-    margin-top: 1px;
-}
-
-.component-example__preview .accordion-demo__trigger {
-    height: 56px;
-    padding: 0 24px;
-    background: #111113;
-    color: #b197fc;
-    font-size: 18px;
-    line-height: 1;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.14);
-}
-
-.component-example__preview .accordion-demo__root button {
-    width: 100%;
-    justify-content: space-between;
-    text-align: left;
-}
-
-.component-example__preview .accordion-demo__trigger:hover {
-    background: #18191b;
-}
-
-.component-example__preview .accordion-demo__content {
-    background: #1c1c1f;
-    color: #d4d4d8;
-    font-size: 18px;
-    line-height: 1.42;
-}
-
-.component-example__preview .accordion-demo__content-text {
-    padding: 20px 24px;
-}
-
-.component-example__preview .accordion-demo__chevron {
-    color: #b197fc;
 }
 
 .collapsible-demo__root {
@@ -2228,6 +2201,10 @@ input[type="radio"] {
     margin-right: 10px;
     color: var(--text-muted);
     font-size: 13px;
+}
+
+.toolbar-demo__strike {
+    text-decoration: line-through;
 }
 
 .toolbar-demo__share {

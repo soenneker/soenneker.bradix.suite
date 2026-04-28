@@ -7,7 +7,6 @@
 @implements IBradixTabsTrigger
 
 @inject IRovingFocusInterop RovingFocusInterop
-@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <button @ref="_element"
         @onmousedown="HandleMouseDown"
         @onkeydown="HandleKeyDown"
@@ -18,7 +17,6 @@
 
 @code {
     private ElementReference _element;
-    private bool _delegatedInteractionReady;
     private bool _rovingFocusBridgeReady;
     private bool _registered;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -83,26 +81,11 @@
         _registered = true;
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
-        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
-        {
-            readyMethod = nameof(HandleDelegatedInteractionReady),
-            mousedown = new
-            {
-                method = nameof(HandleDelegatedMouseDown),
-                filter = "primaryMousedown"
-            },
-            keydown = new
-            {
-                method = nameof(HandleDelegatedKeyDown),
-                keys = new[] { "Enter", " ", "Spacebar" }
-            }
-        });
     }
 
     public async ValueTask DisposeAsync()
     {
         await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
-        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
         _dotNetReference?.Dispose();
 
         if (_registered)
@@ -122,9 +105,6 @@
         if (Disabled)
             return;
 
-        if (_delegatedInteractionReady)
-            return;
-
         if (args.Button == 0 && !args.CtrlKey)
             await Tabs.SetValue(Value);
     }
@@ -140,10 +120,7 @@
         if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 
-        if (_delegatedInteractionReady)
-            return;
-
-        if (args.Key is " " or "Enter")
+        if (args.Key is " " or "Enter" or "Spacebar")
         {
             await Tabs.SetValue(Value);
             return;
@@ -167,33 +144,9 @@
     }
 
     [JSInvokable]
-    public Task HandleDelegatedInteractionReady()
-    {
-        _delegatedInteractionReady = true;
-        return Task.CompletedTask;
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedMouseDown(BradixDelegatedMouseEvent _)
-    {
-        return Disabled ? Task.CompletedTask : Tabs.SetValue(Value);
-    }
-
-    [JSInvokable]
     public Task HandleRovingFocusBridgeReady()
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
-    {
-        if (Disabled)
-            return Task.CompletedTask;
-
-        return args.Key is " " or "Enter" or "Spacebar"
-            ? Tabs.SetValue(Value)
-            : Task.CompletedTask;
     }
 }

@@ -75,14 +75,14 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
 
         ILocator demo = page.Locator("[data-testid='bradix-menubar-demo']");
         ILocator file = demo.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "File", Exact = true });
-        ILocator view = demo.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "View", Exact = true });
+        ILocator profiles = demo.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "Profiles", Exact = true });
 
         await file.FocusAsync();
         await file.PressAsync("End");
 
-        await Assertions.Expect(view).ToBeFocusedAsync();
+        await Assertions.Expect(profiles).ToBeFocusedAsync();
 
-        await view.PressAsync("Home");
+        await profiles.PressAsync("Home");
 
         await Assertions.Expect(file).ToBeFocusedAsync();
     }

@@ -1,12 +1,8 @@
 @namespace Soenneker.Bradix
 
-@using Microsoft.JSInterop
-
 @inherits BradixComponent
 
 @implements IBradixCollapsibleTrigger
-
-@inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <button @ref="_element"
         @onclick="HandleClick"
         @onkeydown="HandleKeyDown"
@@ -15,9 +11,7 @@
 </button>
 
 @code {
-    private bool _delegatedInteractionReady;
     private ElementReference _element;
-    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     internal BradixCollapsible Collapsible { get; set; } = null!;
@@ -53,36 +47,12 @@
         return _element.FocusAsync();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-            return;
-
-        _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
-        {
-            readyMethod = nameof(HandleDelegatedInteractionReady),
-            click = new
-            {
-                method = nameof(HandleDelegatedClick),
-                currentTargetOnly = false,
-                stopPropagation = true
-            }
-        });
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
-        _dotNetReference?.Dispose();
-    }
-
     private async Task HandleClick(MouseEventArgs args)
     {
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);
 
-        if (_delegatedInteractionReady || IsDisabled)
+        if (IsDisabled)
             return;
 
         await Collapsible.Toggle();
@@ -92,18 +62,5 @@
     {
         if (OnKeyDown.HasDelegate)
             await OnKeyDown.InvokeAsync(args);
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedInteractionReady()
-    {
-        _delegatedInteractionReady = true;
-        return Task.CompletedTask;
-    }
-
-    [JSInvokable]
-    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
-    {
-        return IsDisabled ? Task.CompletedTask : Collapsible.Toggle();
     }
 }
