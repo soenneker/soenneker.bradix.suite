@@ -41,6 +41,7 @@
                                             Style="@MergedStyle"
                                             AdditionalAttributes="@ContentAttributes"
                                             OnKeyDown="@HandleContentKeyDown"
+                                            PreventKeyDownDefault="true"
                                             OnElementReferenceCaptured="@HandleContentElementCaptured">
                                 <CascadingValue Value="this">
                                     @ChildContent
@@ -70,6 +71,7 @@
                                             Style="@MergedStyle"
                                             AdditionalAttributes="@ContentAttributes"
                                             OnKeyDown="@HandleContentKeyDown"
+                                            PreventKeyDownDefault="true"
                                             OnElementReferenceCaptured="@HandleContentElementCaptured">
                                 <CascadingValue Value="this">
                                     @ChildContent
@@ -99,6 +101,7 @@ else
     private bool _viewportRegistered;
     private bool _shouldRepositionOnScrollButton = true;
     private bool _pointerTrackerRegistered;
+    private bool _keyboardRegistered;
     private bool _windowDismissRegistered;
     private bool _delegatedInteractionRegistered;
     private bool _hideOthersRegistered;
@@ -216,6 +219,7 @@ else
                 await ApplyOpenAutoFocus();
 
             await EnsurePointerTracker();
+            await EnsureKeyboard();
             await EnsureWindowDismiss();
             await EnsureHideOthers();
         }
@@ -249,6 +253,12 @@ else
             {
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
                 _delegatedInteractionRegistered = false;
+            }
+
+            if (_keyboardRegistered)
+            {
+                await SelectInterop.UnregisterSelectContentKeyboard(_contentElement);
+                _keyboardRegistered = false;
             }
 
             if (_windowDismissRegistered)
@@ -287,6 +297,9 @@ else
 
         if (_delegatedInteractionRegistered)
             await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
+
+        if (_keyboardRegistered)
+            await SelectInterop.UnregisterSelectContentKeyboard(_contentElement);
 
         if (_windowDismissRegistered)
             await SelectInterop.UnregisterSelectWindowDismiss(_contentElement);
@@ -442,6 +455,12 @@ else
         if (Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
+        if (args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
+        {
+            await Select.HandleContentNavigation(args.Key);
+            return;
+        }
+
         if (args.Key.Length == 1)
             await Select.HandleContentTypeahead(args.Key);
     }
@@ -536,6 +555,16 @@ else
         _delegatedInteractionRegistered = true;
     }
 
+    private async Task EnsureKeyboard()
+    {
+        if (!_hasContentElement || _keyboardRegistered)
+            return;
+
+        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+        await SelectInterop.RegisterSelectContentKeyboard(_contentElement, _dotNetReference);
+        _keyboardRegistered = true;
+    }
+
     private async Task EnsureWindowDismiss()
     {
         if (!_hasContentElement || _windowDismissRegistered)
@@ -557,7 +586,7 @@ else
 
     private async Task HandleContentElementCapturedInternal()
     {
-        await EnsureDelegatedInteraction();
+        await EnsureKeyboard();
 
         if (_pendingOpenAutoFocus && Select?.CurrentOpen == true)
             await ApplyOpenAutoFocus();

@@ -31,10 +31,8 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
 
         ILocator nameInput = page.Locator("#dialog-name");
         ILocator usernameInput = page.Locator("#dialog-username");
-        await nameInput.ClearAsync();
-        await nameInput.PressSequentiallyAsync("Jake");
-        await usernameInput.ClearAsync();
-        await usernameInput.PressSequentiallyAsync("@jake");
+        await nameInput.FillAsync("Jake");
+        await usernameInput.FillAsync("@jake");
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Save changes", Exact = true }).ClickAsync();
 
         await Assertions.Expect(page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Edit profile", Exact = true })).Not.ToBeVisibleAsync();

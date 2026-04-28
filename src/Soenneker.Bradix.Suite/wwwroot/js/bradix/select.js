@@ -1,7 +1,17 @@
 const selectViewportHandlers = new WeakMap();
 const selectContentPointerTrackers = new WeakMap();
+const selectContentKeyboardHandlers = new WeakMap();
 const selectWindowDismissHandlers = new WeakMap();
 const selectItemAlignedHandlers = new WeakMap();
+
+const selectContentKeyboardKeys = new Set([
+  "ArrowUp",
+  "ArrowDown",
+  "Home",
+  "End",
+  "PageUp",
+  "PageDown"
+]);
 
 function invokeDotNetSafely(dotNetRef, methodName, ...args) {
   try {
@@ -136,6 +146,58 @@ export function unregisterSelectViewport(viewport) {
   }
 
   selectViewportHandlers.delete(viewport);
+}
+
+export function registerSelectContentKeyboard(content, dotNetRef) {
+  if (!content || !dotNetRef) {
+    return;
+  }
+
+  unregisterSelectContentKeyboard(content);
+
+  const keydown = (event) => {
+    if (event.ctrlKey || event.altKey || event.metaKey || event.key === "Tab") {
+      return;
+    }
+
+    if (!selectContentKeyboardKeys.has(event.key) && event.key.length !== 1) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    invokeDotNetSafely(dotNetRef, "HandleDelegatedContentKeyDown", {
+      key: event.key || "",
+      code: event.code || "",
+      ctrlKey: !!event.ctrlKey,
+      shiftKey: !!event.shiftKey,
+      altKey: !!event.altKey,
+      metaKey: !!event.metaKey,
+      repeat: !!event.repeat,
+      defaultPrevented: !!event.defaultPrevented,
+      targetId: event.target instanceof HTMLElement && event.target.id ? event.target.id : "",
+      ancestorIds: []
+    });
+  };
+
+  content.addEventListener("keydown", keydown, true);
+  selectContentKeyboardHandlers.set(content, { keydown });
+}
+
+export function unregisterSelectContentKeyboard(content) {
+  if (!content) {
+    return;
+  }
+
+  const handlers = selectContentKeyboardHandlers.get(content);
+
+  if (!handlers) {
+    return;
+  }
+
+  content.removeEventListener("keydown", handlers.keydown, true);
+  selectContentKeyboardHandlers.delete(content);
 }
 
 export function scrollSelectViewportByItem(viewport, item, upward) {

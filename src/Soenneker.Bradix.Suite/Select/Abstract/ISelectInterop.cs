@@ -24,6 +24,11 @@ public interface ISelectInterop : IAsyncDisposable
 
     ValueTask UnregisterSelectViewport(ElementReference viewport, CancellationToken cancellationToken = default);
 
+    ValueTask RegisterSelectContentKeyboard(ElementReference content, DotNetObjectReference<object> dotNetReference,
+        CancellationToken cancellationToken = default);
+
+    ValueTask UnregisterSelectContentKeyboard(ElementReference content, CancellationToken cancellationToken = default);
+
     ValueTask ScrollSelectViewportByItem(ElementReference viewport, ElementReference item, bool upward, CancellationToken cancellationToken = default);
 
     ValueTask RegisterSelectContentPointerTracker(ElementReference content, DotNetObjectReference<object> dotNetReference, double pageX, double pageY,
