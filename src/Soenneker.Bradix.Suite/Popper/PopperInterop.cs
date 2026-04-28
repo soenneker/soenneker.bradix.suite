@@ -15,10 +15,6 @@ public sealed class PopperInterop : IPopperInterop
     private readonly IResourceLoader _resourceLoader;
 
     private const string _modulePath = "./_content/Soenneker.Bradix.Suite/js/bradix/popper.js";
-    private const string _floatingUiCoreCdnPath = "https://cdn.jsdelivr.net/npm/@floating-ui/core@1.7.2/dist/floating-ui.core.umd.min.js";
-    private const string _floatingUiCoreCdnIntegrity = "sha256-OhWDdFHrIg8eNZaNgWL2ax7tjKNFOBQq3WErqxfHdlQ=";
-    private const string _floatingUiDomCdnPath = "https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.7.2/dist/floating-ui.dom.umd.min.js";
-    private const string _floatingUiDomCdnIntegrity = "sha256-cycZmidLw+l9uWDr4bUhL26YMJg1G6aM0AnUEPG9sME=";
     private const string _floatingUiCoreLocalPath = "./_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.core.umd.min.js";
     private const string _floatingUiDomLocalPath = "./_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.dom.umd.min.js";
 
@@ -91,19 +87,7 @@ public sealed class PopperInterop : IPopperInterop
 
     private async ValueTask EnsureFloatingUi(CancellationToken cancellationToken)
     {
-        try
-        {
-            await _resourceLoader.LoadScriptAndWaitForVariable(_floatingUiCoreCdnPath, "FloatingUICore", _floatingUiCoreCdnIntegrity, cancellationToken: cancellationToken);
-            await _resourceLoader.LoadScriptAndWaitForVariable(_floatingUiDomCdnPath, "FloatingUIDOM", _floatingUiDomCdnIntegrity, cancellationToken: cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch
-        {
-            await _resourceLoader.LoadScriptAndWaitForVariable(_floatingUiCoreLocalPath, "FloatingUICore", cancellationToken: cancellationToken);
-            await _resourceLoader.LoadScriptAndWaitForVariable(_floatingUiDomLocalPath, "FloatingUIDOM", cancellationToken: cancellationToken);
-        }
+        await _resourceLoader.LoadScriptAndWaitForVariable(_floatingUiCoreLocalPath, "FloatingUICore", cancellationToken: cancellationToken);
+        await _resourceLoader.LoadScriptAndWaitForVariable(_floatingUiDomLocalPath, "FloatingUIDOM", cancellationToken: cancellationToken);
     }
 }

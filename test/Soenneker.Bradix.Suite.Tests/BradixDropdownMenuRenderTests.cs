@@ -100,6 +100,15 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Opening_dropdown_registers_popper_with_trigger_element_when_available()
+    {
+        _ = Render(CreateDropdownMenu(defaultOpen: true));
+
+        await Assert.That(_module.Invocations.Any(call => call.Identifier == "registerPopperContent")).IsTrue();
+        await Assert.That(_module.Invocations.Any(call => call.Identifier == "registerPopperContentBySelector")).IsFalse();
+    }
+
+    [Test]
     public async Task Detailed_close_auto_focus_can_prevent_dropdown_trigger_refocus()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(
