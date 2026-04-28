@@ -17,7 +17,7 @@ public sealed class BradixFocusGuardsPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/focus-guards"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/focusguards"));
 
         ILocator guards = page.Locator("[data-radix-focus-guard]");
         await Assertions.Expect(guards).ToHaveCountAsync(2);

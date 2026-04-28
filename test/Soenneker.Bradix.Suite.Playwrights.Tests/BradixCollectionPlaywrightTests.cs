@@ -26,7 +26,7 @@ public sealed class BradixCollectionPlaywrightTests : BradixComponentPlaywrightT
         };
         page.PageError += (_, _) => sawPageError = true;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collection"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collections"));
 
         ILocator input = page.Locator("#typeahead-input");
         await input.ClickAsync();

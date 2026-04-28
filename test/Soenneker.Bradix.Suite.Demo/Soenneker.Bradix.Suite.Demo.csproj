@@ -9,14 +9,11 @@
         <RazorSitemapBaseUrl>https://soenneker.github.io/soenneker.bradix.suite/</RazorSitemapBaseUrl>
         <RazorSitemapOutputPath>wwwroot/sitemap.xml</RazorSitemapOutputPath>
         <RazorSitemapIncludeUnannotatedPages>true</RazorSitemapIncludeUnannotatedPages>
+        <RazorSitemapEnabled>true</RazorSitemapEnabled>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' != 'Release'">
         <CompressionEnabled>false</CompressionEnabled>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <RazorSitemapEnabled>true</RazorSitemapEnabled>
     </PropertyGroup>
 
     <ItemGroup>

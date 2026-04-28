@@ -57,7 +57,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         };
         page.PageError += (_, exception) => pageErrors.Add(exception);
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialogs"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true });
         await trigger.ClickAsync();
@@ -88,7 +88,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialogs"));
 
         ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open nested overlay dialog", Exact = true });
         await dialogTrigger.ClickAsync();
@@ -121,7 +121,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialogs"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
         await page.Locator("#dialog-name").FillAsync("Unsaved");
@@ -137,7 +137,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialogs"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
 

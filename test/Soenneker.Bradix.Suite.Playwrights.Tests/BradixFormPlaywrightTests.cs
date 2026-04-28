@@ -30,9 +30,9 @@ public sealed class BradixFormPlaywrightTests : BradixComponentPlaywrightTest
 
         page.PageError += (_, _) => sawPageError = true;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/form"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/forms"));
 
-        ILocator form = page.Locator("form");
+        ILocator form = page.Locator("forms");
         ILocator email = page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions { Name = "Email", Exact = true });
         ILocator question = page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions { Name = "Question", Exact = true });
         ILocator submit = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Post question", Exact = true });

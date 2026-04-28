@@ -17,7 +17,7 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/one-time-password-field"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));
 
         ILocator slots = page.Locator(".otp-slot");
         await slots.First.ClickAsync();
@@ -37,7 +37,7 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/one-time-password-field"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));
 
         ILocator first = page.Locator(".otp-slot").First;
         await first.ClickAsync();
@@ -53,7 +53,7 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/one-time-password-field"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));
 
         ILocator slots = page.Locator(".otp-controlled-slot");
         ILocator first = slots.Nth(0);
@@ -73,7 +73,7 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/one-time-password-field"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));
 
         ILocator controlledSlots = page.Locator(".otp-controlled-slot");
 
@@ -110,7 +110,7 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/one-time-password-field"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));
 
         ILocator primarySlots = page.Locator(".otp-slot").Filter(new LocatorFilterOptions { HasNot = page.Locator(".otp-reset-slot") });
         await primarySlots.First.ClickAsync();

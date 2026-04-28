@@ -17,7 +17,7 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/remove-scroll"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/removescrolls"));
 
         ILocator textarea = page.GetByRole(AriaRole.Textbox);
         ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle scroll lock", Exact = true });
@@ -39,7 +39,7 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/remove-scroll"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/removescrolls"));
 
         ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle scroll lock", Exact = true });
 

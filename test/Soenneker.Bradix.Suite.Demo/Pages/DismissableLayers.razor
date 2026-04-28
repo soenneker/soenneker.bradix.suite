@@ -1,0 +1,23 @@
+@page "/dismissablelayers"
+
+<PageTitle>Bradix DismissableLayer</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
+        <p class="state-line">Dismissed: <strong>@_dismissed</strong></p>
+            <BradixDismissableLayer Class="portal-surface"
+                                    OnDismiss="HandleDismiss">
+                <p>Outside pointer, outside focus, or escape can dismiss this layer.</p>
+            </BradixDismissableLayer>
+    </section>
+</section>
+
+@code {
+    private bool _dismissed;
+
+    private Task HandleDismiss()
+    {
+        _dismissed = true;
+        return Task.CompletedTask;
+    }
+}

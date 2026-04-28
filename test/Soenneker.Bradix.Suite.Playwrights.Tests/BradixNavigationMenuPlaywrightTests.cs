@@ -20,7 +20,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -42,7 +42,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -68,7 +68,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -96,7 +96,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu-uncontrolled"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenuuncontrolled"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -118,7 +118,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu-minimal"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenuminimal"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -140,7 +140,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu-inline"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenuinline"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -163,7 +163,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator viewport = page.Locator(".nav-menu-viewport");
@@ -184,7 +184,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator section = page.Locator("section").Filter(new LocatorFilterOptions { HasText = "Learn" }).First;
         ILocator learnTrigger = section.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Learn", Exact = true });
@@ -211,7 +211,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         await ClickTrigger(page, learnTrigger);
@@ -241,7 +241,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         IPage page = session.Page;
         await page.SetViewportSizeAsync(1400, 1000);
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator viewport = page.Locator(".nav-menu-viewport");
@@ -261,7 +261,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -315,7 +315,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -334,7 +334,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -357,7 +357,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -376,7 +376,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
 
@@ -426,7 +426,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
 
@@ -442,7 +442,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -463,7 +463,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });
@@ -484,7 +484,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
 
@@ -507,7 +507,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         page.Console += (_, message) => consoleMessages.Add($"{message.Type}: {message.Text}");
         page.PageError += (_, exception) => pageErrors.Add(exception);
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigation-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
         ILocator overviewTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Overview", Exact = true });

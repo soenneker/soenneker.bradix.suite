@@ -27,7 +27,7 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
         };
         page.PageError += (_, error) => pageErrors.Add(error);
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/focus-scope"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/focusscopes"));
 
         ILocator loopDemo = page.Locator(".website-demo-card").First;
         ILocator buttons = loopDemo.Locator(".portal-surface > button");
@@ -67,7 +67,7 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
         };
         page.PageError += (_, error) => pageErrors.Add(error);
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/focus-scope"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/focusscopes"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Trapped scope" }).ClickAsync();
 

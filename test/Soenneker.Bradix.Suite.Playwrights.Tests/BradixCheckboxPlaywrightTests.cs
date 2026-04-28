@@ -17,7 +17,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkboxes"));
         await WaitForCheckboxRoot(page, "#email-updates-checkbox");
 
         ILocator emailUpdates = page.Locator("#email-updates-checkbox");
@@ -54,7 +54,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkboxes"));
         await WaitForCheckboxRoot(page, "#ownership-checkbox");
 
         ILocator checkbox = page.Locator("#ownership-checkbox");
@@ -75,7 +75,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkboxes"));
         await WaitForCheckboxRoot(page, "#terms-checkbox");
 
         ILocator checkbox = page.Locator("#terms-checkbox");
@@ -92,7 +92,7 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkbox"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkboxes"));
         await WaitForCheckboxRoot(page, "#terms-checkbox");
 
         ILocator checkbox = page.Locator("#terms-checkbox");

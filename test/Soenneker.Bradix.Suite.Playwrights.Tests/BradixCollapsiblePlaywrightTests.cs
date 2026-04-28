@@ -17,7 +17,7 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsible"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsibles"));
 
         ILocator disabledCard = page.Locator(".website-demo-card").Filter(new LocatorFilterOptions { HasText = "Production deployment" }).First;
         ILocator disabledTrigger = disabledCard.GetByRole(AriaRole.Button);
@@ -45,7 +45,7 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsible"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsibles"));
 
         ILocator demoCard = page.Locator(".website-demo-card").Filter(new LocatorFilterOptions { HasText = "@peduarte starred 3 repositories" }).First;
         ILocator trigger = demoCard.GetByRole(AriaRole.Button);
@@ -64,7 +64,7 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsible"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsibles"));
 
         ILocator demoCard = page.Locator(".website-demo-card").Filter(new LocatorFilterOptions { HasText = "@peduarte starred 3 repositories" }).First;
         ILocator trigger = demoCard.GetByRole(AriaRole.Button);
@@ -81,7 +81,7 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsible"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsibles"));
 
         ILocator demoCard = page.Locator(".website-demo-card").Filter(new LocatorFilterOptions { HasText = "@peduarte starred 3 repositories" }).First;
         ILocator trigger = demoCard.GetByRole(AriaRole.Button);

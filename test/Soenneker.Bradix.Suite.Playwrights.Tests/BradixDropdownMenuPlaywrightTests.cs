@@ -18,7 +18,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdown-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Customise options", Exact = true }).ClickAsync();
         await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "More Tools", Exact = true }).ClickAsync();
@@ -47,7 +47,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdown-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Customise options", Exact = true }).ClickAsync();
 
@@ -80,7 +80,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdown-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Customise options", Exact = true }).ClickAsync();
 
@@ -109,7 +109,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdown-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Customise options", Exact = true }).ClickAsync();
 
@@ -124,7 +124,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdown-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
 
         ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open dropdown dialog", Exact = true });
         await dialogTrigger.ClickAsync();

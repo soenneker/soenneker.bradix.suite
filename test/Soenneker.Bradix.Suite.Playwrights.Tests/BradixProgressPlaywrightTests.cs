@@ -29,7 +29,7 @@ public sealed class BradixProgressPlaywrightTests : BradixComponentPlaywrightTes
 
         page.PageError += (_, _) => sawPageError = true;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/progress"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/progresses"));
 
         ILocator loading = page.Locator("#progress-loading");
         ILocator complete = page.Locator("#progress-complete");

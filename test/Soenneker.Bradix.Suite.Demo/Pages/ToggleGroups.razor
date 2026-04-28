@@ -1,0 +1,82 @@
+@page "/togglegroups"
+
+<PageTitle>Bradix ToggleGroup</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <h1>Single selection</h1>
+        <BradixToggleGroup Class="togglegroups"
+                           Type="@SelectionMode.Single"
+                           DefaultValue="center"
+                           aria-label="Text alignment">
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="left" aria-label="Left aligned">
+                <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+                    <path d="M2 4h11M2 7.5h8M2 11h11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.3" />
+                </svg>
+            </BradixToggleGroupItem>
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="center" aria-label="Center aligned">
+                <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+                    <path d="M2 4h11M3.75 7.5h7.5M2 11h11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.3" />
+                </svg>
+            </BradixToggleGroupItem>
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="right" aria-label="Right aligned">
+                <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+                    <path d="M2 4h11M5 7.5h8M2 11h11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.3" />
+                </svg>
+            </BradixToggleGroupItem>
+        </BradixToggleGroup>
+    </section>
+
+    <section class="card website-demo-card">
+        <h1>Multiple selection</h1>
+        <BradixToggleGroup Class="togglegroups"
+                           Type="@SelectionMode.Multiple"
+                           DefaultValues='["bold"]'
+                           aria-label="Text formatting">
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="bold">Bold</BradixToggleGroupItem>
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="italic">Italic</BradixToggleGroupItem>
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="underline">Underline</BradixToggleGroupItem>
+        </BradixToggleGroup>
+    </section>
+
+    <section class="card website-demo-card">
+        <h1>Vertical with disabled item</h1>
+        <BradixToggleGroup Class="toggle-group toggle-group--vertical"
+                           Type="@SelectionMode.Single"
+                           Orientation="@Orientation.Vertical"
+                           DefaultValue="top"
+                           aria-label="Vertical alignment">
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="top">Top</BradixToggleGroupItem>
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="middle" Disabled="true">Middle</BradixToggleGroupItem>
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="bottom">Bottom</BradixToggleGroupItem>
+        </BradixToggleGroup>
+    </section>
+
+    <section class="card website-demo-card">
+        <h1>Disabled group</h1>
+        <BradixToggleGroup Class="togglegroups"
+                           Type="@SelectionMode.Single"
+                           DefaultValue="left"
+                           Disabled="true"
+                           aria-label="Disabled alignment">
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="left">Left</BradixToggleGroupItem>
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="center">Center</BradixToggleGroupItem>
+            <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="right">Right</BradixToggleGroupItem>
+        </BradixToggleGroup>
+    </section>
+
+    <section class="card website-demo-card">
+        <h1>RTL single selection</h1>
+        <div dir="rtl">
+            <BradixToggleGroup Class="togglegroups"
+                               Type="@SelectionMode.Single"
+                               DefaultValue="center"
+                               Dir="rtl"
+                               aria-label="RTL alignment">
+                <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="right">Right</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="center">Center</BradixToggleGroupItem>
+                <BradixToggleGroupItem Class="primitive__trigger toggle-group-demo__item" Value="left">Left</BradixToggleGroupItem>
+            </BradixToggleGroup>
+        </div>
+    </section>
+</section>

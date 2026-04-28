@@ -17,7 +17,7 @@ public sealed class BradixAccessibleIconPlaywrightTests : BradixComponentPlaywri
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accessible-icon"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accessibleicons"));
 
         ILocator button = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Close panel", Exact = true });
         await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Panel: Open");

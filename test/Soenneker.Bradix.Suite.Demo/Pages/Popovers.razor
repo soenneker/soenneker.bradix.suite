@@ -1,0 +1,112 @@
+@page "/popovers"
+
+<PageTitle>Bradix Popover</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixPopover>
+            <BradixPopoverTrigger Class="popover-demo__icon-button"
+                                  Style="width:35px;min-width:35px;height:35px;border-radius:9999px;background:white;color:var(--violet-11);box-shadow:0 2px 10px var(--black-a7);font-size:15px;"
+                                  aria-label="Update dimensions">
+                <svg class="demo-trigger-icon" viewBox="0 0 15 15" aria-hidden="true">
+                    <path d="M2 4.5h11M2 7.5h11M2 10.5h11" />
+                    <circle cx="5.25" cy="4.5" r="1.25" />
+                    <circle cx="9.75" cy="7.5" r="1.25" />
+                    <circle cx="6.75" cy="10.5" r="1.25" />
+                </svg>
+            </BradixPopoverTrigger>
+            <BradixPopoverPortal>
+                <BradixPopoverContent Class="popover-demo__content" SideOffset="5">
+                    <div class="popover-demo__fields">
+                        <p class="popover-demo__text popover-demo__text--heading">Dimensions</p>
+                        <div class="popover-demo__fieldset">
+                            <label class="popover-demo__label" for="popover-width">Width</label>
+                            <input class="popover-demo__input" id="popover-width" value="100%" />
+                        </div>
+                        <div class="popover-demo__fieldset">
+                            <label class="popover-demo__label" for="popover-max-width">Max. width</label>
+                            <input class="popover-demo__input" id="popover-max-width" value="300px" />
+                        </div>
+                        <div class="popover-demo__fieldset">
+                            <label class="popover-demo__label" for="popover-height">Height</label>
+                            <input class="popover-demo__input" id="popover-height" value="25px" />
+                        </div>
+                        <div class="popover-demo__fieldset">
+                            <label class="popover-demo__label" for="popover-max-height">Max. height</label>
+                            <input class="popover-demo__input" id="popover-max-height" value="none" />
+                        </div>
+                    </div>
+                    <BradixPopoverClose Class="popover-demo__close" aria-label="Close">×</BradixPopoverClose>
+                    <BradixPopoverArrow>
+                        <span class="tooltip-arrow-shape"></span>
+                    </BradixPopoverArrow>
+                </BradixPopoverContent>
+            </BradixPopoverPortal>
+        </BradixPopover>
+    </section>
+
+    <section class="card website-demo-card">
+        <div class="popover-demo__fields">
+            <div style="display:flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                <button id="popover-controlled-toggle"
+                        class="popover-demo__icon-button"
+                        type="button"
+                        @onclick="ToggleControlledPopover">
+                    Toggle controlled popover
+                </button>
+                <span id="popover-controlled-state">Open: @(_controlledOpen ? "true" : "false")</span>
+            </div>
+
+            <BradixPopover Open="@_controlledOpen" OpenChanged="HandleControlledOpenChanged">
+                <BradixPopoverTrigger Class="popover-demo__icon-button"
+                                      Style="width:35px;min-width:35px;height:35px;border-radius:9999px;background:white;color:var(--violet-11);box-shadow:0 2px 10px var(--black-a7);font-size:15px;"
+                                      aria-label="Edit controlled dimensions">
+                    Edit dimensions
+                </BradixPopoverTrigger>
+                <BradixPopoverPortal>
+                    <BradixPopoverContent Class="popover-demo__content" SideOffset="5">
+                        <div class="popover-demo__fields">
+                            <p class="popover-demo__text popover-demo__text--heading">Controlled dimensions</p>
+                            <div class="popover-demo__fieldset">
+                                <label class="popover-demo__label" for="controlled-popover-width">Width</label>
+                                <input class="popover-demo__input" id="controlled-popover-width" value="100%" />
+                            </div>
+                        </div>
+                    </BradixPopoverContent>
+                </BradixPopoverPortal>
+            </BradixPopover>
+        </div>
+    </section>
+
+    <section class="card website-demo-card">
+        <BradixPopover>
+            <BradixPopoverTrigger Class="popover-demo__icon-button"
+                                  Style="width:35px;min-width:35px;height:35px;border-radius:9999px;background:white;color:var(--violet-11);box-shadow:0 2px 10px var(--black-a7);font-size:15px;"
+                                  aria-label="Open custom listbox">
+                List
+            </BradixPopoverTrigger>
+            <BradixPopoverPortal>
+                <BradixPopoverContent Class="popover-demo__content" SideOffset="5" role="listbox" aria-label="Framework choices">
+                    <div role="option" aria-selected="false" class="popover-demo__text">Remix</div>
+                    <div role="option" aria-selected="true" class="popover-demo__text">Astro</div>
+                </BradixPopoverContent>
+            </BradixPopoverPortal>
+        </BradixPopover>
+    </section>
+</section>
+
+@code {
+    private bool _controlledOpen;
+
+    private Task ToggleControlledPopover()
+    {
+        _controlledOpen = !_controlledOpen;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleControlledOpenChanged(bool open)
+    {
+        _controlledOpen = open;
+        return Task.CompletedTask;
+    }
+}

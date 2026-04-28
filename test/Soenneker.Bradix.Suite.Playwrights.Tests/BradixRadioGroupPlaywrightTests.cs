@@ -17,7 +17,7 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radio-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radiogroups"));
 
         ILocator disabledSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Disabled" });
         ILocator starterRadio = disabledSection.GetByRole(AriaRole.Radio).Nth(0);
@@ -44,7 +44,7 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radio-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radiogroups"));
 
         ILocator densityGroup = page.GetByRole(AriaRole.Radiogroup, new PageGetByRoleOptions { Name = "View density", Exact = true });
         ILocator defaultRadio = densityGroup.GetByRole(AriaRole.Radio).Nth(0);
@@ -88,7 +88,7 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radio-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radiogroups"));
 
         ILocator controlledSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Controlled" });
         ILocator weeklyRadio = controlledSection.GetByRole(AriaRole.Radio).Nth(0);
@@ -113,7 +113,7 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radio-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radiogroups"));
 
         ILocator defaultRadio = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Default", Exact = true });
         ILocator compactRadio = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Compact", Exact = true });

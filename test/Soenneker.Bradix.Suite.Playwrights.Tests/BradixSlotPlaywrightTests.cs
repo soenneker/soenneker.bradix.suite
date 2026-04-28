@@ -17,7 +17,7 @@ public sealed class BradixSlotPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slot"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slots"));
 
         ILocator button = page.Locator("#slot-button");
 

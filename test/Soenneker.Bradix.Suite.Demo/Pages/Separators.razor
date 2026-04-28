@@ -1,0 +1,26 @@
+@page "/separators"
+
+<PageTitle>Bradix Separator</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card separator-demo">
+        <div class="separator-demo__container">
+            <div class="separator-demo__text separator-demo__text--strong">Radix Primitives</div>
+            <div class="separator-demo__text">An open-source UI component library.</div>
+            <BradixSeparator Class="separator-demo__root" Style="margin: 15px 0;" />
+            <div class="separator-demo__row">
+                <div class="separator-demo__text">Blog</div>
+                <BradixSeparator Class="separator-demo__root"
+                                 Decorative
+                                 Orientation="@Orientation.Vertical"
+                                 Style="margin: 0 15px;" />
+                <div class="separator-demo__text">Docs</div>
+                <BradixSeparator Class="separator-demo__root"
+                                 Decorative
+                                 Orientation="@Orientation.Vertical"
+                                 Style="margin: 0 15px;" />
+                <div class="separator-demo__text">Source</div>
+            </div>
+        </div>
+    </section>
+</section>

@@ -49,11 +49,64 @@
 
     private static string GetFileName(string route)
     {
-        string pageName = string.Concat(route.Trim('/').Split('-', StringSplitOptions.RemoveEmptyEntries)
+        string normalized = DemoCatalog.NormalizeRoute(route);
+
+        if (_routeFileNames.TryGetValue(normalized, out string? fileName))
+            return fileName;
+
+        string pageName = string.Concat(normalized.Trim('/').Split('-', StringSplitOptions.RemoveEmptyEntries)
             .Select(static segment => char.ToUpperInvariant(segment[0]) + segment[1..]));
 
-        return $"{pageName}Demo.razor";
+        return $"{pageName}.razor";
     }
+
+    private static readonly IReadOnlyDictionary<string, string> _routeFileNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["/accessibleicons"] = "AccessibleIcons.razor",
+        ["/accordions"] = "Accordions.razor",
+        ["/alertdialogs"] = "AlertDialogs.razor",
+        ["/aspectratios"] = "AspectRatios.razor",
+        ["/avatars"] = "Avatars.razor",
+        ["/checkboxes"] = "Checkboxes.razor",
+        ["/collapsibles"] = "Collapsibles.razor",
+        ["/collections"] = "Collections.razor",
+        ["/contextmenus"] = "ContextMenus.razor",
+        ["/dialogs"] = "Dialogs.razor",
+        ["/dismissablelayers"] = "DismissableLayers.razor",
+        ["/dropdownmenus"] = "DropdownMenus.razor",
+        ["/focusguards"] = "FocusGuards.razor",
+        ["/focusscopes"] = "FocusScopes.razor",
+        ["/forms"] = "Forms.razor",
+        ["/hovercards"] = "HoverCards.razor",
+        ["/labels"] = "Labels.razor",
+        ["/menubars"] = "Menubars.razor",
+        ["/menus"] = "Menus.razor",
+        ["/navigationmenus"] = "NavigationMenus.razor",
+        ["/navigationmenuinline"] = "NavigationMenuInline.razor",
+        ["/navigationmenuminimal"] = "NavigationMenuMinimal.razor",
+        ["/navigationmenuuncontrolled"] = "NavigationMenuUncontrolled.razor",
+        ["/onetimepasswordfields"] = "OneTimePasswordFields.razor",
+        ["/popovers"] = "Popovers.razor",
+        ["/poppers"] = "Poppers.razor",
+        ["/portals"] = "Portals.razor",
+        ["/presences"] = "Presences.razor",
+        ["/progresses"] = "Progresses.razor",
+        ["/radiogroups"] = "RadioGroups.razor",
+        ["/removescrolls"] = "RemoveScrolls.razor",
+        ["/scrollareas"] = "ScrollAreas.razor",
+        ["/selects"] = "Selects.razor",
+        ["/separators"] = "Separators.razor",
+        ["/sliders"] = "Sliders.razor",
+        ["/slots"] = "Slots.razor",
+        ["/switches"] = "Switches.razor",
+        ["/tabs"] = "Tabs.razor",
+        ["/toasts"] = "Toasts.razor",
+        ["/toggles"] = "Toggles.razor",
+        ["/togglegroups"] = "ToggleGroups.razor",
+        ["/toolbars"] = "Toolbars.razor",
+        ["/tooltips"] = "Tooltips.razor",
+        ["/visuallyhidden"] = "VisuallyHidden.razor"
+    };
 
     private static string NormalizeSource(string source)
     {

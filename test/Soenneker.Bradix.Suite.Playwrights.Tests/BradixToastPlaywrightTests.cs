@@ -27,7 +27,7 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
         };
         page.PageError += (_, exception) => pageErrors.Add(exception);
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toast"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toasts"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Add to calendar", Exact = true }).ClickAsync();
 
@@ -46,7 +46,7 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toast"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toasts"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Add to calendar", Exact = true }).ClickAsync();
 
@@ -67,7 +67,7 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toast"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toasts"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Add to calendar", Exact = true }).ClickAsync();
 
@@ -93,7 +93,7 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toast"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toasts"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Add to calendar", Exact = true }).ClickAsync();
 

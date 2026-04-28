@@ -18,7 +18,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open custom listbox", Exact = true });
         await trigger.ClickAsync();
@@ -51,7 +51,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true });
         await trigger.ClickAsync();
@@ -75,7 +75,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true }).ClickAsync();
 
@@ -91,7 +91,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true });
         await trigger.ClickAsync();
@@ -118,7 +118,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
 
         ILocator customRoleTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open custom listbox", Exact = true });
         await customRoleTrigger.ClickAsync();
@@ -149,7 +149,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
 
         ILocator customRoleTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open custom listbox", Exact = true });
         await customRoleTrigger.ClickAsync();
@@ -173,7 +173,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popover"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
 
         ILocator toggle = page.Locator("#popover-controlled-toggle");
         ILocator state = page.Locator("#popover-controlled-state");

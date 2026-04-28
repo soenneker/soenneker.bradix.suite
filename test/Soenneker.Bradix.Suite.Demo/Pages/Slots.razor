@@ -1,0 +1,64 @@
+@page "/slots"
+
+<PageTitle>Bradix Slot</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
+            <BradixSlot ElementName="button"
+                        Id="slot-button"
+                        Class="primitive__trigger"
+                        Style="border: 1px solid currentColor; color: steelblue;"
+                        ChildAttributes="@_buttonChildAttributes">
+                Child target wins duplicate attributes
+            </BradixSlot>
+    </section>
+</section>
+
+@code {
+    private int _childClicks;
+    private int _slotClicks;
+
+    private IReadOnlyDictionary<string, object> _buttonChildAttributes => new Dictionary<string, object>
+    {
+        ["class"] = "slot-demo__child",
+        ["style"] = "color: rebeccapurple; background: transparent;",
+        ["type"] = "button",
+        ["title"] = "child target title"
+    };
+
+    private IReadOnlyDictionary<string, object> _slotButtonAttributes => new Dictionary<string, object>
+    {
+        ["onclick"] = EventCallback.Factory.Create<MouseEventArgs>(this, HandleSlotClick)
+    };
+
+    private IReadOnlyDictionary<string, object> _childButtonAttributes => new Dictionary<string, object>
+    {
+        ["onclick"] = EventCallback.Factory.Create<MouseEventArgs>(this, HandleChildClick),
+        ["type"] = "button"
+    };
+
+    private IReadOnlyDictionary<string, object> _slotAnchorAttributes => new Dictionary<string, object>
+    {
+        ["data-state"] = "open",
+        ["rel"] = "noreferrer"
+    };
+
+    private IReadOnlyDictionary<string, object> _childAnchorAttributes => new Dictionary<string, object>
+    {
+        ["href"] = "https://www.radix-ui.com/primitives/docs/utilities/slots",
+        ["target"] = "_blank",
+        ["class"] = "slot-demo__child"
+    };
+
+    private Task HandleChildClick()
+    {
+        _childClicks++;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSlotClick()
+    {
+        _slotClicks++;
+        return Task.CompletedTask;
+    }
+}

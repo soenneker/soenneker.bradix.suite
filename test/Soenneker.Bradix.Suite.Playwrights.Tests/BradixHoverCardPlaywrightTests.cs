@@ -17,7 +17,7 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hover-card"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hovercards"));
 
         ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open hover card dialog", Exact = true });
         await dialogTrigger.ClickAsync();
@@ -39,7 +39,7 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hover-card"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hovercards"));
 
         ILocator trigger = page.GetByAltText("Radix UI");
         ILocator card = page.GetByText("@radix_ui", new PageGetByTextOptions { Exact = true });
@@ -58,7 +58,7 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hover-card"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hovercards"));
 
         await page.GetByAltText("Radix UI").HoverAsync();
 

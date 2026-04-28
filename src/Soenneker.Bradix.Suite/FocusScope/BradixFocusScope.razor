@@ -8,8 +8,7 @@
 @implements IBradixFocusScope
 
 @inject IFocusScopeInterop FocusScopeInterop
-<div @ref="_element"
-     @attributes="ScopeAttributes">
+<div @ref="_element" @attributes="ScopeAttributes" >
     @ChildContent
 </div>
 
@@ -48,8 +47,7 @@
     [Parameter]
     public bool PreventUnmountAutoFocus { get; set; }
 
-    private Dictionary<string, object> ScopeAttributes => BuildAttributes(
-        ("tabindex", -1));
+    private Dictionary<string, object> ScopeAttributes => BuildAttributes(("tabindex", -1));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -163,4 +161,5 @@
 
         return args.DefaultPrevented;
     }
+
 }

@@ -17,7 +17,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));
 
         ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Left aligned", Exact = true });
         ILocator center = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Center aligned", Exact = true });
@@ -36,7 +36,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));
 
         ILocator section = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Vertical with disabled item" });
         ILocator top = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Top", Exact = true });
@@ -60,7 +60,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));
 
         ILocator section = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "RTL single selection" });
         ILocator group = section.GetByRole(AriaRole.Group, new LocatorGetByRoleOptions { Name = "RTL alignment", Exact = true });
@@ -91,7 +91,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));
 
         ILocator section = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Disabled group" });
         ILocator left = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Left", Exact = true });
@@ -113,7 +113,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle-group"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));
 
         ILocator section = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Multiple selection" });
         ILocator bold = section.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Bold", Exact = true });

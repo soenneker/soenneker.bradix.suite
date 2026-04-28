@@ -17,7 +17,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alert-dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alertdialogs"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Delete account", Exact = true });
         await trigger.ClickAsync();
@@ -35,7 +35,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alert-dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alertdialogs"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Guard escape dismissal", Exact = true }).ClickAsync();
 
@@ -57,7 +57,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alert-dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alertdialogs"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Delete account", Exact = true });
         await trigger.ClickAsync();
@@ -77,7 +77,7 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alert-dialog"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alertdialogs"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Delete account", Exact = true });
         await trigger.ClickAsync();

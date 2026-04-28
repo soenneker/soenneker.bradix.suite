@@ -1,0 +1,35 @@
+@page "/presences"
+
+<PageTitle>Bradix Presence</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
+            <div class="button-row">
+                <button class="primitive__trigger" type="button" @onclick="TogglePresent">Toggle presence</button>
+                <span class="state-line">Present: <strong>@_present</strong></span>
+                <span class="state-line">Exit complete count: <strong>@_exitCompleteCount</strong></span>
+            </div>
+
+            <BradixPresence Present="_present"
+                            Class="@(_present ? "presence-surface presence-surface--open" : "presence-surface presence-surface--closed")"
+                            OnExitComplete="HandleExitComplete">
+                <p class="state-line">This node stays mounted for the close animation.</p>
+            </BradixPresence>
+    </section>
+</section>
+
+@code {
+    private bool _present = true;
+    private int _exitCompleteCount;
+
+    private void TogglePresent()
+    {
+        _present = !_present;
+    }
+
+    private Task HandleExitComplete()
+    {
+        _exitCompleteCount++;
+        return Task.CompletedTask;
+    }
+}

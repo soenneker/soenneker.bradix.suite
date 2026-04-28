@@ -17,7 +17,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slider"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
 
         ILocator rtlSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "RTL" });
         ILocator slider = rtlSection.GetByRole(AriaRole.Slider, new LocatorGetByRoleOptions { Name = "RTL volume", Exact = true });
@@ -42,7 +42,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slider"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
 
         ILocator spacingSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Minimum spacing" });
         ILocator minimumThumb = spacingSection.GetByRole(AriaRole.Slider, new LocatorGetByRoleOptions { Name = "Minimum", Exact = true });
@@ -71,7 +71,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slider"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
 
         ILocator slider = page.GetByRole(AriaRole.Slider, new PageGetByRoleOptions { Name = "Volume", Exact = true });
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "50");
@@ -94,7 +94,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slider"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
 
         ILocator controlledSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Controlled" });
         ILocator slider = controlledSection.GetByRole(AriaRole.Slider, new LocatorGetByRoleOptions { Name = "Controlled volume", Exact = true });
@@ -119,7 +119,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slider"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
 
         ILocator defaultSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Default" });
         ILocator slider = defaultSection.GetByRole(AriaRole.Slider, new LocatorGetByRoleOptions { Name = "Volume", Exact = true });
@@ -149,7 +149,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slider"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
 
         ILocator slider = page.GetByRole(AriaRole.Slider, new PageGetByRoleOptions { Name = "Volume", Exact = true });
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "50");
@@ -166,7 +166,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/slider"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
 
         ILocator verticalSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Vertical" });
         ILocator slider = verticalSection.GetByRole(AriaRole.Slider, new LocatorGetByRoleOptions { Name = "Vertical volume", Exact = true });

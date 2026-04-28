@@ -17,7 +17,7 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggles"));
 
         ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle italic", Exact = true });
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-pressed", "false");
@@ -33,7 +33,7 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggles"));
 
         ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle italic", Exact = true });
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-pressed", "false");
@@ -49,7 +49,7 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggles"));
 
         ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle italic", Exact = true });
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-pressed", "false");
@@ -65,7 +65,7 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggle"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggles"));
 
         ILocator controlledSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Controlled toggle" });
         ILocator controlledToggle = controlledSection.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Toggle notifications", Exact = true });

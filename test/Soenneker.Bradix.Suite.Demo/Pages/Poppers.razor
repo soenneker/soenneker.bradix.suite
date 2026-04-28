@@ -1,0 +1,39 @@
+@page "/poppers"
+
+<PageTitle>Bradix Popper</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
+            <div id="popper-collision-boundary" class="popper-boundary">
+                <BradixPopper>
+                    <BradixPopperAnchor>
+                        <button class="primitive__trigger" type="button">Anchor</button>
+                    </BradixPopperAnchor>
+
+                    <BradixPopperContent Class="popper-content"
+                                         Side="@Soenneker.Bradix.Side.Bottom"
+                                         Align="@Alignment.Center"
+                                         SideOffset="8"
+                                         CollisionBoundarySelectors="_collisionBoundarySelectors"
+                                         CollisionPadding="12"
+                                         OnPlaced="HandlePlaced">
+                        <p class="state-line">Placed: @_placedCount time(s)</p>
+                        <BradixPopperArrow Class="popper-arrow">
+                            <span class="popper-arrow-shape"></span>
+                        </BradixPopperArrow>
+                    </BradixPopperContent>
+                </BradixPopper>
+            </div>
+    </section>
+</section>
+
+@code {
+    private static readonly IReadOnlyList<string> _collisionBoundarySelectors = ["#popper-collision-boundary"];
+    private int _placedCount;
+
+    private Task HandlePlaced()
+    {
+        _placedCount++;
+        return Task.CompletedTask;
+    }
+}

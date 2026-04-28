@@ -1,0 +1,26 @@
+@page "/removescrolls"
+
+<PageTitle>Bradix RemoveScroll</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card stack stack--compact">
+            <button class="primitive__trigger" type="button" @onclick="@(() => _mounted = !_mounted)">
+                Toggle scroll lock
+            </button>
+            <p class="state-line">Mounted: <strong>@_mounted</strong></p>
+
+            @if (_mounted)
+            {
+                <BradixRemoveScroll AllowPinchZoom>
+                    <div class="remove-scroll-surface stack stack--compact">
+                        <p class="state-line">The page body is scroll-locked while this subtree is mounted.</p>
+                        <textarea class="text-input" rows="4">Scrollable field content</textarea>
+                    </div>
+                </BradixRemoveScroll>
+            }
+    </section>
+</section>
+
+@code {
+    private bool _mounted = true;
+}

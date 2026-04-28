@@ -18,7 +18,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/context-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/contextmenus"));
 
         ILocator dialogTrigger = page.Locator("button.dialog-demo__button").Filter(new LocatorFilterOptions { HasText = "Open context menu dialog" });
         await dialogTrigger.ClickAsync();
@@ -48,7 +48,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/context-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/contextmenus"));
 
         await page.GetByText("Right-click here.", new PageGetByTextOptions { Exact = true }).ClickAsync(new LocatorClickOptions
         {
@@ -84,7 +84,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/context-menu"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/contextmenus"));
 
         await page.GetByText("Right-click here.", new PageGetByTextOptions { Exact = true }).ClickAsync(new LocatorClickOptions
         {

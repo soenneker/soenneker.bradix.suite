@@ -17,7 +17,7 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltip"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltips"));
 
         ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open tooltip dialog", Exact = true });
         await dialogTrigger.ClickAsync();
@@ -39,7 +39,7 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltip"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltips"));
 
         ILocator trigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "+", Exact = true });
         ILocator tooltip = page.GetByRole(AriaRole.Tooltip, new PageGetByRoleOptions { Name = "Add to library", Exact = true });
@@ -65,7 +65,7 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltip"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltips"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "+", Exact = true }).HoverAsync();
 

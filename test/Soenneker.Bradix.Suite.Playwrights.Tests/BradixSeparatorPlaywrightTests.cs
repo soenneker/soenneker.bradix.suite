@@ -26,7 +26,7 @@ public sealed class BradixSeparatorPlaywrightTests : BradixComponentPlaywrightTe
         };
         page.PageError += (_, _) => sawPageError = true;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/separator"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/separators"));
 
         ILocator semantic = page.Locator("[role='separator'][data-orientation='horizontal']").First;
         await Assertions.Expect(semantic).Not.ToHaveAttributeAsync("aria-orientation", new System.Text.RegularExpressions.Regex(".+"));

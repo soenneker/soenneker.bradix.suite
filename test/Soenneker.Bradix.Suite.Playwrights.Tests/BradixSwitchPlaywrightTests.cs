@@ -17,7 +17,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switch"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switches"));
 
         ILocator controlledSection = page.Locator("section.card").Filter(new LocatorFilterOptions { HasText = "Controlled" });
         ILocator toggle = controlledSection.Locator("#sync-mode");
@@ -41,7 +41,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switch"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switches"));
 
         ILocator marketing = page.Locator("#marketing-switch");
         ILocator product = page.Locator("#product-switch");
@@ -67,7 +67,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switch"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switches"));
 
         ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "false");
@@ -83,7 +83,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switch"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switches"));
 
         ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
         await toggle.PressAsync("Enter");
@@ -97,7 +97,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switch"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switches"));
 
         ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
         await toggle.PressAsync("Space");

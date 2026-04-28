@@ -18,7 +18,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scroll-area"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scrollareas"));
 
         int scrollLeft = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('.scroll-area-demo__horizontal [data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollLeft = 200; return viewport.scrollLeft; }");
@@ -31,7 +31,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenPage(BaseUrl, "/scroll-area?testScenarios=true", async currentPage =>
+        await page.OpenPage(BaseUrl, "/scrollareas?testScenarios=true", async currentPage =>
         {
             await Assertions.Expect(currentPage.Locator(".scroll-area-demo__horizontal")).ToBeVisibleAsync();
             await Assertions.Expect(currentPage.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "RTL notes", Exact = true })).ToBeVisibleAsync();
@@ -61,7 +61,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scroll-area"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scrollareas"));
 
         int scrollTop = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('[data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollTop = 200; return viewport.scrollTop; }");
@@ -74,7 +74,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scroll-area"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scrollareas"));
 
         ILocator firstDemo = page.Locator(".website-demo-card").First;
         ILocator scrollbar = firstDemo.Locator("[data-orientation='vertical']");

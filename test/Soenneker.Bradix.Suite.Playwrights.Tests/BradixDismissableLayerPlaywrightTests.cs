@@ -18,7 +18,7 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dismissable-layer"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dismissablelayers"));
         await Assertions.Expect(page.Locator(".portal-surface[data-bradix-dismissable-layer-ready='true']")).ToHaveCountAsync(1);
 
         ILocator layer = page.Locator(".portal-surface").First;
@@ -39,7 +39,7 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dismissable-layer"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dismissablelayers"));
 
         await page.Keyboard.PressAsync("Escape");
 

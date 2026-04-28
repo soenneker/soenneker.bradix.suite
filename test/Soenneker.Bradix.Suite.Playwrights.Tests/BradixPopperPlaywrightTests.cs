@@ -17,7 +17,7 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popper"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/poppers"));
 
         await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync(new System.Text.RegularExpressions.Regex("Placed:\\s+[1-9]"));
     }
@@ -37,7 +37,7 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
         };
         page.PageError += (_, exception) => pageErrors.Add(exception);
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popper"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/poppers"));
 
         ILocator anchor = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Anchor", Exact = true });
         ILocator content = page.Locator(".popper-content").Filter(new LocatorFilterOptions { HasText = "Placed:" });
@@ -80,7 +80,7 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
         };
         page.PageError += (_, exception) => pageErrors.Add(exception);
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popper"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/poppers"));
 
         ILocator boundary = page.Locator("#popper-collision-boundary");
         ILocator anchor = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Anchor", Exact = true });

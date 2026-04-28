@@ -17,7 +17,7 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordion"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordions"));
 
         ILocator singleDemo = page.GetByRole(AriaRole.Region, new PageGetByRoleOptions { Name = "Single accordion demo", Exact = true });
         ILocator accessibleTrigger = singleDemo.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Is it accessible?", Exact = true });
@@ -68,7 +68,7 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordion"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordions"));
 
         ILocator singleDemo = page.GetByRole(AriaRole.Region, new PageGetByRoleOptions { Name = "Single accordion demo", Exact = true });
         ILocator accessibleTrigger = singleDemo.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Is it accessible?", Exact = true });
@@ -105,7 +105,7 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordion"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordions"));
 
         ILocator accessibleTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Is it accessible?", Exact = true });
         ILocator unstyledTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Is it unstyled?", Exact = true });
@@ -124,7 +124,7 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordion"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordions"));
 
         ILocator multipleDemo = page.GetByRole(AriaRole.Region, new PageGetByRoleOptions { Name = "Multiple accordion demo", Exact = true });
         ILocator firstTrigger = multipleDemo.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Can I open more than one item?", Exact = true });

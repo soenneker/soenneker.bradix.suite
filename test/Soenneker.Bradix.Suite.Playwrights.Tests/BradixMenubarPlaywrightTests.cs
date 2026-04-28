@@ -18,7 +18,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
 
         ILocator editTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Edit", Exact = true });
 
@@ -53,7 +53,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
 
         ILocator viewTrigger = page.Locator("[data-testid='bradix-menubar-demo']").GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "View", Exact = true });
         await viewTrigger.ClickAsync();
@@ -71,7 +71,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
 
         ILocator demo = page.Locator("[data-testid='bradix-menubar-demo']");
         ILocator file = demo.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "File", Exact = true });
@@ -93,7 +93,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
 
         ILocator editTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Edit", Exact = true });
         await editTrigger.ClickAsync();
@@ -118,7 +118,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
 
         ILocator editTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Edit", Exact = true });
         await editTrigger.ClickAsync();
@@ -142,7 +142,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
 
         ILocator demo = page.Locator("[data-testid='bradix-menubar-rtl-demo']");
         ILocator file = demo.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "ملف", Exact = true });
@@ -162,7 +162,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
 
         await page.Locator("[data-testid='bradix-menubar-demo']").GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "View", Exact = true }).ClickAsync();
         ILocator dateModified = page.GetByText("Date modified", new PageGetByTextOptions { Exact = true }).Locator("..");
@@ -178,7 +178,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
 
         ILocator viewTrigger = page.Locator("[data-testid='bradix-menubar-demo']").GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "View", Exact = true });
         await viewTrigger.ClickAsync();
@@ -199,7 +199,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
 
         ILocator demo = page.Locator("[data-testid='bradix-menubar-demo']");
         ILocator file = demo.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "File", Exact = true });

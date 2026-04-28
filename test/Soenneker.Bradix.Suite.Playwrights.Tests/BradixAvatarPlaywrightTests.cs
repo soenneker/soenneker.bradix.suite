@@ -17,7 +17,7 @@ public sealed class BradixAvatarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/avatar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/avatars"));
 
         ILocator loadedAvatar = page.Locator("#avatar-loaded");
 
@@ -31,7 +31,7 @@ public sealed class BradixAvatarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/avatar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/avatars"));
 
         ILocator delayedAvatar = page.Locator("#avatar-delayed");
         ILocator brokenAvatar = page.Locator("#avatar-broken");

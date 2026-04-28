@@ -17,7 +17,7 @@ public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toolbar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toolbars"));
 
         ILocator bold = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Bold", Exact = true }).First;
         ILocator italic = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Italic", Exact = true }).First;
@@ -68,7 +68,7 @@ public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toolbar"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toolbars"));
 
         ILocator bold = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Bold", Exact = true }).First;
         ILocator left = page.GetByRole(AriaRole.Radio, new PageGetByRoleOptions { Name = "Left aligned", Exact = true }).First;

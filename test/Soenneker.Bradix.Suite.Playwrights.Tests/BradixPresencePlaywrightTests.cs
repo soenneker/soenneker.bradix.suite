@@ -17,7 +17,7 @@ public sealed class BradixPresencePlaywrightTests : BradixComponentPlaywrightTes
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/presence"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/presences"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle presence", Exact = true }).ClickAsync();
 

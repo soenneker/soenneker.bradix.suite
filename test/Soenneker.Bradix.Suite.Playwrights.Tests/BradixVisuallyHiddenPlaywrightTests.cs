@@ -26,7 +26,7 @@ public sealed class BradixVisuallyHiddenPlaywrightTests : BradixComponentPlaywri
         };
         page.PageError += (_, _) => sawPageError = true;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/visually-hidden"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/visuallyhidden"));
 
         ILocator button = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Save the file", Exact = true });
         await Assertions.Expect(button).ToBeVisibleAsync();

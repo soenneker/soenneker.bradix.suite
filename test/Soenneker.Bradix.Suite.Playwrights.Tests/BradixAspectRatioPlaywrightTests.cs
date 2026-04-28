@@ -17,7 +17,7 @@ public sealed class BradixAspectRatioPlaywrightTests : BradixComponentPlaywright
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/aspect-ratio"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/aspectratios"));
 
         ILocator wrappers = page.Locator("[data-radix-aspect-ratio-wrapper]");
         await Assert.That(await wrappers.CountAsync()).IsEqualTo(3);

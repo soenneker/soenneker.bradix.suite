@@ -1,0 +1,50 @@
+@page "/toasts"
+
+<PageTitle>Bradix Toast</PageTitle>
+
+<section class="website-demo-page">
+    <section class="card website-demo-card">
+        <BradixToastProvider SwipeDirection="@SwipeDirection.Right">
+            <button class="toast-demo__trigger"
+                    @onclick="ShowToast">
+                Add to calendar
+            </button>
+
+            <BradixToast Open="@_open"
+                         OpenChanged="HandleOpenChanged"
+                         Class="toast-demo__root">
+                <BradixToastTitle Class="toast-demo__title">Scheduled: Catch up</BradixToastTitle>
+                <BradixToastDescription Class="toast-demo__description">@PrettyDate(_eventDate)</BradixToastDescription>
+                <BradixToastAction AltText="Goto schedule to undo"
+                                   Class="dialog-demo__button dialog-demo__button--green toast-demo__action">
+                    Undo
+                </BradixToastAction>
+            </BradixToast>
+
+            <BradixToastViewport Class="toast-demo__viewport" />
+        </BradixToastProvider>
+    </section>
+</section>
+
+@code {
+    private bool _open;
+    private DateTime _eventDate = DateTime.Now.AddDays(7);
+
+    private void ShowToast()
+    {
+        _open = false;
+        _eventDate = DateTime.Now.AddDays(7);
+        _open = true;
+    }
+
+    private Task HandleOpenChanged(bool open)
+    {
+        _open = open;
+        return Task.CompletedTask;
+    }
+
+    private static string PrettyDate(DateTime date)
+    {
+        return date.ToString("dddd, MMMM d, yyyy h:mm tt");
+    }
+}

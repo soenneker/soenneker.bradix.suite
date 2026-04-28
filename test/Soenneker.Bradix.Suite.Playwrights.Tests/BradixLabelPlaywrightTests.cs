@@ -17,7 +17,7 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/label"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/labels"));
 
         ILocator input = page.Locator("#firstName");
         await page.GetByText("First name", new PageGetByTextOptions { Exact = true }).ClickAsync();
@@ -31,7 +31,7 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/label"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/labels"));
 
         ILocator checkbox = page.Locator("#newsletter");
         await Assertions.Expect(checkbox).Not.ToBeCheckedAsync();
@@ -47,7 +47,7 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/label"));
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/labels"));
 
         ILocator label = page.GetByText("First name", new PageGetByTextOptions { Exact = true });
         bool dispatchResult = await label.EvaluateAsync<bool>(

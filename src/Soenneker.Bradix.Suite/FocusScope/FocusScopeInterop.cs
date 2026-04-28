@@ -6,6 +6,7 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
+///<inheritdoc cref="IFocusScopeInterop"/>
 public sealed class FocusScopeInterop : IFocusScopeInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
@@ -21,8 +22,8 @@ public sealed class FocusScopeInterop : IFocusScopeInterop
         bool preventMountAutoFocus, bool preventUnmountAutoFocus, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerFocusScope", cancellationToken, element, dotNetReference, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus)
-            ;
+        await module.InvokeVoidAsync("registerFocusScope", cancellationToken, element, dotNetReference, loop, trapped, preventMountAutoFocus,
+            preventUnmountAutoFocus);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -34,8 +35,7 @@ public sealed class FocusScopeInterop : IFocusScopeInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("updateFocusScope", cancellationToken, element, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus)
-            ;
+        await module.InvokeVoidAsync("updateFocusScope", cancellationToken, element, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus);
     }
 
     public async ValueTask UnregisterFocusScope(ElementReference element, bool unmountAutoFocusPrevented = false, CancellationToken cancellationToken = default)
