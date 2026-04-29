@@ -30,7 +30,8 @@
                              HideWhenDetached="HideWhenDetached"
                              Anchor="@TooltipTriggerAnchor"
                              UseAnchor="@HasTooltipTriggerAnchor"
-                             Style="@PositionerStyle">
+                             Style="@PositionerStyle"
+                             OnPlacementChanged="@HandlePlacementChanged">
             <BradixPresence Present="IsPresent"
                             Tag="div"
                             Class="@Class"
@@ -57,6 +58,8 @@
     private string? _accessibleLabel;
     private bool? _lastHoverableContent;
     private string? _lastTriggerId;
+    private string? _placedSide;
+    private string? _placedAlign;
 
     [CascadingParameter]
     private BradixTooltip? Tooltip { get; set; }
@@ -133,6 +136,8 @@
                 : new Dictionary<string, object>();
 
             attributes["data-state"] = Tooltip?.StateAttribute ?? "closed";
+            attributes["data-side"] = _placedSide ?? Side.Value;
+            attributes["data-align"] = _placedAlign ?? Align.Value;
 
             return attributes;
         }
@@ -238,6 +243,13 @@
             return Task.CompletedTask;
 
         return Tooltip?.HandleContentLeave() ?? Task.CompletedTask;
+    }
+
+    private Task HandlePlacementChanged(BradixPopperPlacementEventArgs args)
+    {
+        _placedSide = args.Side;
+        _placedAlign = args.Align;
+        return Task.CompletedTask;
     }
 
     [JSInvokable]

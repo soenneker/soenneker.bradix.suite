@@ -85,6 +85,9 @@
     public EventCallback OnPlaced { get; set; }
 
     [Parameter]
+    public EventCallback<BradixPopperPlacementEventArgs> OnPlacementChanged { get; set; }
+
+    [Parameter]
     public ElementReference Anchor { get; set; }
 
     [Parameter]
@@ -273,7 +276,13 @@
 
         await InvokeAsync(StateHasChanged);
 
-        if (newlyPlaced && OnPlaced.HasDelegate)
+        if (!newlyPlaced)
+            return;
+
+        if (OnPlacementChanged.HasDelegate)
+            await OnPlacementChanged.InvokeAsync(new BradixPopperPlacementEventArgs { Side = side, Align = align });
+
+        if (OnPlaced.HasDelegate)
             await OnPlaced.InvokeAsync();
     }
 

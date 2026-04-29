@@ -27,6 +27,8 @@
     private bool _hideOthersRegistered;
     private bool _isRightClickOutside;
     private ElementReference _contentElement;
+    private string? _placedSide;
+    private string? _placedAlign;
 
     [CascadingParameter]
     private BradixPopover? Popover { get; set; }
@@ -110,6 +112,9 @@
     public EventCallback OnPlaced { get; set; }
 
     [Parameter]
+    public EventCallback<BradixPopperPlacementEventArgs> OnPlacementChanged { get; set; }
+
+    [Parameter]
     public bool CloseOnEscapeKeyDown { get; set; } = true;
 
     [Parameter]
@@ -161,6 +166,8 @@
                 attributes["aria-modal"] = Popover?.Modal == true ? "true" : "false";
 
             attributes["data-state"] = Popover?.CurrentOpen == true ? "open" : "closed";
+            attributes["data-side"] = _placedSide ?? Side.Value;
+            attributes["data-align"] = _placedAlign ?? Align.Value;
 
             return attributes;
         }
@@ -346,6 +353,7 @@ ResetState:
                                      Anchor="@ResolvedAnchor"
                                      UseAnchor="@ShouldUseAnchor"
                                      Style="@PositionerStyle"
+                                     OnPlacementChanged="@HandlePlacementChanged"
                                      OnPlaced="@OnPlaced">
                     <BradixPresence Present="IsPresent"
                                     Tag="div"
@@ -393,4 +401,13 @@ ResetState:
                 : Popover.AnchorElement;
 
     private bool ShouldUseAnchor => Popover?.HasTrigger == true || Popover?.HasAnchor == true;
+
+    private async Task HandlePlacementChanged(BradixPopperPlacementEventArgs args)
+    {
+        _placedSide = args.Side;
+        _placedAlign = args.Align;
+
+        if (OnPlacementChanged.HasDelegate)
+            await OnPlacementChanged.InvokeAsync(args);
+    }
 }

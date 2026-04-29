@@ -110,7 +110,6 @@
                 : new Dictionary<string, object>();
 
             attributes["role"] = string.IsNullOrWhiteSpace(Role) ? "dialog" : Role;
-            attributes["aria-modal"] = Dialog?.Modal == true ? "true" : "false";
             attributes["data-state"] = Dialog?.CurrentOpen == true ? "open" : "closed";
 
             if (!string.IsNullOrWhiteSpace(Dialog?.RegisteredTitleId))

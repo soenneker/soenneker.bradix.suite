@@ -45,6 +45,9 @@ public interface IBradixPopperContent : IAsyncDisposable {
     /// <summary>Raised after the popper completes placement.</summary>
     EventCallback OnPlaced { get; set; }
 
+    /// <summary>Raised when the resolved floating placement changes.</summary>
+    EventCallback<BradixPopperPlacementEventArgs> OnPlacementChanged { get; set; }
+
     /// <summary>Root element id.</summary>
     string? Id { get; set; }
 

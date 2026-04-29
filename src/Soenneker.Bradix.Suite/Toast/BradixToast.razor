@@ -179,9 +179,11 @@
         }
     }
 
-    private IReadOnlyDictionary<string, object> AnnounceAttributes => BuildAttributes(
-        ("role", "status"),
-        ("aria-live", IsForeground ? "assertive" : "polite"));
+    private IReadOnlyDictionary<string, object> AnnounceAttributes => new Dictionary<string, object>
+    {
+        ["role"] = "status",
+        ["aria-live"] = IsForeground ? "assertive" : "polite"
+    };
 
     protected override void OnParametersSet()
     {

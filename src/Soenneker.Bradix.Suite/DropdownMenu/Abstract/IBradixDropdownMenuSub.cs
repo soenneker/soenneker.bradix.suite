@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using System.Collections.Generic;
 
 namespace Soenneker.Bradix;
 
@@ -16,6 +17,9 @@ public interface IBradixDropdownMenuSub
 
     /// <summary>Gets or sets the callback invoked when the open state changes.</summary>
     EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>Gets or sets additional attributes spread onto the primitive root.</summary>
+    IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     /// <summary>Gets or sets the child content.</summary>
     RenderFragment? ChildContent { get; set; }

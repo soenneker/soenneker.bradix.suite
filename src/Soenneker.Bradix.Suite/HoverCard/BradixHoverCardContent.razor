@@ -28,7 +28,9 @@
                              CollisionBoundarySelectors="@CollisionBoundarySelectors"
                              Sticky="@Sticky"
                              HideWhenDetached="@HideWhenDetached"
-                             Style="@PositionerStyle">
+                             Style="@PositionerStyle"
+                             OnPlaced="@OnPlaced"
+                             OnPlacementChanged="@HandlePlacementChanged">
             <BradixPresence Present="IsPresent"
                             Tag="div"
                             Id="@ResolvedContentId"
@@ -53,6 +55,8 @@
     private bool _tabNavigationDisabled;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _pointerDownOutsidePrevented;
+    private string? _placedSide;
+    private string? _placedAlign;
 
     [CascadingParameter]
     private BradixHoverCard? HoverCard { get; set; }
@@ -109,6 +113,12 @@
     public EventCallback OnInteractOutside { get; set; }
 
     [Parameter]
+    public EventCallback OnPlaced { get; set; }
+
+    [Parameter]
+    public EventCallback<BradixPopperPlacementEventArgs> OnPlacementChanged { get; set; }
+
+    [Parameter]
     public EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
 
     [Parameter]
@@ -136,6 +146,8 @@
                 : new Dictionary<string, object>();
 
             attributes["data-state"] = HoverCard?.CurrentOpen == true ? "open" : "closed";
+            attributes["data-side"] = _placedSide ?? Side.Value;
+            attributes["data-align"] = _placedAlign ?? Align.Value;
             return attributes;
         }
     }
@@ -262,6 +274,15 @@
             await HoverCardAvatarInterop.BeginHoverCardSelectionContainment(_contentElement);
 
         HoverCard?.NotifyContentPointerDown();
+    }
+
+    private async Task HandlePlacementChanged(BradixPopperPlacementEventArgs args)
+    {
+        _placedSide = args.Side;
+        _placedAlign = args.Align;
+
+        if (OnPlacementChanged.HasDelegate)
+            await OnPlacementChanged.InvokeAsync(args);
     }
 
     [JSInvokable]

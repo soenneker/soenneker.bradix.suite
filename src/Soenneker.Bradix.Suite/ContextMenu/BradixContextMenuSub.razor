@@ -4,7 +4,8 @@
 <BradixMenuSub Open="@Open"
                DefaultOpen="@DefaultOpen"
                OpenChanged="@OpenChanged"
-               OnOpenChange="@OnOpenChange">
+               OnOpenChange="@OnOpenChange"
+               AdditionalAttributes="@AdditionalAttributes">
     @ChildContent
 </BradixMenuSub>
 
@@ -20,6 +21,9 @@
 
     [Parameter]
     public EventCallback<bool> OnOpenChange { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }

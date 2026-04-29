@@ -57,6 +57,12 @@ public interface IBradixHoverCardContent : IAsyncDisposable {
     /// <summary>Raised on any outside interaction.</summary>
     EventCallback OnInteractOutside { get; set; }
 
+    /// <summary>Raised after the popper completes placement.</summary>
+    EventCallback OnPlaced { get; set; }
+
+    /// <summary>Raised when popper placement changes after collision resolution.</summary>
+    EventCallback<BradixPopperPlacementEventArgs> OnPlacementChanged { get; set; }
+
     /// <summary>Raised when Escape is pressed with detailed args.</summary>
     EventCallback<BradixEscapeKeyDownEventArgs> OnEscapeKeyDownDetailed { get; set; }
 

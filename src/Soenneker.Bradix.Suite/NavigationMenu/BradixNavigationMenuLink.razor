@@ -52,7 +52,7 @@
         : null;
 
     private Dictionary<string, object> LinkAttributes => BuildAttributes(
-        ("data-active", Active ? string.Empty : null),
+        ("data-active", Active ? "true" : null),
         ("aria-current", Active ? "page" : null),
         ("data-bradix-roving-group", RovingGroupId),
         ("data-bradix-roving-item", string.Empty),

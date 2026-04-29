@@ -36,6 +36,7 @@
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
         ("aria-label", AriaLabel),
+        ("data-state", Dialog?.CurrentOpen == true ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
         ("disabled", Disabled ? true : null));
 

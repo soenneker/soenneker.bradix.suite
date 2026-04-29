@@ -23,6 +23,8 @@
     private DotNetObjectReference<BradixMenubarContent>? _dotNetReference;
     private bool _delegatedInteractionRegistered;
     private RenderFragment? _contentTree;
+    private string? _placedSide;
+    private string? _placedAlign;
 
     [CascadingParameter]
     private BradixMenubar? Menubar { get; set; }
@@ -137,6 +139,8 @@
             if (!string.IsNullOrWhiteSpace(MenubarMenu?.TriggerId))
                 attributes["aria-labelledby"] = MenubarMenu.TriggerId;
             attributes["data-state"] = MenubarMenu?.IsOpen == true ? "open" : "closed";
+            attributes["data-side"] = _placedSide ?? Side.Bottom.Value;
+            attributes["data-align"] = _placedAlign ?? Align.Value;
             attributes["data-radix-menubar-content"] = string.Empty;
             if (!string.IsNullOrWhiteSpace(Menubar?.MenubarId))
                 attributes["data-bradix-menubar-id"] = Menubar.MenubarId;
@@ -459,6 +463,7 @@
                                          Sticky="@Sticky"
                                          HideWhenDetached="@HideWhenDetached"
                                          Style="@PositionerStyle"
+                                         OnPlacementChanged="@HandlePlacementChanged"
                                          OnPlaced="@OnPlaced">
                         <BradixPresence Present="IsPresent"
                                         Tag="div"
@@ -475,4 +480,11 @@
             </BradixFocusScope>
         </BradixFocusGuards>
     </CascadingValue>;
+
+    private Task HandlePlacementChanged(BradixPopperPlacementEventArgs args)
+    {
+        _placedSide = args.Side;
+        _placedAlign = args.Align;
+        return Task.CompletedTask;
+    }
 }
