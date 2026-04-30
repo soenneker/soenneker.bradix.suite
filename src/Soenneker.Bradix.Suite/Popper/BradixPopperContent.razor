@@ -101,7 +101,7 @@
     internal double? ArrowY => _arrowY;
     internal bool ShouldHideArrow => _hideArrow;
 
-    private Dictionary<string, object> ContentAttributes => BuildAttributes(("data-side", _placedSide), ("data-align", _placedAlign), ("style", BuildContentStyle()));
+    private Dictionary<string, object> ContentAttributes => BuildAttributes("data-side", _placedSide, "data-align", _placedAlign, "style", BuildContentStyle());
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

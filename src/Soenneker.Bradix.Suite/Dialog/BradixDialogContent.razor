@@ -112,6 +112,9 @@
             attributes["role"] = string.IsNullOrWhiteSpace(Role) ? "dialog" : Role;
             attributes["data-state"] = Dialog?.CurrentOpen == true ? "open" : "closed";
 
+            if (Dialog?.Modal == true)
+                attributes["aria-modal"] = "true";
+
             if (!string.IsNullOrWhiteSpace(Dialog?.RegisteredTitleId))
                 attributes["aria-labelledby"] = Dialog.RegisteredTitleId;
 

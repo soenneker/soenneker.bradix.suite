@@ -1,5 +1,7 @@
 @namespace Soenneker.Bradix
 
+@inherits BradixComponent
+
 @implements IBradixMenubarSubContent
 <BradixMenuSubContent ForceMount="@ForceMount"
                       Loop="@Loop"
@@ -68,18 +70,6 @@
     public bool HideWhenDetached { get; set; }
 
     [Parameter]
-    public string? Class { get; set; }
-
-    [Parameter]
-    public string? Style { get; set; }
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
-    [Parameter]
     public EventCallback OnOpenAutoFocus { get; set; }
 
     [Parameter]
@@ -122,7 +112,7 @@
             const string menubarVariables =
                 "--radix-menubar-content-transform-origin: var(--radix-popper-transform-origin); --radix-menubar-content-available-width: var(--radix-popper-available-width); --radix-menubar-content-available-height: var(--radix-popper-available-height); --radix-menubar-trigger-width: var(--radix-popper-anchor-width); --radix-menubar-trigger-height: var(--radix-popper-anchor-height);";
 
-            return BradixComponent.MergeStyleValues(menubarVariables, Style)!;
+            return MergeStyleValues(menubarVariables, Style)!;
         }
     }
 

@@ -1,5 +1,7 @@
 @namespace Soenneker.Bradix
 
+@inherits BradixComponent
+
 @implements IBradixDropdownMenuSubContent
 
 <BradixMenuSubContent ForceMount="@ForceMount"
@@ -66,18 +68,6 @@
     public bool HideWhenDetached { get; set; }
 
     [Parameter]
-    public string? Class { get; set; }
-
-    [Parameter]
-    public string? Style { get; set; }
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
-    [Parameter]
     public EventCallback OnOpenAutoFocus { get; set; }
 
     [Parameter]
@@ -120,7 +110,7 @@
             const string dropdownVariables =
                 "--radix-dropdown-menu-content-transform-origin: var(--radix-popper-transform-origin); --radix-dropdown-menu-content-available-width: var(--radix-popper-available-width); --radix-dropdown-menu-content-available-height: var(--radix-popper-available-height); --radix-dropdown-menu-trigger-width: var(--radix-popper-anchor-width); --radix-dropdown-menu-trigger-height: var(--radix-popper-anchor-height);";
 
-            return BradixComponent.MergeStyleValues(dropdownVariables, Style)!;
+            return MergeStyleValues(dropdownVariables, Style)!;
         }
     }
 }

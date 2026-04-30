@@ -57,7 +57,7 @@
         {
             if (Value is null)
             {
-                return BuildAttributes(("style", "display: none;"));
+                return BuildAttributes("style", "display: none;");
             }
 
             double percent = Slider.GetPercentForValue(Value.Value);
@@ -82,7 +82,7 @@
 
             var percentText = percent.ToString(System.Globalization.CultureInfo.InvariantCulture);
             var style = $"--bradix-slider-thumb-percent: {percentText}; --bradix-slider-thumb-direction: {direction}; position: absolute; {startEdge}: calc({percentText}% + var(--bradix-slider-thumb-in-bounds-offset, 0px)); transform: {transform};";
-            return BuildAttributes(("style", style));
+            return BuildAttributes("style", style);
         }
     }
 

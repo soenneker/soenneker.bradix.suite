@@ -26,9 +26,9 @@ public sealed class BradixInfrastructureContractTests : BunitContext
                 ["data-owned"] = "consumer"
             });
 
-        Dictionary<string, object> attributes = component.ExposeBuildAttributes(("data-owned", "owned"), ("role", "presentation"));
+        Dictionary<string, object> attributes = component.ExposeBuildAttributes("data-owned", "owned", "role", "presentation");
 
-        await Assert.That(attributes["id"]).IsEqualTo("consumer-id");
+        await Assert.That(attributes["id"]).IsEqualTo("owned-id");
         await Assert.That(attributes["class"].ToString()).IsEqualTo("owned-class consumer-class");
         await Assert.That(attributes["style"].ToString()).IsEqualTo("color: red; background: blue");
         await Assert.That(attributes["data-owned"]).IsEqualTo("consumer");

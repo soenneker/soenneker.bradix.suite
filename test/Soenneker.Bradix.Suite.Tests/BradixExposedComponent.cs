@@ -12,8 +12,8 @@ internal sealed class BradixExposedComponent : BradixComponent
         AdditionalAttributes = additionalAttributes;
     }
 
-    public Dictionary<string, object> ExposeBuildAttributes(params (string Key, object? Value)[] values)
+    public Dictionary<string, object> ExposeBuildAttributes(string key1, object? value1, string key2, object? value2)
     {
-        return BuildAttributes(values);
+        return BuildAttributes(key1, value1, key2, value2);
     }
 }

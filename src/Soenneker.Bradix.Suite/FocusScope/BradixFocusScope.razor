@@ -47,7 +47,7 @@
     [Parameter]
     public bool PreventUnmountAutoFocus { get; set; }
 
-    private Dictionary<string, object> ScopeAttributes => BuildAttributes(("tabindex", -1));
+    private Dictionary<string, object> ScopeAttributes => BuildAttributes("tabindex", -1);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

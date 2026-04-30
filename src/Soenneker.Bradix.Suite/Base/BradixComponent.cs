@@ -1,124 +1,20 @@
-using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Components;
-using Soenneker.Extensions.String;
+using Soenneker.Lepton.Suite;
 
 namespace Soenneker.Bradix;
 
 ///<inheritdoc cref="IBradixComponent"/>
-public abstract class BradixComponent : ComponentBase, IBradixComponent
+public abstract class BradixComponent : LeptonIdentifiableContentElement, IBradixComponent
 {
-    [Parameter]
-    public string? Id { get; set; }
-
-    [Parameter]
-    public string? Class { get; set; }
-
-    [Parameter]
-    public string? Style { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
-
-    protected Dictionary<string, object> BuildAttributes(params (string Key, object? Value)[] values)
+    protected Dictionary<string, object> BuildAttributes(string key1, object? value1, string key2, object? value2, string key3, object? value3)
     {
-        var attributes = new Dictionary<string, object>();
-
-        SetAttribute(attributes, "id", Id);
-
-        MergeClassAttribute(attributes, Class);
-        MergeStyleAttribute(attributes, Style);
-
-        foreach ((string key, object? value) in values)
-        {
-            SetAttribute(attributes, key, value);
-        }
-
-        if (AdditionalAttributes is null || AdditionalAttributes.Count == 0)
-            return attributes;
-
-        foreach ((string key, var value) in AdditionalAttributes)
-        {
-            if (string.Equals(key, "class", StringComparison.OrdinalIgnoreCase))
-            {
-                MergeClassAttribute(attributes, value?.ToString());
-                continue;
-            }
-
-            if (string.Equals(key, "style", StringComparison.OrdinalIgnoreCase))
-            {
-                MergeStyleAttribute(attributes, value?.ToString());
-                continue;
-            }
-
-            SetAttribute(attributes, key, value);
-        }
-
-        return attributes;
+        return base.BuildAttributes(
+        [
+            new KeyValuePair<string, object?>(key1, value1),
+            new KeyValuePair<string, object?>(key2, value2),
+            new KeyValuePair<string, object?>(key3, value3)
+        ]);
     }
 
     protected static string OpenDataState(bool open) => open ? "open" : "closed";
-
-    protected static void MergeClassAttribute(IDictionary<string, object> attributes, string? value)
-    {
-        if (value.IsNullOrWhiteSpace())
-            return;
-
-        if (attributes.TryGetValue("class", out object? existing) && existing is not null)
-        {
-            string existingText = existing.ToString() ?? string.Empty;
-
-            attributes["class"] = existingText.IsNullOrWhiteSpace() ? value : $"{existingText} {value}";
-            return;
-        }
-
-        attributes["class"] = value;
-    }
-
-    protected static void MergeStyleAttribute(IDictionary<string, object> attributes, string? value)
-    {
-        if (value.IsNullOrWhiteSpace())
-            return;
-
-        if (attributes.TryGetValue("style", out object? existing) && existing is not null)
-        {
-            string existingText = existing.ToString() ?? string.Empty;
-
-            if (existingText.IsNullOrWhiteSpace())
-            {
-                attributes["style"] = value;
-                return;
-            }
-
-            string trimmed = existingText.TrimEnd();
-
-            attributes["style"] = trimmed.EndsWith(';') ? $"{trimmed} {value}" : $"{trimmed}; {value}";
-            return;
-        }
-
-        attributes["style"] = value;
-    }
-
-    internal static string? MergeStyleValues(string? existingValue, string? newValue)
-    {
-        if (existingValue.IsNullOrWhiteSpace())
-            return newValue;
-
-        if (newValue.IsNullOrWhiteSpace())
-            return existingValue;
-
-        string trimmed = existingValue!.TrimEnd();
-        return trimmed.EndsWith(';') ? $"{trimmed} {newValue}" : $"{trimmed}; {newValue}";
-    }
-
-    protected static void SetAttribute(IDictionary<string, object> attributes, string key, object? value)
-    {
-        if (value is null)
-            return;
-
-        attributes[key] = value;
-    }
 }
