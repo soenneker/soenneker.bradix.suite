@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonIdentifiableContentElement
 @implements IBradixContextMenuRadioItem
 <BradixMenuRadioItem Id="@Id"
                      Class="@Class"
@@ -15,15 +16,6 @@
 </BradixMenuRadioItem>
 
 @code {
-    [Parameter]
-    public string? Id { get; set; }
-
-    [Parameter]
-    public string? Class { get; set; }
-
-    [Parameter]
-    public string? Style { get; set; }
-
     [Parameter, EditorRequired]
     public string Value { get; set; } = null!;
 
@@ -41,10 +33,4 @@
 
     [Parameter]
     public EventCallback<BradixMenuItemSelectEventArgs> OnSelectDetailed { get; set; }
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 }

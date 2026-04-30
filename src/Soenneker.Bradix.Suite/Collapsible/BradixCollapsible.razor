@@ -1,6 +1,6 @@
 @namespace Soenneker.Bradix
 
-@inherits BradixComponent
+@inherits LeptonIdentifiableContentElement
 
 @using Soenneker.Blazor.Utils.Ids
 @implements IBradixCollapsible
@@ -40,7 +40,7 @@
     public bool IsOpen => Open ?? _uncontrolledOpen;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("data-state", OpenDataState(IsOpen)),
+        ("data-state", BradixDataStates.Open(IsOpen)),
         ("data-disabled", Disabled ? string.Empty : null));
 
     protected override void OnInitialized()

@@ -9,10 +9,7 @@ namespace Soenneker.Bradix;
 /// Button that closes its parent popover.
 /// </summary>
 public interface IBradixPopoverClose {
-    /// <summary>Root element id.</summary>
-    string? Id { get; set; }
-
-    /// <summary>CSS class names merged onto the root element.</summary>
+/// <summary>CSS class names merged onto the root element.</summary>
     string? Class { get; set; }
 
     /// <summary>Inline style for the root element.</summary>

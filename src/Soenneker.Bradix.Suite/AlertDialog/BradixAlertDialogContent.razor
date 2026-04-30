@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonIdentifiableContentElement
 @implements IBradixAlertDialogContent
 
 @inject IControlsInterop ControlsInterop
@@ -39,19 +40,7 @@
     private BradixDialog? Dialog { get; set; }
 
     [Parameter]
-    public string? Id { get; set; }
-
-    [Parameter]
-    public string? Class { get; set; }
-
-    [Parameter]
-    public string? Style { get; set; }
-
-    [Parameter]
     public bool ForceMount { get; set; }
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     [Parameter]
     public EventCallback OnOpenAutoFocus { get; set; }
@@ -79,9 +68,6 @@
 
     [Parameter]
     public EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 
     internal void RegisterCancelElement(ElementReference element)
     {

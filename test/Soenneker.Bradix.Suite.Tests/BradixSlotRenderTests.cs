@@ -17,17 +17,16 @@ public sealed class BradixSlotRenderTests : BunitContext
         {
             builder.OpenComponent<BradixSlot>(0);
             builder.AddAttribute(1, nameof(BradixSlot.ElementName), "button");
-            builder.AddAttribute(2, nameof(BradixSlot.Id), "slot-id");
-            builder.AddAttribute(3, nameof(BradixSlot.Class), "slot-root");
-            builder.AddAttribute(4, nameof(BradixSlot.Style), "color: steelblue; border: 1px solid currentColor;");
-            builder.AddAttribute(5, nameof(BradixSlot.ChildAttributes), new Dictionary<string, object>
+            builder.AddAttribute(2, nameof(BradixSlot.Class), "slot-root");
+            builder.AddAttribute(3, nameof(BradixSlot.Style), "color: steelblue; border: 1px solid currentColor;");
+            builder.AddAttribute(4, nameof(BradixSlot.ChildAttributes), new Dictionary<string, object>
             {
                 ["class"] = "child-root",
                 ["style"] = "color: rebeccapurple; background: transparent;",
                 ["type"] = "button",
                 ["title"] = "child title"
             });
-            builder.AddAttribute(6, nameof(BradixSlot.ChildContent), (RenderFragment)(contentBuilder =>
+            builder.AddAttribute(5, nameof(BradixSlot.ChildContent), (RenderFragment)(contentBuilder =>
             {
                 contentBuilder.AddContent(0, "Hello");
             }));
@@ -37,7 +36,6 @@ public sealed class BradixSlotRenderTests : BunitContext
         IElement button = cut.Find("button");
         string style = button.GetAttribute("style") ?? string.Empty;
 
-        await Assert.That(button.Id).IsEqualTo("slot-id");
         await Assert.That(button.ClassName).Contains("slot-root");
         await Assert.That(button.ClassName).Contains("child-root");
         await Assert.That(style).Contains("color: steelblue;");

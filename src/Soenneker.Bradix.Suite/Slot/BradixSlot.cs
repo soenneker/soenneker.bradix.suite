@@ -5,10 +5,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
+using Soenneker.Lepton.Suite;
 
 namespace Soenneker.Bradix;
 
-public sealed class BradixSlot : BradixComponent
+public sealed class BradixSlot : LeptonIdentifiableContentElement
 {
     [Parameter, EditorRequired]
     public string ElementName { get; set; } = null!;

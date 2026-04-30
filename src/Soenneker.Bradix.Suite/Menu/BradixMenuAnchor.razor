@@ -1,11 +1,7 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonContent
 @implements IBradixMenuAnchor
 <BradixPopperAnchor>
     @ChildContent
 </BradixPopperAnchor>
-
-@code {
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-}

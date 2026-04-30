@@ -71,11 +71,7 @@ public interface IBradixOneTimePasswordField : IAsyncDisposable{
 
     /// <summary>Optional custom sanitizer applied when <see cref="ValidationType"/> is <c>none</c>.</summary>
     Func<string, string>? SanitizeValue { get; set; }
-
-    /// <summary>Root element id.</summary>
-    string? Id { get; set; }
-
-    /// <summary>CSS class names merged onto the root element.</summary>
+/// <summary>CSS class names merged onto the root element.</summary>
     string? Class { get; set; }
 
     /// <summary>Inline style for the root element.</summary>

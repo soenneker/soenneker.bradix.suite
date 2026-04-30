@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonContent
 @implements IBradixContextMenuPortal
 <BradixMenuPortal ContainerSelector="@ContainerSelector"
                   Container="@Container"
@@ -16,7 +17,4 @@
 
     [Parameter]
     public bool ForceMount { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 }

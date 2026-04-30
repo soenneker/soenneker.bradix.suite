@@ -16,5 +16,5 @@ public abstract class BradixComponent : LeptonIdentifiableContentElement, IBradi
         ]);
     }
 
-    protected static string OpenDataState(bool open) => open ? "open" : "closed";
+    protected static string OpenDataState(bool open) => BradixDataStates.Open(open);
 }

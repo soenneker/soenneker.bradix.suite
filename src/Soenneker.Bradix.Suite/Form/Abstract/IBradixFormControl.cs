@@ -23,11 +23,7 @@ public interface IBradixFormControl : IAsyncDisposable {
 
     /// <summary>Inline style for the root element.</summary>
     string? Style { get; set; }
-
-    /// <summary>Child content (typically unused for a self-closing input).</summary>
-    RenderFragment? ChildContent { get; set; }
-
-    /// <summary>Additional unmatched attributes applied to the root element.</summary>
+/// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     /// <summary>Updates field validity in the parent form.</summary>

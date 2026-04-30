@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonIdentifiableContentElement
 @implements IBradixContextMenuCheckboxItem
 
 <BradixMenuCheckboxItem Id="@Id"
@@ -19,15 +20,6 @@
 </BradixMenuCheckboxItem>
 
 @code {
-    [Parameter]
-    public string? Id { get; set; }
-
-    [Parameter]
-    public string? Class { get; set; }
-
-    [Parameter]
-    public string? Style { get; set; }
-
     [Parameter]
     public string? TextValue { get; set; }
 
@@ -54,10 +46,4 @@
 
     [Parameter]
     public EventCallback<bool> OnCheckedChange { get; set; }
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 }

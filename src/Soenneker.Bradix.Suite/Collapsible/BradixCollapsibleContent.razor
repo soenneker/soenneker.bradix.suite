@@ -1,6 +1,6 @@
 @namespace Soenneker.Bradix
 
-@inherits BradixComponent
+@inherits LeptonIdentifiableContentElement
 
 @implements IBradixCollapsibleContent
 
@@ -53,7 +53,7 @@
 
             attributes["id"] = Collapsible.ContentId!;
             attributes["hidden"] = !IsOpenOrPresent;
-            attributes["data-state"] = OpenDataState(Collapsible.IsOpen);
+            attributes["data-state"] = BradixDataStates.Open(Collapsible.IsOpen);
 
             if (Collapsible.Disabled)
                 attributes["data-disabled"] = string.Empty;

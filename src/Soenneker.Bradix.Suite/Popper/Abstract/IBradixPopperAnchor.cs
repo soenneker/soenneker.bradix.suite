@@ -8,10 +8,7 @@ namespace Soenneker.Bradix;
 /// </summary>
 public interface IBradixPopperAnchor
 {
-    /// <summary>Root element id.</summary>
-    string? Id { get; set; }
-
-    /// <summary>CSS class names merged onto the root element.</summary>
+/// <summary>CSS class names merged onto the root element.</summary>
     string? Class { get; set; }
 
     /// <summary>Inline style for the root element.</summary>

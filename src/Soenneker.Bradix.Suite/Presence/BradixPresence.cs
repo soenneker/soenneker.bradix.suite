@@ -7,10 +7,11 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
 using Soenneker.Atomics.ValueBools;
+using Soenneker.Lepton.Suite;
 
 namespace Soenneker.Bradix;
 
-public sealed class BradixPresence : BradixComponent, IAsyncDisposable
+public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDisposable
 {
     [Inject]
     public IPresenceOverlayInterop PresenceOverlayInterop { get; set; } = null!;

@@ -6,10 +6,7 @@ namespace Soenneker.Bradix;
 /// <summary>Defines the public API for <see cref="BradixMenuGroup"/>.</summary>
 public interface IBradixMenuGroup
 {
-    /// <summary>Gets or sets the element id.</summary>
-    string? Id { get; set; }
-
-    /// <summary>Gets or sets the CSS class names.</summary>
+/// <summary>Gets or sets the CSS class names.</summary>
     string? Class { get; set; }
 
     /// <summary>Gets or sets the inline style.</summary>

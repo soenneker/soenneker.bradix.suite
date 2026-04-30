@@ -2,6 +2,7 @@
 
 @using System.Threading
 
+@inherits LeptonContent
 @implements IBradixTooltipProvider
 <CascadingValue Value="this">
     @ChildContent
@@ -19,9 +20,6 @@
 
     [Parameter]
     public bool DisableHoverableContent { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 
     internal bool IsOpenDelayed { get; private set; } = true;
 

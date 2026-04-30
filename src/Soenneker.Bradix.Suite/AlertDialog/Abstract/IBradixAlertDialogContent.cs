@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
@@ -9,29 +8,9 @@ namespace Soenneker.Bradix;
 public interface IBradixAlertDialogContent
 {
     /// <summary>
-    /// Gets or sets the element id for the dialog content container.
-    /// </summary>
-    string? Id { get; set; }
-
-    /// <summary>
-    /// Gets or sets the CSS class for the dialog content.
-    /// </summary>
-    string? Class { get; set; }
-
-    /// <summary>
-    /// Gets or sets the inline style for the dialog content.
-    /// </summary>
-    string? Style { get; set; }
-
-    /// <summary>
     /// Gets or sets whether the content stays mounted while closed.
     /// </summary>
     bool ForceMount { get; set; }
-
-    /// <summary>
-    /// Gets or sets additional attributes applied to the dialog content.
-    /// </summary>
-    IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     /// <summary>
     /// Gets or sets the callback invoked when the dialog requests initial focus.
@@ -72,9 +51,4 @@ public interface IBradixAlertDialogContent
     /// Gets or sets the callback invoked when focus moves outside the dialog, including detailed arguments.
     /// </summary>
     EventCallback<BradixFocusOutsideEventArgs> OnFocusOutsideDetailed { get; set; }
-
-    /// <summary>
-    /// Gets or sets the child content of the dialog.
-    /// </summary>
-    RenderFragment? ChildContent { get; set; }
 }

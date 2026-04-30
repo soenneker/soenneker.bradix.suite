@@ -9,5 +9,4 @@ namespace Soenneker.Bradix;
 /// </summary>
 public interface IBradixComponent : ILeptonIdentifiableContentElement
 {
-
 }

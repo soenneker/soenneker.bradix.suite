@@ -9,10 +9,7 @@ namespace Soenneker.Bradix;
 /// Defines the public API for <see cref="BradixToast"/>.
 /// </summary>
 public interface IBradixToast : IAsyncDisposable {
-    /// <summary>Gets or sets the element identifier.</summary>
-    string? Id { get; set; }
-
-    /// <summary>Gets or sets the CSS class.</summary>
+/// <summary>Gets or sets the CSS class.</summary>
     string? Class { get; set; }
 
     /// <summary>Gets or sets the inline style.</summary>

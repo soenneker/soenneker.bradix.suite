@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonContent
 @implements IBradixDialogPortal
 <CascadingValue Name="BradixDialogPortalForceMount" Value="ForceMount">
     <BradixPortal ContainerSelector="@ContainerSelector"
@@ -17,7 +18,4 @@
 
     [Parameter]
     public bool ForceMount { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 }

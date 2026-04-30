@@ -20,11 +20,7 @@ public interface IBradixNavigationMenuViewport : IAsyncDisposable {
 
     /// <summary>Inline style for the root element.</summary>
     string? Style { get; set; }
-
-    /// <summary>Viewport content (usually none; hosts register dynamically).</summary>
-    RenderFragment? ChildContent { get; set; }
-
-    /// <summary>Additional unmatched attributes applied to the root element.</summary>
+/// <summary>Additional unmatched attributes applied to the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 

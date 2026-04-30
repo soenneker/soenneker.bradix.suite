@@ -8,10 +8,7 @@ namespace Soenneker.Bradix;
 /// Defines the public API for <see cref="BradixScrollAreaViewport"/>.
 /// </summary>
 public interface IBradixScrollAreaViewport : IAsyncDisposable {
-    /// <summary>Gets or sets the element identifier.</summary>
-    string? Id { get; set; }
-
-    /// <summary>Gets or sets the CSS class.</summary>
+/// <summary>Gets or sets the CSS class.</summary>
     string? Class { get; set; }
 
     /// <summary>Gets or sets the inline style.</summary>

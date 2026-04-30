@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonContent
 @implements IBradixSelectPortal
 <BradixPortal ContainerSelector="@ContainerSelector"
               Container="@Container">
@@ -15,6 +16,4 @@
     [Parameter]
     public ElementReference Container { get; set; }
 
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 }

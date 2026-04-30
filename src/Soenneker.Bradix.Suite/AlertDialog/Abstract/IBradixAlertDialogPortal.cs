@@ -21,9 +21,4 @@ public interface IBradixAlertDialogPortal
     /// Gets or sets whether portal children stay mounted while inactive.
     /// </summary>
     bool ForceMount { get; set; }
-
-    /// <summary>
-    /// Gets or sets the child content rendered into the portal.
-    /// </summary>
-    RenderFragment? ChildContent { get; set; }
 }

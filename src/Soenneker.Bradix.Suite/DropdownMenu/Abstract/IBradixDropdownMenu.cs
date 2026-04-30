@@ -29,16 +29,4 @@ public interface IBradixDropdownMenu
 
     /// <summary>Gets or sets the root content of the dropdown menu.</summary>
     RenderFragment? ChildContent { get; set; }
-
-    /// <summary>Gets or sets the element id.</summary>
-    string? Id { get; set; }
-
-    /// <summary>Gets or sets the CSS class names.</summary>
-    string? Class { get; set; }
-
-    /// <summary>Gets or sets the inline style.</summary>
-    string? Style { get; set; }
-
-    /// <summary>Gets or sets additional attributes spread onto the root element.</summary>
-    IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 }

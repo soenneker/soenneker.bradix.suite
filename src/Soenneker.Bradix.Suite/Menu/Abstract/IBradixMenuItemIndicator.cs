@@ -8,11 +8,7 @@ public interface IBradixMenuItemIndicator
 {
     /// <summary>Gets or sets a value indicating whether the indicator is mounted while inactive.</summary>
     bool ForceMount { get; set; }
-
-    /// <summary>Gets or sets the element id.</summary>
-    string? Id { get; set; }
-
-    /// <summary>Gets or sets the CSS class names.</summary>
+/// <summary>Gets or sets the CSS class names.</summary>
     string? Class { get; set; }
 
     /// <summary>Gets or sets the inline style.</summary>

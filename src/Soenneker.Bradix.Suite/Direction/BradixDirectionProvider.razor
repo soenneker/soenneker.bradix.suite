@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonContent
 @implements IBradixDirectionProvider
 <CascadingValue Name="BradixDirection" Value="ResolvedDirection">
     @ChildContent
@@ -8,9 +9,6 @@
 @code {
     [Parameter]
     public string Dir { get; set; } = "ltr";
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 
     private string ResolvedDirection => BradixDirection.Normalize(Dir);
 }

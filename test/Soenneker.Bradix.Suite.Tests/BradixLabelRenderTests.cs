@@ -24,7 +24,6 @@ public sealed class BradixLabelRenderTests : BunitContext
     public async Task Label_renders_native_for_attribute_and_additional_attributes()
     {
         IRenderedComponent<BradixLabel> cut = Render<BradixLabel>(parameters => parameters
-            .Add(label => label.Id, "first-name-label")
             .Add(label => label.For, "firstName")
             .Add(label => label.Class, "label")
             .AddUnmatched("data-testid", "label")
@@ -35,7 +34,6 @@ public sealed class BradixLabelRenderTests : BunitContext
 
         IElement label = cut.Find("label");
 
-        await Assert.That(label.Id).IsEqualTo("first-name-label");
         await Assert.That(label.GetAttribute("for")).IsEqualTo("firstName");
         await Assert.That(label.GetAttribute("class")).IsEqualTo("label");
         await Assert.That(label.GetAttribute("data-testid")).IsEqualTo("label");

@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonContent
 @implements IBradixRemoveScroll
 
 @inject IPresenceOverlayInterop PresenceOverlayInterop
@@ -10,9 +11,6 @@
 
     [Parameter]
     public bool AllowPinchZoom { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

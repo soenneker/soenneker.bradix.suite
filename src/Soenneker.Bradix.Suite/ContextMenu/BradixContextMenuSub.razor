@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonContentElement
 @implements IBradixContextMenuSub
 <BradixMenuSub Open="@Open"
                DefaultOpen="@DefaultOpen"
@@ -21,10 +22,4 @@
 
     [Parameter]
     public EventCallback<bool> OnOpenChange { get; set; }
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 }

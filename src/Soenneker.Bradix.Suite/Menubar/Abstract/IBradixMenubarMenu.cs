@@ -11,19 +11,6 @@ public interface IBradixMenubarMenu
 
     /// <summary>Gets the base id used for stable trigger and content ids.</summary>
     string? BaseId { get; }
-
-    /// <summary>Gets or sets the element id.</summary>
-    string? Id { get; set; }
-
-    /// <summary>Gets or sets the CSS class names.</summary>
-    string? Class { get; set; }
-
-    /// <summary>Gets or sets the inline style.</summary>
-    string? Style { get; set; }
-
-    /// <summary>Gets or sets the child content.</summary>
+/// <summary>Gets or sets the child content.</summary>
     RenderFragment? ChildContent { get; set; }
-
-    /// <summary>Gets or sets additional attributes spread onto the root element.</summary>
-    IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 }

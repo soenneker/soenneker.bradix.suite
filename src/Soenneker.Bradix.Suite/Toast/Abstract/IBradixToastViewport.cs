@@ -17,11 +17,7 @@ public interface IBradixToastViewport : IAsyncDisposable {
 
     /// <summary>Gets or sets the inline style.</summary>
     string? Style { get; set; }
-
-    /// <summary>Gets or sets the child content.</summary>
-    RenderFragment? ChildContent { get; set; }
-
-    /// <summary>Gets or sets additional attributes merged onto the root element.</summary>
+/// <summary>Gets or sets additional attributes merged onto the root element.</summary>
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     /// <summary>Gets or sets the keyboard shortcut keys that focus the viewport.</summary>

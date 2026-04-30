@@ -26,9 +26,4 @@ public interface IBradixAlertDialog
     /// Gets or sets the callback invoked when the open state changes.
     /// </summary>
     EventCallback<bool> OnOpenChange { get; set; }
-
-    /// <summary>
-    /// Gets or sets the child content of the alert dialog root.
-    /// </summary>
-    RenderFragment? ChildContent { get; set; }
 }

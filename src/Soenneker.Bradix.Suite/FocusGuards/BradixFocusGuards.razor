@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@inherits LeptonContent
 @implements IBradixFocusGuards
 
 @inject IPresenceOverlayInterop PresenceOverlayInterop
@@ -7,9 +8,6 @@
 @ChildContent
 @code {
     private bool _registered;
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
