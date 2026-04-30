@@ -118,10 +118,10 @@ export function registerHideOthers(element) {
 
     changed.push({
       element: child,
-      previous: child.getAttribute("aria-hidden")
+      previousInert: child.inert === true
     });
 
-    child.setAttribute("aria-hidden", "true");
+    child.inert = true;
   }
 
   hideOthersState.set(element, changed);
@@ -134,11 +134,7 @@ export function unregisterHideOthers(element) {
   }
 
   for (const entry of changed) {
-    if (entry.previous === null) {
-      entry.element.removeAttribute("aria-hidden");
-    } else {
-      entry.element.setAttribute("aria-hidden", entry.previous);
-    }
+    entry.element.inert = entry.previousInert;
   }
 
   hideOthersState.delete(element);
