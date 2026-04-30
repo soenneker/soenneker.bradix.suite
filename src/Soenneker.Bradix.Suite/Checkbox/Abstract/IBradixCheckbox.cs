@@ -69,4 +69,10 @@ public interface IBradixCheckbox : IAsyncDisposable {
     /// </summary>
     /// <param name="mouseEvent">The delegated mouse event payload.</param>
     Task HandleDelegatedClick(BradixDelegatedMouseEvent mouseEvent);
+
+    /// <summary>
+    /// Handles delegated keyboard activation routed from JavaScript.
+    /// </summary>
+    /// <param name="keyboardEvent">The delegated keyboard event payload.</param>
+    Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent keyboardEvent);
 }

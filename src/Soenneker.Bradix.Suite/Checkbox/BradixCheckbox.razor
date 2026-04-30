@@ -149,7 +149,8 @@
                 },
                 keydown = new
                 {
-                    keys = new[] { "Enter" },
+                    method = nameof(HandleDelegatedKeyDown),
+                    keys = new[] { "Enter", " ", "Spacebar" },
                     preventDefault = true
                 }
             });
@@ -228,6 +229,15 @@
         return Disabled ? Task.CompletedTask : SetChecked(GetNextState(CurrentChecked));
     }
 
+    [JSInvokable]
+    public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
+    {
+        if (Disabled || !IsSpaceKey(args.Key))
+            return Task.CompletedTask;
+
+        return SetChecked(GetNextState(CurrentChecked));
+    }
+
     private async Task SetChecked(BradixCheckboxCheckedState state)
     {
         if (Checked is null)
@@ -252,6 +262,11 @@
             : IsCheckedState(state)
                 ? BradixCheckboxCheckedState.Unchecked
                 : BradixCheckboxCheckedState.Checked;
+    }
+
+    private static bool IsSpaceKey(string key)
+    {
+        return key is " " or "Spacebar";
     }
 
     private static bool IsCheckedState(BradixCheckboxCheckedState state)

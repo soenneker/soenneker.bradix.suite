@@ -64,18 +64,35 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Enter_key_prevention_is_registered_with_delegated_bridge()
+    public async Task Keyboard_activation_is_registered_with_delegated_bridge()
     {
         _ = Render(CreateCheckbox());
 
         object? options = _module.Invocations.First(invocation => invocation.Identifier == "registerDelegatedInteraction").Arguments[2];
         object? keydown = options?.GetType().GetProperty("keydown")?.GetValue(options);
+        object? method = keydown?.GetType().GetProperty("method")?.GetValue(keydown);
         object? keys = keydown?.GetType().GetProperty("keys")?.GetValue(keydown);
         object? preventDefault = keydown?.GetType().GetProperty("preventDefault")?.GetValue(keydown);
 
+        await Assert.That(method).IsEqualTo(nameof(BradixCheckbox.HandleDelegatedKeyDown));
         await Assert.That(keys).IsAssignableTo<string[]>();
         await Assert.That(((string[])keys!).Contains("Enter")).IsTrue();
+        await Assert.That(((string[])keys!).Contains(" ")).IsTrue();
+        await Assert.That(((string[])keys!).Contains("Spacebar")).IsTrue();
         await Assert.That(preventDefault).IsEqualTo(true);
+    }
+
+    [Test]
+    public async Task Delegated_space_toggles_but_enter_does_not()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox());
+        IRenderedComponent<BradixCheckbox> checkbox = cut.FindComponent<BradixCheckbox>();
+
+        await checkbox.Instance.HandleDelegatedKeyDown(new BradixDelegatedKeyboardEvent { Key = "Enter" });
+        await Assert.That(cut.Find("button").GetAttribute("aria-checked")).IsEqualTo("false");
+
+        await checkbox.Instance.HandleDelegatedKeyDown(new BradixDelegatedKeyboardEvent { Key = " " });
+        await Assert.That(cut.Find("button").GetAttribute("aria-checked")).IsEqualTo("true");
     }
 
     [Test]
