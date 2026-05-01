@@ -30,7 +30,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
 
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
 
-        await Assert.That(group.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(group.GetAttribute("aria-orientation")).IsNull();
         await Assert.That(group.GetAttribute("data-orientation")).IsEqualTo("horizontal");
         await Assert.That(buttons[0].GetAttribute("role")).IsEqualTo("radio");
         await Assert.That(buttons[0].GetAttribute("aria-checked")).IsEqualTo("false");

@@ -41,6 +41,8 @@ public sealed class BradixMenuRenderTests : BunitContext
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
+        _module.SetupVoid("focusElementDeferred", _ => true).SetVoidResult();
+        _module.Setup<bool>("focusFirstMatchingDescendant", _ => true).SetResult(true);
         _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(false);
         _module.Setup<bool>("beginMenuSubmenuPointerGrace", _ => true).SetResult(false);
         _module.SetupVoid("cancelMenuSubmenuPointerGrace", _ => true).SetVoidResult();

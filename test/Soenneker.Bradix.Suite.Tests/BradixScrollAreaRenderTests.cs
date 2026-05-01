@@ -47,14 +47,14 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Auto_scroll_area_keeps_viewport_overflow_hidden_until_scrollbar_is_rendered()
+    public async Task Auto_scroll_area_keeps_viewport_scrollable_when_scrollbar_part_is_mounted()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Auto));
 
         IElement viewport = cut.Find("[data-radix-scroll-area-viewport]");
 
         await Assert.That(viewport.GetAttribute("style")).Contains("overflow-x: hidden");
-        await Assert.That(viewport.GetAttribute("style")).Contains("overflow-y: hidden");
+        await Assert.That(viewport.GetAttribute("style")).Contains("overflow-y: scroll");
     }
 
     [Test]

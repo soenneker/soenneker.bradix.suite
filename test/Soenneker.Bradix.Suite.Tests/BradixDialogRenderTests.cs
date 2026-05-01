@@ -91,7 +91,7 @@ public sealed class BradixDialogRenderTests : BunitContext
 
         IElement overlay = cut.Find(".dialog-overlay");
         await Assert.That(overlay.GetAttribute("style")).Contains("pointer-events:auto");
-        await Assert.That(cut.Find("[role='dialog']").GetAttribute("aria-modal")).IsEqualTo("true");
+        await Assert.That(cut.Find("[role='dialog']").GetAttribute("aria-modal")).IsNull();
     }
 
     [Test]
