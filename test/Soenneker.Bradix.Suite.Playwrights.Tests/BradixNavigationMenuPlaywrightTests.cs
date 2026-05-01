@@ -201,7 +201,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
 
         ILocator activeLink = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Radix Primitives", Exact = true });
         await Assertions.Expect(activeLink).ToHaveAttributeAsync("aria-current", "page");
-        await Assertions.Expect(activeLink).ToHaveAttributeAsync("data-active", string.Empty);
+        await Assertions.Expect(activeLink).ToHaveAttributeAsync("data-active", "true");
         await Assert.That(await githubLink.GetAttributeAsync("aria-expanded")).IsNull();
     }
 

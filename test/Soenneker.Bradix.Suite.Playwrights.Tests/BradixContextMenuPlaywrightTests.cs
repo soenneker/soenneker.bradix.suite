@@ -34,7 +34,9 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await Assertions.Expect(menu).ToBeVisibleAsync();
         await Assertions.Expect(dialog).ToBeVisibleAsync();
 
-        await menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "More actions", Exact = true }).ClickAsync();
+        ILocator moreActions = menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "More actions", Exact = true });
+        await moreActions.FocusAsync();
+        await page.Keyboard.PressAsync("ArrowRight");
 
         ILocator submenu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "Duplicate view" });
         await Assertions.Expect(submenu).ToBeVisibleAsync();
@@ -92,7 +94,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         });
 
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Back");
-        await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "More Tools", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "More Tools", Exact = true }).HoverAsync();
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Save Page As");
     }
 }

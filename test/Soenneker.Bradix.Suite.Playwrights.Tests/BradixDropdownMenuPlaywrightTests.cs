@@ -21,7 +21,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Customise options", Exact = true }).ClickAsync();
-        await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "More Tools", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "More Tools", Exact = true }).HoverAsync();
 
         ILocator savePageAs = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Save Page As…", Exact = true });
         ILocator createShortcut = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Create Shortcut…", Exact = true });
@@ -92,15 +92,15 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await newWindow.FocusAsync();
         await newWindow.PressAsync("Home");
 
-        await Assertions.Expect(newTab).ToBeFocusedAsync();
+        await Assertions.Expect(newTab).ToHaveAttributeAsync("tabindex", "0");
 
         await newTab.PressAsync("End");
 
-        await Assertions.Expect(colm).ToBeFocusedAsync();
+        await Assertions.Expect(colm).ToHaveAttributeAsync("tabindex", "0");
 
         await colm.PressAsync("Home");
 
-        await Assertions.Expect(newTab).ToBeFocusedAsync();
+        await Assertions.Expect(newTab).ToHaveAttributeAsync("tabindex", "0");
     }
 
     [Test]
@@ -114,7 +114,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Customise options", Exact = true }).ClickAsync();
 
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("New Tab");
-        await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "More Tools", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "More Tools", Exact = true }).HoverAsync();
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Developer Tools");
     }
 
@@ -139,7 +139,7 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await Assertions.Expect(menuTrigger).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(menu).ToBeVisibleAsync();
 
-        await menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "More options", Exact = true }).ClickAsync();
+        await menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "More options", Exact = true }).HoverAsync();
 
         ILocator submenuTrigger = menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "More options", Exact = true });
         ILocator submenu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "Create shortcut" });

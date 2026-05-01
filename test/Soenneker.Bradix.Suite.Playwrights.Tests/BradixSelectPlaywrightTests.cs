@@ -19,8 +19,8 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReady($"{BaseUrl}select", static p => p.Locator("[role='combobox']")
-                                                                        .First, expectedTitle: "Select Demo");
+        await page.GotoAndWaitForReady($"{BaseUrl}selects", static p => p.Locator("[role='combobox']")
+                                                                        .First, expectedTitle: "Select");
 
         ILocator trigger = page.Locator("[role='combobox']")
                                .First;
@@ -61,8 +61,8 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReady($"{BaseUrl}select", static p => p.Locator("[role='combobox']")
-                                                                        .First, expectedTitle: "Select Demo");
+        await page.GotoAndWaitForReady($"{BaseUrl}selects", static p => p.Locator("[role='combobox']")
+                                                                        .First, expectedTitle: "Select");
 
         ILocator trigger = page.Locator("[role='combobox']")
                                .First;
@@ -104,8 +104,8 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReady($"{BaseUrl}select", static p => p.Locator("[role='combobox']")
-                                                                        .First, expectedTitle: "Select Demo");
+        await page.GotoAndWaitForReady($"{BaseUrl}selects", static p => p.Locator("[role='combobox']")
+                                                                        .First, expectedTitle: "Select");
 
         ILocator trigger = page.Locator("[role='combobox']")
                                .First;
@@ -139,9 +139,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}select",
+            $"{BaseUrl}selects",
             static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select Demo");
+            expectedTitle: "Select");
 
         ILocator trigger = page.Locator("[role='combobox']").First;
         await trigger.ClickAsync();
@@ -170,9 +170,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}select",
+            $"{BaseUrl}selects",
             static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select Demo");
+            expectedTitle: "Select");
 
         ILocator trigger = page.Locator("[role='combobox']").First;
         await trigger.ClickAsync();
@@ -196,9 +196,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}select",
+            $"{BaseUrl}selects",
             static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select Demo");
+            expectedTitle: "Select");
 
         ILocator trigger = page.Locator("[role='combobox']").First;
         await trigger.ClickAsync();
@@ -212,7 +212,6 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(carrot).ToHaveAttributeAsync("aria-disabled", "true");
 
-        await listbox.FocusAsync();
         await page.Keyboard.PressAsync("c");
 
         await Assertions.Expect(highlightedCourgette).ToHaveCountAsync(1);
@@ -227,9 +226,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await page.SetViewportSizeAsync(360, 420);
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}select",
+            $"{BaseUrl}selects",
             static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select Demo");
+            expectedTitle: "Select");
 
         ILocator trigger = page.Locator("[role='combobox']").First;
         await trigger.ClickAsync();
@@ -283,8 +282,8 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
 
-        await page.GotoAndWaitForReady($"{BaseUrl}select?testScenarios=true", static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true }),
-            expectedTitle: "Select Demo");
+        await page.GotoAndWaitForReady($"{BaseUrl}selects?testScenarios=true", static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true }),
+            expectedTitle: "Select");
 
         ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true });
         await dialogTrigger.ClickAsync();
@@ -315,9 +314,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}select?testScenarios=true",
+            $"{BaseUrl}selects?testScenarios=true",
             static p => p.GetByTestId("select-native-form-result"),
-            expectedTitle: "Select Demo");
+            expectedTitle: "Select");
 
         ILocator form = page.GetByTestId("select-native-form");
         ILocator result = page.GetByTestId("select-native-form-result");

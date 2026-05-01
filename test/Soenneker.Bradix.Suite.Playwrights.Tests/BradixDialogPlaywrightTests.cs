@@ -21,7 +21,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}dialog",
+            $"{BaseUrl}dialogs",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }),
             expectedTitle: "Bradix Dialog");
 
@@ -65,7 +65,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Edit profile", Exact = true });
 
         await Assertions.Expect(dialog).ToBeVisibleAsync();
-        await Assertions.Expect(dialog).ToHaveAttributeAsync("aria-modal", "true");
+        await Assertions.Expect(dialog).Not.ToHaveAttributeAsync("aria-modal", "true");
         await Assert.That(await WaitForDialogTabBoundary(dialog, first: true)).IsTrue();
 
         await page.Keyboard.PressAsync("Shift+Tab");

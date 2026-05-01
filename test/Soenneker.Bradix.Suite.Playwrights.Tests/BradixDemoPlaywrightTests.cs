@@ -25,7 +25,7 @@ public sealed class BradixDemoPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             BaseUrl,
             static p => p.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Bradix primitives" }),
-            expectedTitle: "Bradix Component Library Demo");
+            expectedTitle: "Bradix Component Library");
 
         await Assertions.Expect(page.GetByRole(AriaRole.Navigation, new PageGetByRoleOptions { Name = "Bradix primitives" })).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Dialog", Exact = true })).ToBeVisibleAsync();

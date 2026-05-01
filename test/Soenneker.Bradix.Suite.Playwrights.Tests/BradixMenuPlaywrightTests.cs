@@ -19,9 +19,9 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}menu",
+            $"{BaseUrl}menus",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true }),
-            expectedTitle: "Menu Demo");
+            expectedTitle: "Menu");
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true })
             .ClickAsync(new LocatorClickOptions { Timeout = 2000 });
@@ -29,7 +29,7 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
         ILocator shareTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Share", Exact = true });
         ILocator copyLink = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Copy link", Exact = true });
 
-        await shareTrigger.ClickAsync();
+        await shareTrigger.HoverAsync();
         await Assertions.Expect(shareTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await copyLink.ClickAsync();
 
@@ -44,9 +44,9 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}menu",
+            $"{BaseUrl}menus",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true }),
-            expectedTitle: "Menu Demo");
+            expectedTitle: "Menu");
 
         ILocator trigger = page.Locator("button").Filter(new LocatorFilterOptions { HasText = "Open modal menu" });
         await trigger.ClickAsync();
@@ -73,14 +73,14 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
-            $"{BaseUrl}menu",
+            $"{BaseUrl}menus",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true }),
-            expectedTitle: "Menu Demo");
+            expectedTitle: "Menu");
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true }).ClickAsync();
 
         ILocator shareTrigger = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Share", Exact = true });
-        await shareTrigger.ClickAsync();
+        await shareTrigger.HoverAsync();
 
         ILocator submenu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "Copy link" });
         await Assertions.Expect(submenu).ToBeVisibleAsync();

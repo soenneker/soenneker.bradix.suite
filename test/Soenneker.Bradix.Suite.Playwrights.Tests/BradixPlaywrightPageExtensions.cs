@@ -26,7 +26,7 @@ internal static class BradixPlaywrightPageExtensions
                           await Assertions.Expect(currentPage.Locator(".docs-shell__main"))
                                           .ToContainTextAsync(spec.Description);
                           await Assertions.Expect(currentPage)
-                                          .ToHaveTitleAsync("Bradix Component Library Demo");
+                                          .ToHaveTitleAsync("Bradix Component Library");
                           await Assertions.Expect(currentPage.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Overview", Exact = true }))
                                           .ToBeVisibleAsync();
                       }

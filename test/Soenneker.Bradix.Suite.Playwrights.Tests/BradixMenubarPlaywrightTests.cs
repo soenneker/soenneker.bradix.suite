@@ -211,17 +211,17 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(edit).ToBeFocusedAsync();
         await Assertions.Expect(edit).ToHaveAttributeAsync("aria-expanded", "false");
 
-        await edit.PressAsync("Enter");
+        await edit.ClickAsync();
         await Assertions.Expect(edit).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Show line numbers");
 
-        await edit.PressAsync("ArrowRight");
+        await page.Keyboard.PressAsync("ArrowRight");
         await Assertions.Expect(view).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(edit).ToHaveAttributeAsync("aria-expanded", "false");
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Sort by");
 
         await view.FocusAsync();
-        await view.PressAsync("Home");
+        await page.Keyboard.PressAsync("Home");
         await Assertions.Expect(file).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(view).ToHaveAttributeAsync("aria-expanded", "false");
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("New Tab");

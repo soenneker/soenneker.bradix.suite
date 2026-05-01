@@ -41,7 +41,7 @@ internal static class DemoPageSpecs
         new("/dialogs", "Dialog", "Dialog", "Build modal and non-modal dialogs with layering, restoration, and accessible naming.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true })),
         new("/hovercards", "HoverCard", "HoverCard", "Preview contextual information with delayed hover and focus interactions.",
-            page => page.GetByAltText("Radix UI")),
+            page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open hover card dialog", Exact = true })),
         new("/popovers", "Popover", "Popover", "Anchor rich content to a trigger with optional modal behavior and popper positioning.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Update dimensions", Exact = true })),
         new("/toasts", "Toast", "Toast", "Queue ephemeral notifications with viewport focus management and swipe dismissal.",
