@@ -70,7 +70,7 @@
         ("data-bradix-prevent-mousedown-when-disabled", "true"),
         ("disabled", Disabled ? true : null),
         ("id", TriggerId),
-        ("tabindex", Tabs.IsCurrentTabStop(this) ? 0 : -1));
+        ("tabindex", -1));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

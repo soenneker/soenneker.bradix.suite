@@ -177,9 +177,10 @@
         _contentTree = RenderContentTree();
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         bool present = IsPresent;
+        bool open = Menu?.CurrentOpen == true;
 
         if (_wasPresent && !present)
             _isExiting = true;
@@ -187,6 +188,11 @@
             _isExiting = false;
 
         _wasPresent = present;
+
+        if (!open)
+            await ReleaseHideOthers();
+        else if (_layerElement.Id is not null)
+            await RegisterHideOthersIfNeeded();
     }
     public async ValueTask DisposeAsync()
     {
@@ -196,11 +202,7 @@
             _delegatedInteractionRegistered = false;
         }
 
-        if (_hideOthersRegistered)
-        {
-            await PresenceOverlayInterop.UnregisterHideOthers(_layerElement);
-            _hideOthersRegistered = false;
-        }
+        await ReleaseHideOthers();
 
         _dotNetReference?.Dispose();
     }
@@ -282,6 +284,7 @@
 
         if (!args.DefaultPrevented && Menu is not null && (Menu.Modal || !_hasInteractedOutside))
         {
+            await ReleaseHideOthers();
             await Menu.FocusTrigger();
             args.PreventDefault();
         }
@@ -303,6 +306,7 @@
 
         _.PreventDefault();
         await Menu.SetOpen(false);
+        await ReleaseHideOthers();
         await Menu.FocusTrigger();
     }
 
@@ -465,11 +469,8 @@
     {
         _layerElement = element;
 
-        if (Menu?.Modal == true && !_hideOthersRegistered)
-        {
-            await PresenceOverlayInterop.RegisterHideOthers(_layerElement);
-            _hideOthersRegistered = true;
-        }
+        if (Menu?.CurrentOpen == true)
+            await RegisterHideOthersIfNeeded();
     }
 
     private Task HandleContentElementCaptured(ElementReference element)
@@ -488,11 +489,25 @@
 
         Menu?.ClearContent(_contentElement);
 
-        if (_hideOthersRegistered)
-        {
-            await PresenceOverlayInterop.UnregisterHideOthers(_layerElement);
-            _hideOthersRegistered = false;
-        }
+        await ReleaseHideOthers();
+    }
+
+    private async Task RegisterHideOthersIfNeeded()
+    {
+        if (Menu?.Modal != true || _hideOthersRegistered)
+            return;
+
+        await PresenceOverlayInterop.RegisterHideOthers(_layerElement);
+        _hideOthersRegistered = true;
+    }
+
+    private async Task ReleaseHideOthers()
+    {
+        if (!_hideOthersRegistered)
+            return;
+
+        await PresenceOverlayInterop.UnregisterHideOthers(_layerElement);
+        _hideOthersRegistered = false;
     }
 
     private async Task ApplyOpenAutoFocus()
@@ -506,7 +521,10 @@
         bool shouldFocusFirstItem = Menu.ConsumeFocusFirstItemOnOpen();
 
         if (shouldFocusContent)
+        {
             await ControlsInterop.FocusElementPreventScroll(_contentElement);
+            await ControlsInterop.FocusElementDeferred(_contentElement);
+        }
 
         if (shouldFocusFirstItem)
             await Menu.FocusFirstItem();

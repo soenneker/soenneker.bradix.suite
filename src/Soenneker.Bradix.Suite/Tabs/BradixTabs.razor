@@ -141,6 +141,44 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    internal async Task HandleListKeyDown(bool loop, KeyboardEventArgs args)
+    {
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+            return;
+
+        List<BradixTabsTrigger> focusableTriggers = _triggers
+                                                    .Where(candidate => !candidate.IsDisabled)
+                                                    .ToList();
+
+        if (focusableTriggers.Count == 0)
+            return;
+
+        BradixTabsTrigger? currentTrigger = focusableTriggers.FirstOrDefault(item => item.IsSelected)
+                                            ?? focusableTriggers.FirstOrDefault(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal));
+
+        int currentIndex = currentTrigger is null ? 0 : focusableTriggers.IndexOf(currentTrigger);
+
+        if (currentIndex < 0)
+            currentIndex = 0;
+
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(
+                args.Key,
+                Orientation.Value,
+                ResolvedDirection,
+                currentIndex,
+                focusableTriggers.Count,
+                loop,
+                out int targetIndex))
+        {
+            return;
+        }
+
+        BradixTabsTrigger target = focusableTriggers[targetIndex];
+        CurrentTabStopId = target.TabStopId;
+        await target.Focus();
+        await InvokeAsync(StateHasChanged);
+    }
+
     internal async Task SetValue(string value)
     {
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))

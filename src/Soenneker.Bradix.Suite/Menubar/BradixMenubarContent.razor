@@ -22,6 +22,8 @@
     private ElementReference _contentElement;
     private DotNetObjectReference<BradixMenubarContent>? _dotNetReference;
     private bool _delegatedInteractionRegistered;
+    private bool _contentElementCaptured;
+    private bool _pendingOpenAutoFocus;
     private RenderFragment? _contentTree;
     private string? _placedSide;
     private string? _placedAlign;
@@ -166,6 +168,15 @@
         _wasPresent = present;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsPresent && MenubarMenu?.WasKeyboardTriggerOpen == true && Menu is not null)
+        {
+            await Task.Delay(50);
+            await Menu.FocusFirstItem();
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_delegatedInteractionRegistered)
@@ -189,10 +200,13 @@
         if (Menu is null)
             return;
 
-        if (MenubarMenu?.WasKeyboardTriggerOpen == true)
-            await Menu.FocusFirstItem();
-        else
-            await ControlsInterop.FocusElementPreventScroll(_contentElement);
+        if (!_contentElementCaptured)
+        {
+            _pendingOpenAutoFocus = true;
+            return;
+        }
+
+        await ApplyOpenAutoFocus();
     }
 
     private async Task HandleCloseAutoFocus(BradixAutoFocusEventArgs args)
@@ -349,6 +363,8 @@
         }
 
         _submenuPointerGraceItems.Clear();
+        _contentElementCaptured = false;
+        _pendingOpenAutoFocus = false;
         _isExiting = false;
         await InvokeAsync(StateHasChanged);
     }
@@ -356,6 +372,7 @@
     private async Task HandleContentElementCaptured(ElementReference element)
     {
         _contentElement = element;
+        _contentElementCaptured = true;
 
         if (!_delegatedInteractionRegistered)
         {
@@ -376,6 +393,22 @@
             });
             _delegatedInteractionRegistered = true;
         }
+
+        if (_pendingOpenAutoFocus && Menu?.CurrentOpen == true)
+            await ApplyOpenAutoFocus();
+    }
+
+    private async Task ApplyOpenAutoFocus()
+    {
+        if (Menu is null)
+            return;
+
+        _pendingOpenAutoFocus = false;
+
+        if (MenubarMenu?.WasKeyboardTriggerOpen == true)
+            await Menu.FocusFirstItem();
+        else
+            await ControlsInterop.FocusElementPreventScroll(_contentElement);
     }
 
     private bool IsWithinContent(string? targetId, IReadOnlyList<string>? ancestorIds)

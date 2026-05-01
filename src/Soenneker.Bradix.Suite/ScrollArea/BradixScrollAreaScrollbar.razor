@@ -36,6 +36,16 @@
     [Parameter]
     public bool ForceMount { get; set; }
 
+    protected override void OnInitialized()
+    {
+        ScrollArea.RegisterScrollbar(Orientation.Value, ForceMount);
+    }
+
+    protected override void OnParametersSet()
+    {
+        ScrollArea.RegisterScrollbar(Orientation.Value, ForceMount);
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         string orientation = Orientation.Value;
@@ -43,8 +53,6 @@
 
         if (!shouldRender || !ScrollArea.HasViewport)
         {
-            ScrollArea.UnregisterScrollbar(orientation);
-
             if (_registered)
             {
                 await ScrollAreaInterop.UnregisterScrollAreaScrollbar(_scrollbar);
@@ -53,8 +61,6 @@
 
             return;
         }
-
-        ScrollArea.RegisterScrollbar(orientation, ForceMount);
 
         if (_dotNetReference is null)
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);

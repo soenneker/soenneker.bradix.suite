@@ -138,9 +138,10 @@ export function focusElementDeferred(element) {
     return;
   }
 
-  window.setTimeout(() => {
-    element.focus();
-  }, 0);
+  const focus = () => focusElement(element, false);
+  window.setTimeout(focus, 0);
+  window.setTimeout(focus, 50);
+  window.setTimeout(focus, 150);
 }
 
 export function selectInputText(element) {

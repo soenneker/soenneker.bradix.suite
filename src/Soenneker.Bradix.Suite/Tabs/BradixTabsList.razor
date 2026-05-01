@@ -4,7 +4,8 @@
 
 @implements IBradixTabsList
 <CascadingValue Value="this">
-    <div @attributes="ListAttributes">
+    <div @onkeydown="HandleKeyDown"
+         @attributes="ListAttributes">
         @ChildContent
     </div>
 </CascadingValue>
@@ -18,5 +19,11 @@
 
     private Dictionary<string, object> ListAttributes => BuildAttributes(
         ("role", "tablist"),
-        ("aria-orientation", Tabs.Orientation.Value));
+        ("aria-orientation", Tabs.Orientation.Value),
+        ("tabindex", 0));
+
+    private Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        return Tabs.HandleListKeyDown(Loop, args);
+    }
 }

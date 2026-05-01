@@ -125,7 +125,11 @@
     {
         _items.Register(item.TabStopId, item);
         EnsureCurrentTabStopId();
-        _ = InvokeAsync(StateHasChanged);
+
+        if (CurrentOpen && _focusFirstItemOnOpen)
+            _ = InvokeAsync(FocusFirstItem);
+        else
+            _ = InvokeAsync(StateHasChanged);
     }
 
     internal void UnregisterItem(IBradixMenuRovingItem item)
@@ -215,10 +219,14 @@
     {
         IBradixMenuRovingItem? first = GetEnabledItems().FirstOrDefault();
         if (first is null)
+        {
+            _focusFirstItemOnOpen = true;
             return;
+        }
 
         CurrentTabStopId = first.TabStopId;
-        await first.Focus();
+        _focusFirstItemOnOpen = false;
+        await FocusItem(first);
         await InvokeAsync(StateHasChanged);
     }
 
@@ -229,7 +237,8 @@
             return;
 
         CurrentTabStopId = last.TabStopId;
-        await last.Focus();
+        _focusFirstItemOnOpen = false;
+        await FocusItem(last);
         await InvokeAsync(StateHasChanged);
     }
 
@@ -273,10 +282,24 @@
         try
         {
             await ControlsInterop.FocusElementPreventScroll(TriggerElement);
+            await ControlsInterop.FocusElementDeferred(TriggerElement);
         }
         catch
         {
         }
+    }
+
+    private async Task FocusItem(IBradixMenuRovingItem item)
+    {
+        if (HasContentElement)
+        {
+            bool focused = await ControlsInterop.FocusFirstMatchingDescendant(ContentElement, $"[data-bradix-roving-item-id='{item.TabStopId}']");
+
+            if (focused)
+                return;
+        }
+
+        await item.Focus();
     }
 
     internal void RegisterVirtualAnchor(double x, double y)

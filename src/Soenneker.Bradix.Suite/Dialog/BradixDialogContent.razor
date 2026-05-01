@@ -112,14 +112,13 @@
             attributes["role"] = string.IsNullOrWhiteSpace(Role) ? "dialog" : Role;
             attributes["data-state"] = Dialog?.CurrentOpen == true ? "open" : "closed";
 
-            if (Dialog?.Modal == true)
-                attributes["aria-modal"] = "true";
-
             if (!string.IsNullOrWhiteSpace(Dialog?.RegisteredTitleId))
                 attributes["aria-labelledby"] = Dialog.RegisteredTitleId;
 
             if (!string.IsNullOrWhiteSpace(Dialog?.RegisteredDescriptionId))
                 attributes["aria-describedby"] = Dialog.RegisteredDescriptionId;
+
+            attributes.TryAdd("tabindex", -1);
 
             return attributes;
         }

@@ -3,19 +3,15 @@
 @inherits LeptonIdentifiableContentElement
 
 @implements IBradixTabsContent
-<BradixPresence Present="Present"
-                Tag="div"
-                AdditionalAttributes="@ContentAttributes"
-                OnExitComplete="@HandleExitComplete">
+<div @attributes="ContentAttributes">
     @if (ShouldRenderChildren)
     {
         @ChildContent
     }
-</BradixPresence>
+</div>
 
 @code {
     private bool _preventMountAnimation = true;
-    private bool _isPresent;
 
     [CascadingParameter]
     internal BradixTabs Tabs { get; set; } = null!;
@@ -28,7 +24,7 @@
 
     private bool Present => ForceMount || IsSelected;
 
-    private bool ShouldRenderChildren => Present || _isPresent;
+    private bool ShouldRenderChildren => Present;
 
     private bool IsSelected => string.Equals(Tabs.CurrentValue, Value, StringComparison.Ordinal);
 
@@ -39,18 +35,12 @@
     private IReadOnlyDictionary<string, object> ContentAttributes => BuildAttributes(
         ("role", "tabpanel"),
         ("aria-labelledby", TriggerId),
-        ("hidden", !(Present || _isPresent)),
+        ("hidden", !Present),
         ("id", ContentId),
         ("tabindex", 0),
         ("data-state", IsSelected ? "active" : "inactive"),
         ("data-orientation", Tabs.Orientation.Value),
         ("style", BuildContentStyle()));
-
-    protected override void OnParametersSet()
-    {
-        if (Present)
-            _isPresent = true;
-    }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
@@ -66,11 +56,5 @@
         string? animationStyle = _preventMountAnimation ? "animation-duration: 0s;" : null;
 
         return MergeStyleValues(animationStyle, Style);
-    }
-
-    private async Task HandleExitComplete()
-    {
-        _isPresent = false;
-        await InvokeAsync(StateHasChanged);
     }
 }

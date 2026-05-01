@@ -12,7 +12,9 @@
             @onpointerdown="HandlePointerDown"
             @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
             @onpointerenter="HandlePointerEnter"
+            @onclick="HandleClick"
             @onkeydown="HandleKeyDown"
+            @onkeyup="HandleKeyUp"
             @onfocus="HandleFocus"
             @onblur="HandleBlur"
             @attributes="TriggerAttributes">
@@ -119,6 +121,15 @@
         await _button.FocusAsync();
     }
 
+    private Task HandleClick(MouseEventArgs args)
+    {
+        if (Disabled || Menu is null || !IsOpen || args.Detail != 0)
+            return Task.CompletedTask;
+
+        QueueFocusFirstItemAfterKeyboardOpen();
+        return Task.CompletedTask;
+    }
+
     private async Task HandleKeyDown(KeyboardEventArgs args)
     {
         if (Disabled || Menubar is null || MenubarMenu is null)
@@ -126,8 +137,11 @@
 
         if (args.Key is "Enter" or " " or "Spacebar")
         {
+            bool shouldFocusFirstItem = !IsOpen;
             MenubarMenu.MarkKeyboardTriggerOpen();
             await Menubar.ToggleMenu(MenubarMenu.CurrentValue);
+            if (shouldFocusFirstItem)
+                QueueFocusFirstItemAfterKeyboardOpen();
             return;
         }
 
@@ -135,10 +149,20 @@
         {
             MenubarMenu.MarkKeyboardTriggerOpen();
             await Menubar.OpenMenu(MenubarMenu.CurrentValue);
+            QueueFocusFirstItemAfterKeyboardOpen();
             return;
         }
 
         await Menubar.HandleTriggerKeyDown(this, args);
+    }
+
+    private Task HandleKeyUp(KeyboardEventArgs args)
+    {
+        if (Disabled || Menu is null || !IsOpen || args.Key is not ("Enter" or " " or "Spacebar"))
+            return Task.CompletedTask;
+
+        QueueFocusFirstItemAfterKeyboardOpen();
+        return Task.CompletedTask;
     }
 
     private Task HandleFocus(FocusEventArgs _)
@@ -155,6 +179,20 @@
     {
         _isFocused = false;
         return InvokeAsync(StateHasChanged);
+    }
+
+    private void QueueFocusFirstItemAfterKeyboardOpen()
+    {
+        if (Menu is null)
+            return;
+
+        _ = InvokeAsync(async () =>
+        {
+            await Task.Delay(500);
+
+            if (IsOpen && Menu is not null)
+                await Menu.FocusFirstItem();
+        });
     }
 
 }
