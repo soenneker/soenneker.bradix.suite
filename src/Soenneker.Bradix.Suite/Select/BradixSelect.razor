@@ -63,6 +63,8 @@
     private (double X, double Y)? _triggerPointerDownPosition;
     private string? _currentText;
     private DotNetObjectReference<object>? _dotNetReference;
+    private Task? _bubbleSelectRegistrationTask;
+    private bool _disposed;
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -204,9 +206,16 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed)
+            return;
+
         if (HasTrigger && (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal)))
         {
             bool isFormControl = await FormInterop.IsFormControl(TriggerElement, Form);
+
+            if (_disposed)
+                return;
+
             _formControlStateResolved = true;
             _lastResolvedForm = Form;
 
@@ -240,10 +249,16 @@
 
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
+
+        if (_bubbleSelectRegistrationTask is not null)
+            await _bubbleSelectRegistrationTask;
+
         if (_bubbleSelectRegistered)
             await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
 
         _dotNetReference?.Dispose();
+        _dotNetReference = null;
     }
 
     internal void RegisterItem(IBradixSelectCollectionItem item)
@@ -564,6 +579,9 @@
 
     private void QueueRefresh()
     {
+        if (_disposed)
+            return;
+
         if (_refreshQueued)
             return;
 
@@ -571,6 +589,9 @@
 
         _ = InvokeAsync(() =>
         {
+            if (_disposed)
+                return;
+
             _refreshQueued = false;
             StateHasChanged();
         });
@@ -586,17 +607,38 @@
 
     private async Task EnsureBubbleSelectRegistration()
     {
-        if (!_hasBubbleSelectElement || _bubbleSelectRegistered)
+        if (_disposed || !_hasBubbleSelectElement || _bubbleSelectRegistered)
             return;
 
+        if (_bubbleSelectRegistrationTask is not null)
+        {
+            await _bubbleSelectRegistrationTask;
+            return;
+        }
+
+        _bubbleSelectRegistrationTask = RegisterBubbleSelectCore();
+
+        try
+        {
+            await _bubbleSelectRegistrationTask;
+        }
+        finally
+        {
+            _bubbleSelectRegistrationTask = null;
+        }
+    }
+
+    private async Task RegisterBubbleSelectCore()
+    {
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await ControlsInterop.RegisterSelectBubbleInput(_bubbleSelectElement, _dotNetReference);
+
         _bubbleSelectRegistered = true;
     }
 
     private async Task SyncBubbleSelectValue()
     {
-        if (!_hasBubbleSelectElement)
+        if (_disposed || !_hasBubbleSelectElement)
             return;
 
         string? nextValue = CurrentValue;
