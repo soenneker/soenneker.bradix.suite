@@ -11,7 +11,7 @@
 
 @if (ShouldRenderContainer)
 {
-    @_contentTree
+    @RenderContentTree()
 }
 
 @code {
@@ -24,7 +24,6 @@
     private bool _delegatedInteractionRegistered;
     private bool _contentElementCaptured;
     private bool _pendingOpenAutoFocus;
-    private RenderFragment? _contentTree;
     private string? _placedSide;
     private string? _placedAlign;
 
@@ -149,11 +148,6 @@
 
             return attributes;
         }
-    }
-
-    protected override void OnInitialized()
-    {
-        _contentTree = RenderContentTree();
     }
 
     protected override void OnParametersSet()
