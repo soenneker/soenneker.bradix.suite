@@ -4,8 +4,22 @@
 
 @implements IBradixPopperArrow
 <span @ref="_element"
-      @attributes="ArrowAttributes">
-    @ChildContent
+      @attributes="ArrowContainerAttributes">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <svg class="@Class"
+             width="@Width.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+             height="@Height.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+             viewBox="0 0 30 10"
+             preserveAspectRatio="none"
+             style="display: block;">
+            <polygon points="0,0 30,0 15,10"></polygon>
+        </svg>
+    }
 </span>
 
 @code {
@@ -20,9 +34,18 @@
     [Parameter]
     public double Height { get; set; } = 5;
 
-    private Dictionary<string, object> ArrowAttributes => BuildAttributes(
-        ("aria-hidden", "true"),
-        ("style", BuildArrowStyle()));
+    private Dictionary<string, object> ArrowContainerAttributes
+    {
+        get
+        {
+            var attributes = BuildAttributes(
+                ("aria-hidden", "true"),
+                ("style", BuildArrowStyle()));
+
+            attributes.Remove("class");
+            return attributes;
+        }
+    }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
@@ -46,7 +69,16 @@
             _ => "top"
         };
 
-        var positionStyle = $"position: absolute; display: block; width: {Width.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; height: {Height.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; {oppositeSide}: 0;";
+        var transform = Content.PlacedSide switch
+        {
+            "top" => " transform: translateY(100%);",
+            "bottom" => " transform: translateY(-100%);",
+            "left" => " transform: translateX(100%);",
+            "right" => " transform: translateX(-100%);",
+            _ => string.Empty
+        };
+
+        var positionStyle = $"position: absolute; {oppositeSide}: 0;{transform}";
 
         if (Content.ArrowX.HasValue)
             positionStyle += $" left: {Content.ArrowX.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px;";

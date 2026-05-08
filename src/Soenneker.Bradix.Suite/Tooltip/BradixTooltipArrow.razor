@@ -1,13 +1,24 @@
 @namespace Soenneker.Bradix
 
 @implements IBradixTooltipArrow
-<BradixPopperArrow Class="@Class"
-                   Style="@Style"
-                   Width="@Width"
-                   Height="@Height"
-                   AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixPopperArrow>
+@if (ChildContent is null)
+{
+    <BradixPopperArrow Class="@Class"
+                       Style="@Style"
+                       Width="@Width"
+                       Height="@Height"
+                       AdditionalAttributes="@AdditionalAttributes" />
+}
+else
+{
+    <BradixPopperArrow Class="@Class"
+                       Style="@Style"
+                       Width="@Width"
+                       Height="@Height"
+                       AdditionalAttributes="@AdditionalAttributes">
+        @ChildContent
+    </BradixPopperArrow>
+}
 
 @code {
     [Parameter]
