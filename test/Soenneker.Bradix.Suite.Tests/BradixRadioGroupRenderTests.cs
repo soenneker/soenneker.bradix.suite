@@ -73,7 +73,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Arrow_navigation_moves_focus_and_selects_target()
+    public async Task Arrow_navigation_moves_focus_without_selecting_target()
     {
         string? requestedValue = null;
 
@@ -87,10 +87,11 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
         await buttons[2].FocusAsync();
         buttons = cut.FindAll("button");
 
-        await Assert.That(requestedValue).IsEqualTo("three");
+        await Assert.That(requestedValue).IsNull();
         await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");
         await Assert.That(buttons[2].GetAttribute("tabindex")).IsEqualTo("0");
-        await Assert.That(buttons[2].GetAttribute("aria-checked")).IsEqualTo("true");
+        await Assert.That(buttons[0].GetAttribute("aria-checked")).IsEqualTo("true");
+        await Assert.That(buttons[2].GetAttribute("aria-checked")).IsEqualTo("false");
     }
 
     [Test]
@@ -137,7 +138,9 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
         await buttons[2].FocusAsync();
         buttons = cut.FindAll("button");
 
-        await Assert.That(buttons[2].GetAttribute("aria-checked")).IsEqualTo("true");
+        await Assert.That(buttons[2].GetAttribute("tabindex")).IsEqualTo("0");
+        await Assert.That(buttons[0].GetAttribute("aria-checked")).IsEqualTo("true");
+        await Assert.That(buttons[2].GetAttribute("aria-checked")).IsEqualTo("false");
     }
 
     private static RenderFragment CreateRadioGroup(string? defaultValue = null, string? name = null, bool required = false, EventCallback<string?> onValueChange = default, bool forceMountIndicator = false, bool includeDisabledMiddle = true, string? itemForm = null)

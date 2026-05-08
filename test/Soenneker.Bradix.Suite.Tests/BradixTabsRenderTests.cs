@@ -136,11 +136,12 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Vertical_tabs_list_exposes_vertical_aria_orientation()
+    public async Task Vertical_tabs_root_exposes_vertical_data_orientation_while_roving_focus_stays_horizontal()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", orientation: Orientation.Vertical));
 
-        await Assert.That(cut.Find("[role='tablist']").GetAttribute("aria-orientation")).IsEqualTo("vertical");
+        await Assert.That(cut.Find("[role='tablist']").ParentElement?.GetAttribute("data-orientation")).IsEqualTo("vertical");
+        await Assert.That(cut.Find("[role='tablist']").GetAttribute("aria-orientation")).IsEqualTo("horizontal");
     }
 
     private static RenderFragment CreateTabs(string? defaultValue = null, TabsActivationMode? activationMode = null, EventCallback<string?> onValueChange = default,

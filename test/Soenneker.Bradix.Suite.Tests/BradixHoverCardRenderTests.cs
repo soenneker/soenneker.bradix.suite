@@ -90,10 +90,10 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
         BradixHoverCardContent content = cut.FindComponent<BradixHoverCardContent>().Instance;
 
-        await cut.Find("[data-state='open'] > div").TriggerEventAsync("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
+        await cut.Find(".hover-card-content[data-state='open']").TriggerEventAsync("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
         await content.HandleDocumentPointerUp(true);
 
-        await cut.Find("[data-state='open'] > div").TriggerEventAsync("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
+        await cut.Find(".hover-card-content[data-state='open']").TriggerEventAsync("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
 
         await cut.WaitForAssertionAsync(async () =>
         {

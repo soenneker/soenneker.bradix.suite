@@ -76,7 +76,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
 
         await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("-1");
-        await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
+        await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("-1");
 
         await items[1].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
 
@@ -84,7 +84,8 @@ public sealed class BradixMenuRenderTests : BunitContext
         {
             IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
             await Assert.That(updatedItems[1].GetAttribute("tabindex")).IsEqualTo("-1");
-            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
     }
 
@@ -223,13 +224,13 @@ public sealed class BradixMenuRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
         IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
 
-        await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("0");
+        await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("-1");
         await items[2].TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "touch" });
 
         await cut.WaitForAssertionAsync(async () =>
         {
             IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[0].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(updatedItems[0].GetAttribute("tabindex")).IsEqualTo("-1");
             await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("-1");
         });
     }
