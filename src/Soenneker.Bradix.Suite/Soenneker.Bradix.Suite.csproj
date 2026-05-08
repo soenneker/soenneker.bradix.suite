@@ -6,6 +6,7 @@
         <NoWarn>$(NoWarn);1591</NoWarn>
         <RootNamespace>Soenneker.Bradix</RootNamespace>
         <GenerateDefaultNamespace>false</GenerateDefaultNamespace>
+        <Configurations>Debug;Release</Configurations>
     </PropertyGroup>
 
     <PropertyGroup>
