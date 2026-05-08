@@ -13,7 +13,6 @@
     <button @ref="_buttonElement"
             @onclick="HandleClick"
             @onclick:stopPropagation="ShouldRenderBubbleInput"
-            @onkeydown="HandleKeyDown"
             @attributes="ButtonAttributes">
         @ChildContent
     </button>
@@ -83,6 +82,8 @@
         ("aria-checked", CurrentChecked ? "true" : "false"),
         ("aria-required", Required ? "true" : null),
         ("data-state", CurrentChecked ? "checked" : "unchecked"),
+        ("data-checked", CurrentChecked ? string.Empty : null),
+        ("data-unchecked", CurrentChecked ? null : string.Empty),
         ("data-disabled", Disabled ? string.Empty : null),
         ("disabled", Disabled ? true : null),
         ("value", Value));
@@ -214,10 +215,13 @@
 
     private async Task HandleClick(MouseEventArgs args)
     {
+        if (Disabled)
+            return;
+
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);
 
-        if (Disabled || _delegatedInteractionReady)
+        if (_delegatedInteractionReady)
             return;
 
         await SetChecked(!CurrentChecked);
@@ -227,14 +231,6 @@
     public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
     {
         return Disabled ? Task.CompletedTask : SetChecked(!CurrentChecked);
-    }
-
-    private Task HandleKeyDown(KeyboardEventArgs args)
-    {
-        if (Disabled || !string.Equals(args.Key, "Enter", StringComparison.Ordinal))
-            return Task.CompletedTask;
-
-        return SetChecked(!CurrentChecked);
     }
 
     private async Task SetChecked(bool value)

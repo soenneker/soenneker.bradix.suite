@@ -90,9 +90,13 @@ function dispatchDelegatedInteraction(type, event) {
     }
 
     if (typeof config.filter === "string" && config.filter === "primaryMousePointerDown") {
-      if (event.button !== 0 || event.ctrlKey || event.pointerType !== "mouse") {
+      if (event.button !== 0 || event.ctrlKey || (event.pointerType && event.pointerType !== "mouse")) {
         continue;
       }
+    }
+
+    if (config.retargetPointerUpToOption) {
+      retargetPointerUpToOption(event, registration.dotNetRef, config.pointerSelectMethod);
     }
 
     if (Array.isArray(config.preventDefaultKeys) && config.preventDefaultKeys.includes(event.key)) {
@@ -112,6 +116,74 @@ function dispatchDelegatedInteraction(type, event) {
 
     registration.dotNetRef.invokeMethodAsync(config.method, createDelegatedEventSnapshot(type, event)).catch(() => {});
   }
+}
+
+function retargetPointerUpToOption(pointerDownEvent, dotNetRef, pointerSelectMethod) {
+  const originX = pointerDownEvent.clientX;
+  const originY = pointerDownEvent.clientY;
+  const originPageX = pointerDownEvent.pageX;
+  const originPageY = pointerDownEvent.pageY;
+
+  const pointerUp = (event) => {
+    const deltaX = Math.abs(Math.round(event.clientX) - Math.round(originX));
+    const deltaY = Math.abs(Math.round(event.clientY) - Math.round(originY));
+
+    if (deltaX > 10 || deltaY > 10) {
+      return;
+    }
+
+    let attempts = 0;
+
+    const retarget = () => {
+      const releaseTarget = document.elementFromPoint(event.clientX, event.clientY);
+      const option = releaseTarget instanceof HTMLElement
+        ? releaseTarget.closest("[role='option']")
+        : null;
+
+      if (!option) {
+        if (attempts < 8) {
+          attempts += 1;
+          requestAnimationFrame(retarget);
+        }
+
+        return;
+      }
+
+      if (option.hasAttribute("data-disabled") || option.getAttribute("aria-disabled") === "true") {
+        return;
+      }
+
+      const value = option.getAttribute("data-value");
+
+      if (value && typeof pointerSelectMethod === "string" && pointerSelectMethod) {
+        dotNetRef.invokeMethodAsync(pointerSelectMethod, value).catch(() => {});
+        return;
+      }
+
+      option.dispatchEvent(new PointerEvent("pointerup", {
+        bubbles: true,
+        cancelable: true,
+        pointerType: "mouse",
+        pointerId: event.pointerId || pointerDownEvent.pointerId || 1,
+        button: event.button,
+        buttons: event.buttons,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        pageX: event.pageX || originPageX,
+        pageY: event.pageY || originPageY,
+        screenX: event.screenX,
+        screenY: event.screenY,
+        ctrlKey: event.ctrlKey,
+        shiftKey: event.shiftKey,
+        altKey: event.altKey,
+        metaKey: event.metaKey
+      }));
+    };
+
+    requestAnimationFrame(retarget);
+  };
+
+  document.addEventListener("pointerup", pointerUp, { capture: true, once: true });
 }
 
 function findDelegatedInteractionRegistrations(start) {

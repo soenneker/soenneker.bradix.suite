@@ -11,7 +11,7 @@
 @inject IPresenceOverlayInterop PresenceOverlayInterop
 @inject IControlsInterop ControlsInterop
 
-@if (Select?.CurrentOpen == true || ForceMount)
+@if (ShouldRenderContainer)
 {
     <BradixRemoveScroll AllowPinchZoom>
         <BradixFocusGuards>
@@ -33,7 +33,7 @@
                         <div @ref="_wrapperElement"
                              data-radix-select-position="item-aligned"
                              style="display:flex;flex-direction:column;position:fixed;">
-                            <BradixPresence Present="true"
+                            <BradixPresence Present="@IsPresent"
                                             Tag="div"
                                             Id="@Select?.ContentId"
                                             Class="@Class"
@@ -41,7 +41,8 @@
                                             AdditionalAttributes="@ContentAttributes"
                                             OnKeyDown="@HandleContentKeyDown"
                                             PreventKeyDownDefault="true"
-                                            OnElementReferenceCaptured="@HandleContentElementCaptured">
+                                            OnElementReferenceCaptured="@HandleContentElementCaptured"
+                                            OnExitComplete="@HandleExitComplete">
                                 <CascadingValue Value="this">
                                     @ChildContent
                                 </CascadingValue>
@@ -64,7 +65,7 @@
                                              Style="@PositionerStyle"
                                              OnPlaced="@OnPlaced"
                                              OnPlacementChanged="@HandlePlacementChanged">
-                            <BradixPresence Present="true"
+                            <BradixPresence Present="@IsPresent"
                                             Tag="div"
                                             Id="@Select?.ContentId"
                                             Class="@Class"
@@ -72,7 +73,8 @@
                                             AdditionalAttributes="@ContentAttributes"
                                             OnKeyDown="@HandleContentKeyDown"
                                             PreventKeyDownDefault="true"
-                                            OnElementReferenceCaptured="@HandleContentElementCaptured">
+                                            OnElementReferenceCaptured="@HandleContentElementCaptured"
+                                            OnExitComplete="@HandleExitComplete">
                                 <CascadingValue Value="this">
                                     @ChildContent
                                 </CascadingValue>
@@ -93,6 +95,8 @@ else
 }
 
 @code {
+    private bool _wasPresent;
+    private bool _isExiting;
     private bool _didFocusOpenItem;
     private bool _pendingOpenAutoFocus;
     private bool _hasContentElement;
@@ -183,6 +187,8 @@ else
 
     internal bool CanScrollDown => _viewportRegistered && Math.Ceiling(_viewportScrollTop) < Math.Max(_viewportScrollHeight - _viewportHeight, 0);
 
+    private bool IsPresent => Select?.CurrentOpen == true || ForceMount;
+    private bool ShouldRenderContainer => Select is not null && (IsPresent || _isExiting);
     private bool UseItemAlignedPosition => Position != SelectPosition.Popper;
     
     private bool ShouldDisableOutsidePointerEvents => Select?.CurrentOpen == true;
@@ -377,6 +383,31 @@ else
         _pointerTrackerRegistered = false;
     }
 
+    protected override void OnParametersSet()
+    {
+        bool present = IsPresent;
+
+        if (_wasPresent && !present)
+            _isExiting = true;
+        else if (present)
+            _isExiting = false;
+
+        _wasPresent = present;
+    }
+
+    [JSInvokable]
+    public async Task HandleTriggerPointerSelect(string? value)
+    {
+        if (Select is null || string.IsNullOrWhiteSpace(value))
+            return;
+
+        Select.ClearTriggerPointerDownPosition();
+        await Select.SetValue(value);
+        await Select.SetOpen(false);
+        await Task.Yield();
+        await Select.FocusTrigger();
+    }
+
     [JSInvokable]
     public async Task HandleWindowDismiss()
     {
@@ -449,6 +480,12 @@ else
     private Task HandleDismiss()
     {
         return Select?.SetOpen(false) ?? Task.CompletedTask;
+    }
+
+    private async Task HandleExitComplete()
+    {
+        _isExiting = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleContentKeyDown(KeyboardEventArgs args)

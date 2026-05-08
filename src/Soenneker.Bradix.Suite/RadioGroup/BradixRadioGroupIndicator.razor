@@ -20,5 +20,7 @@
 
     private Dictionary<string, object> IndicatorAttributes => BuildAttributes(
         ("data-state", Item.IsChecked ? "checked" : "unchecked"),
+        ("data-checked", Item.IsChecked ? string.Empty : null),
+        ("data-unchecked", Item.IsChecked ? null : string.Empty),
         ("data-disabled", Item.IsDisabled ? string.Empty : null));
 }

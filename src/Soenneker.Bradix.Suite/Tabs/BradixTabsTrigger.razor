@@ -106,7 +106,10 @@
             return;
 
         if (args.Button == 0 && !args.CtrlKey)
+        {
+            Tabs.SetCurrentTabStop(TabStopId);
             await Tabs.SetValue(Value);
+        }
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args)

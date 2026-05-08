@@ -8,7 +8,7 @@
 @inject ITooltipInterop TooltipInterop
 @inject IDomInterop DomInterop
 
-@if (IsPresent)
+@if (ShouldRenderContainer)
 {
     <BradixDismissableLayer DisableOutsidePointerEvents="false"
                             DismissOnEscapeKeyDown="false"
@@ -36,7 +36,8 @@
                             Tag="div"
                             Class="@Class"
                             Style="@Style"
-                            AdditionalAttributes="@TooltipAttributes">
+                            AdditionalAttributes="@TooltipAttributes"
+                            OnExitComplete="@HandleExitComplete">
                 <div @ref="_contentElement"
                      @onpointerenter="HandlePointerEnter"
                      @onpointerleave="HandlePointerLeave">
@@ -52,6 +53,8 @@
 }
 
 @code {
+    private bool _wasPresent;
+    private bool _isExiting;
     private ElementReference _contentElement;
     private DotNetObjectReference<BradixTooltipContent>? _dotNetReference;
     private bool _contentRegistered;
@@ -119,6 +122,7 @@
     public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     private bool IsPresent => ForceMount || PortalForceMount || Tooltip?.CurrentOpen == true;
+    private bool ShouldRenderContainer => IsPresent || _isExiting;
     private ElementReference TooltipTriggerAnchor => Tooltip?.TriggerElement ?? default;
     private bool HasTooltipTriggerAnchor => TooltipTriggerAnchor.Context is not null;
 
@@ -148,6 +152,18 @@
         {
             ["role"] = "tooltip"
         };
+
+    protected override void OnParametersSet()
+    {
+        bool present = IsPresent;
+
+        if (_wasPresent && !present)
+            _isExiting = true;
+        else if (present)
+            _isExiting = false;
+
+        _wasPresent = present;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -250,6 +266,12 @@
         _placedSide = args.Side;
         _placedAlign = args.Align;
         return Task.CompletedTask;
+    }
+
+    private async Task HandleExitComplete()
+    {
+        _isExiting = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     [JSInvokable]

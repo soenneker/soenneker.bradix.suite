@@ -74,6 +74,7 @@
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", "group"),
+        ("tabindex", RovingFocus ? 0 : null),
         ("data-orientation", NormalizedOrientation),
         ("dir", ResolvedDirection));
 
@@ -216,8 +217,8 @@
         if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
             return;
 
-        BradixToggleGroupItem? activeItem = focusableItems.FirstOrDefault(item => item.IsPressed);
-        CurrentTabStopId = activeItem?.TabStopId ?? focusableItems[0].TabStopId;
+        if (CurrentTabStopId is not null)
+            CurrentTabStopId = null;
     }
 
     private async Task SetSingleValue(string? value)

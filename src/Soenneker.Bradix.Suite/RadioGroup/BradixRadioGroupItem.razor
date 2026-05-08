@@ -79,6 +79,8 @@
         ("role", "radio"),
         ("aria-checked", IsChecked ? "true" : "false"),
         ("data-state", IsChecked ? "checked" : "unchecked"),
+        ("data-checked", IsChecked ? string.Empty : null),
+        ("data-unchecked", IsChecked ? null : string.Empty),
         ("data-disabled", IsDisabled ? string.Empty : null),
         ("data-orientation", Group.Orientation?.Value),
         ("data-bradix-roving-group", Group.GroupId),

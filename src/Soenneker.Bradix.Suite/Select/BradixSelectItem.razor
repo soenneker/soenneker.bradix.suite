@@ -74,6 +74,7 @@
         ("aria-labelledby", TextId),
         ("aria-selected", IsSelected && IsHighlighted ? "true" : "false"),
         ("aria-disabled", Disabled ? "true" : null),
+        ("data-value", Value),
         ("data-state", IsSelected ? "checked" : "unchecked"),
         ("data-highlighted", IsHighlighted ? string.Empty : null),
         ("data-disabled", Disabled ? string.Empty : null),

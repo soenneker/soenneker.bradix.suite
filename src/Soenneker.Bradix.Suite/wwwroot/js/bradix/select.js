@@ -14,6 +14,7 @@ const selectContentKeyboardKeys = new Set([
 ]);
 
 const TYPEAHEAD_RESET_MS = 700;
+const POINTER_UP_OPTION_RETRY_COUNT = 8;
 
 function invokeDotNetSafely(dotNetRef, methodName, ...args) {
   try {
@@ -340,6 +341,41 @@ export function registerSelectContentPointerTracker(content, dotNetRef, pageX, p
     const targetInsideContent = !!target && content.contains(target);
     const shouldClose = !withinPointerTolerance && !!target && !targetInsideContent;
 
+    if (withinPointerTolerance) {
+      const releaseTarget = document.elementFromPoint(event.clientX, event.clientY);
+      const option = releaseTarget instanceof HTMLElement
+        ? releaseTarget.closest("[role='option']")
+        : null;
+
+      if (option && content.contains(option) && !option.hasAttribute("data-disabled") && option.getAttribute("aria-disabled") !== "true") {
+        const value = option.getAttribute("data-value");
+
+        if (value) {
+          invokeDotNetSafely(dotNetRef, "HandleTriggerPointerSelect", value);
+          return;
+        }
+
+        option.dispatchEvent(new PointerEvent("pointerup", {
+          bubbles: true,
+          cancelable: true,
+          pointerType: "mouse",
+          pointerId: event.pointerId || 1,
+          button: event.button,
+          buttons: event.buttons,
+          clientX: event.clientX,
+          clientY: event.clientY,
+          pageX: event.pageX,
+          pageY: event.pageY,
+          screenX: event.screenX,
+          screenY: event.screenY,
+          ctrlKey: event.ctrlKey,
+          shiftKey: event.shiftKey,
+          altKey: event.altKey,
+          metaKey: event.metaKey
+        }));
+      }
+    }
+
     invokeDotNetSafely(dotNetRef, "HandleTriggerPointerGuardResult", false, shouldClose);
   };
 
@@ -359,6 +395,39 @@ export function unregisterSelectContentPointerTracker(content) {
   document.removeEventListener("pointermove", handlers.handlePointerMove);
   document.removeEventListener("pointerup", handlers.handlePointerUp, true);
   selectContentPointerTrackers.delete(content);
+}
+
+export function getSelectOptionValueAtPoint(clientX, clientY) {
+  return new Promise((resolve) => {
+    let attempts = 0;
+
+    const read = () => {
+      const target = document.elementFromPoint(clientX, clientY);
+      const option = target instanceof HTMLElement
+        ? target.closest("[role='option']")
+        : null;
+
+      if (!option) {
+        if (attempts < POINTER_UP_OPTION_RETRY_COUNT) {
+          attempts += 1;
+          requestAnimationFrame(read);
+          return;
+        }
+
+        resolve(null);
+        return;
+      }
+
+      if (option.hasAttribute("data-disabled") || option.getAttribute("aria-disabled") === "true") {
+        resolve(null);
+        return;
+      }
+
+      resolve(option.getAttribute("data-value"));
+    };
+
+    requestAnimationFrame(read);
+  });
 }
 
 export function registerSelectWindowDismiss(content, dotNetRef) {

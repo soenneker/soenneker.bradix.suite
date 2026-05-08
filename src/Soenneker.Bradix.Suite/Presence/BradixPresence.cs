@@ -230,6 +230,19 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
     {
         Dictionary<string, object> attributes = BuildAttributes();
 
+        bool isOpen = ResolveOpenState(attributes);
+
+        if (isOpen)
+        {
+            attributes["data-open"] = string.Empty;
+            attributes.Remove("data-closed");
+        }
+        else
+        {
+            attributes["data-closed"] = string.Empty;
+            attributes.Remove("data-open");
+        }
+
         if (_forceExitAnimationFillModeForwards)
         {
             if (attributes.TryGetValue("style", out object? style) && style is string styleValue && !string.IsNullOrWhiteSpace(styleValue))
@@ -239,6 +252,22 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
         }
 
         return attributes;
+    }
+
+    private bool ResolveOpenState(Dictionary<string, object> attributes)
+    {
+        if (attributes.TryGetValue("data-state", out object? dataState))
+        {
+            string? state = dataState?.ToString();
+
+            if (string.Equals(state, "open", StringComparison.Ordinal))
+                return true;
+
+            if (string.Equals(state, "closed", StringComparison.Ordinal))
+                return false;
+        }
+
+        return Present;
     }
 
     private Task HandleKeyDown(KeyboardEventArgs args)

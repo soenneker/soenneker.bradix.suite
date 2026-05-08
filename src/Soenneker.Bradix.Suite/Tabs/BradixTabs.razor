@@ -212,7 +212,7 @@
         if (CurrentTabStopId is not null && focusableTriggers.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
             return;
 
-        BradixTabsTrigger? activeTrigger = focusableTriggers.FirstOrDefault(item => item.IsSelected);
-        CurrentTabStopId = activeTrigger?.TabStopId ?? focusableTriggers[0].TabStopId;
+        if (CurrentTabStopId is not null)
+            CurrentTabStopId = null;
     }
 }

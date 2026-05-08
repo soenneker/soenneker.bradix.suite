@@ -103,6 +103,12 @@ public sealed class SelectInterop : ISelectInterop
         await module.InvokeVoidAsync("unregisterSelectWindowDismiss", cancellationToken, content);
     }
 
+    public async ValueTask<string?> GetSelectOptionValueAtPoint(double clientX, double clientY, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        return await module.InvokeAsync<string?>("getSelectOptionValueAtPoint", cancellationToken, clientX, clientY);
+    }
+
     public async ValueTask DisposeAsync()
     {
         await _moduleImportUtil.DisposeContentModule(_modulePath);

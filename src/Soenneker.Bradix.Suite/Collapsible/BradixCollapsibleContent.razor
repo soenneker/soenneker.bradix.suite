@@ -37,11 +37,11 @@
     [Parameter]
     public string? AriaDescribedBy { get; set; }
 
-    private bool Present => ForceMount || Collapsible.IsOpen;
+    private bool Present => true;
 
-    private bool IsOpenOrPresent => Present || _isPresent;
+    private bool IsOpenOrPresent => Collapsible.IsOpen || _isPresent || ForceMount;
 
-    private bool ShouldRenderChildren => IsOpenOrPresent;
+    private bool ShouldRenderChildren => true;
 
     private IReadOnlyDictionary<string, object> ContentAttributes
     {
@@ -52,7 +52,7 @@
                 : new Dictionary<string, object>();
 
             attributes["id"] = Collapsible.ContentId!;
-            attributes["hidden"] = !IsOpenOrPresent;
+            attributes["hidden"] = !Collapsible.IsOpen;
             attributes["data-state"] = BradixDataStates.Open(Collapsible.IsOpen);
 
             if (Collapsible.Disabled)

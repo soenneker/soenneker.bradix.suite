@@ -7,12 +7,14 @@
 @implements IBradixSelectTrigger
 
 @inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject ISelectInterop SelectInterop
 <BradixDismissableLayerBranch>
     <BradixPopperAnchor>
         <button @ref="_button"
                 @onclick="HandleClick"
                 @onpointerdown="HandlePointerDown"
                 @onpointerdown:preventDefault="false"
+                @onpointerup="HandlePointerUp"
                 @onkeydown="HandleKeyDown"
                 @attributes="TriggerAttributes">
             @ChildContent
@@ -24,6 +26,7 @@
     private ElementReference _button;
     private bool _delegatedInteractionRegistered;
     private string _pointerType = "touch";
+    private bool _suppressClick;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -57,9 +60,11 @@
             {
                 pointerdown = new
                 {
-                    currentTargetOnly = true,
+                    currentTargetOnly = false,
                     filter = "primaryMousePointerDown",
                     preventDefault = true,
+                    retargetPointerUpToOption = true,
+                    pointerSelectMethod = nameof(HandleTriggerPointerSelect),
                     method = nameof(HandleDelegatedPointerDown)
                 },
                 keydown = new
@@ -86,6 +91,12 @@
         if (IsDisabled || Select is null)
             return;
 
+        if (_suppressClick)
+        {
+            _suppressClick = false;
+            return;
+        }
+
         await _button.FocusAsync();
 
         if (!Select.CurrentOpen)
@@ -99,8 +110,28 @@
 
         _pointerType = args.PointerType ?? "touch";
 
-        if (string.Equals(_pointerType, "mouse", StringComparison.Ordinal) && args.Button == 0 && !args.CtrlKey)
-            Select.ClearTriggerPointerDownPosition();
+        if (!string.Equals(_pointerType, "mouse", StringComparison.Ordinal) || args.Button != 0 || args.CtrlKey)
+            return;
+
+        await Select.OpenFromTrigger(args.PageX, args.PageY);
+    }
+
+    private async Task HandlePointerUp(PointerEventArgs args)
+    {
+        if (IsDisabled || Select is null || !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
+            return;
+
+        string? value = await SelectInterop.GetSelectOptionValueAtPoint(args.ClientX, args.ClientY);
+
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        _suppressClick = true;
+        Select.ClearTriggerPointerDownPosition();
+        await Select.SetValue(value);
+        await Select.SetOpen(false);
+        await Task.Yield();
+        await Select.FocusTrigger();
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
@@ -141,5 +172,18 @@
 
         _pointerType = string.IsNullOrWhiteSpace(args.PointerType) ? "mouse" : args.PointerType;
         return Select.OpenFromTrigger(args.PageX, args.PageY);
+    }
+
+    [JSInvokable]
+    public async Task HandleTriggerPointerSelect(string? value)
+    {
+        if (IsDisabled || Select is null || string.IsNullOrWhiteSpace(value))
+            return;
+
+        Select.ClearTriggerPointerDownPosition();
+        await Select.SetValue(value);
+        await Select.SetOpen(false);
+        await Task.Yield();
+        await Select.FocusTrigger();
     }
 }

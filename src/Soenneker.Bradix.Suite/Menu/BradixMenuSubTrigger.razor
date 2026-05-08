@@ -72,6 +72,8 @@
         ("aria-disabled", Disabled ? "true" : null),
         ("data-disabled", Disabled ? string.Empty : null),
         ("data-state", SubMenu.CurrentOpen ? "open" : "closed"),
+        ("data-open", SubMenu.CurrentOpen ? string.Empty : null),
+        ("data-closed", SubMenu.CurrentOpen ? null : string.Empty),
         ("data-highlighted", _isFocused ? string.Empty : null));
 
     protected override void OnInitialized()

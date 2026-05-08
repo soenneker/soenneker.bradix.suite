@@ -40,4 +40,6 @@ public interface ISelectInterop : IAsyncDisposable
         CancellationToken cancellationToken = default);
 
     ValueTask UnregisterSelectWindowDismiss(ElementReference content, CancellationToken cancellationToken = default);
+
+    ValueTask<string?> GetSelectOptionValueAtPoint(double clientX, double clientY, CancellationToken cancellationToken = default);
 }
