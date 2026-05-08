@@ -2,15 +2,12 @@
 
 @inherits LeptonContent
 @implements IBradixAlertDialog
-<BradixDialog Open="Open"
-              DefaultOpen="DefaultOpen"
-              OpenChanged="OpenChanged"
-              OnOpenChange="OnOpenChange"
-              Modal="true">
+<BradixDialog Open="Open" DefaultOpen="DefaultOpen" OpenChanged="OpenChanged" OnOpenChange="OnOpenChange" Modal="true" >
     @ChildContent
 </BradixDialog>
 
 @code {
+
     [Parameter]
     public bool? Open { get; set; }
 
@@ -22,4 +19,5 @@
 
     [Parameter]
     public EventCallback<bool> OnOpenChange { get; set; }
+
 }
