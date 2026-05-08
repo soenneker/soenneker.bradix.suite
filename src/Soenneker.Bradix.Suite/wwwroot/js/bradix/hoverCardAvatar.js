@@ -129,14 +129,13 @@ export function registerAvatarImageLoadingStatus(src, crossOrigin, referrerPolic
     return;
   }
 
+  notifyStatus("loading");
   image.src = src;
 
   if (image.complete && image.naturalWidth > 0) {
     notifyStatus("loaded");
     return;
   }
-
-  notifyStatus("loading");
 }
 
 export function unregisterAvatarImageLoadingStatus(dotNetRef) {
