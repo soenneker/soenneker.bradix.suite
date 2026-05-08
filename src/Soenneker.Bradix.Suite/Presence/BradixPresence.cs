@@ -32,6 +32,15 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
     public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
 
     [Parameter]
+    public EventCallback<PointerEventArgs> OnPointerEnter { get; set; }
+
+    [Parameter]
+    public EventCallback<PointerEventArgs> OnPointerLeave { get; set; }
+
+    [Parameter]
+    public EventCallback<PointerEventArgs> OnPointerDown { get; set; }
+
+    [Parameter]
     public bool PreventKeyDownDefault { get; set; }
 
     private ElementReference _element;
@@ -148,8 +157,14 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
             if (PreventKeyDownDefault)
                 builder.AddEventPreventDefaultAttribute(3, "onkeydown", true);
         }
-        builder.AddElementReferenceCapture(4, element => _element = element);
-        builder.AddContent(5, ChildContent);
+        if (OnPointerEnter.HasDelegate)
+            builder.AddAttribute(4, "onpointerenter", OnPointerEnter);
+        if (OnPointerLeave.HasDelegate)
+            builder.AddAttribute(5, "onpointerleave", OnPointerLeave);
+        if (OnPointerDown.HasDelegate)
+            builder.AddAttribute(6, "onpointerdown", OnPointerDown);
+        builder.AddElementReferenceCapture(7, element => _element = element);
+        builder.AddContent(8, ChildContent);
         builder.CloseElement();
     }
 

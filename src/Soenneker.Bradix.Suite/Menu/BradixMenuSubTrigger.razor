@@ -65,7 +65,7 @@
     private Dictionary<string, object> ItemAttributes => BuildAttributes(
         ("id", Sub.TriggerId),
         ("role", "menuitem"),
-        ("tabindex", ParentMenu.IsCurrentTabStop(this) ? 0 : -1),
+        ("tabindex", -1),
         ("aria-haspopup", "menu"),
         ("aria-expanded", SubMenu.CurrentOpen ? "true" : "false"),
         ("aria-controls", Sub.ContentId),

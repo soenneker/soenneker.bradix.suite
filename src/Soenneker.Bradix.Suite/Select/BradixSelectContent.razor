@@ -318,6 +318,8 @@ else
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await SelectInterop.RegisterSelectViewport(_viewportElement, _viewportContentElement, _wrapperElement, _dotNetReference);
         _viewportRegistered = true;
+
+        await CompleteOpenLayoutPass();
     }
 
     internal void RegisterViewportContent(ElementReference element)
@@ -328,6 +330,11 @@ else
     internal Task FocusViewport()
     {
         return Select?.FocusSelectedOrFirstItem() ?? Task.CompletedTask;
+    }
+
+    internal void QueueOpenLayoutPass()
+    {
+        _ = InvokeAsync(CompleteOpenLayoutPass);
     }
 
     internal async Task FocusContent()
@@ -614,7 +621,18 @@ else
     {
         await EnsureKeyboard();
 
-        if (_pendingOpenAutoFocus && Select?.CurrentOpen == true)
+        await CompleteOpenLayoutPass();
+    }
+
+    private async Task CompleteOpenLayoutPass()
+    {
+        if (Select?.CurrentOpen != true)
+            return;
+
+        if (UseItemAlignedPosition)
+            await UpdateItemAlignedPosition();
+
+        if (!_didFocusOpenItem)
             await ApplyOpenAutoFocus();
     }
 

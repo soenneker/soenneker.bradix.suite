@@ -128,6 +128,7 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
 
   selectViewportHandlers.set(viewport, registration);
   queueNotify();
+  queueItemAlignedPositionFromViewport(viewport, content, wrapper);
 }
 
 export function unregisterSelectViewport(viewport) {
@@ -342,38 +343,11 @@ export function registerSelectContentPointerTracker(content, dotNetRef, pageX, p
     const shouldClose = !withinPointerTolerance && !!target && !targetInsideContent;
 
     if (withinPointerTolerance) {
-      const releaseTarget = document.elementFromPoint(event.clientX, event.clientY);
-      const option = releaseTarget instanceof HTMLElement
-        ? releaseTarget.closest("[role='option']")
-        : null;
-
-      if (option && content.contains(option) && !option.hasAttribute("data-disabled") && option.getAttribute("aria-disabled") !== "true") {
-        const value = option.getAttribute("data-value");
-
-        if (value) {
-          invokeDotNetSafely(dotNetRef, "HandleTriggerPointerSelect", value);
-          return;
-        }
-
-        option.dispatchEvent(new PointerEvent("pointerup", {
-          bubbles: true,
-          cancelable: true,
-          pointerType: "mouse",
-          pointerId: event.pointerId || 1,
-          button: event.button,
-          buttons: event.buttons,
-          clientX: event.clientX,
-          clientY: event.clientY,
-          pageX: event.pageX,
-          pageY: event.pageY,
-          screenX: event.screenX,
-          screenY: event.screenY,
-          ctrlKey: event.ctrlKey,
-          shiftKey: event.shiftKey,
-          altKey: event.altKey,
-          metaKey: event.metaKey
-        }));
-      }
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      invokeDotNetSafely(dotNetRef, "HandleTriggerPointerGuardResult", true, false);
+      return;
     }
 
     invokeDotNetSafely(dotNetRef, "HandleTriggerPointerGuardResult", false, shouldClose);
@@ -538,6 +512,40 @@ export function unregisterSelectItemAlignedPosition(wrapper) {
 
 function clampValue(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function queueItemAlignedPositionFromViewport(viewport, content, wrapper) {
+  if (!viewport || !content || !wrapper || wrapper.getAttribute("data-radix-select-position") !== "item-aligned") {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    const trigger = content.id
+      ? document.querySelector(`[role='combobox'][aria-controls='${CSS.escape(content.id)}']`)
+      : null;
+    const valueNode = trigger ? trigger.querySelector("span") : null;
+    const selectedItem = content.querySelector("[role='option'][data-highlighted]")
+      || content.querySelector("[role='option'][data-state='checked']")
+      || content.querySelector("[role='option']:not([data-disabled])");
+    const selectedItemText = selectedItem
+      ? document.getElementById(selectedItem.getAttribute("aria-labelledby") || "")
+      : null;
+
+    if (!trigger || !valueNode || !selectedItem || !selectedItemText) {
+      return;
+    }
+
+    registerSelectItemAlignedPosition(
+      wrapper,
+      content,
+      viewport,
+      trigger,
+      valueNode,
+      selectedItem,
+      selectedItemText,
+      content.getAttribute("dir") || "ltr"
+    );
+  });
 }
 
 function positionSelectItemAligned(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir) {

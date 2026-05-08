@@ -110,6 +110,7 @@
             return;
 
         _loadingStatus = resolvedStatus;
+        await InvokeAsync(StateHasChanged);
 
         if (OnLoadingStatusChange.HasDelegate)
             await OnLoadingStatusChange.InvokeAsync(resolvedStatus);

@@ -37,12 +37,11 @@
                             Class="@Class"
                             Style="@Style"
                             AdditionalAttributes="@ContentAttributes"
-                            OnElementReferenceCaptured="@HandleContentReferenceCaptured">
-                <div @onpointerenter="HandlePointerEnter"
-                     @onpointerleave="HandlePointerLeave"
-                     @onpointerdown="HandlePointerDown">
-                    @ChildContent
-                </div>
+                            OnElementReferenceCaptured="@HandleContentReferenceCaptured"
+                            OnPointerEnter="@HandlePointerEnter"
+                            OnPointerLeave="@HandlePointerLeave"
+                            OnPointerDown="@HandlePointerDown">
+                @ChildContent
             </BradixPresence>
         </BradixPopperContent>
     </BradixDismissableLayer>

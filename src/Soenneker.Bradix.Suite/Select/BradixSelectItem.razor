@@ -78,7 +78,7 @@
         ("data-state", IsSelected ? "checked" : "unchecked"),
         ("data-highlighted", IsHighlighted ? string.Empty : null),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("tabindex", Disabled ? null : Select?.IsFocusedItem(this) == true ? 0 : -1));
+        ("tabindex", Disabled ? null : -1));
 
     protected override void OnInitialized()
     {
@@ -138,6 +138,7 @@
     {
         _itemTextElement = element;
         _hasItemTextElement = true;
+        Content?.QueueOpenLayoutPass();
     }
 
     private async Task HandleClick(MouseEventArgs _)
@@ -202,10 +203,22 @@
         return Task.CompletedTask;
     }
 
-    private async Task HandlePointerUp(PointerEventArgs _)
+    private async Task HandlePointerUp(PointerEventArgs args)
     {
         if (Disabled || Select is null || _pointerType != "mouse")
             return;
+
+        if (Select.HasTriggerPointerDownPosition)
+        {
+            double deltaX = Math.Abs(Math.Round(args.PageX) - Math.Round(Select.TriggerPointerDownX));
+            double deltaY = Math.Abs(Math.Round(args.PageY) - Math.Round(Select.TriggerPointerDownY));
+
+            if (deltaX <= 10 && deltaY <= 10)
+            {
+                Select.ClearTriggerPointerDownPosition();
+                return;
+            }
+        }
 
         await Select.SetValue(Value);
         await Select.SetOpen(false);

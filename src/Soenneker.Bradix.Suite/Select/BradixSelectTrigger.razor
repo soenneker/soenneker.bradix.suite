@@ -121,6 +121,18 @@
         if (IsDisabled || Select is null || !string.Equals(_pointerType, "mouse", StringComparison.Ordinal))
             return;
 
+        if (Select.HasTriggerPointerDownPosition)
+        {
+            double deltaX = Math.Abs(Math.Round(args.PageX) - Math.Round(Select.TriggerPointerDownX));
+            double deltaY = Math.Abs(Math.Round(args.PageY) - Math.Round(Select.TriggerPointerDownY));
+
+            if (deltaX <= 10 && deltaY <= 10)
+            {
+                Select.ClearTriggerPointerDownPosition();
+                return;
+            }
+        }
+
         string? value = await SelectInterop.GetSelectOptionValueAtPoint(args.ClientX, args.ClientY);
 
         if (string.IsNullOrWhiteSpace(value))
