@@ -96,7 +96,11 @@ public sealed class BradixTooltipRenderTests : BunitContext
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
-        await Assert.That(cut.FindAll("[role='tooltip']")).IsEmpty();
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(cut.Find(".tooltip-content").GetAttribute("data-state")).IsEqualTo("closed");
+            await Assert.That(cut.FindAll("[role='tooltip']")).HasSingleItem();
+        });
     }
 
     [Test]

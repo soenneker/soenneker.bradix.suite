@@ -74,6 +74,12 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateSingleGroup());
 
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
+        await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");
+        await Assert.That(buttons[1].GetAttribute("tabindex")).IsEqualTo("-1");
+
+        await buttons[0].FocusAsync();
+        buttons = cut.FindAll("button");
+
         await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("0");
         await Assert.That(buttons[1].GetAttribute("tabindex")).IsEqualTo("-1");
 

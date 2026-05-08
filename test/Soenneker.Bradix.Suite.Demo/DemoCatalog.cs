@@ -10,7 +10,7 @@ public static class DemoCatalog
     public static readonly DemoPageLink Overview = new("/",
         "Overview",
         "Overview",
-        "Explore the full Bradix suite through polished, behavior-first demos organized like a real component library.");
+        "Introduction to Bradix primitives.");
 
     public static readonly IReadOnlyList<DemoPageGroup> Groups = new ReadOnlyCollection<DemoPageGroup>(new[]
     {

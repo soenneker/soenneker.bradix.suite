@@ -6,102 +6,75 @@
 <section class="overview-page">
     <header class="overview-hero">
         <div class="overview-hero__content">
-            <p class="eyebrow">Bradix Suite</p>
+            <p class="eyebrow">Overview</p>
             <h1>Bradix primitives</h1>
-            <p class="overview-hero__lede">Modern Blazor components for the interaction work that usually gets messy: focus, layering, keyboard behavior, portals, and composed state.</p>
-
-            <div class="overview-hero__actions" aria-label="Featured component demos">
-                <NavLink href="/popovers" class="demo-link">Explore overlays</NavLink>
-                <NavLink href="/forms" class="demo-link demo-link--subtle">Build forms</NavLink>
-                <NavLink href="/navigationmenus" class="demo-link demo-link--subtle">Shape navigation</NavLink>
-            </div>
+            <p class="overview-hero__lede">A low-level Blazor component library for building accessible design systems and web apps.</p>
+            <p>Bradix primitives focus on behavior, accessibility, composition, and predictable Razor APIs. Use them as the base layer of a design system, or adopt a primitive one at a time.</p>
         </div>
-
-        <dl class="overview-proof" aria-label="Bradix library summary">
-            <div>
-                <dt>@DemoCatalog.ComponentCount</dt>
-                <dd>primitives</dd>
-            </div>
-            <div>
-                <dt>5</dt>
-                <dd>focused families</dd>
-            </div>
-            <div>
-                <dt>0</dt>
-                <dd>design lock-in</dd>
-            </div>
-        </dl>
     </header>
 
     <section class="overview-section">
         <header class="overview-section__header">
-            <h2>Use the hard parts without carrying the complexity.</h2>
-            <p>Bradix keeps the primitives small and composable while handling the browser details that make production UI brittle.</p>
+            <h2>Vision</h2>
+            <p>Common UI patterns like dialogs, menus, tabs, selects, sliders, and tooltips need consistent keyboard behavior, focus management, roles, and state. Bradix provides those primitives without prescribing your design system.</p>
+        </header>
+    </section>
+
+    <section class="overview-section">
+        <header class="overview-section__header">
+            <h2>Key features</h2>
         </header>
 
-        <div class="overview-value-grid">
-            <article class="overview-value">
-                <h3>Accessible by default</h3>
-                <p>Roving focus, labels, dismissal, modal behavior, and keyboard interactions are built into the primitive instead of rebuilt per feature.</p>
+        <div class="overview-feature-list">
+            <article>
+                <h3>Accessible</h3>
+                <p>Components handle roles, aria attributes, focus management, dismissal, and keyboard navigation where the pattern requires it.</p>
             </article>
-            <article class="overview-value">
-                <h3>Unstyled composition</h3>
-                <p>Bring your own markup, tokens, and layout while keeping the behavior contract stable across the suite.</p>
+            <article>
+                <h3>Unstyled</h3>
+                <p>Primitives ship with behavior, not a visual system. Bring your own classes, tokens, layout, and component wrappers.</p>
             </article>
-            <article class="overview-value">
-                <h3>Blazor-first ergonomics</h3>
-                <p>State, events, portals, and JS interop are packaged around normal Razor usage so app code stays direct.</p>
+            <article>
+                <h3>Composable</h3>
+                <p>Parts expose normal Razor parameters and event callbacks so you can assemble primitives around your app structure.</p>
+            </article>
+            <article>
+                <h3>Controlled or uncontrolled</h3>
+                <p>Use internal state for simple cases, or pass explicit state and callbacks when application logic needs control.</p>
+            </article>
+            <article>
+                <h3>Incremental</h3>
+                <p>Adopt one primitive at a time. The suite is organized so behavior can be reused without forcing broad UI rewrites.</p>
             </article>
         </div>
     </section>
 
     <section class="overview-section">
         <header class="overview-section__header">
-            <h2>Start with a real interaction.</h2>
-            <p>These demos cover the pieces most likely to reveal whether a component library is solid.</p>
+            <h2>Install</h2>
         </header>
 
-        <div class="overview-entry-grid">
-            <NavLink href="/dialogs" class="overview-entry">
-                <span>Dialog</span>
-                <span>Modal focus, dismissal, and layered content.</span>
-            </NavLink>
-            <NavLink href="/popovers" class="overview-entry">
-                <span>Popover</span>
-                <span>Floating content with collision-aware positioning.</span>
-            </NavLink>
-            <NavLink href="/selects" class="overview-entry">
-                <span>Select</span>
-                <span>Keyboard selection without native styling limits.</span>
-            </NavLink>
-            <NavLink href="/checkboxes" class="overview-entry">
-                <span>Checkbox</span>
-                <span>Form-ready state with accessible indicators.</span>
-            </NavLink>
-            <NavLink href="/tabs" class="overview-entry">
-                <span>Tabs</span>
-                <span>Controlled and uncontrolled panels with roving focus.</span>
-            </NavLink>
-            <NavLink href="/navigationmenus" class="overview-entry">
-                <span>Navigation Menu</span>
-                <span>Structured app and website navigation patterns.</span>
-            </NavLink>
-        </div>
+        <pre class="overview-code"><code>dotnet add package Soenneker.Bradix.Suite</code></pre>
+        <pre class="overview-code"><code>@@using Soenneker.Bradix</code></pre>
     </section>
 
     <section class="overview-section">
         <header class="overview-section__header">
-            <h2>Organized around the jobs your UI has to do.</h2>
+            <h2>Components</h2>
         </header>
 
-        <div class="overview-category-grid">
+        <div class="overview-component-list">
             @foreach (DemoPageGroup group in DemoCatalog.Groups)
             {
-                <NavLink href="@group.Pages[0].Href" class="overview-category">
-                    <span>@group.Title</span>
-                    <span>@group.Description</span>
-                    <strong>@group.Pages.Count demos</strong>
-                </NavLink>
+                <section>
+                    <h3>@group.Title</h3>
+                    <div>
+                        @foreach (DemoPageLink demoPage in group.Pages)
+                        {
+                            <NavLink href="@demoPage.Href">@demoPage.Title</NavLink>
+                        }
+                    </div>
+                </section>
             }
         </div>
     </section>
