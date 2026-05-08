@@ -39,7 +39,7 @@
         ("id", ContentId),
         ("tabindex", 0),
         ("data-state", IsSelected ? "active" : "inactive"),
-        ("data-orientation", Tabs.Orientation.Value),
+        ("data-orientation", Tabs.RovingOrientationValue),
         ("style", BuildContentStyle()));
 
     protected override Task OnAfterRenderAsync(bool firstRender)

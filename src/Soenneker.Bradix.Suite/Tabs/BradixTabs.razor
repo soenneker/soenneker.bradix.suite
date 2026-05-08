@@ -50,6 +50,8 @@
 
     internal bool IsAutomaticActivation => ActivationMode != TabsActivationMode.Manual;
 
+    internal string RovingOrientationValue => Orientation.Horizontal.Value;
+
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("dir", ResolvedDirection),
         ("data-orientation", Orientation.Value));
@@ -125,7 +127,7 @@
 
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(
                 args.Key,
-                Orientation.Value,
+                RovingOrientationValue,
                 ResolvedDirection,
                 currentIndex,
                 focusableTriggers.Count,
@@ -163,7 +165,7 @@
 
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(
                 args.Key,
-                Orientation.Value,
+                RovingOrientationValue,
                 ResolvedDirection,
                 currentIndex,
                 focusableTriggers.Count,

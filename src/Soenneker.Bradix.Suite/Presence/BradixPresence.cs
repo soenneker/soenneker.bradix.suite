@@ -43,6 +43,9 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
     [Parameter]
     public bool PreventKeyDownDefault { get; set; }
 
+    [Parameter]
+    public bool EmitOpenClosedAttributes { get; set; } = true;
+
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
@@ -247,7 +250,12 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
 
         bool isOpen = ResolveOpenState(attributes);
 
-        if (isOpen)
+        if (!EmitOpenClosedAttributes)
+        {
+            attributes.Remove("data-open");
+            attributes.Remove("data-closed");
+        }
+        else if (isOpen)
         {
             attributes["data-open"] = string.Empty;
             attributes.Remove("data-closed");

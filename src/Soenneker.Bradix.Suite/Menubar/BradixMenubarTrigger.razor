@@ -57,7 +57,7 @@
         ("type", "button"),
         ("role", "menuitem"),
         ("id", MenubarMenu?.TriggerId),
-        ("tabindex", Menubar?.IsCurrentTabStop(MenubarMenu!) == true ? 0 : -1),
+        ("tabindex", IsOpen ? 0 : -1),
         ("aria-haspopup", "menu"),
         ("aria-expanded", IsOpen ? "true" : "false"),
         ("aria-controls", IsOpen ? MenubarMenu?.ContentId : null),

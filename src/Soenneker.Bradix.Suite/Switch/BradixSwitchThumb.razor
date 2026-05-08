@@ -13,7 +13,5 @@
 
     private Dictionary<string, object> ThumbAttributes => BuildAttributes(
         ("data-state", Switch.CurrentChecked ? "checked" : "unchecked"),
-        ("data-checked", Switch.CurrentChecked ? string.Empty : null),
-        ("data-unchecked", Switch.CurrentChecked ? null : string.Empty),
         ("data-disabled", Switch.IsDisabled ? string.Empty : null));
 }

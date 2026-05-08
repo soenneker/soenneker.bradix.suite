@@ -47,9 +47,7 @@
 
     private string? FocusGroupId => IsInContent ? Item?.ContentId : null;
 
-    private int? TabIndex => !IsInContent && NavigationMenu?.IsRootMenu == true && Item is not null
-        ? (NavigationMenu.CurrentTabStopValue == Item.ResolvedValue ? 0 : -1)
-        : null;
+    private int? TabIndex => null;
 
     private Dictionary<string, object> LinkAttributes => BuildAttributes(
         ("data-active", Active ? "true" : null),

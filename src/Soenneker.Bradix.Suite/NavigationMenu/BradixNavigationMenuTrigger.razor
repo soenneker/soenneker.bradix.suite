@@ -74,7 +74,7 @@
         ("data-debug-dispose-count", NavigationMenu?.GetDebugTriggerDisposeCount(Item?.ResolvedValue).ToString(System.Globalization.CultureInfo.InvariantCulture)),
         ("aria-expanded", IsOpen ? "true" : "false"),
         ("aria-controls", Item?.ContentId),
-        ("tabindex", NavigationMenu is not null && Item is not null && NavigationMenu.IsCurrentTabStop(Item) ? 0 : -1));
+        ("tabindex", null));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -14,7 +14,6 @@
 @code {
     private readonly List<BradixRadioGroupItem> _items = [];
     private bool _initialized;
-    private bool _selectOnFocusAfterNavigation;
     private string? _uncontrolledValue;
 
     [CascadingParameter(Name = "BradixDirection")]
@@ -121,9 +120,7 @@
 
     internal bool TryConsumeSelectOnFocus()
     {
-        bool shouldSelect = _selectOnFocusAfterNavigation;
-        _selectOnFocusAfterNavigation = false;
-        return shouldSelect;
+        return false;
     }
 
     internal async Task SelectValue(string value)
@@ -181,7 +178,6 @@
 
         BradixRadioGroupItem target = focusableItems[targetIndex];
         CurrentTabStopId = target.TabStopId;
-        _selectOnFocusAfterNavigation = args.Key is "ArrowUp" or "ArrowDown" or "ArrowLeft" or "ArrowRight";
         await target.Focus();
         await InvokeAsync(StateHasChanged);
     }

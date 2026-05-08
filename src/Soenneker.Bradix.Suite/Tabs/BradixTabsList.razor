@@ -19,7 +19,8 @@
 
     private Dictionary<string, object> ListAttributes => BuildAttributes(
         ("role", "tablist"),
-        ("aria-orientation", Tabs.Orientation.Value),
+        ("aria-orientation", Tabs.RovingOrientationValue),
+        ("data-orientation", Tabs.RovingOrientationValue),
         ("tabindex", 0));
 
     private Task HandleKeyDown(KeyboardEventArgs args)

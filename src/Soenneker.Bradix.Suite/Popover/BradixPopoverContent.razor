@@ -162,8 +162,8 @@
 
             string resolvedRole = attributes["role"]?.ToString() ?? "dialog";
 
-            if (!attributes.ContainsKey("aria-modal") && string.Equals(resolvedRole, "dialog", StringComparison.Ordinal))
-                attributes["aria-modal"] = Popover?.Modal == true ? "true" : "false";
+            if (!attributes.ContainsKey("aria-modal") && string.Equals(resolvedRole, "dialog", StringComparison.Ordinal) && Popover?.Modal == true)
+                attributes["aria-modal"] = "true";
 
             attributes["data-state"] = Popover?.CurrentOpen == true ? "open" : "closed";
             attributes["data-side"] = _placedSide ?? Side.Value;
