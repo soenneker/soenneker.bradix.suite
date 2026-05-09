@@ -7,11 +7,30 @@
 @implements IBradixDialogClose
 @inject IDelegatedInteractionInterop DelegatedInteractionInterop
 @inject IControlsInterop ControlsInterop
-<button @onclick="HandleClick"
-        @ref="_button"
-        @attributes="ButtonAttributes">
-    @ChildContent
-</button>
+@if (AsChild && !string.IsNullOrWhiteSpace(ChildElementName))
+{
+    <BradixSlot ElementName="@ChildElementName"
+                Class="@Class"
+                Style="@Style"
+                AdditionalAttributes="@SlottedButtonAttributes"
+                ChildAttributes="@ChildAttributes">
+        @ChildContent
+    </BradixSlot>
+}
+else if (AsChild)
+{
+    <CascadingValue Name="BradixDialogCloseContext" Value="CloseContext" IsFixed="false">
+        @ChildContent
+    </CascadingValue>
+}
+else
+{
+    <button @onclick="HandleClick"
+            @ref="_button"
+            @attributes="ButtonAttributes">
+        @ChildContent
+    </button>
+}
 
 @code {
     private ElementReference _button;
@@ -31,18 +50,40 @@
     public bool Disabled { get; set; }
 
     [Parameter]
+    public bool AsChild { get; set; }
+
+    [Parameter]
+    public string? ChildElementName { get; set; }
+
+    [Parameter]
+    public IReadOnlyDictionary<string, object>? ChildAttributes { get; set; }
+
+    [Parameter]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    private BradixDialogCloseContext CloseContext => new()
+    {
+        Disabled = Disabled,
+        AriaLabel = AriaLabel,
+        Close = HandleChildClick
+    };
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
         ("aria-label", AriaLabel),
-        ("data-state", Dialog?.CurrentOpen == true ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
         ("disabled", Disabled ? true : null));
 
+    private Dictionary<string, object> SlottedButtonAttributes => BuildAttributes(
+        ("type", "button"),
+        ("aria-label", AriaLabel),
+        ("data-disabled", Disabled ? string.Empty : null),
+        ("disabled", Disabled ? true : null),
+        ("onclick", EventCallback.Factory.Create<MouseEventArgs>(this, HandleChildClick)));
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (AsChild || !firstRender)
             return;
 
         if (OnElementReferenceCaptured.HasDelegate)
@@ -73,8 +114,23 @@
             await OnClick.InvokeAsync();
     }
 
+    private async Task HandleChildClick(MouseEventArgs args)
+    {
+        if (!Disabled && Dialog is not null)
+        {
+            await ControlsInterop.FocusElementByIdDeferred(Dialog.ResolvedTriggerId);
+            await Dialog.SetOpen(false);
+        }
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
+    }
+
     public async ValueTask DisposeAsync()
     {
+        if (AsChild)
+            return;
+
         await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
         _dotNetReference?.Dispose();
     }

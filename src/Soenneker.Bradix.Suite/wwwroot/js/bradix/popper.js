@@ -175,7 +175,7 @@ async function updateRegisteredPopperContent(content) {
 
   const flipOverflowOptions = {
     ...detectOverflowOptions,
-    altBoundary: true
+    altBoundary: false
   };
 
   const middleware = [

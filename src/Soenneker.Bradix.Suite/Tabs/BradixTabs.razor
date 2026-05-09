@@ -50,7 +50,7 @@
 
     internal bool IsAutomaticActivation => ActivationMode != TabsActivationMode.Manual;
 
-    internal string RovingOrientationValue => Orientation.Horizontal.Value;
+    internal string RovingOrientationValue => Orientation.Value;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("dir", ResolvedDirection),

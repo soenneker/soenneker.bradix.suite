@@ -330,6 +330,13 @@
             return;
         }
 
+        if (IsOpen && string.Equals(args.Key, "Escape", StringComparison.Ordinal))
+        {
+            NavigationMenu.MarkEscapeClosed(Item.ResolvedValue);
+            await NavigationMenu.Dismiss(Item.ResolvedValue);
+            return;
+        }
+
         if (args.Key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown" or "Home" or "End")
         {
             if (_rovingFocusBridgeReady && args.Key is "ArrowLeft" or "ArrowRight")

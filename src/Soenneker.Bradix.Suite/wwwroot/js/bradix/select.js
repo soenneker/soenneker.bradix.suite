@@ -574,21 +574,23 @@ function positionSelectItemAligned(wrapper, content, viewport, trigger, valueNod
     const itemTextOffset = itemTextRect.left - contentRect.left;
     const left = valueNodeRect.left - itemTextOffset;
     const leftDelta = triggerRect.left - left;
-    const minContentWidth = triggerRect.width + leftDelta;
+    const minContentWidth = Math.max(triggerRect.width, triggerRect.width + leftDelta);
     const contentWidth = Math.max(minContentWidth, contentRect.width);
     const rightEdge = window.innerWidth - CONTENT_MARGIN;
     const clampedLeft = clampValue(left, CONTENT_MARGIN, Math.max(CONTENT_MARGIN, rightEdge - contentWidth));
     wrapper.style.minWidth = `${minContentWidth}px`;
+    content.style.minWidth = `${minContentWidth}px`;
     wrapper.style.left = `${clampedLeft}px`;
   } else {
     const itemTextOffset = contentRect.right - itemTextRect.right;
     const right = window.innerWidth - valueNodeRect.right - itemTextOffset;
     const rightDelta = window.innerWidth - triggerRect.right - right;
-    const minContentWidth = triggerRect.width + rightDelta;
+    const minContentWidth = Math.max(triggerRect.width, triggerRect.width + rightDelta);
     const contentWidth = Math.max(minContentWidth, contentRect.width);
     const leftEdge = window.innerWidth - CONTENT_MARGIN;
     const clampedRight = clampValue(right, CONTENT_MARGIN, Math.max(CONTENT_MARGIN, leftEdge - contentWidth));
     wrapper.style.minWidth = `${minContentWidth}px`;
+    content.style.minWidth = `${minContentWidth}px`;
     wrapper.style.right = `${clampedRight}px`;
   }
 

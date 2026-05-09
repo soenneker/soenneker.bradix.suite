@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -23,6 +24,21 @@ public interface IBradixDialogClose : IAsyncDisposable {
     /// Gets or sets whether the close button is disabled.
     /// </summary>
     bool Disabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the close behavior is composed onto the child content.
+    /// </summary>
+    bool AsChild { get; set; }
+
+    /// <summary>
+    /// Gets or sets the element name rendered when <see cref="AsChild"/> is true and Bradix renders the slotted element.
+    /// </summary>
+    string? ChildElementName { get; set; }
+
+    /// <summary>
+    /// Gets or sets attributes from the child element that should be merged into the slotted close element.
+    /// </summary>
+    IReadOnlyDictionary<string, object>? ChildAttributes { get; set; }
 
     /// <summary>
     /// Gets or sets the callback invoked when the close button is clicked.

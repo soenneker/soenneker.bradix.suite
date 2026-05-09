@@ -39,7 +39,6 @@
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
         ("type", "button"),
         ("role", "combobox"),
-        ("aria-haspopup", "listbox"),
         ("aria-controls", Select?.ContentId),
         ("aria-expanded", Select?.CurrentOpen == true ? "true" : "false"),
         ("aria-required", Select?.Required == true ? "true" : null),

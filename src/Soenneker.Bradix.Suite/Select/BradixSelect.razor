@@ -48,6 +48,7 @@
     private readonly BradixTypeaheadBuffer _typeahead = new();
     private bool _initialized;
     private bool _refreshQueued;
+    private bool _focusOpenItemQueued;
     private bool _uncontrolledOpen;
     private string? _uncontrolledValue;
     private bool _hasPendingControlledValue;
@@ -270,6 +271,8 @@
 
         if (ShouldRenderBubbleSelect || string.Equals(item.Value, CurrentValue, StringComparison.Ordinal))
             QueueRefresh();
+
+        QueueOpenItemFocusIfNeeded();
     }
 
     internal void UnregisterItem(IBradixSelectCollectionItem item)
@@ -594,6 +597,29 @@
 
             _refreshQueued = false;
             StateHasChanged();
+        });
+    }
+
+    private void QueueOpenItemFocusIfNeeded()
+    {
+        if (_disposed || !CurrentOpen || CurrentFocusedItemValue is not null || _focusOpenItemQueued)
+            return;
+
+        _focusOpenItemQueued = true;
+
+        _ = InvokeAsync(async () =>
+        {
+            if (_disposed)
+                return;
+
+            await Task.Yield();
+
+            _focusOpenItemQueued = false;
+
+            if (_disposed || !CurrentOpen || CurrentFocusedItemValue is not null)
+                return;
+
+            await FocusSelectedOrFirstItem();
         });
     }
 

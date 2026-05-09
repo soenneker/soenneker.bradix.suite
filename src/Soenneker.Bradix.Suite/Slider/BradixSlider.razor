@@ -81,12 +81,9 @@
     internal IReadOnlyList<double> CurrentValues => Values ?? _uncontrolledValues;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("role", "group"),
-        ("aria-orientation", Orientation.Value),
         ("data-orientation", Orientation.Value),
-        ("data-js-ready", _registered ? "true" : "false"),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("aria-disabled", Disabled ? "true" : null),
+        ("aria-disabled", Disabled ? "true" : "false"),
         ("dir", ResolvedDirection));
 
     protected override void OnParametersSet()

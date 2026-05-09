@@ -30,19 +30,21 @@
                     </div>
 
                     <div class="dialog-demo__save-row">
-                        <button type="button"
-                                class="dialog-demo__button dialog-demo__button--green"
-                                @onclick="SaveChanges">
+                        <BradixDialogClose AsChild
+                                           ChildElementName="button"
+                                           Class="dialog-demo__button dialog-demo__button--green"
+                                           AriaLabel="@((string?) null)"
+                                           OnClick="HandleSaveClose">
                             Save changes
-                        </button>
+                        </BradixDialogClose>
                     </div>
 
-                    <button type="button"
-                            class="dialog-demo__icon-button"
-                            aria-label="Close"
-                            @onclick="CloseDialog">
+                    <BradixDialogClose AsChild
+                                       ChildElementName="button"
+                                       Class="dialog-demo__icon-button"
+                                       OnClick="HandleIconClose">
                         ×
-                    </button>
+                    </BradixDialogClose>
                 </BradixDialogContent>
             </BradixDialogPortal>
         </BradixDialog>
@@ -115,11 +117,21 @@
         return Task.CompletedTask;
     }
 
+    private Task HandleSaveClose(MouseEventArgs _)
+    {
+        return SaveChanges();
+    }
+
     private Task CloseDialog()
     {
         RestoreDraft();
         _open = false;
         return Task.CompletedTask;
+    }
+
+    private Task HandleIconClose(MouseEventArgs _)
+    {
+        return CloseDialog();
     }
 
     private void RestoreDraft()

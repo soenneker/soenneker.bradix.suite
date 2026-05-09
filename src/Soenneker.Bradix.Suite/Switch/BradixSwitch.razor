@@ -145,6 +145,12 @@
                     method = nameof(HandleDelegatedClick),
                     currentTargetOnly = false,
                     stopPropagation = true
+                },
+                keydown = new
+                {
+                    method = nameof(HandleDelegatedKeyDown),
+                    keys = new[] { "Enter", " ", "Spacebar" },
+                    preventDefault = true
                 }
             });
             _registered = true;
@@ -231,6 +237,15 @@
         return Disabled ? Task.CompletedTask : SetChecked(!CurrentChecked);
     }
 
+    [JSInvokable]
+    public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
+    {
+        if (Disabled || !IsActivationKey(args.Key))
+            return Task.CompletedTask;
+
+        return SetChecked(!CurrentChecked);
+    }
+
     private async Task SetChecked(bool value)
     {
         if (Checked is null)
@@ -246,5 +261,10 @@
             await OnCheckedChange.InvokeAsync(value);
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private static bool IsActivationKey(string key)
+    {
+        return key is "Enter" or " " or "Spacebar";
     }
 }

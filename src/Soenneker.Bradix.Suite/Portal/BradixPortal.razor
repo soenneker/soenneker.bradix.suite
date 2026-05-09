@@ -23,7 +23,8 @@
     [Parameter]
     public ElementReference Container { get; set; }
 
-    private Dictionary<string, object> PortalAttributes => BuildAttributes();
+    private Dictionary<string, object> PortalAttributes => BuildAttributes(
+        ("style", MergeStyleValues("display:contents;", Style)));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -15,7 +15,7 @@
 
     private double SafeRatio => Ratio > 0 ? Ratio : 1;
 
-    private string WrapperStyle => $"position: relative; width: 100%; aspect-ratio: {SafeRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)};";
+    private string WrapperStyle => $"position: relative; width: 100%; padding-bottom: {(100 / SafeRatio).ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
 
     private Dictionary<string, object> ContentAttributes => BuildAttributes(
         ("style", BuildContentStyle()));
