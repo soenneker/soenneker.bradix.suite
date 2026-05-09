@@ -37,3 +37,19 @@ export function getTextContent(element) {
 
   return (element.textContent || "").trim();
 }
+
+export function getTextContentExcluding(element, excludeSelector) {
+  if (!element) {
+    return "";
+  }
+
+  const clone = element.cloneNode(true);
+
+  if (excludeSelector) {
+    for (const excluded of clone.querySelectorAll(excludeSelector)) {
+      excluded.remove();
+    }
+  }
+
+  return (clone.textContent || "").trim();
+}

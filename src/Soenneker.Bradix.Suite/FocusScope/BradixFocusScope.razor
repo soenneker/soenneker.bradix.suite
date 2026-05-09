@@ -47,6 +47,8 @@
     [Parameter]
     public bool PreventUnmountAutoFocus { get; set; }
 
+    private bool HasMountAutoFocusCallback => OnMountAutoFocus.HasDelegate || OnMountAutoFocusDetailed.HasDelegate;
+
     private Dictionary<string, object> ScopeAttributes => BuildAttributes("tabindex", -1);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -61,7 +63,8 @@
 
             try
             {
-                await FocusScopeInterop.RegisterFocusScope(_element, dotNetReference, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus, _disposeCts.Token);
+                await FocusScopeInterop.RegisterFocusScope(_element, dotNetReference, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus,
+                    HasMountAutoFocusCallback, _disposeCts.Token);
             }
             catch (OperationCanceledException) when (_disposed)
             {

@@ -11,4 +11,6 @@ public interface IDomInterop : IAsyncDisposable
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     ValueTask<string> GetTextContent(ElementReference element, CancellationToken cancellationToken = default);
+
+    ValueTask<string> GetTextContentExcluding(ElementReference element, string excludeSelector, CancellationToken cancellationToken = default);
 }

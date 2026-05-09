@@ -29,6 +29,13 @@ public sealed class DomInterop : IDomInterop
         return textContent ?? string.Empty;
     }
 
+    public async ValueTask<string> GetTextContentExcluding(ElementReference element, string excludeSelector, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        var textContent = await module.InvokeAsync<string>("getTextContentExcluding", cancellationToken, element, excludeSelector);
+        return textContent ?? string.Empty;
+    }
+
     public async ValueTask DisposeAsync()
     {
         await _moduleImportUtil.DisposeContentModule(_modulePath);

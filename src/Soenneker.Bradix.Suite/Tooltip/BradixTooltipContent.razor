@@ -37,12 +37,11 @@
                             Class="@Class"
                             Style="@Style"
                             AdditionalAttributes="@TooltipAttributes"
+                            OnElementReferenceCaptured="@HandleContentElementCaptured"
+                            OnPointerEnter="@HandlePointerEnter"
+                            OnPointerLeave="@HandlePointerLeave"
                             OnExitComplete="@HandleExitComplete">
-                <div @ref="_contentElement"
-                     @onpointerenter="HandlePointerEnter"
-                     @onpointerleave="HandlePointerLeave">
-                    @ChildContent
-                </div>
+                @ChildContent
                 <BradixVisuallyHidden Id="@Tooltip?.ContentId"
                                       AdditionalAttributes="@AccessibleTooltipAttributes">
                     @AccessibleTooltipContent
@@ -195,9 +194,9 @@
             _lastTriggerId = triggerId;
         }
 
-        if (string.IsNullOrWhiteSpace(AriaLabel))
+        if (string.IsNullOrWhiteSpace(AriaLabel) && string.IsNullOrWhiteSpace(_accessibleLabel))
         {
-            string textContent = await DomInterop.GetTextContent(_contentElement);
+            string textContent = await DomInterop.GetTextContentExcluding(_contentElement, "[role=\"tooltip\"]");
 
             if (!string.Equals(_accessibleLabel, textContent, StringComparison.Ordinal))
             {
@@ -265,6 +264,12 @@
     {
         _placedSide = args.Side;
         _placedAlign = args.Align;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleContentElementCaptured(ElementReference element)
+    {
+        _contentElement = element;
         return Task.CompletedTask;
     }
 

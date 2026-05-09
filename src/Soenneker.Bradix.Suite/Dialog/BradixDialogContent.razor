@@ -300,7 +300,7 @@ ResetState:
                           Trapped="ShouldTrapFocus"
                           PreventMountAutoFocus="PreventMountAutoFocus"
                           PreventUnmountAutoFocus="true"
-                          OnMountAutoFocusDetailed="HandleOpenAutoFocus"
+                          OnMountAutoFocusDetailed="@OpenAutoFocusCallback"
                           OnUnmountAutoFocusDetailed="HandleCloseAutoFocus">
             <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
                                     DismissOnEscapeKeyDown="CloseOnEscapeKeyDown"
@@ -337,4 +337,11 @@ ResetState:
         if (CloseOnEscapeKeyDown)
             await HandleDismiss();
     }
+
+    private bool HasOpenAutoFocusCallback => OnOpenAutoFocus.HasDelegate || OnOpenAutoFocusDetailed.HasDelegate;
+
+    private EventCallback<BradixAutoFocusEventArgs> OpenAutoFocusCallback =>
+        HasOpenAutoFocusCallback
+            ? EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, HandleOpenAutoFocus)
+            : default;
 }

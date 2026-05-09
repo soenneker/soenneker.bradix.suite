@@ -11,7 +11,7 @@ public interface IFocusScopeInterop : IAsyncDisposable
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     ValueTask RegisterFocusScope(ElementReference element, DotNetObjectReference<object> dotNetReference, bool loop, bool trapped,
-        bool preventMountAutoFocus, bool preventUnmountAutoFocus, CancellationToken cancellationToken = default);
+        bool preventMountAutoFocus, bool preventUnmountAutoFocus, bool invokeMountAutoFocus, CancellationToken cancellationToken = default);
 
     ValueTask UpdateFocusScope(ElementReference element, bool loop, bool trapped, bool preventMountAutoFocus, bool preventUnmountAutoFocus,
         CancellationToken cancellationToken = default);

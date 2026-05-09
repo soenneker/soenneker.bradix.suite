@@ -19,11 +19,11 @@ public sealed class FocusScopeInterop : IFocusScopeInterop
     }
 
     public async ValueTask RegisterFocusScope(ElementReference element, DotNetObjectReference<object> dotNetReference, bool loop, bool trapped,
-        bool preventMountAutoFocus, bool preventUnmountAutoFocus, CancellationToken cancellationToken = default)
+        bool preventMountAutoFocus, bool preventUnmountAutoFocus, bool invokeMountAutoFocus, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("registerFocusScope", cancellationToken, element, dotNetReference, loop, trapped, preventMountAutoFocus,
-            preventUnmountAutoFocus);
+            preventUnmountAutoFocus, invokeMountAutoFocus);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)

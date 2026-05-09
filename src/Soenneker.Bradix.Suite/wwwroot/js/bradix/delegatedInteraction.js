@@ -128,7 +128,7 @@ function retargetPointerUpToOption(pointerDownEvent, dotNetRef, pointerSelectMet
     const deltaX = Math.abs(Math.round(event.clientX) - Math.round(originX));
     const deltaY = Math.abs(Math.round(event.clientY) - Math.round(originY));
 
-    if (deltaX > 10 || deltaY > 10) {
+    if (deltaX <= 10 && deltaY <= 10) {
       return;
     }
 

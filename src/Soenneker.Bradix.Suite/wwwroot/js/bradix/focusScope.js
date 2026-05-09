@@ -43,7 +43,7 @@ function removeFocusScopeFromStack(scope) {
   }
 }
 
-export async function registerFocusScope(element, dotNetRef, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus) {
+export async function registerFocusScope(element, dotNetRef, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus, invokeMountAutoFocus = true) {
   if (!element) {
     return;
   }
@@ -196,7 +196,9 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
   const previous = scope.previouslyFocusedElement;
   const hasFocusedCandidate = previous && scope.element.contains(previous);
   if (!hasFocusedCandidate) {
-    const mountAutoFocusPrevented = await invokeDotNetSafely(dotNetRef, "HandleMountAutoFocus", false);
+    const mountAutoFocusPrevented = invokeMountAutoFocus
+      ? await invokeDotNetSafely(dotNetRef, "HandleMountAutoFocus", false)
+      : false;
     if (focusScopeHandlers.get(element) !== handlers) {
       return;
     }
