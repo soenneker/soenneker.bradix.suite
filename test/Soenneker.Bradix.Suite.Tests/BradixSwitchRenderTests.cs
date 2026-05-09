@@ -85,7 +85,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Switch_uses_blazor_enter_activation_without_delegated_keydown_bridge()
+    public async Task Switch_registers_delegated_keyboard_activation()
     {
         _ = Render(CreateSwitch());
 
@@ -94,7 +94,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
         object? keydown = options?.GetType().GetProperty("keydown")?.GetValue(options);
 
         await Assert.That(click).IsNotNull();
-        await Assert.That(keydown).IsNull();
+        await Assert.That(keydown).IsNotNull();
     }
 
     [Test]

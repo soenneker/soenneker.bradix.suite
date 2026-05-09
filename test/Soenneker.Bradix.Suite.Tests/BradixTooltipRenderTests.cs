@@ -24,6 +24,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
         _module.SetupVoid("unregisterTooltipContent", _ => true).SetVoidResult();
         _module.SetupVoid("dispatchTooltipOpen", _ => true).SetVoidResult();
         _module.Setup<string>("getTextContent", _ => true).SetResult("Tooltip body");
+        _module.Setup<string>("getTextContentExcluding", _ => true).SetResult("Tooltip body");
         _module.SetupVoid("registerDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("updateDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
@@ -123,7 +124,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(defaultOpen: true));
 
-        await cut.Find(".tooltip-content > div").TriggerEventAsync("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs
+        await cut.Find(".tooltip-content").TriggerEventAsync("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs
         {
             PointerType = "mouse"
         });
@@ -165,7 +166,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            await Assert.That(_module.Invocations).HasSingleItem();
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "registerTooltipContent")).IsEqualTo(1);
             await Assert.That(cut.FindAll("[role='tooltip']")).HasSingleItem();
         });
 

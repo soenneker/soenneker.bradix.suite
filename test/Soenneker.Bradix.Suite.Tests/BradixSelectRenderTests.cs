@@ -94,7 +94,7 @@ public sealed class BradixSelectRenderTests : BunitContext
             await Assert.That(content.GetAttribute("data-state")).IsEqualTo("open");
         });
 
-        await Assert.That(trigger.GetAttribute("aria-haspopup")).IsEqualTo("listbox");
+        await Assert.That(trigger.HasAttribute("aria-haspopup")).IsFalse();
     }
 
     [Test]

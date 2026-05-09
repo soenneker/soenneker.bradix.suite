@@ -27,6 +27,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
+        _module.Setup<bool>("focusFirstMatchingDescendant", _ => true).SetResult(true);
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         _module.SetupVoid("mountPortal", _ => true).SetVoidResult();

@@ -31,7 +31,9 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
 
         await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("false");
         await Assert.That(trigger.GetAttribute("data-state")).IsEqualTo("closed");
-        await Assert.That(cut.FindAll($"#{contentId}")).IsEmpty();
+        IElement closedContent = cut.Find($"#{contentId}");
+        await Assert.That(closedContent.HasAttribute("hidden")).IsTrue();
+        await Assert.That(closedContent.GetAttribute("data-state")).IsEqualTo("closed");
         await Assert.That(cut.Markup).DoesNotContain("Content");
 
         await trigger.ClickAsync();
@@ -78,7 +80,9 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
 
         await Assert.That(trigger.HasAttribute("disabled")).IsTrue();
         await Assert.That(trigger.GetAttribute("data-state")).IsEqualTo("closed");
-        await Assert.That(cut.FindAll($"#{trigger.GetAttribute("aria-controls")}")).IsEmpty();
+        IElement content = cut.Find($"#{trigger.GetAttribute("aria-controls")}");
+        await Assert.That(content.HasAttribute("hidden")).IsTrue();
+        await Assert.That(content.GetAttribute("data-state")).IsEqualTo("closed");
         await Assert.That(cut.Markup).DoesNotContain("Content");
     }
 

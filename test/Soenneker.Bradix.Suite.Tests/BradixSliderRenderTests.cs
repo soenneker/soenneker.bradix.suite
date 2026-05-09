@@ -36,11 +36,11 @@ public sealed class BradixSliderRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20]));
 
-        IElement root = cut.Find("[role='group']");
+        IElement root = cut.Find("[data-orientation='horizontal']");
         IElement thumb = cut.Find("[role='slider']");
         IElement range = cut.Find(".range");
 
-        await Assert.That(root.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(root.GetAttribute("aria-disabled")).IsEqualTo("false");
         await Assert.That(thumb.GetAttribute("aria-valuenow")).IsEqualTo("20");
         await Assert.That(thumb.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
         await Assert.That(range.GetAttribute("style")).Contains("left:");

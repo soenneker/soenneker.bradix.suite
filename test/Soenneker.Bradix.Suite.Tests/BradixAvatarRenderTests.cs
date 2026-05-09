@@ -26,7 +26,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: null));
 
         await Assert.That(cut.Markup).Contains("JD");
-        await Assert.That(cut.FindAll("img")).IsEmpty();
+        await Assert.That(cut.Find("img").HasAttribute("hidden")).IsTrue();
     }
 
     [Test]

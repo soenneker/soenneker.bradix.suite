@@ -145,7 +145,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
         IElement wrapper = cut.Find("[data-radix-aspect-ratio-wrapper]");
         IElement content = wrapper.Children[0];
 
-        await Assert.That(wrapper.GetAttribute("style")).Contains("aspect-ratio");
+        await Assert.That(wrapper.GetAttribute("style")).Contains("padding-bottom: 56.25%");
         await Assert.That(content.GetAttribute("style")).Contains("position: absolute");
         await Assert.That(content.TextContent).IsEqualTo("content");
     }
