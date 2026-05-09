@@ -6,7 +6,7 @@
 @implements IBradixToggleGroup
 
 <CascadingValue Value="this">
-    <div @attributes="RootAttributes">
+    <div @attributes="RootAttributes" @onfocus="HandleFocus">
         @ChildContent
     </div>
 </CascadingValue>
@@ -202,6 +202,21 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private async Task HandleFocus(FocusEventArgs _)
+    {
+        if (!RovingFocus)
+            return;
+
+        BradixToggleGroupItem? target = GetPreferredTabStopItem();
+
+        if (target is null)
+            return;
+
+        CurrentTabStopId = target.TabStopId;
+        await target.Focus();
+        await InvokeAsync(StateHasChanged);
+    }
+
     private void EnsureCurrentTabStopId()
     {
         List<BradixToggleGroupItem> focusableItems = _items
@@ -214,11 +229,27 @@
             return;
         }
 
-        if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
-            return;
-
-        if (CurrentTabStopId is not null)
+        if (CurrentTabStopId is not null && !focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
             CurrentTabStopId = null;
+    }
+
+    private BradixToggleGroupItem? GetPreferredTabStopItem()
+    {
+        List<BradixToggleGroupItem> focusableItems = _items
+                                                     .Where(item => item.IsFocusable)
+                                                     .ToList();
+
+        if (focusableItems.Count == 0)
+            return null;
+
+        BradixToggleGroupItem? pressedItem = focusableItems.FirstOrDefault(item => item.IsPressed);
+        if (pressedItem is not null)
+            return pressedItem;
+
+        if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
+            return focusableItems.First(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal));
+
+        return focusableItems[0];
     }
 
     private async Task SetSingleValue(string? value)

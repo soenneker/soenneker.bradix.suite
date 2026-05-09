@@ -194,10 +194,16 @@
             return;
         }
 
+        BradixRadioGroupItem? checkedItem = focusableItems.FirstOrDefault(item => item.IsChecked);
+        if (checkedItem is not null)
+        {
+            CurrentTabStopId = checkedItem.TabStopId;
+            return;
+        }
+
         if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
             return;
 
-        BradixRadioGroupItem? checkedItem = focusableItems.FirstOrDefault(item => item.IsChecked);
-        CurrentTabStopId = checkedItem?.TabStopId ?? focusableItems[0].TabStopId;
+        CurrentTabStopId = focusableItems[0].TabStopId;
     }
 }

@@ -119,13 +119,10 @@
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
-        {
-            if (Dialog?.CurrentOpen == true && !_didFocusCancelForCurrentOpen)
-                _ = InvokeAsync(FocusCancelForOpen);
-            else if (Dialog?.CurrentOpen != true)
-                _didFocusCancelForCurrentOpen = false;
-        }
+        if (Dialog?.CurrentOpen == true && !_didFocusCancelForCurrentOpen)
+            _ = InvokeAsync(FocusCancelForOpen);
+        else if (Dialog?.CurrentOpen != true)
+            _didFocusCancelForCurrentOpen = false;
 
         if (_pendingCancelFocus)
             _ = InvokeAsync(FocusCancelIfPending);

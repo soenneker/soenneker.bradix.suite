@@ -1,5 +1,6 @@
 @namespace Soenneker.Bradix
 
+@using System.Globalization
 @using Microsoft.JSInterop
 
 @inherits LeptonContentElement
@@ -163,6 +164,17 @@
     internal double GetPercentForValue(double value)
     {
         return BradixSliderMath.ConvertValueToPercentage(value, Min, Max);
+    }
+
+    internal double NormalizeStepValue(double value)
+    {
+        int decimalCount = BradixSliderMath.GetDecimalCount(Step);
+        return BradixSliderMath.RoundValue(value, decimalCount);
+    }
+
+    internal string FormatStepValue(double value)
+    {
+        return NormalizeStepValue(value).ToString(CultureInfo.InvariantCulture);
     }
 
     internal async Task FocusThumb(int index)

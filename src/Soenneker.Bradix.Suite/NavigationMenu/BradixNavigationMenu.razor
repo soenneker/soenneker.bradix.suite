@@ -8,6 +8,8 @@
 
 @implements IBradixNavigationMenu
 
+@inject INavigationMenuInterop NavigationMenuInterop
+
 <CascadingValue Value="this">
     @if (IsRootMenu)
     {
@@ -542,7 +544,11 @@
     internal async Task FocusContent(string value)
     {
         if (_contentElements.TryGetValue(value, out ElementReference element))
-            await element.FocusAsync();
+        {
+            bool focusedDescendant = await NavigationMenuInterop.FocusNavigationMenuContent(element);
+            if (!focusedDescendant)
+                await element.FocusAsync();
+        }
     }
 
     internal void SetCurrentTabStop(string value)

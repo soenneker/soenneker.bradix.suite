@@ -70,6 +70,12 @@ public sealed class NavigationMenuInterop : INavigationMenuInterop
         await module.InvokeVoidAsync("updateNavigationMenuContentFocusBridge", cancellationToken, content, trigger, startProxy, endProxy);
     }
 
+    public async ValueTask<bool> FocusNavigationMenuContent(ElementReference content, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        return await module.InvokeAsync<bool>("focusNavigationMenuContent", cancellationToken, content);
+    }
+
     public async ValueTask UnregisterNavigationMenuContentFocusBridge(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);

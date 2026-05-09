@@ -5,7 +5,7 @@
 @implements IBradixCollapsibleContent
 
 @inject ICollapsibleInterop CollapsibleInterop
-<BradixPresence Present="Present"
+<BradixPresence Present="true"
                 Tag="div"
                 AdditionalAttributes="@ContentAttributes"
                 OnElementReferenceCaptured="@HandleElementCaptured"
@@ -19,7 +19,6 @@
 @code {
     private ElementReference _element;
     private bool _hasElement;
-    private bool _isPresent;
     private bool _observing;
 
     [CascadingParameter]
@@ -37,11 +36,7 @@
     [Parameter]
     public string? AriaDescribedBy { get; set; }
 
-    private bool Present => Collapsible.IsOpen || ForceMount;
-
-    private bool IsOpenOrPresent => Collapsible.IsOpen || _isPresent || ForceMount;
-
-    private bool ShouldRenderChildren => IsOpenOrPresent;
+    private bool ShouldRenderChildren => Collapsible.IsOpen || ForceMount;
 
     private IReadOnlyDictionary<string, object> ContentAttributes
     {
@@ -52,7 +47,7 @@
                 : new Dictionary<string, object>();
 
             attributes["id"] = Collapsible.ContentId!;
-            if (!IsOpenOrPresent)
+            if (!Collapsible.IsOpen && !ForceMount)
                 attributes["hidden"] = true;
             attributes["data-state"] = BradixDataStates.Open(Collapsible.IsOpen);
 
@@ -78,12 +73,6 @@
 
             return attributes;
         }
-    }
-
-    protected override void OnParametersSet()
-    {
-        if (Present)
-            _isPresent = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -113,7 +102,6 @@
             _observing = false;
         }
 
-        _isPresent = false;
         _hasElement = false;
         await InvokeAsync(StateHasChanged);
     }

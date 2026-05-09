@@ -33,6 +33,7 @@
     private bool _contentElementCaptured;
     private bool _delegatedInteractionRegistered;
     private bool _pendingOpenAutoFocus;
+    private bool _pendingFirstItemFocusAfterOpen;
     private string? _placedSide;
     private string? _placedAlign;
     private ElementReference _contentElement;
@@ -194,6 +195,16 @@
         else if (_layerElement.Id is not null)
             await RegisterHideOthersIfNeeded();
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_pendingFirstItemFocusAfterOpen || Menu?.CurrentOpen != true)
+            return;
+
+        _pendingFirstItemFocusAfterOpen = false;
+        await Menu.FocusFirstItem();
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_delegatedInteractionRegistered)
@@ -482,6 +493,7 @@
         _contentElementCaptured = false;
         _delegatedInteractionRegistered = false;
         _pendingOpenAutoFocus = false;
+        _pendingFirstItemFocusAfterOpen = false;
         _submenuPointerGraceItems.Clear();
 
         if (_contentElement.Id is not null)
@@ -523,11 +535,16 @@
         if (shouldFocusContent)
         {
             await ControlsInterop.FocusElementPreventScroll(_contentElement);
-            await ControlsInterop.FocusElementDeferred(_contentElement);
+
+            if (!shouldFocusFirstItem)
+                await ControlsInterop.FocusElementDeferred(_contentElement);
         }
 
         if (shouldFocusFirstItem)
+        {
+            _pendingFirstItemFocusAfterOpen = true;
             await Menu.FocusFirstItem();
+        }
     }
 
     private async Task HandleContentElementCapturedInternal(ElementReference element)

@@ -186,7 +186,8 @@ function getRovingFocusTarget(element, key) {
 }
 
 function getRovingFocusIntent(key, orientation, dir) {
-  const horizontal = orientation !== "vertical";
+  const horizontal = orientation === "horizontal";
+  const vertical = orientation === "vertical";
   const previousKey = dir === "rtl" ? "ArrowRight" : "ArrowLeft";
   const nextKey = dir === "rtl" ? "ArrowLeft" : "ArrowRight";
 
@@ -203,11 +204,11 @@ function getRovingFocusIntent(key, orientation, dir) {
       return horizontal ? null : 1;
     default:
       if (key === previousKey) {
-        return horizontal ? -1 : null;
+        return vertical ? null : -1;
       }
 
       if (key === nextKey) {
-        return horizontal ? 1 : null;
+        return vertical ? null : 1;
       }
 
       return null;

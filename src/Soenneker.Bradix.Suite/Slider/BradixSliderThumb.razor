@@ -47,6 +47,8 @@
 
     private double? Value => Slider.GetThumbValue(Index);
 
+    private string? FormattedValue => Value is null ? null : Slider.FormatStepValue(Value.Value);
+
     private string? InputName => Slider.GetThumbInputName(this);
 
     private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Slider.Form);
@@ -94,7 +96,7 @@
                 ("role", "slider"),
                 ("aria-label", AriaLabel ?? BradixSliderMath.GetThumbLabel(Index, Slider.CurrentValues.Count)),
                 ("aria-valuemin", Slider.Min.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                ("aria-valuenow", Value?.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("aria-valuenow", FormattedValue),
                 ("aria-valuemax", Slider.Max.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                 ("aria-orientation", Slider.Orientation.Value),
                 ("data-orientation", Slider.Orientation.Value),
@@ -113,7 +115,7 @@
             Dictionary<string, object> attributes = new()
             {
                 ["style"] = "display:none;",
-                ["value"] = Value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty
+                ["value"] = FormattedValue ?? string.Empty
             };
 
             if (InputName is not null)
@@ -161,7 +163,7 @@
         if (ShouldRenderBubbleInput && Value is not null)
         {
             bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedValue != Value;
-            await ControlsInterop.SyncSliderBubbleInputValue(_bubbleInputElement, Value.Value, dispatchEvent);
+            await ControlsInterop.SyncSliderBubbleInputValue(_bubbleInputElement, Slider.NormalizeStepValue(Value.Value), dispatchEvent);
             _hasSyncedBubbleInput = true;
         }
 

@@ -104,7 +104,7 @@ else
     private Dictionary<string, object> ItemAttributes => BuildAttributes(
         ("role", Role),
         ("aria-checked", AriaChecked),
-        ("tabindex", -1),
+        ("tabindex", _isFocused ? 0 : -1),
         ("data-bradix-roving-group", Menu.BaseId),
         ("data-bradix-roving-item", string.Empty),
         ("data-bradix-roving-item-id", TabStopId),

@@ -29,6 +29,8 @@ public interface INavigationMenuInterop : IAsyncDisposable
     ValueTask UpdateNavigationMenuContentFocusBridge(ElementReference content, ElementReference trigger, ElementReference startProxy,
         ElementReference endProxy, CancellationToken cancellationToken = default);
 
+    ValueTask<bool> FocusNavigationMenuContent(ElementReference content, CancellationToken cancellationToken = default);
+
     ValueTask UnregisterNavigationMenuContentFocusBridge(ElementReference content, CancellationToken cancellationToken = default);
 
     ValueTask RegisterNavigationMenuViewport(ElementReference viewport, ElementReference content, object dotNetReference,

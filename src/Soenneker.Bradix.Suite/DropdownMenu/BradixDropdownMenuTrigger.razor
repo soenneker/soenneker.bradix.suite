@@ -111,17 +111,33 @@
         if (Disabled || DropdownMenu is null)
             return Task.CompletedTask;
 
-        if (args.Key is "Enter" or " " or "Spacebar" or "ArrowDown")
-            Menu?.SetFocusFirstItemOnOpen(true);
-
         return args.Key switch
         {
-            "Enter" => DropdownMenu.ToggleOpen(),
-            " " => DropdownMenu.ToggleOpen(),
-            "Spacebar" => DropdownMenu.ToggleOpen(),
-            "ArrowDown" => DropdownMenu.SetOpen(true),
+            "Enter" => OpenFromKeyboard(toggle: true),
+            " " => OpenFromKeyboard(toggle: true),
+            "Spacebar" => OpenFromKeyboard(toggle: true),
+            "ArrowDown" => OpenFromKeyboard(toggle: false),
             _ => Task.CompletedTask
         };
     }
 
+    private async Task OpenFromKeyboard(bool toggle)
+    {
+        Menu?.SetFocusFirstItemOnOpen(true);
+
+        if (toggle)
+            await DropdownMenu!.ToggleOpen();
+        else
+            await DropdownMenu!.SetOpen(true);
+
+        Menu?.SetFocusFirstItemOnOpen(true);
+
+        await InvokeAsync(async () =>
+        {
+            await Task.Yield();
+
+            if (Menu?.CurrentOpen == true)
+                await Menu.FocusFirstItem();
+        });
+    }
 }

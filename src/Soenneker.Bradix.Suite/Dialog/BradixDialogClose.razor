@@ -68,18 +68,31 @@ else
         Close = HandleChildClick
     };
 
-    private Dictionary<string, object> ButtonAttributes => BuildAttributes(
+    private Dictionary<string, object> ButtonAttributes => MergeCloseAttributes(BuildAttributes(
         ("type", "button"),
         ("aria-label", AriaLabel),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("disabled", Disabled ? true : null));
+        ("disabled", Disabled ? true : null)));
 
-    private Dictionary<string, object> SlottedButtonAttributes => BuildAttributes(
+    private Dictionary<string, object> SlottedButtonAttributes => MergeCloseAttributes(BuildAttributes(
         ("type", "button"),
         ("aria-label", AriaLabel),
         ("data-disabled", Disabled ? string.Empty : null),
         ("disabled", Disabled ? true : null),
-        ("onclick", EventCallback.Factory.Create<MouseEventArgs>(this, HandleChildClick)));
+        ("onclick", EventCallback.Factory.Create<MouseEventArgs>(this, HandleChildClick))));
+
+    private Dictionary<string, object> MergeCloseAttributes(Dictionary<string, object> attributes)
+    {
+        if (AdditionalAttributes is null)
+            return attributes;
+
+        foreach (KeyValuePair<string, object> attribute in AdditionalAttributes)
+        {
+            attributes[attribute.Key] = attribute.Value;
+        }
+
+        return attributes;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

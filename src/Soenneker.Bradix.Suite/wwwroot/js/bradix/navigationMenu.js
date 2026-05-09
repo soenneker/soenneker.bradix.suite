@@ -146,6 +146,15 @@ export function updateNavigationMenuContentFocusBridge(content, trigger, startPr
   registerNavigationMenuContentFocusBridge(content, trigger, startProxy, endProxy);
 }
 
+export function focusNavigationMenuContent(content) {
+  if (!content) {
+    return false;
+  }
+
+  const candidates = getTabbableCandidates(content);
+  return focusFirst(candidates, true);
+}
+
 export function unregisterNavigationMenuContentFocusBridge(content) {
   const handlers = navigationMenuContentFocusBridgeHandlers.get(content);
   if (!handlers) {

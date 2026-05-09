@@ -8,9 +8,12 @@
 
 @inject IHoverCardAvatarInterop HoverCardAvatarInterop
 
-@if (_loadingStatus == BradixAvatarImageLoadingStatus.Loaded)
+@if (ShouldRenderImageElement)
 {
-    <img @attributes="ImageAttributes" />
+    <img @attributes="ImageAttributes"
+         hidden="@(_loadingStatus != BradixAvatarImageLoadingStatus.Loaded)"
+         @onload="HandleImageLoad"
+         @onerror="HandleImageError" />
 }
 
 @code {
@@ -46,6 +49,10 @@
         ("alt", Alt ?? string.Empty),
         ("crossorigin", CrossOrigin),
         ("referrerpolicy", ReferrerPolicy));
+
+    private bool ShouldRenderImageElement =>
+        !string.IsNullOrWhiteSpace(Src) &&
+        _loadingStatus != BradixAvatarImageLoadingStatus.Error;
 
     protected override void OnParametersSet()
     {
@@ -117,5 +124,15 @@
 
         if (Avatar is not null)
             await Avatar.SetImageLoadingStatus(resolvedStatus);
+    }
+
+    private Task HandleImageLoad()
+    {
+        return HandleImageLoadingStatusChanged("loaded");
+    }
+
+    private Task HandleImageError()
+    {
+        return HandleImageLoadingStatusChanged("error");
     }
 }
