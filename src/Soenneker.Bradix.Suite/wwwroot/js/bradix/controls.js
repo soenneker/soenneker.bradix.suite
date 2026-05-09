@@ -12,7 +12,7 @@ export function syncCheckboxBubbleInputState(element, isChecked, isIndeterminate
 
   const control = element.previousElementSibling instanceof HTMLElement ? element.previousElementSibling : null;
 
-  if (control) {
+  if (control && element.form) {
     const rect = control.getBoundingClientRect();
 
     if (rect.width > 0) {
