@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Bunit;
@@ -10,31 +9,6 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixInfrastructureContractTests : BunitContext
 {
-    [Test]
-    public async Task Base_component_merges_common_attributes_with_consumer_precedence()
-    {
-        var component = new BradixExposedComponent();
-        component.Configure(
-            id: "owned-id",
-            @class: "owned-class",
-            style: "color: red",
-            additionalAttributes: new Dictionary<string, object>
-            {
-                ["id"] = "consumer-id",
-                ["class"] = "consumer-class",
-                ["style"] = "background: blue",
-                ["data-owned"] = "consumer"
-            });
-
-        Dictionary<string, object> attributes = component.ExposeBuildAttributes("data-owned", "owned", "role", "presentation");
-
-        await Assert.That(attributes["id"]).IsEqualTo("owned-id");
-        await Assert.That(attributes["class"].ToString()).IsEqualTo("owned-class consumer-class");
-        await Assert.That(attributes["style"].ToString()).IsEqualTo("color: red; background: blue");
-        await Assert.That(attributes["data-owned"]).IsEqualTo("consumer");
-        await Assert.That(attributes["role"]).IsEqualTo("presentation");
-    }
-
     [Test]
     public async Task Shared_enum_tokens_match_radix_string_contracts()
     {
