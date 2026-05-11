@@ -6,17 +6,21 @@
 
 @if (ShouldRenderOverlay)
 {
-    <BradixPresence Present="Dialog?.CurrentOpen == true || ForceMount || PortalForceMount"
+    <BradixPresence Present="IsPresent"
                     Tag="div"
                     Class="@Class"
                     Style="@OverlayStyle"
                     EmitOpenClosedAttributes="@EmitOpenClosedAttributes"
-                    AdditionalAttributes="OverlayAttributes">
+                    AdditionalAttributes="OverlayAttributes"
+                    OnExitComplete="@HandleExitComplete">
         @ChildContent
     </BradixPresence>
 }
 
 @code {
+    private bool _wasPresent;
+    private bool _isExiting;
+
     [CascadingParameter]
     private BradixDialog? Dialog { get; set; }
 
@@ -29,7 +33,9 @@
     [Parameter]
     public bool EmitOpenClosedAttributes { get; set; } = true;
 
-    private bool ShouldRenderOverlay => Dialog?.Modal == true && (Dialog.CurrentOpen || ForceMount || PortalForceMount);
+    private bool IsPresent => Dialog?.CurrentOpen == true || ForceMount || PortalForceMount;
+
+    private bool ShouldRenderOverlay => Dialog?.Modal == true && (IsPresent || _isExiting);
 
     private string? OverlayStyle => MergeStyleValues("pointer-events:auto;", Style);
 
@@ -44,5 +50,23 @@
             attributes["data-state"] = Dialog?.CurrentOpen == true ? "open" : "closed";
             return attributes;
         }
+    }
+
+    protected override void OnParametersSet()
+    {
+        bool present = IsPresent;
+
+        if (_wasPresent && !present)
+            _isExiting = true;
+        else if (present)
+            _isExiting = false;
+
+        _wasPresent = present;
+    }
+
+    private Task HandleExitComplete()
+    {
+        _isExiting = false;
+        return InvokeAsync(StateHasChanged);
     }
 }
