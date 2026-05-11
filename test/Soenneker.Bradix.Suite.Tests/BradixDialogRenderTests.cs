@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -191,7 +192,8 @@ public sealed class BradixDialogRenderTests : BunitContext
 
         await Assert.That(cut.FindAll("[role='dialog']")).HasSingleItem();
 
-        IRenderedComponent<BradixPresence> presence = cut.FindComponent<BradixPresence>();
+        IRenderedComponent<BradixPresence> presence = cut.FindComponents<BradixPresence>()
+                                                        .Single(component => component.Markup.Contains("role=\"dialog\"", StringComparison.Ordinal));
         await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-out"));
 
         await Assert.That(cut.FindAll("[role='dialog']")).IsEmpty();
