@@ -78,6 +78,9 @@ public sealed class BradixMobilePlaywrightTests : BradixComponentPlaywrightTest
                     failures.Add($"{spec.Route}: horizontal overflow {overflow}px at 390px viewport ({offenders})");
                 }
 
+                if (spec.Route == "/")
+                    await Assertions.Expect(page.Locator(".docs-shell__main")).ToContainTextAsync("A low-level Blazor component library for building accessible design systems and web apps.");
+
                 if (runtimeErrors.Count > 0)
                     failures.Add($"{spec.Route}: {string.Join(" | ", runtimeErrors.Distinct())}");
             }

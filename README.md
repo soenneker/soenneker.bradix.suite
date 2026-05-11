@@ -145,8 +145,9 @@ That example shows the design philosophy:
 Bradix is backed by more than static samples:
 
 - a dedicated demo application for every shipped primitive
-- component-level tests
+- bUnit component tests that exercise the primitives at the Razor/component boundary
 - Playwright end-to-end coverage against a running demo app
+- test coverage that touches essentially every shipped component and primitive
 - CI packaging and verification workflows
 
 ## Is Bradix A Port Of Radix UI?

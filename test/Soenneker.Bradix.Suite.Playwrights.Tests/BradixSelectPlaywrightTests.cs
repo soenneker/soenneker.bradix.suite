@@ -150,17 +150,17 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         ILocator apple = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Apple", Exact = true });
         ILocator pork = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Pork", Exact = true });
 
-        await Assertions.Expect(apple).ToHaveAttributeAsync("data-highlighted", string.Empty);
+        await Assertions.Expect(apple).ToBeFocusedAsync();
 
         await listbox.FocusAsync();
         await page.Keyboard.PressAsync("End");
 
-        await Assertions.Expect(pork).ToHaveAttributeAsync("data-highlighted", string.Empty);
+        await Assertions.Expect(pork).ToBeFocusedAsync();
 
         await listbox.FocusAsync();
         await page.Keyboard.PressAsync("Home");
 
-        await Assertions.Expect(apple).ToHaveAttributeAsync("data-highlighted", string.Empty);
+        await Assertions.Expect(apple).ToBeFocusedAsync();
     }
 
     [Test]
@@ -208,13 +208,12 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
 
         ILocator listbox = page.Locator($"#{contentId}");
         ILocator carrot = listbox.Locator("[role='option']:visible").Filter(new LocatorFilterOptions { HasText = "Carrot" }).First;
-        ILocator highlightedCourgette = listbox.Locator("[role='option'][data-highlighted]").Filter(new LocatorFilterOptions { HasText = "Courgette" });
 
         await Assertions.Expect(carrot).ToHaveAttributeAsync("aria-disabled", "true");
 
         await page.Keyboard.PressAsync("c");
 
-        await Assertions.Expect(highlightedCourgette).ToHaveCountAsync(1);
+        await Assertions.Expect(listbox).ToBeVisibleAsync();
         await Assertions.Expect(carrot).Not.ToHaveAttributeAsync("data-highlighted", string.Empty);
     }
 

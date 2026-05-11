@@ -9,7 +9,7 @@ internal static class DemoPageSpecs
 {
     private static readonly IReadOnlyList<DemoPageSpec> _all =
     [
-        new("/", "Overview", "Bradix primitives", "Modern Blazor components for the interaction work that usually gets messy: focus, layering, keyboard behavior, portals, and composed state.",
+        new("/", "Overview", "Bradix primitives", "A low-level Blazor component library for building accessible design systems and web apps.",
             page => page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Bradix primitives", Exact = true })),
         new("/accessibleicons", "AccessibleIcon", "AccessibleIcon",
             "Hide decorative glyphs from assistive technology while exposing a reliable accessible name.",

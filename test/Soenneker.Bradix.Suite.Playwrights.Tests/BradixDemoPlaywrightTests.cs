@@ -28,8 +28,9 @@ public sealed class BradixDemoPlaywrightTests : BradixComponentPlaywrightTest
             expectedTitle: "Bradix Component Library");
 
         await Assertions.Expect(page.GetByRole(AriaRole.Navigation, new PageGetByRoleOptions { Name = "Bradix primitives" })).ToBeVisibleAsync();
-        await Assertions.Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Dialog", Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Checkbox", Exact = true })).ToBeVisibleAsync();
+        var main = page.GetByRole(AriaRole.Main);
+        await Assertions.Expect(main.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Dialog", Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(main.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Checkbox", Exact = true })).ToBeVisibleAsync();
     }
 }
 

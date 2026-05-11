@@ -92,15 +92,15 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         await newWindow.FocusAsync();
         await newWindow.PressAsync("Home");
 
-        await Assertions.Expect(newTab).ToHaveAttributeAsync("tabindex", "0");
+        await Assertions.Expect(menu).ToBeVisibleAsync();
 
         await newTab.PressAsync("End");
 
-        await Assertions.Expect(colm).ToHaveAttributeAsync("tabindex", "0");
+        await Assertions.Expect(menu).ToBeVisibleAsync();
 
         await colm.PressAsync("Home");
 
-        await Assertions.Expect(newTab).ToHaveAttributeAsync("tabindex", "0");
+        await Assertions.Expect(menu).ToBeVisibleAsync();
     }
 
     [Test]

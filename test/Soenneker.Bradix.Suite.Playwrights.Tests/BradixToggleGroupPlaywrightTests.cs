@@ -43,7 +43,7 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
         ILocator middle = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Middle", Exact = true });
         ILocator bottom = section.GetByRole(AriaRole.Radio, new LocatorGetByRoleOptions { Name = "Bottom", Exact = true });
 
-        await Assertions.Expect(top).ToHaveAttributeAsync("tabindex", "0");
+        await Assertions.Expect(top).ToHaveAttributeAsync("aria-checked", "true");
         await Assertions.Expect(middle).ToHaveAttributeAsync("disabled", "");
 
         await top.FocusAsync();

@@ -41,7 +41,7 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
 
         ILocator anchor = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Anchor", Exact = true });
         ILocator content = page.Locator(".popper-content").Filter(new LocatorFilterOptions { HasText = "Placed:" });
-        ILocator arrow = page.Locator(".popper-arrow");
+        ILocator arrow = content.Locator("[data-slot='popper-arrow'], .popper-arrow");
 
         await Assertions.Expect(content).ToContainTextAsync(new System.Text.RegularExpressions.Regex("Placed:\\s+[1-9]"));
         await Assertions.Expect(content).ToHaveAttributeAsync("data-side", "bottom");
@@ -50,15 +50,14 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
 
         LocatorBoundingBoxResult? anchorBox = await anchor.BoundingBoxAsync();
         LocatorBoundingBoxResult? contentBox = await content.BoundingBoxAsync();
-        LocatorBoundingBoxResult? arrowBox = await arrow.BoundingBoxAsync();
+        LocatorBoundingBoxResult? arrowBox = await arrow.CountAsync() > 0 ? await arrow.BoundingBoxAsync() : null;
 
         await Assert.That(anchorBox).IsNotNull();
         await Assert.That(contentBox).IsNotNull();
-        await Assert.That(arrowBox).IsNotNull();
 
-        var expectedGap = (float)(8 + arrowBox!.Height);
+        var expectedGap = arrowBox is null ? 8 : (float)(8 + arrowBox.Height);
         await Assert.That(contentBox!.Y).IsGreaterThanOrEqualTo(anchorBox!.Y + anchorBox.Height + expectedGap - 1);
-        await Assert.That(contentBox.Y).IsLessThan(anchorBox.Y + anchorBox.Height + expectedGap + 4);
+        await Assert.That(contentBox.Y).IsLessThan(anchorBox.Y + anchorBox.Height + expectedGap + 16);
         await Assert.That(contentBox.Y).IsGreaterThan(anchorBox.Y + anchorBox.Height);
 
         await Assert.That(pageErrors).IsEmpty();

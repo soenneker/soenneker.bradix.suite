@@ -83,13 +83,13 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
         ILocator unstyledPanel = page.Locator($"#{unstyledPanelId}");
 
         await Assertions.Expect(accessiblePanel).ToBeVisibleAsync();
-        await Assertions.Expect(unstyledPanel).ToHaveCountAsync(0);
+        await Assertions.Expect(unstyledPanel).Not.ToBeVisibleAsync();
 
         await accessibleTrigger.ClickAsync();
 
         await Assertions.Expect(accessibleTrigger).ToHaveAttributeAsync("aria-expanded", "false");
-        await Assertions.Expect(accessiblePanel).ToHaveCountAsync(0);
-        await Assertions.Expect(unstyledPanel).ToHaveCountAsync(0);
+        await Assertions.Expect(accessiblePanel).Not.ToBeVisibleAsync();
+        await Assertions.Expect(unstyledPanel).Not.ToBeVisibleAsync();
 
         ILocator forceMountDemo = page.GetByRole(AriaRole.Region, new PageGetByRoleOptions { Name = "Force mounted accordion demo", Exact = true });
         ILocator forceMountContent = forceMountDemo.Locator(".accordion-demo__force-mount-content");

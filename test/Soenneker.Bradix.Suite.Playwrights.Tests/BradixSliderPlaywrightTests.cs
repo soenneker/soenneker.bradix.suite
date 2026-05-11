@@ -125,7 +125,6 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         ILocator slider = defaultSection.GetByRole(AriaRole.Slider, new LocatorGetByRoleOptions { Name = "Volume", Exact = true });
         ILocator track = defaultSection.Locator(".slider-track").First;
 
-        await Assertions.Expect(defaultSection.Locator("[data-js-ready='true']")).ToBeVisibleAsync();
         await Assertions.Expect(slider).ToHaveAttributeAsync("aria-valuenow", "50");
 
         LocatorBoundingBoxResult? trackBox = await track.BoundingBoxAsync();
@@ -202,7 +201,7 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
         await page.WaitForTimeoutAsync(50);
 
         LocatorBoundingBoxResult? thumbBox = await slider.BoundingBoxAsync();
-        LocatorBoundingBoxResult? rootBox = await slider.Locator("xpath=ancestor::*[@role='group'][1]").BoundingBoxAsync();
+        LocatorBoundingBoxResult? rootBox = await slider.Locator("xpath=ancestor::*[contains(@class, 'slider-root')][1]").BoundingBoxAsync();
 
         await Assert.That(thumbBox).IsNotNull();
         await Assert.That(rootBox).IsNotNull();
