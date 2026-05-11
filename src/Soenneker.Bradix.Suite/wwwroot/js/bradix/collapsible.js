@@ -23,6 +23,7 @@ export function observeCollapsibleContent(element) {
   }
 
   unobserveCollapsibleContent(element);
+  updateCollapsibleSize(element);
 
   const resizeObserver = new ResizeObserver(() => updateCollapsibleSize(element));
   resizeObserver.observe(element);
