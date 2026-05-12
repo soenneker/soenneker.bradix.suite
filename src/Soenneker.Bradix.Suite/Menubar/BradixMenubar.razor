@@ -158,11 +158,12 @@
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(args.Key, "horizontal", ResolvedDirection, currentIndex, focusableTriggers.Count, Loop, out int targetIndex))
             return;
 
+        bool wasOpen = HasOpenMenu;
         IBradixMenubarTriggerEntry target = focusableTriggers[targetIndex];
         CurrentTabStopId = target.Value;
         await target.Focus();
 
-        if (HasOpenMenu)
+        if (wasOpen)
             await SetValue(target.Value);
 
         await InvokeAsync(StateHasChanged);

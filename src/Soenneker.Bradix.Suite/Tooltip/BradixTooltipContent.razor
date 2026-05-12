@@ -55,6 +55,7 @@
     private bool _wasPresent;
     private bool _isExiting;
     private ElementReference _contentElement;
+    private bool _hasContentElement;
     private DotNetObjectReference<BradixTooltipContent>? _dotNetReference;
     private bool _contentRegistered;
     private string? _accessibleLabel;
@@ -174,8 +175,12 @@
                 _contentRegistered = false;
             }
 
+            _hasContentElement = false;
             return;
         }
+
+        if (!_hasContentElement)
+            return;
 
         _dotNetReference ??= DotNetObjectReference.Create(this);
 
@@ -270,6 +275,7 @@
     private Task HandleContentElementCaptured(ElementReference element)
     {
         _contentElement = element;
+        _hasContentElement = true;
         return Task.CompletedTask;
     }
 

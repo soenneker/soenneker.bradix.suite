@@ -43,7 +43,7 @@ export function dispatchTooltipOpen(contentId) {
 }
 
 export function registerTooltipContent(content, trigger, dotNetRef, contentId, hoverableContent) {
-  if (!content || !trigger || !dotNetRef) {
+  if (!(content instanceof HTMLElement) || !(trigger instanceof HTMLElement) || !dotNetRef) {
     return;
   }
 

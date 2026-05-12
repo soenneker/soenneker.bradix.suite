@@ -33,6 +33,7 @@
     private bool _contentElementCaptured;
     private bool _delegatedInteractionRegistered;
     private bool _pendingOpenAutoFocus;
+    private bool _openAutoFocusApplied;
     private bool _pendingFirstItemFocusAfterOpen;
     private string? _placedSide;
     private string? _placedAlign;
@@ -191,13 +192,19 @@
         _wasPresent = present;
 
         if (!open)
+        {
+            _openAutoFocusApplied = false;
             await ReleaseHideOthers();
+        }
         else if (_layerElement.Id is not null)
             await RegisterHideOthersIfNeeded();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!_openAutoFocusApplied && Menu?.CurrentOpen == true && _contentElementCaptured)
+            await ApplyOpenAutoFocus();
+
         if (!_pendingFirstItemFocusAfterOpen || Menu?.CurrentOpen != true)
             return;
 
@@ -493,6 +500,7 @@
         _contentElementCaptured = false;
         _delegatedInteractionRegistered = false;
         _pendingOpenAutoFocus = false;
+        _openAutoFocusApplied = false;
         _pendingFirstItemFocusAfterOpen = false;
         _submenuPointerGraceItems.Clear();
 
@@ -528,6 +536,7 @@
             return;
 
         _pendingOpenAutoFocus = false;
+        _openAutoFocusApplied = true;
 
         bool shouldFocusContent = Menu.ConsumeFocusContentOnOpen();
         bool shouldFocusFirstItem = Menu.ConsumeFocusFirstItemOnOpen();
