@@ -1,6 +1,5 @@
 @namespace Soenneker.Bradix
 
-@using System.Linq
 @using Microsoft.JSInterop
 @using Soenneker.Blazor.Utils.Ids
 
@@ -34,7 +33,7 @@
             </option>
         }
 
-        @if (!string.IsNullOrWhiteSpace(CurrentValue) && !_items.Snapshot().Any(entry => string.Equals(entry.Item.Value, CurrentValue, StringComparison.Ordinal)))
+        @if (!string.IsNullOrWhiteSpace(CurrentValue) && !_items.TryGet(CurrentValue!, out _))
         {
             <option value="@CurrentValue">
                 @CurrentText
@@ -417,7 +416,7 @@
 
     internal async Task FocusFirstItem()
     {
-        IBradixSelectCollectionItem? first = GetEnabledItems().FirstOrDefault();
+        IBradixSelectCollectionItem? first = GetFirstEnabledItem();
 
         if (first is null)
             return;
@@ -427,7 +426,7 @@
 
     internal async Task FocusLastItem()
     {
-        IBradixSelectCollectionItem? last = GetEnabledItems().LastOrDefault();
+        IBradixSelectCollectionItem? last = GetLastEnabledItem();
 
         if (last is null)
             return;
@@ -439,7 +438,7 @@
     {
         string search = _typeahead.Append(key);
         List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
-        IBradixSelectCollectionItem? currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
+        IBradixSelectCollectionItem? currentItem = FindItem(enabledItems, CurrentValue);
         IBradixSelectCollectionItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
 
         if (nextItem is null)
@@ -452,7 +451,7 @@
     {
         string search = _typeahead.Append(key);
         List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
-        IBradixSelectCollectionItem? currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentFocusedItemValue, StringComparison.Ordinal));
+        IBradixSelectCollectionItem? currentItem = FindItem(enabledItems, CurrentFocusedItemValue);
         IBradixSelectCollectionItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
 
         if (nextItem is null)
@@ -476,8 +475,8 @@
         }
 
         List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
-        IBradixSelectCollectionItem? currentItem = enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentFocusedItemValue, StringComparison.Ordinal))
-                                                   ?? enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
+        IBradixSelectCollectionItem? currentItem = FindItem(enabledItems, CurrentFocusedItemValue)
+                                                   ?? FindItem(enabledItems, CurrentValue);
 
         if (currentItem is null)
             return;
@@ -509,10 +508,9 @@
         if (string.IsNullOrWhiteSpace(value))
             return string.Empty;
 
-        return _items.Snapshot()
-            .Select(entry => entry.Item)
-            .FirstOrDefault(item => string.Equals(item.Value, value, StringComparison.Ordinal))
-            ?.TextValue;
+        return _items.TryGet(value, out IBradixSelectCollectionItem? item)
+            ? item.TextValue
+            : null;
     }
 
     private void UpdateCurrentText(string? preferredText = null)
@@ -548,30 +546,30 @@
 
     private async Task RefreshFocusedItems(string? previousValue, string? nextValue)
     {
-        foreach (BradixCollectionEntry<IBradixSelectCollectionItem> entry in _items.Snapshot())
+        foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
         {
-            bool wasFocused = string.Equals(entry.Item.Value, previousValue, StringComparison.Ordinal);
-            bool isFocused = string.Equals(entry.Item.Value, nextValue, StringComparison.Ordinal);
+            bool wasFocused = string.Equals(entry.Value.Value, previousValue, StringComparison.Ordinal);
+            bool isFocused = string.Equals(entry.Value.Value, nextValue, StringComparison.Ordinal);
 
             if (!wasFocused && !isFocused)
                 continue;
 
-            await entry.Item.Refresh();
+            await entry.Value.Refresh();
         }
     }
 
     internal IBradixSelectCollectionItem? GetSelectedOrFirstEnabledItem()
     {
         List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
-        return enabledItems.FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal))
-            ?? enabledItems.FirstOrDefault();
+        return FindItem(enabledItems, CurrentValue)
+            ?? (enabledItems.Count > 0 ? enabledItems[0] : null);
     }
 
     internal IBradixSelectCollectionItem? GetSelectedItem()
     {
-        return _items.Snapshot()
-            .Select(entry => entry.Item)
-            .FirstOrDefault(item => string.Equals(item.Value, CurrentValue, StringComparison.Ordinal));
+        return CurrentValue is not null && _items.TryGet(CurrentValue, out IBradixSelectCollectionItem? item)
+            ? item
+            : null;
     }
 
     [JSInvokable]
@@ -625,10 +623,53 @@
 
     private List<IBradixSelectCollectionItem> GetEnabledItems()
     {
-        return _items.Snapshot()
-            .Select(entry => entry.Item)
-            .Where(item => !item.Disabled)
-            .ToList();
+        var enabledItems = new List<IBradixSelectCollectionItem>(_items.Count);
+
+        foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
+        {
+            if (!entry.Value.Disabled)
+                enabledItems.Add(entry.Value);
+        }
+
+        return enabledItems;
+    }
+
+    private IBradixSelectCollectionItem? GetFirstEnabledItem()
+    {
+        foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
+        {
+            if (!entry.Value.Disabled)
+                return entry.Value;
+        }
+
+        return null;
+    }
+
+    private IBradixSelectCollectionItem? GetLastEnabledItem()
+    {
+        IBradixSelectCollectionItem? last = null;
+
+        foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
+        {
+            if (!entry.Value.Disabled)
+                last = entry.Value;
+        }
+
+        return last;
+    }
+
+    private static IBradixSelectCollectionItem? FindItem(List<IBradixSelectCollectionItem> items, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        foreach (IBradixSelectCollectionItem item in items)
+        {
+            if (string.Equals(item.Value, value, StringComparison.Ordinal))
+                return item;
+        }
+
+        return null;
     }
 
     private async Task EnsureBubbleSelectRegistration()

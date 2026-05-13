@@ -120,9 +120,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
-                ? new Dictionary<string, object>(AdditionalAttributes)
-                : new Dictionary<string, object>();
+            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 4);
 
             attributes["data-radix-menubar-content"] = string.Empty;
             if (!string.IsNullOrWhiteSpace(Menubar?.MenubarId))

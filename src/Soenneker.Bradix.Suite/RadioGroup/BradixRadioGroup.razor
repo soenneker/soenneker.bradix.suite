@@ -155,9 +155,7 @@
         if (args.Key == "Enter")
             return;
 
-        List<BradixRadioGroupItem> focusableItems = _items
-                                                    .Where(candidate => !candidate.IsDisabled)
-                                                    .ToList();
+        List<BradixRadioGroupItem> focusableItems = GetFocusableItems();
 
         int currentIndex = focusableItems.IndexOf(item);
 
@@ -184,9 +182,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<BradixRadioGroupItem> focusableItems = _items
-                                                    .Where(item => !item.IsDisabled)
-                                                    .ToList();
+        List<BradixRadioGroupItem> focusableItems = GetFocusableItems();
 
         if (focusableItems.Count == 0)
         {
@@ -194,16 +190,51 @@
             return;
         }
 
-        BradixRadioGroupItem? checkedItem = focusableItems.FirstOrDefault(item => item.IsChecked);
+        BradixRadioGroupItem? checkedItem = FindCheckedItem(focusableItems);
         if (checkedItem is not null)
         {
             CurrentTabStopId = checkedItem.TabStopId;
             return;
         }
 
-        if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
+        if (CurrentTabStopId is not null && ContainsTabStopId(focusableItems, CurrentTabStopId))
             return;
 
         CurrentTabStopId = focusableItems[0].TabStopId;
+    }
+
+    private List<BradixRadioGroupItem> GetFocusableItems()
+    {
+        List<BradixRadioGroupItem> focusableItems = [];
+
+        foreach (BradixRadioGroupItem item in _items)
+        {
+            if (!item.IsDisabled)
+                focusableItems.Add(item);
+        }
+
+        return focusableItems;
+    }
+
+    private static BradixRadioGroupItem? FindCheckedItem(IEnumerable<BradixRadioGroupItem> items)
+    {
+        foreach (BradixRadioGroupItem item in items)
+        {
+            if (item.IsChecked)
+                return item;
+        }
+
+        return null;
+    }
+
+    private static bool ContainsTabStopId(IEnumerable<BradixRadioGroupItem> items, string tabStopId)
+    {
+        foreach (BradixRadioGroupItem item in items)
+        {
+            if (string.Equals(item.TabStopId, tabStopId, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 }

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-
 namespace Soenneker.Bradix;
 
 /// <summary>
@@ -44,7 +42,20 @@ public sealed class BradixCollectionRegistry<TItem>
 
     public IReadOnlyList<BradixCollectionEntry<TItem>> Snapshot()
     {
-        return _items.Select(entry => new BradixCollectionEntry<TItem>(entry.Key, entry.Value)).ToArray();
+        var snapshot = new BradixCollectionEntry<TItem>[_items.Count];
+        var index = 0;
+
+        foreach (KeyValuePair<string, TItem> entry in _items)
+        {
+            snapshot[index++] = new BradixCollectionEntry<TItem>(entry.Key, entry.Value);
+        }
+
+        return snapshot;
+    }
+
+    public BradixOrderedDictionary<string, TItem>.Enumerator GetEnumerator()
+    {
+        return _items.GetEnumerator();
     }
 
     public void Clear()

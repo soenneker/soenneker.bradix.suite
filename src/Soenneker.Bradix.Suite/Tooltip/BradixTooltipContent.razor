@@ -52,6 +52,11 @@
 }
 
 @code {
+    private static readonly IReadOnlyDictionary<string, object> _accessibleTooltipAttributes = new Dictionary<string, object>
+    {
+        ["role"] = "tooltip"
+    };
+
     private bool _wasPresent;
     private bool _isExiting;
     private ElementReference _contentElement;
@@ -135,9 +140,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
-                ? new Dictionary<string, object>(AdditionalAttributes)
-                : new Dictionary<string, object>();
+            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 3);
 
             attributes["data-state"] = Tooltip?.StateAttribute ?? "closed";
             attributes["data-side"] = _placedSide ?? Side.Value;
@@ -147,11 +150,7 @@
         }
     }
 
-    private IReadOnlyDictionary<string, object> AccessibleTooltipAttributes =>
-        new Dictionary<string, object>
-        {
-            ["role"] = "tooltip"
-        };
+    private static IReadOnlyDictionary<string, object> AccessibleTooltipAttributes => _accessibleTooltipAttributes;
 
     protected override void OnParametersSet()
     {

@@ -1,7 +1,6 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
-@using System.Linq
 @using Soenneker.Blazor.Utils.Ids
 
 @inherits LeptonIdentifiableContentElement
@@ -172,24 +171,25 @@
     internal async Task MoveToAdjacentMenu(string value, string key)
     {
         List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
-        List<string> candidateValues = focusableTriggers.Select(trigger => trigger.Value).ToList();
 
         string previousMenuKey = ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
         bool isPreviousKey = string.Equals(previousMenuKey, key, StringComparison.Ordinal);
-
-        if (isPreviousKey)
-            candidateValues.Reverse();
-
-        int currentIndex = candidateValues.IndexOf(value);
+        int currentIndex = FindTriggerIndex(focusableTriggers, value);
 
         if (currentIndex < 0)
             return;
 
-        List<string> rotatedValues = Loop
-            ? WrapArray(candidateValues, currentIndex + 1)
-            : candidateValues.Skip(currentIndex + 1).ToList();
+        int step = isPreviousKey ? -1 : 1;
+        int nextIndex = currentIndex + step;
+        if (nextIndex < 0 || nextIndex >= focusableTriggers.Count)
+        {
+            if (!Loop)
+                return;
 
-        string? nextValue = rotatedValues.FirstOrDefault();
+            nextIndex = isPreviousKey ? focusableTriggers.Count - 1 : 0;
+        }
+
+        string nextValue = focusableTriggers[nextIndex].Value;
 
         if (string.IsNullOrWhiteSpace(nextValue))
             return;
@@ -203,7 +203,13 @@
         if (string.IsNullOrWhiteSpace(triggerId))
             return false;
 
-        return _triggers.Snapshot().Any(entry => string.Equals(entry.Item.TriggerId, triggerId, StringComparison.Ordinal));
+        foreach ((_, IBradixMenubarTriggerEntry trigger) in _triggers)
+        {
+            if (string.Equals(trigger.TriggerId, triggerId, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 
     internal bool ContainsRegisteredTriggerTarget(string? targetId, IEnumerable<string>? ancestorIds)
@@ -244,10 +250,15 @@
 
     private List<IBradixMenubarTriggerEntry> GetFocusableTriggers()
     {
-        return _triggers.Snapshot()
-            .Select(entry => entry.Item)
-            .Where(trigger => !trigger.Disabled)
-            .ToList();
+        List<IBradixMenubarTriggerEntry> focusableTriggers = [];
+
+        foreach ((_, IBradixMenubarTriggerEntry trigger) in _triggers)
+        {
+            if (!trigger.Disabled)
+                focusableTriggers.Add(trigger);
+        }
+
+        return focusableTriggers;
     }
 
     private void EnsureCurrentTabStopId()
@@ -260,20 +271,21 @@
             return;
         }
 
-        if (CurrentTabStopId is not null && focusableTriggers.Any(trigger => string.Equals(trigger.Value, CurrentTabStopId, StringComparison.Ordinal)))
+        if (CurrentTabStopId is not null && FindTriggerIndex(focusableTriggers, CurrentTabStopId) >= 0)
             return;
 
         CurrentTabStopId = focusableTriggers[0].Value;
     }
 
-    private static List<string> WrapArray(IReadOnlyList<string> values, int startIndex)
+    private static int FindTriggerIndex(IReadOnlyList<IBradixMenubarTriggerEntry> triggers, string value)
     {
-        if (values.Count == 0)
-            return [];
+        for (int i = 0; i < triggers.Count; i++)
+        {
+            if (string.Equals(triggers[i].Value, value, StringComparison.Ordinal))
+                return i;
+        }
 
-        return Enumerable.Range(0, values.Count)
-            .Select(index => values[(startIndex + index) % values.Count])
-            .ToList();
+        return -1;
     }
 
     [JSInvokable]

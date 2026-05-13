@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Soenneker.Bradix;
@@ -19,12 +18,23 @@ public static class BradixTypeaheadMatcher
 
         string normalizedSearch = NormalizeSearch(search);
         int currentMatchIndex = currentMatch is null ? -1 : IndexOf(values, currentMatch, StringComparer.Ordinal);
-        IReadOnlyList<string> wrappedValues = WrapArray(values, Math.Max(currentMatchIndex, 0));
+        int startIndex = Math.Max(currentMatchIndex, 0);
         bool excludeCurrentMatch = normalizedSearch.Length == 1;
+        string? nextMatch = null;
 
-        string? nextMatch = wrappedValues
-                            .Where(value => !excludeCurrentMatch || !string.Equals(value, currentMatch, StringComparison.Ordinal))
-                            .FirstOrDefault(value => value.StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase));
+        for (int i = 0; i < values.Count; i++)
+        {
+            string value = values[(startIndex + i) % values.Count];
+
+            if (excludeCurrentMatch && string.Equals(value, currentMatch, StringComparison.Ordinal))
+                continue;
+
+            if (value.StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase))
+            {
+                nextMatch = value;
+                break;
+            }
+        }
 
         return string.Equals(nextMatch, currentMatch, StringComparison.Ordinal) ? null : nextMatch;
     }
@@ -41,19 +51,24 @@ public static class BradixTypeaheadMatcher
 
         string normalizedSearch = NormalizeSearch(search);
         int currentItemIndex = currentItem is null ? -1 : IndexOf(items, currentItem, comparer);
-        IReadOnlyList<TItem> wrappedItems = WrapArray(items, Math.Max(currentItemIndex, 0));
+        int startIndex = Math.Max(currentItemIndex, 0);
         bool excludeCurrentItem = normalizedSearch.Length == 1 && currentItem is not null;
+        TItem? nextItem = default;
 
-        TItem? nextItem = wrappedItems.FirstOrDefault(item =>
+        for (int i = 0; i < items.Count; i++)
         {
+            TItem item = items[(startIndex + i) % items.Count];
+
             if (excludeCurrentItem && currentItem is not null && comparer.Equals(item, currentItem))
-            {
-                return false;
-            }
+                continue;
 
             string textValue = textSelector(item) ?? string.Empty;
-            return textValue.StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase);
-        });
+            if (textValue.StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase))
+            {
+                nextItem = item;
+                break;
+            }
+        }
 
         return currentItem is not null && nextItem is not null && comparer.Equals(nextItem, currentItem) ? default : nextItem;
     }
@@ -65,8 +80,18 @@ public static class BradixTypeaheadMatcher
             return string.Empty;
         }
 
-        bool isRepeated = search.Length > 1 && EnumerateJavaScriptStringIterator(search).All(character => character == search[0].ToString());
-        return isRepeated ? search[0].ToString() : search;
+        if (search.Length <= 1)
+            return search;
+
+        string firstCharacter = search[0].ToString();
+
+        foreach (string character in EnumerateJavaScriptStringIterator(search))
+        {
+            if (!string.Equals(character, firstCharacter, StringComparison.Ordinal))
+                return search;
+        }
+
+        return firstCharacter;
     }
 
     private static IEnumerable<string> EnumerateJavaScriptStringIterator(string value)
@@ -90,20 +115,4 @@ public static class BradixTypeaheadMatcher
         return -1;
     }
 
-    private static IReadOnlyList<TItem> WrapArray<TItem>(IReadOnlyList<TItem> items, int startIndex)
-    {
-        if (items.Count == 0)
-        {
-            return Array.Empty<TItem>();
-        }
-
-        var wrapped = new TItem[items.Count];
-
-        for (var i = 0; i < items.Count; i++)
-        {
-            wrapped[i] = items[(startIndex + i) % items.Count];
-        }
-
-        return wrapped;
-    }
 }

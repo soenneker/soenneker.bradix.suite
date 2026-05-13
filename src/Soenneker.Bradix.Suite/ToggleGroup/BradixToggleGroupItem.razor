@@ -48,9 +48,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
-                ? new Dictionary<string, object>(AdditionalAttributes)
-                : [];
+            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, Group.RovingFocus ? 9 : 2);
 
             if (IsSingle)
             {

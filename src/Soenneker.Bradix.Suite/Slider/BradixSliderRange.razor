@@ -17,9 +17,22 @@
     private string BuildRangeStyle()
     {
         IReadOnlyList<double> values = Slider.CurrentValues;
-        List<double> percentages = values.Select(Slider.GetPercentForValue).ToList();
-        double offsetStart = percentages.Count > 1 ? percentages.Min() : 0;
-        double offsetEnd = 100 - percentages.Max();
+        double minPercentage = 100;
+        double maxPercentage = 0;
+
+        foreach (double value in values)
+        {
+            double percentage = Slider.GetPercentForValue(value);
+
+            if (percentage < minPercentage)
+                minPercentage = percentage;
+
+            if (percentage > maxPercentage)
+                maxPercentage = percentage;
+        }
+
+        double offsetStart = values.Count > 1 ? minPercentage : 0;
+        double offsetEnd = 100 - maxPercentage;
 
         string startEdge;
         string endEdge;

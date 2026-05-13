@@ -86,6 +86,9 @@
 
         IsClosePaused = true;
 
+        if (_toasts.Count == 0)
+            return;
+
         foreach (BradixToast toast in _toasts.ToArray())
         {
             await toast.Pause();
@@ -98,6 +101,9 @@
             return;
 
         IsClosePaused = false;
+
+        if (_toasts.Count == 0)
+            return;
 
         foreach (BradixToast toast in _toasts.ToArray())
         {

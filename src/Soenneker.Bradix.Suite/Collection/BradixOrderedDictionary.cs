@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Soenneker.Bradix;
 
@@ -29,9 +28,18 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public int Count => _keys.Count;
 
-    public IEnumerable<TKey> Keys => _keys.ToArray();
+    public IEnumerable<TKey> Keys => _keys;
 
-    public IEnumerable<TValue> Values => _keys.Select(key => _map[key]);
+    public IEnumerable<TValue> Values
+    {
+        get
+        {
+            foreach (TKey key in _keys)
+            {
+                yield return _map[key];
+            }
+        }
+    }
 
     public TValue this[TKey key]
     {
@@ -230,12 +238,26 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public BradixOrderedDictionary<TKey, TValue> Filter(Predicate<KeyValuePair<TKey, TValue>> predicate)
     {
-        return new BradixOrderedDictionary<TKey, TValue>(this.Where(entry => predicate(entry)));
+        var filtered = new BradixOrderedDictionary<TKey, TValue>();
+
+        foreach (KeyValuePair<TKey, TValue> entry in this)
+        {
+            if (predicate(entry))
+                filtered.Set(entry.Key, entry.Value);
+        }
+
+        return filtered;
     }
 
     public BradixOrderedDictionary<TKey, TValue> ToSorted(Comparison<KeyValuePair<TKey, TValue>> comparison)
     {
-        List<KeyValuePair<TKey, TValue>> entries = [.. this];
+        var entries = new List<KeyValuePair<TKey, TValue>>(_keys.Count);
+
+        foreach (KeyValuePair<TKey, TValue> entry in this)
+        {
+            entries.Add(entry);
+        }
+
         entries.Sort(comparison);
         return new BradixOrderedDictionary<TKey, TValue>(entries);
     }
@@ -253,17 +275,57 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return reversed;
     }
 
-    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-    {
-        foreach (TKey key in _keys)
-        {
-            yield return new KeyValuePair<TKey, TValue>(key, _map[key]);
-        }
-    }
+    public Enumerator GetEnumerator() => new(this);
+
+    IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
+    }
+
+    public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
+    {
+        private readonly BradixOrderedDictionary<TKey, TValue> _dictionary;
+        private int _index;
+
+        internal Enumerator(BradixOrderedDictionary<TKey, TValue> dictionary)
+        {
+            _dictionary = dictionary;
+            _index = -1;
+            Current = default;
+        }
+
+        public KeyValuePair<TKey, TValue> Current { get; private set; }
+
+        readonly object IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            int nextIndex = _index + 1;
+
+            if (nextIndex >= _dictionary._keys.Count)
+            {
+                _index = _dictionary._keys.Count;
+                Current = default;
+                return false;
+            }
+
+            _index = nextIndex;
+            TKey key = _dictionary._keys[nextIndex];
+            Current = new KeyValuePair<TKey, TValue>(key, _dictionary._map[key]);
+            return true;
+        }
+
+        public void Reset()
+        {
+            _index = -1;
+            Current = default;
+        }
+
+        public readonly void Dispose()
+        {
+        }
     }
 
     private static int NormalizeLookupIndex(int index, int count)

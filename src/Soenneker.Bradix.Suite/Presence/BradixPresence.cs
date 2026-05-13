@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -309,8 +308,24 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
         if (string.Equals(eventAnimationName, "none", StringComparison.Ordinal))
             return false;
 
-        string[] currentAnimations = currentAnimationName.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        return currentAnimations.Any(name => string.Equals(name, eventAnimationName, StringComparison.Ordinal));
+        ReadOnlySpan<char> remaining = currentAnimationName.AsSpan();
+
+        while (!remaining.IsEmpty)
+        {
+            int separatorIndex = remaining.IndexOf(',');
+            ReadOnlySpan<char> segment = separatorIndex < 0 ? remaining : remaining[..separatorIndex];
+            segment = segment.Trim();
+
+            if (!segment.IsEmpty && segment.Equals(eventAnimationName.AsSpan(), StringComparison.Ordinal))
+                return true;
+
+            if (separatorIndex < 0)
+                break;
+
+            remaining = remaining[(separatorIndex + 1)..];
+        }
+
+        return false;
     }
 
     private static bool ShouldIgnoreInteropException(Exception ex)

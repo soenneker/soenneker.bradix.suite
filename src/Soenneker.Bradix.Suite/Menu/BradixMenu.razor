@@ -1,6 +1,5 @@
 @namespace Soenneker.Bradix
 
-@using System.Linq
 @using Soenneker.Blazor.Utils.Ids
 
 @inherits LeptonIdentifiableContentElement
@@ -217,7 +216,7 @@
 
     internal async Task FocusFirstItem()
     {
-        IBradixMenuRovingItem? first = GetEnabledItems().FirstOrDefault();
+        IBradixMenuRovingItem? first = GetFirstEnabledItem();
         if (first is null)
         {
             _focusFirstItemOnOpen = true;
@@ -232,7 +231,7 @@
 
     internal async Task FocusLastItem()
     {
-        IBradixMenuRovingItem? last = GetEnabledItems().LastOrDefault();
+        IBradixMenuRovingItem? last = GetLastEnabledItem();
         if (last is null)
             return;
 
@@ -341,10 +340,39 @@
 
     private List<IBradixMenuRovingItem> GetEnabledItems()
     {
-        return _items.Snapshot()
-            .Select(entry => entry.Item)
-            .Where(item => !item.IsDisabled)
-            .ToList();
+        var enabledItems = new List<IBradixMenuRovingItem>(_items.Count);
+
+        foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
+        {
+            if (!entry.Value.IsDisabled)
+                enabledItems.Add(entry.Value);
+        }
+
+        return enabledItems;
+    }
+
+    private IBradixMenuRovingItem? GetFirstEnabledItem()
+    {
+        foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
+        {
+            if (!entry.Value.IsDisabled)
+                return entry.Value;
+        }
+
+        return null;
+    }
+
+    private IBradixMenuRovingItem? GetLastEnabledItem()
+    {
+        IBradixMenuRovingItem? last = null;
+
+        foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
+        {
+            if (!entry.Value.IsDisabled)
+                last = entry.Value;
+        }
+
+        return last;
     }
 
     private void EnsureCurrentTabStopId()
@@ -357,8 +385,14 @@
             return;
         }
 
-        if (CurrentTabStopId is not null && enabledItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
-            return;
+        if (CurrentTabStopId is not null)
+        {
+            foreach (IBradixMenuRovingItem item in enabledItems)
+            {
+                if (string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
+                    return;
+            }
+        }
 
         CurrentTabStopId = enabledItems[0].TabStopId;
     }

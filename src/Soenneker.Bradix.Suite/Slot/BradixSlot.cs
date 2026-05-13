@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -157,13 +156,26 @@ public sealed class BradixSlot : LeptonIdentifiableContentElement
 
     private static string MergeStringValues(object slotValue, object childValue)
     {
-        return string.Join(" ", new[] { slotValue?.ToString(), childValue?.ToString() }.Where(static value => !string.IsNullOrWhiteSpace(value)));
+        return MergeNonEmptyValues(slotValue?.ToString(), childValue?.ToString());
     }
 
     private static string MergeStyleValues(object slotValue, object childValue)
     {
-        return string.Join(" ", new[] { NormalizeStyle(slotValue?.ToString()), NormalizeStyle(childValue?.ToString()) }
-            .Where(static value => !string.IsNullOrWhiteSpace(value)));
+        return MergeNonEmptyValues(NormalizeStyle(slotValue?.ToString()), NormalizeStyle(childValue?.ToString()));
+    }
+
+    private static string MergeNonEmptyValues(string? first, string? second)
+    {
+        bool hasFirst = !string.IsNullOrWhiteSpace(first);
+        bool hasSecond = !string.IsNullOrWhiteSpace(second);
+
+        return (hasFirst, hasSecond) switch
+        {
+            (true, true) => $"{first} {second}",
+            (true, false) => first!,
+            (false, true) => second!,
+            _ => string.Empty
+        };
     }
 
     private static string? NormalizeStyle(string? value)

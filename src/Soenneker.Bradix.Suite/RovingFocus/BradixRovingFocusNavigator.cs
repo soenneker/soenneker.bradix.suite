@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Soenneker.Bradix;
 
 internal static class BradixRovingFocusNavigator
@@ -61,7 +59,7 @@ internal static class BradixRovingFocusNavigator
 
     public static bool IsNavigationKey(string key)
     {
-        return NavigationKeys.Contains(key);
+        return key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown";
     }
 
     private static string GetDirectionAwareKey(string key, string dir)
@@ -76,16 +74,4 @@ internal static class BradixRovingFocusNavigator
             _ => key
         };
     }
-
-    private static readonly HashSet<string> NavigationKeys =
-    [
-        "ArrowLeft",
-        "ArrowRight",
-        "ArrowUp",
-        "ArrowDown",
-        "Home",
-        "End",
-        "PageUp",
-        "PageDown"
-    ];
 }

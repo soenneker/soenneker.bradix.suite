@@ -116,9 +116,7 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<BradixTabsTrigger> focusableTriggers = _triggers
-                                                    .Where(candidate => !candidate.IsDisabled)
-                                                    .ToList();
+        List<BradixTabsTrigger> focusableTriggers = GetFocusableTriggers();
 
         int currentIndex = focusableTriggers.IndexOf(trigger);
 
@@ -148,15 +146,13 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<BradixTabsTrigger> focusableTriggers = _triggers
-                                                    .Where(candidate => !candidate.IsDisabled)
-                                                    .ToList();
+        List<BradixTabsTrigger> focusableTriggers = GetFocusableTriggers();
 
         if (focusableTriggers.Count == 0)
             return;
 
-        BradixTabsTrigger? currentTrigger = focusableTriggers.FirstOrDefault(item => item.IsSelected)
-                                            ?? focusableTriggers.FirstOrDefault(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal));
+        BradixTabsTrigger? currentTrigger = FindSelectedTrigger(focusableTriggers)
+                                            ?? FindTabStopTrigger(focusableTriggers, CurrentTabStopId);
 
         int currentIndex = currentTrigger is null ? 0 : focusableTriggers.IndexOf(currentTrigger);
 
@@ -201,9 +197,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<BradixTabsTrigger> focusableTriggers = _triggers
-                                                    .Where(item => !item.IsDisabled)
-                                                    .ToList();
+        List<BradixTabsTrigger> focusableTriggers = GetFocusableTriggers();
 
         if (focusableTriggers.Count == 0)
         {
@@ -211,10 +205,48 @@
             return;
         }
 
-        if (CurrentTabStopId is not null && focusableTriggers.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
+        if (CurrentTabStopId is not null && FindTabStopTrigger(focusableTriggers, CurrentTabStopId) is not null)
             return;
 
         if (CurrentTabStopId is not null)
             CurrentTabStopId = null;
+    }
+
+    private List<BradixTabsTrigger> GetFocusableTriggers()
+    {
+        var focusableTriggers = new List<BradixTabsTrigger>(_triggers.Count);
+
+        foreach (BradixTabsTrigger trigger in _triggers)
+        {
+            if (!trigger.IsDisabled)
+                focusableTriggers.Add(trigger);
+        }
+
+        return focusableTriggers;
+    }
+
+    private static BradixTabsTrigger? FindSelectedTrigger(List<BradixTabsTrigger> triggers)
+    {
+        foreach (BradixTabsTrigger trigger in triggers)
+        {
+            if (trigger.IsSelected)
+                return trigger;
+        }
+
+        return null;
+    }
+
+    private static BradixTabsTrigger? FindTabStopTrigger(List<BradixTabsTrigger> triggers, string? tabStopId)
+    {
+        if (tabStopId is null)
+            return null;
+
+        foreach (BradixTabsTrigger trigger in triggers)
+        {
+            if (string.Equals(trigger.TabStopId, tabStopId, StringComparison.Ordinal))
+                return trigger;
+        }
+
+        return null;
     }
 }

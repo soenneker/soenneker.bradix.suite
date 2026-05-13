@@ -76,9 +76,7 @@
             return;
 
         _uncontrolledValue = DefaultValue;
-        _uncontrolledValues = DefaultValues is not null
-            ? DefaultValues.Distinct(StringComparer.Ordinal).ToList()
-            : [];
+        _uncontrolledValues = CreateDistinctList(DefaultValues);
 
         _initialized = true;
     }
@@ -89,7 +87,7 @@
             return string.Equals(Value ?? _uncontrolledValue, value, StringComparison.Ordinal);
 
         IReadOnlyCollection<string> values = Values ?? _uncontrolledValues;
-        return values.Contains(value);
+        return ContainsOrdinal(values, value);
     }
 
     internal async Task OpenItem(string value)
@@ -101,7 +99,7 @@
         }
 
         List<string> next = Values is not null
-            ? Values.Distinct(StringComparer.Ordinal).ToList()
+            ? CreateDistinctList(Values)
             : [.. _uncontrolledValues];
 
         if (!next.Contains(value, StringComparer.Ordinal))
@@ -123,7 +121,7 @@
         }
 
         List<string> next = Values is not null
-            ? Values.Distinct(StringComparer.Ordinal).ToList()
+            ? CreateDistinctList(Values)
             : [.. _uncontrolledValues];
 
         if (next.RemoveAll(item => string.Equals(item, value, StringComparison.Ordinal)) > 0)
@@ -145,9 +143,7 @@
 
     internal async Task HandleTriggerKeyDown(BradixAccordionTrigger trigger, KeyboardEventArgs args)
     {
-        List<BradixAccordionTrigger> enabledTriggers = _triggers
-                                                       .Where(item => !item.IsDisabled)
-                                                       .ToList();
+        List<BradixAccordionTrigger> enabledTriggers = GetEnabledTriggers();
 
         if (enabledTriggers.Count == 0)
             return;
@@ -221,5 +217,46 @@
             await OnValuesChange.InvokeAsync(ordered);
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private List<BradixAccordionTrigger> GetEnabledTriggers()
+    {
+        List<BradixAccordionTrigger> enabledTriggers = [];
+
+        foreach (BradixAccordionTrigger trigger in _triggers)
+        {
+            if (!trigger.IsDisabled)
+                enabledTriggers.Add(trigger);
+        }
+
+        return enabledTriggers;
+    }
+
+    private static List<string> CreateDistinctList(IEnumerable<string>? values)
+    {
+        if (values is null)
+            return [];
+
+        List<string> result = [];
+        HashSet<string> seen = new(StringComparer.Ordinal);
+
+        foreach (string value in values)
+        {
+            if (seen.Add(value))
+                result.Add(value);
+        }
+
+        return result;
+    }
+
+    private static bool ContainsOrdinal(IEnumerable<string> values, string value)
+    {
+        foreach (string candidate in values)
+        {
+            if (string.Equals(candidate, value, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 }

@@ -1,6 +1,5 @@
 @namespace Soenneker.Bradix
 
-@using System.Linq
 @using System.Threading
 @using Soenneker.Blazor.Utils.Ids
 
@@ -161,9 +160,7 @@
 
     internal bool TryGetOpenTrigger(out IBradixNavigationMenuRegisteredTrigger trigger)
     {
-        IBradixNavigationMenuRegisteredTrigger? resolvedTrigger = _triggers.Snapshot()
-                                                                           .Select(entry => entry.Item)
-                                                                           .FirstOrDefault(candidate => string.Equals(candidate.Value, CurrentValue, StringComparison.Ordinal));
+        IBradixNavigationMenuRegisteredTrigger? resolvedTrigger = FindTrigger(CurrentValue);
 
         trigger = resolvedTrigger!;
         return resolvedTrigger is not null;
@@ -171,9 +168,7 @@
 
     internal bool TryGetTrigger(string value, out IBradixNavigationMenuRegisteredTrigger trigger)
     {
-        IBradixNavigationMenuRegisteredTrigger? resolvedTrigger = _triggers.Snapshot()
-                                                                           .Select(entry => entry.Item)
-                                                                           .FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.Ordinal));
+        IBradixNavigationMenuRegisteredTrigger? resolvedTrigger = FindTrigger(value);
 
         trigger = resolvedTrigger!;
         return resolvedTrigger is not null;
@@ -184,14 +179,13 @@
         if (ids is null)
             return false;
 
-        HashSet<string> triggerIds = _triggers.Snapshot()
-                                              .Select(entry => entry.Item.TriggerId)
-                                              .ToHashSet(StringComparer.Ordinal);
-
         foreach (string id in ids)
         {
-            if (triggerIds.Contains(id))
-                return true;
+            foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
+            {
+                if (string.Equals(trigger.TriggerId, id, StringComparison.Ordinal))
+                    return true;
+            }
         }
 
         return false;
@@ -431,7 +425,7 @@
 
         foreach (BradixNavigationMenuViewportRegistration registration in _viewportContents.Values)
         {
-            if (!ordered.Any(existing => string.Equals(existing.Value, registration.Value, StringComparison.Ordinal)))
+            if (!ContainsViewportContentValue(ordered, registration.Value))
                 ordered.Add(registration);
         }
 
@@ -440,9 +434,12 @@
 
     internal List<string> GetOrderedTriggerValues()
     {
-        List<string> values = _triggers.Snapshot()
-                                       .Select(entry => entry.Item.Value)
-                                       .ToList();
+        List<string> values = [];
+
+        foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
+        {
+            values.Add(trigger.Value);
+        }
 
         if (ResolvedDirection == "rtl")
             values.Reverse();
@@ -536,7 +533,7 @@
 
     internal async Task FocusTrigger(string value)
     {
-        IBradixNavigationMenuRegisteredTrigger? trigger = GetFocusableTriggers().FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.Ordinal));
+        IBradixNavigationMenuRegisteredTrigger? trigger = FindFocusableTrigger(value);
         if (trigger is not null)
             await trigger.Focus();
     }
@@ -689,21 +686,81 @@
         }
 
         if (!string.IsNullOrWhiteSpace(CurrentTabStopValue) &&
-            focusableTriggers.Any(trigger => string.Equals(trigger.Value, CurrentTabStopValue, StringComparison.Ordinal)))
+            FindTriggerIndex(focusableTriggers, CurrentTabStopValue) >= 0)
         {
             return;
         }
 
-        IBradixNavigationMenuRegisteredTrigger? activeTrigger = focusableTriggers.FirstOrDefault(trigger => string.Equals(trigger.Value, CurrentValue, StringComparison.Ordinal));
+        IBradixNavigationMenuRegisteredTrigger? activeTrigger = FindTrigger(focusableTriggers, CurrentValue);
         CurrentTabStopValue = activeTrigger?.Value ?? focusableTriggers[0].Value;
     }
 
     private List<IBradixNavigationMenuRegisteredTrigger> GetFocusableTriggers()
     {
-        return _triggers.Snapshot()
-            .Select(entry => entry.Item)
-            .Where(trigger => !trigger.Disabled)
-            .ToList();
+        List<IBradixNavigationMenuRegisteredTrigger> focusableTriggers = [];
+
+        foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
+        {
+            if (!trigger.Disabled)
+                focusableTriggers.Add(trigger);
+        }
+
+        return focusableTriggers;
+    }
+
+    private IBradixNavigationMenuRegisteredTrigger? FindTrigger(string value)
+    {
+        foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
+        {
+            if (string.Equals(trigger.Value, value, StringComparison.Ordinal))
+                return trigger;
+        }
+
+        return null;
+    }
+
+    private IBradixNavigationMenuRegisteredTrigger? FindFocusableTrigger(string value)
+    {
+        foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
+        {
+            if (!trigger.Disabled && string.Equals(trigger.Value, value, StringComparison.Ordinal))
+                return trigger;
+        }
+
+        return null;
+    }
+
+    private static IBradixNavigationMenuRegisteredTrigger? FindTrigger(IEnumerable<IBradixNavigationMenuRegisteredTrigger> triggers, string value)
+    {
+        foreach (IBradixNavigationMenuRegisteredTrigger trigger in triggers)
+        {
+            if (string.Equals(trigger.Value, value, StringComparison.Ordinal))
+                return trigger;
+        }
+
+        return null;
+    }
+
+    private static int FindTriggerIndex(IReadOnlyList<IBradixNavigationMenuRegisteredTrigger> triggers, string value)
+    {
+        for (int i = 0; i < triggers.Count; i++)
+        {
+            if (string.Equals(triggers[i].Value, value, StringComparison.Ordinal))
+                return i;
+        }
+
+        return -1;
+    }
+
+    private static bool ContainsViewportContentValue(IEnumerable<BradixNavigationMenuViewportRegistration> registrations, string value)
+    {
+        foreach (BradixNavigationMenuViewportRegistration registration in registrations)
+        {
+            if (string.Equals(registration.Value, value, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 
     private static IBradixNavigationMenuFocusGroupItem? ResolveAdjacentFocusGroupItem(List<IBradixNavigationMenuFocusGroupItem> items,

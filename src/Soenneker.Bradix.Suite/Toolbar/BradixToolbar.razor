@@ -83,9 +83,7 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<IBradixToolbarRovingItem> focusableItems = _items
-                                                        .Where(candidate => !candidate.IsDisabled)
-                                                        .ToList();
+        List<IBradixToolbarRovingItem> focusableItems = GetFocusableItems();
 
         int currentIndex = focusableItems.IndexOf(item);
 
@@ -112,9 +110,7 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixToolbarRovingItem> focusableItems = _items
-                                                        .Where(item => !item.IsDisabled)
-                                                        .ToList();
+        List<IBradixToolbarRovingItem> focusableItems = GetFocusableItems();
 
         if (focusableItems.Count == 0)
         {
@@ -122,9 +118,33 @@
             return;
         }
 
-        if (CurrentTabStopId is not null && focusableItems.Any(item => string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal)))
+        if (CurrentTabStopId is not null && ContainsTabStopId(focusableItems, CurrentTabStopId))
             return;
 
         CurrentTabStopId = focusableItems[0].TabStopId;
+    }
+
+    private List<IBradixToolbarRovingItem> GetFocusableItems()
+    {
+        List<IBradixToolbarRovingItem> focusableItems = [];
+
+        foreach (IBradixToolbarRovingItem item in _items)
+        {
+            if (!item.IsDisabled)
+                focusableItems.Add(item);
+        }
+
+        return focusableItems;
+    }
+
+    private static bool ContainsTabStopId(IEnumerable<IBradixToolbarRovingItem> items, string tabStopId)
+    {
+        foreach (IBradixToolbarRovingItem item in items)
+        {
+            if (string.Equals(item.TabStopId, tabStopId, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 }

@@ -28,10 +28,9 @@
     {
         get
         {
-            var attributes = new Dictionary<string, object>(AdditionalAttributes ?? new Dictionary<string, object>())
-            {
-                ["data-bradix-alert-dialog-cancel"] = "true"
-            };
+            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 1);
+
+            attributes["data-bradix-alert-dialog-cancel"] = "true";
 
             return attributes;
         }

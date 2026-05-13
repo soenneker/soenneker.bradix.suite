@@ -50,6 +50,18 @@
 }
 
 @code {
+    private static readonly IReadOnlyDictionary<string, object> _foregroundAnnounceAttributes = new Dictionary<string, object>
+    {
+        ["role"] = "status",
+        ["aria-live"] = "assertive"
+    };
+
+    private static readonly IReadOnlyDictionary<string, object> _backgroundAnnounceAttributes = new Dictionary<string, object>
+    {
+        ["role"] = "status",
+        ["aria-live"] = "polite"
+    };
+
     private bool _initialized;
     private bool _uncontrolledOpen = true;
     private bool _registered;
@@ -158,9 +170,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
-                ? new Dictionary<string, object>(AdditionalAttributes)
-                : [];
+            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 8);
 
             attributes["tabindex"] = 0;
             attributes["data-radix-toast-root"] = string.Empty;
@@ -179,11 +189,7 @@
         }
     }
 
-    private IReadOnlyDictionary<string, object> AnnounceAttributes => new Dictionary<string, object>
-    {
-        ["role"] = "status",
-        ["aria-live"] = IsForeground ? "assertive" : "polite"
-    };
+    private IReadOnlyDictionary<string, object> AnnounceAttributes => IsForeground ? _foregroundAnnounceAttributes : _backgroundAnnounceAttributes;
 
     protected override void OnParametersSet()
     {
@@ -650,7 +656,7 @@
 
         string[] announceText = await ToastInterop.GetToastAnnounceText(_toastElement);
 
-        if (_announceTextSegments.SequenceEqual(announceText, StringComparer.Ordinal))
+        if (SegmentsEqual(_announceTextSegments, announceText))
             return;
 
         _announceTextSegments = announceText;
@@ -704,5 +710,19 @@
         _announceCts?.Cancel();
         _announceCts?.Dispose();
         _announceCts = null;
+    }
+
+    private static bool SegmentsEqual(IReadOnlyList<string> left, IReadOnlyList<string> right)
+    {
+        if (left.Count != right.Count)
+            return false;
+
+        for (int i = 0; i < left.Count; i++)
+        {
+            if (!string.Equals(left[i], right[i], StringComparison.Ordinal))
+                return false;
+        }
+
+        return true;
     }
 }

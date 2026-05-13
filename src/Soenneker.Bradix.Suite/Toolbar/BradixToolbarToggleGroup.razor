@@ -65,7 +65,7 @@
             return;
 
         _uncontrolledValue = NormalizeSingleValue(DefaultValue);
-        _uncontrolledValues = DefaultValues?.Distinct(StringComparer.Ordinal).ToList() ?? [];
+        _uncontrolledValues = CreateDistinctList(DefaultValues);
         _initialized = true;
     }
 
@@ -75,7 +75,7 @@
             return string.Equals(NormalizeSingleValue(IsSingleControlled ? Value : _uncontrolledValue), value, StringComparison.Ordinal);
 
         IReadOnlyCollection<string> values = IsMultipleControlled ? Values ?? [] : _uncontrolledValues;
-        return values.Contains(value);
+        return ContainsOrdinal(values, value);
     }
 
     internal async Task ActivateItem(string value)
@@ -86,9 +86,9 @@
             return;
         }
 
-        List<string> next = (IsMultipleControlled ? Values?.ToList() : [.. _uncontrolledValues]) ?? [];
+        List<string> next = IsMultipleControlled ? CreateDistinctList(Values) : [.. _uncontrolledValues];
 
-        if (next.Contains(value, StringComparer.Ordinal))
+        if (ContainsOrdinal(next, value))
             return;
 
         next.Add(value);
@@ -103,9 +103,9 @@
             return;
         }
 
-        List<string> next = (IsMultipleControlled ? Values?.ToList() : [.. _uncontrolledValues]) ?? [];
+        List<string> next = IsMultipleControlled ? CreateDistinctList(Values) : [.. _uncontrolledValues];
 
-        if (!next.Remove(value))
+        if (!RemoveOrdinal(next, value))
             return;
 
         await SetMultipleValues(next);
@@ -132,7 +132,7 @@
 
     private async Task SetMultipleValues(IReadOnlyCollection<string> values)
     {
-        List<string> next = values.Distinct(StringComparer.Ordinal).ToList();
+        List<string> next = CreateDistinctList(values);
 
         if (!IsMultipleControlled)
             _uncontrolledValues = next;
@@ -151,5 +151,47 @@
     private static string NormalizeSingleValue(string? value)
     {
         return value ?? string.Empty;
+    }
+
+    private static List<string> CreateDistinctList(IEnumerable<string>? values)
+    {
+        if (values is null)
+            return [];
+
+        List<string> result = [];
+        HashSet<string> seen = new(StringComparer.Ordinal);
+
+        foreach (string value in values)
+        {
+            if (seen.Add(value))
+                result.Add(value);
+        }
+
+        return result;
+    }
+
+    private static bool ContainsOrdinal(IEnumerable<string> values, string value)
+    {
+        foreach (string candidate in values)
+        {
+            if (string.Equals(candidate, value, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool RemoveOrdinal(List<string> values, string value)
+    {
+        for (int i = 0; i < values.Count; i++)
+        {
+            if (!string.Equals(values[i], value, StringComparison.Ordinal))
+                continue;
+
+            values.RemoveAt(i);
+            return true;
+        }
+
+        return false;
     }
 }

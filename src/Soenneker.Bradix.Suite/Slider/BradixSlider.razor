@@ -16,13 +16,10 @@
 </CascadingValue>
 
 @code {
-    private static readonly HashSet<string> PageKeys = ["PageUp", "PageDown"];
-    private static readonly HashSet<string> ArrowKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
-
     private readonly List<BradixSliderThumb> _thumbs = [];
     private bool _initialized;
     private bool _registered;
-    private IReadOnlyList<double> _valuesBeforeSlideStart = [];
+    private List<double> _valuesBeforeSlideStart = [];
     private List<double> _uncontrolledValues = [];
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -96,9 +93,9 @@
         if (_initialized)
             return;
 
-        _uncontrolledValues = BradixSliderMath.NormalizeValues(DefaultValues, Min, Max).ToList();
+        _uncontrolledValues = BradixSliderMath.NormalizeValues(DefaultValues, Min, Max);
         _initialized = true;
-        _valuesBeforeSlideStart = CurrentValues.ToArray();
+        _valuesBeforeSlideStart = CopyValues(CurrentValues);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -210,10 +207,10 @@
             return;
         }
 
-        if (!PageKeys.Contains(args.Key) && !ArrowKeys.Contains(args.Key))
+        if (!IsPageKey(args.Key) && !IsArrowKey(args.Key))
             return;
 
-        bool isSkipKey = PageKeys.Contains(args.Key) || (args.ShiftKey && ArrowKeys.Contains(args.Key));
+        bool isSkipKey = IsPageKey(args.Key) || (args.ShiftKey && IsArrowKey(args.Key));
         double multiplier = isSkipKey ? 10 : 1;
         int direction = IsBackKey(args.Key) ? -1 : 1;
         double currentValue = CurrentValues[index];
@@ -226,7 +223,7 @@
         if (Disabled)
             return;
 
-        _valuesBeforeSlideStart = CurrentValues.ToArray();
+        _valuesBeforeSlideStart = CopyValues(CurrentValues);
 
         if (thumbIndex >= 0)
         {
@@ -261,7 +258,7 @@
         double nextValue = CurrentValues[CurrentThumbIndex];
 
         if (previousValue != nextValue && OnValueCommit.HasDelegate)
-            await OnValueCommit.InvokeAsync(CurrentValues.ToArray());
+            await OnValueCommit.InvokeAsync(CopyValues(CurrentValues));
     }
 
     [JSInvokable]
@@ -270,13 +267,13 @@
         if (Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
             return;
 
-        if (_valuesBeforeSlideStart.SequenceEqual(CurrentValues))
+        if (ValuesEqual(_valuesBeforeSlideStart, CurrentValues))
             return;
 
-        IReadOnlyList<double> restoredValues = _valuesBeforeSlideStart.ToArray();
+        List<double> restoredValues = CopyValues(_valuesBeforeSlideStart);
 
         if (Values is null)
-            _uncontrolledValues = restoredValues.ToList();
+            _uncontrolledValues = restoredValues;
 
         if (ValuesChanged.HasDelegate)
             await ValuesChanged.InvokeAsync(restoredValues);
@@ -304,7 +301,7 @@
 
         int nextIndex = nextValues.IndexOf(clampedValue);
 
-        if (nextValues.SequenceEqual(CurrentValues))
+        if (ValuesEqual(nextValues, CurrentValues))
             return;
 
         CurrentThumbIndex = nextIndex;
@@ -312,7 +309,7 @@
         if (Values is null)
             _uncontrolledValues = nextValues;
 
-        IReadOnlyList<double> result = nextValues.ToArray();
+        IReadOnlyList<double> result = CopyValues(nextValues);
 
         if (ValuesChanged.HasDelegate)
             await ValuesChanged.InvokeAsync(result);
@@ -351,23 +348,69 @@
     private bool IsBackKey(string key)
     {
         return Orientation == Orientation.Horizontal
-            ? GetHorizontalBackKeys().Contains(key)
-            : GetVerticalBackKeys().Contains(key);
+            ? IsHorizontalBackKey(key)
+            : IsVerticalBackKey(key);
     }
 
-    private HashSet<string> GetHorizontalBackKeys()
+    private bool IsHorizontalBackKey(string key)
     {
         bool fromLeft = (ResolvedDirection == "ltr" && !Inverted) || (ResolvedDirection == "rtl" && Inverted);
-        return fromLeft
-            ? ["Home", "PageDown", "ArrowDown", "ArrowLeft"]
-            : ["Home", "PageDown", "ArrowDown", "ArrowRight"];
+
+        return key switch
+        {
+            "Home" or "PageDown" or "ArrowDown" => true,
+            "ArrowLeft" => fromLeft,
+            "ArrowRight" => !fromLeft,
+            _ => false
+        };
     }
 
-    private HashSet<string> GetVerticalBackKeys()
+    private bool IsVerticalBackKey(string key)
     {
         bool fromBottom = !Inverted;
-        return fromBottom
-            ? ["Home", "PageDown", "ArrowDown", "ArrowLeft"]
-            : ["Home", "PageDown", "ArrowUp", "ArrowLeft"];
+
+        return key switch
+        {
+            "Home" or "PageDown" or "ArrowLeft" => true,
+            "ArrowDown" => fromBottom,
+            "ArrowUp" => !fromBottom,
+            _ => false
+        };
+    }
+
+    private static bool IsPageKey(string key)
+    {
+        return key is "PageUp" or "PageDown";
+    }
+
+    private static bool IsArrowKey(string key)
+    {
+        return key is "ArrowUp" or "ArrowDown" or "ArrowLeft" or "ArrowRight";
+    }
+
+    private static List<double> CopyValues(IReadOnlyList<double> values)
+    {
+        List<double> copy = new(values.Count);
+
+        for (int i = 0; i < values.Count; i++)
+        {
+            copy.Add(values[i]);
+        }
+
+        return copy;
+    }
+
+    private static bool ValuesEqual(IReadOnlyList<double> left, IReadOnlyList<double> right)
+    {
+        if (left.Count != right.Count)
+            return false;
+
+        for (int i = 0; i < left.Count; i++)
+        {
+            if (left[i] != right[i])
+                return false;
+        }
+
+        return true;
     }
 }

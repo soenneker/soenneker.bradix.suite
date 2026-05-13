@@ -1,5 +1,4 @@
 @namespace Soenneker.Bradix
-@using System.Linq
 @using Microsoft.JSInterop
 @using Soenneker.Atomics.ValueBools
 
@@ -314,9 +313,29 @@
             selectors.Add(CollisionBoundarySelector!);
 
         if (CollisionBoundarySelectors is not null)
-            selectors.AddRange(CollisionBoundarySelectors.Where(selector => !string.IsNullOrWhiteSpace(selector)));
+        {
+            foreach (string selector in CollisionBoundarySelectors)
+            {
+                if (!string.IsNullOrWhiteSpace(selector))
+                    selectors.Add(selector);
+            }
+        }
 
-        return string.Join("\n", selectors.Distinct(StringComparer.Ordinal));
+        return JoinDistinctSelectors(selectors);
+    }
+
+    private static string JoinDistinctSelectors(IEnumerable<string> selectors)
+    {
+        HashSet<string> seen = new(StringComparer.Ordinal);
+        List<string> distinctSelectors = [];
+
+        foreach (string selector in selectors)
+        {
+            if (seen.Add(selector))
+                distinctSelectors.Add(selector);
+        }
+
+        return string.Join("\n", distinctSelectors);
     }
 
     private static object CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options)

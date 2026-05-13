@@ -1,15 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 
 namespace Soenneker.Bradix;
 
 internal static class BradixSliderMath
 {
-    public static IReadOnlyList<double> NormalizeValues(IEnumerable<double>? values, double min, double max)
+    public static List<double> NormalizeValues(IEnumerable<double>? values, double min, double max)
     {
-        List<double> normalized = values?.Select(value => Clamp(value, min, max)).OrderBy(value => value).ToList() ?? [];
+        List<double> normalized = [];
+
+        if (values is not null)
+        {
+            foreach (double value in values)
+            {
+                normalized.Add(Clamp(value, min, max));
+            }
+
+            normalized.Sort();
+        }
+
         return normalized.Count == 0 ? [min] : normalized;
     }
 
@@ -59,7 +69,12 @@ internal static class BradixSliderMath
 
     public static List<double> GetNextSortedValues(IReadOnlyList<double> previousValues, double nextValue, int atIndex)
     {
-        List<double> nextValues = previousValues.ToList();
+        List<double> nextValues = new(previousValues.Count);
+
+        for (int i = 0; i < previousValues.Count; i++)
+        {
+            nextValues.Add(previousValues[i]);
+        }
 
         if (atIndex < 0 || atIndex >= nextValues.Count)
             return nextValues;
@@ -85,8 +100,9 @@ internal static class BradixSliderMath
 
     public static int GetDecimalCount(double value)
     {
-        string[] segments = value.ToString(CultureInfo.InvariantCulture).Split('.');
-        return segments.Length > 1 ? segments[1].Length : 0;
+        string formatted = value.ToString(CultureInfo.InvariantCulture);
+        int separatorIndex = formatted.IndexOf('.');
+        return separatorIndex >= 0 ? formatted.Length - separatorIndex - 1 : 0;
     }
 
     public static double RoundValue(double value, int decimalCount)

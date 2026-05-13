@@ -202,9 +202,7 @@ else
     {
         get
         {
-            Dictionary<string, object> attributes = AdditionalAttributes is not null
-                ? new Dictionary<string, object>(AdditionalAttributes)
-                : new Dictionary<string, object>();
+            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 7);
 
             attributes["role"] = "listbox";
             attributes["dir"] = Select?.ResolvedDirection ?? "ltr";

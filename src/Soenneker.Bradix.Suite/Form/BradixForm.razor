@@ -1,6 +1,5 @@
 @namespace Soenneker.Bradix
 
-@using System.Linq
 @using Microsoft.JSInterop
 
 @inherits LeptonIdentifiableContentElement
@@ -170,7 +169,7 @@
             asyncMatchers.Add(entry);
         }
 
-        bool hasSyncErrors = syncResults.Values.Any(static value => value);
+        bool hasSyncErrors = HasCustomErrors(syncResults);
 
         await FormInterop.SetFormControlCustomValidity(element, hasSyncErrors ? _defaultInvalidMessage : null);
 
@@ -191,7 +190,7 @@
                 return;
         }
 
-        bool hasAsyncErrors = asyncResults.Values.Any(static value => value);
+        bool hasAsyncErrors = HasCustomErrors(asyncResults);
 
         await FormInterop.SetFormControlCustomValidity(element, hasAsyncErrors ? _defaultInvalidMessage : null);
 
@@ -269,6 +268,17 @@
                validity.ValueMissing;
     }
 
+    private static bool HasCustomErrors(Dictionary<string, bool> results)
+    {
+        foreach (bool value in results.Values)
+        {
+            if (value)
+                return true;
+        }
+
+        return false;
+    }
+
     private long NextValidationVersion(string fieldName)
     {
         long next = _validationVersions.TryGetValue(fieldName, out long current)
@@ -317,7 +327,7 @@
     [JSInvokable]
     public async Task HandleInvalidControls(string[] fieldNames)
     {
-        string[] distinctFieldNames = fieldNames.Distinct(StringComparer.Ordinal).ToArray();
+        IReadOnlyList<string> distinctFieldNames = GetDistinctFieldNames(fieldNames);
 
         foreach (string fieldName in distinctFieldNames)
         {
@@ -330,5 +340,19 @@
 
         if (OnInvalid.HasDelegate)
             await OnInvalid.InvokeAsync(distinctFieldNames);
+    }
+
+    private static IReadOnlyList<string> GetDistinctFieldNames(IEnumerable<string> fieldNames)
+    {
+        HashSet<string> seen = new(StringComparer.Ordinal);
+        List<string> distinctFieldNames = [];
+
+        foreach (string fieldName in fieldNames)
+        {
+            if (seen.Add(fieldName))
+                distinctFieldNames.Add(fieldName);
+        }
+
+        return distinctFieldNames;
     }
 }
