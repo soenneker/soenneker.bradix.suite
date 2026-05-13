@@ -1,5 +1,4 @@
 const hoverCardSelectionHandlers = new WeakMap();
-const avatarImageLoaders = new WeakMap();
 
 export function disableHoverCardContentTabNavigation(content) {
   if (!content) {
@@ -92,59 +91,7 @@ export function unregisterHoverCardSelectionContainment(content) {
 }
 
 export function registerAvatarImageLoadingStatus(src, crossOrigin, referrerPolicy, dotNetRef) {
-  if (!dotNetRef) {
-    return;
-  }
-
-  unregisterAvatarImageLoadingStatus(dotNetRef);
-
-  const image = new window.Image();
-  const notifyStatus = (status) => {
-    setTimeout(() => {
-      dotNetRef.invokeMethodAsync("HandleImageLoadingStatusChanged", status).catch(() => {});
-    }, 0);
-  };
-  const handleLoad = () => {
-    notifyStatus("loaded");
-  };
-  const handleError = () => {
-    notifyStatus("error");
-  };
-
-  image.addEventListener("load", handleLoad);
-  image.addEventListener("error", handleError);
-
-  if (referrerPolicy) {
-    image.referrerPolicy = referrerPolicy;
-  }
-
-  if (typeof crossOrigin === "string" && crossOrigin.length > 0) {
-    image.crossOrigin = crossOrigin;
-  }
-
-  avatarImageLoaders.set(dotNetRef, { image, handleLoad, handleError });
-
-  if (!src) {
-    notifyStatus("error");
-    return;
-  }
-
-  notifyStatus("loading");
-  image.src = src;
-
-  if (image.complete && image.naturalWidth > 0) {
-    notifyStatus("loaded");
-    return;
-  }
 }
 
 export function unregisterAvatarImageLoadingStatus(dotNetRef) {
-  const handlers = avatarImageLoaders.get(dotNetRef);
-  if (!handlers) {
-    return;
-  }
-
-  handlers.image.removeEventListener("load", handlers.handleLoad);
-  handlers.image.removeEventListener("error", handlers.handleError);
-  avatarImageLoaders.delete(dotNetRef);
 }

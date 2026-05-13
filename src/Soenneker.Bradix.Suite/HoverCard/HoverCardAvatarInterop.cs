@@ -47,18 +47,15 @@ public sealed class HoverCardAvatarInterop : IHoverCardAvatarInterop
         await module.InvokeVoidAsync("unregisterHoverCardSelectionContainment", cancellationToken, content);
     }
 
-    public async ValueTask RegisterAvatarImageLoadingStatus(string? src, string? crossOrigin, string? referrerPolicy,
+    public ValueTask RegisterAvatarImageLoadingStatus(string? src, string? crossOrigin, string? referrerPolicy,
         DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
-        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerAvatarImageLoadingStatus", cancellationToken, src, crossOrigin, referrerPolicy, dotNetReference)
-            ;
+        return ValueTask.CompletedTask;
     }
 
-    public async ValueTask UnregisterAvatarImageLoadingStatus(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
+    public ValueTask UnregisterAvatarImageLoadingStatus(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
-        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterAvatarImageLoadingStatus", cancellationToken, dotNetReference);
+        return ValueTask.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()

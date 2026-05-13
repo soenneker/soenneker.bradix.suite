@@ -8,8 +8,7 @@
 @implements IBradixLabel
 
 @inject ILabelInterop LabelInterop
-<label @ref="_element"
-       @attributes="LabelAttributes" >
+<label @ref="_element" @attributes="LabelAttributes" >
     @ChildContent
 </label>
 
@@ -100,4 +99,5 @@
         await Task.Delay(5000);
         dotNetReference.Dispose();
     }
+
 }

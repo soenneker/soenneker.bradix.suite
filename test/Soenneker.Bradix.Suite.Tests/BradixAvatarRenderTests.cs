@@ -9,14 +9,8 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixAvatarRenderTests : BunitContext
 {
-    private readonly BunitJSModuleInterop _module;
-
     public BradixAvatarRenderTests()
     {
-        _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        _module.SetupVoid("registerAvatarImageLoadingStatus", _ => true).SetVoidResult();
-        _module.SetupVoid("unregisterAvatarImageLoadingStatus", _ => true).SetVoidResult();
-
         Services.AddBradixTestInterops();
     }
 

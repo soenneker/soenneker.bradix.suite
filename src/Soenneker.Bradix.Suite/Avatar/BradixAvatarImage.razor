@@ -1,12 +1,8 @@
 @namespace Soenneker.Bradix
 
-@using Microsoft.JSInterop
-
 @inherits LeptonElement
 
 @implements IBradixAvatarImage
-
-@inject IHoverCardAvatarInterop HoverCardAvatarInterop
 
 @if (ShouldRenderImageElement)
 {
@@ -17,9 +13,7 @@
 }
 
 @code {
-    private DotNetObjectReference<object>? _dotNetReference;
-    private bool _registered;
-    private bool _pendingRegistration = true;
+    private bool _pendingStatusReset = true;
     private bool _hasRendered;
     private string? _lastSrc;
     private string? _lastCrossOrigin;
@@ -66,43 +60,35 @@
             return;
         }
 
-        _pendingRegistration = true;
+        _pendingStatusReset = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _hasRendered = true;
 
-        if (!_pendingRegistration)
+        if (!_pendingStatusReset)
             return;
 
-        _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-
-        if (_registered)
-            await HoverCardAvatarInterop.UnregisterAvatarImageLoadingStatus(_dotNetReference);
-
-        _loadingStatus = BradixAvatarImageLoadingStatus.Idle;
-        if (Avatar is not null)
-            await Avatar.SetImageLoadingStatus(BradixAvatarImageLoadingStatus.Idle);
-
-        _pendingRegistration = false;
+        _pendingStatusReset = false;
         _lastSrc = Src;
         _lastCrossOrigin = CrossOrigin;
         _lastReferrerPolicy = ReferrerPolicy;
 
-        await HoverCardAvatarInterop.RegisterAvatarImageLoadingStatus(Src, CrossOrigin, ReferrerPolicy, _dotNetReference);
-        _registered = true;
+        await SetImageLoadingStatus(BradixAvatarImageLoadingStatus.Idle);
+
+        BradixAvatarImageLoadingStatus nextStatus = string.IsNullOrWhiteSpace(Src)
+            ? BradixAvatarImageLoadingStatus.Error
+            : BradixAvatarImageLoadingStatus.Loading;
+
+        await SetImageLoadingStatus(nextStatus);
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        if (_registered && _dotNetReference is not null)
-            await HoverCardAvatarInterop.UnregisterAvatarImageLoadingStatus(_dotNetReference);
-
-        _dotNetReference?.Dispose();
+        return ValueTask.CompletedTask;
     }
 
-    [JSInvokable]
     public async Task HandleImageLoadingStatusChanged(string status)
     {
         BradixAvatarImageLoadingStatus resolvedStatus = status switch
@@ -113,6 +99,11 @@
             _ => BradixAvatarImageLoadingStatus.Idle
         };
 
+        await SetImageLoadingStatus(resolvedStatus);
+    }
+
+    private async Task SetImageLoadingStatus(BradixAvatarImageLoadingStatus resolvedStatus)
+    {
         if (_loadingStatus.Value == resolvedStatus.Value)
             return;
 
