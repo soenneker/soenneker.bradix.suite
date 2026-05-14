@@ -452,6 +452,9 @@
         string search = _typeahead.Append(key);
         List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
         IBradixSelectCollectionItem? currentItem = FindItem(enabledItems, CurrentFocusedItemValue);
+        if (search.Length == 1)
+            currentItem = null;
+
         IBradixSelectCollectionItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
 
         if (nextItem is null)
@@ -491,6 +494,23 @@
 
         IBradixSelectCollectionItem target = enabledItems[targetIndex];
         await FocusItem(target);
+    }
+
+    internal async Task SetFocusedItemFromScript(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        List<IBradixSelectCollectionItem> enabledItems = GetEnabledItems();
+        IBradixSelectCollectionItem? item = FindItem(enabledItems, value);
+
+        if (item is null || string.Equals(CurrentFocusedItemValue, item.Value, StringComparison.Ordinal))
+            return;
+
+        string? previousValue = CurrentFocusedItemValue;
+        CurrentFocusedItemValue = item.Value;
+        await RefreshFocusedItems(previousValue, item.Value);
+        await InvokeAsync(StateHasChanged);
     }
 
     internal Task NotifyItemTextChanged()

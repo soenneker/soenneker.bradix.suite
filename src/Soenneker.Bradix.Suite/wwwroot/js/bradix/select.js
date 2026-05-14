@@ -1,3 +1,5 @@
+import { cssEscape } from "./core/dom.js";
+
 const selectViewportHandlers = new WeakMap();
 const selectContentPointerTrackers = new WeakMap();
 const selectContentKeyboardHandlers = new WeakMap();
@@ -161,8 +163,20 @@ export function registerSelectContentKeyboard(content, dotNetRef) {
 
   const registration = {
     search: "",
-    searchResetTimeout: 0
+    searchResetTimeout: 0,
+    focusedValue: "",
+    dotNetRef
   };
+
+  registration.mutationObserver = new MutationObserver(() => {
+    applyFocusedSelectValue(content, registration);
+  });
+  registration.mutationObserver.observe(content, {
+    attributes: true,
+    attributeFilter: ["data-highlighted", "data-state", "aria-selected"],
+    childList: true,
+    subtree: true
+  });
 
   const keydown = (event) => {
     if (event.ctrlKey || event.altKey || event.metaKey || event.key === "Tab") {
@@ -202,6 +216,7 @@ export function unregisterSelectContentKeyboard(content) {
 
   content.removeEventListener("keydown", handlers.keydown, true);
   clearTimeout(handlers.searchResetTimeout);
+  handlers.mutationObserver?.disconnect();
   selectContentKeyboardHandlers.delete(content);
 }
 
@@ -256,9 +271,26 @@ function focusSelectContentKeyboardTarget(content, key, registration) {
     return false;
   }
 
+  registration.focusedValue = target.getAttribute("data-value") || "";
+  setHighlightedSelectOption(content, target);
+  invokeDotNetSafely(registration.dotNetRef, "HandleDelegatedContentFocusedValueChanged", registration.focusedValue);
   target.focus({ preventScroll: true });
   target.scrollIntoView({ block: "nearest" });
   return true;
+}
+
+function applyFocusedSelectValue(content, registration) {
+  if (!registration.focusedValue) {
+    return;
+  }
+
+  const target = content.querySelector(`[role='option'][data-value="${cssEscape(registration.focusedValue)}"]`);
+
+  if (!target || target.hasAttribute("data-highlighted")) {
+    return;
+  }
+
+  setHighlightedSelectOption(content, target);
 }
 
 function getEnabledSelectOptions(content) {
@@ -288,14 +320,44 @@ function getAdjacentSelectOption(options, current, delta) {
 
 function getTypeaheadSelectOption(options, current, key, registration) {
   clearTimeout(registration.searchResetTimeout);
-  registration.search += key.toLowerCase();
+  const normalizedKey = key.toLowerCase();
+  registration.search += normalizedKey;
   registration.searchResetTimeout = setTimeout(() => {
     registration.search = "";
   }, TYPEAHEAD_RESET_MS);
 
   const currentIndex = Math.max(options.indexOf(current), -1);
-  const ordered = options.slice(currentIndex + 1).concat(options.slice(0, currentIndex + 1));
-  return ordered.find(option => (option.textContent || "").trim().toLowerCase().startsWith(registration.search));
+  const ordered = registration.search.length === 1
+    ? options
+    : options.slice(currentIndex + 1).concat(options.slice(0, currentIndex + 1));
+  let target = findTypeaheadOption(ordered, registration.search);
+
+  if (!target && registration.search !== normalizedKey) {
+    registration.search = normalizedKey;
+    target = findTypeaheadOption(options, registration.search);
+  }
+
+  return target;
+}
+
+function findTypeaheadOption(options, search) {
+  return options.find(option => (option.textContent || "").trim().toLowerCase().startsWith(search));
+}
+
+function setHighlightedSelectOption(content, target) {
+  for (const option of content.querySelectorAll("[role='option'][data-highlighted]")) {
+    if (option !== target) {
+      option.removeAttribute("data-highlighted");
+      if (option.getAttribute("aria-selected") === "true") {
+        option.setAttribute("aria-selected", "false");
+      }
+    }
+  }
+
+  target.setAttribute("data-highlighted", "");
+  if (target.getAttribute("data-state") === "checked") {
+    target.setAttribute("aria-selected", "true");
+  }
 }
 
 export function scrollSelectViewportByItem(viewport, item, upward) {

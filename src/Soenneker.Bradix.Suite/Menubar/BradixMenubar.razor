@@ -160,10 +160,11 @@
         bool wasOpen = HasOpenMenu;
         IBradixMenubarTriggerEntry target = focusableTriggers[targetIndex];
         CurrentTabStopId = target.Value;
-        await target.Focus();
 
         if (wasOpen)
             await SetValue(target.Value);
+
+        await target.Focus();
 
         await InvokeAsync(StateHasChanged);
     }

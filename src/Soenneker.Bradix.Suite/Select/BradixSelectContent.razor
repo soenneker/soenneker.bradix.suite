@@ -527,6 +527,12 @@ else
             await Select.HandleContentTypeahead(args.Key);
     }
 
+    [JSInvokable]
+    public Task HandleDelegatedContentFocusedValueChanged(string? value)
+    {
+        return Select?.SetFocusedItemFromScript(value) ?? Task.CompletedTask;
+    }
+
     private async Task UpdateItemAlignedPosition()
     {
         if (Select is null || !UseItemAlignedPosition || !_hasContentElement || !_hasViewportElement || !Select.HasTrigger || !Select.HasValueNode)
