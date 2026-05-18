@@ -44,6 +44,8 @@ else
 }
 
 @code {
+    private static readonly string[] SelectKeys = [" ", "Spacebar", "Enter"];
+
     private ElementReference _element;
     private bool _registered;
     private bool _isFocused;
@@ -136,7 +138,7 @@ else
                 keydown = new
                 {
                     currentTargetOnly = true,
-                    preventDefaultKeys = new[] { " ", "Spacebar", "Enter" }
+                    preventDefaultKeys = SelectKeys
                 }
             });
             _delegatedInteractionRegistered = true;

@@ -23,6 +23,8 @@
 </BradixDismissableLayerBranch>
 
 @code {
+    private static readonly string[] PreventDefaultKeys = [" ", "Spacebar", "Enter", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"];
+
     private ElementReference _button;
     private bool _delegatedInteractionRegistered;
     private string _pointerType = "touch";
@@ -69,7 +71,7 @@
                 keydown = new
                 {
                     currentTargetOnly = true,
-                    preventDefaultKeys = new[] { " ", "Spacebar", "Enter", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown" }
+                    preventDefaultKeys = PreventDefaultKeys
                 }
             });
             _delegatedInteractionRegistered = true;

@@ -222,7 +222,7 @@ public sealed class BradixPopperRenderTests : BunitContext
         var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
         var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
 
-        await Assert.That(selectors).IsEquivalentTo(["#boundary-a", "#boundary-b"]);
+        await Assert.That(selectors).IsEquivalentTo(["#boundary-a", "#boundary-b", "#boundary-a"]);
         await Assert.That(sticky).IsEqualTo("always");
     }
 

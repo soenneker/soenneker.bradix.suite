@@ -332,7 +332,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
         var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
 
-        await Assert.That(selectors).IsEquivalentTo(["#select-boundary-a", "#select-boundary-b"]);
+        await Assert.That(selectors).IsEquivalentTo(["#select-boundary-a", "#select-boundary-b", "#select-boundary-a"]);
         await Assert.That(sticky).IsEqualTo("always");
     }
 

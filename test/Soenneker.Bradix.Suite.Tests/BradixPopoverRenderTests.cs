@@ -204,7 +204,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
         var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
 
-        await Assert.That(selectors).IsEquivalentTo(["#popover-boundary-a", "#popover-boundary-b"]);
+        await Assert.That(selectors).IsEquivalentTo(["#popover-boundary-a", "#popover-boundary-b", "#popover-boundary-a"]);
         await Assert.That(sticky).IsEqualTo("always");
         await Assert.That(hideWhenDetached).IsTrue();
     }

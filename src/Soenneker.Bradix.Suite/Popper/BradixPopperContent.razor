@@ -307,35 +307,26 @@
         if (string.IsNullOrWhiteSpace(CollisionBoundarySelector) && CollisionBoundarySelectors is null)
             return string.Empty;
 
-        List<string> selectors = [];
+        using var selectors = new PooledStringBuilder();
 
         if (!string.IsNullOrWhiteSpace(CollisionBoundarySelector))
-            selectors.Add(CollisionBoundarySelector!);
+            selectors.Append(CollisionBoundarySelector);
 
         if (CollisionBoundarySelectors is not null)
         {
             foreach (string selector in CollisionBoundarySelectors)
             {
-                if (!string.IsNullOrWhiteSpace(selector))
-                    selectors.Add(selector);
+                if (string.IsNullOrWhiteSpace(selector))
+                    continue;
+
+                if (selectors.Length > 0)
+                    selectors.Append('\n');
+
+                selectors.Append(selector);
             }
         }
 
-        return JoinDistinctSelectors(selectors);
-    }
-
-    private static string JoinDistinctSelectors(IEnumerable<string> selectors)
-    {
-        HashSet<string> seen = new(StringComparer.Ordinal);
-        List<string> distinctSelectors = [];
-
-        foreach (string selector in selectors)
-        {
-            if (seen.Add(selector))
-                distinctSelectors.Add(selector);
-        }
-
-        return string.Join("\n", distinctSelectors);
+        return selectors.ToString();
     }
 
     private static object CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options)
@@ -349,11 +340,40 @@
             arrowPadding = options.ArrowPadding,
             avoidCollisions = options.AvoidCollisions,
             collisionPadding = options.CollisionPadding,
-            collisionBoundarySelectors = options.CollisionBoundarySelectors.Length == 0 ? Array.Empty<string>() : options.CollisionBoundarySelectors.Split('\n'),
+            collisionBoundarySelectors = SplitBoundarySelectorKey(options.CollisionBoundarySelectors),
             sticky = options.Sticky,
             hideWhenDetached = options.HideWhenDetached,
             dir = options.Dir
         };
+    }
+
+    private static string[] SplitBoundarySelectorKey(string key)
+    {
+        if (key.Length == 0)
+            return [];
+
+        var count = 1;
+
+        for (var i = 0; i < key.Length; i++)
+        {
+            if (key[i] == '\n')
+                count++;
+        }
+
+        var selectors = new string[count];
+        var selectorStart = 0;
+        var selectorIndex = 0;
+
+        for (var i = 0; i <= key.Length; i++)
+        {
+            if (i < key.Length && key[i] != '\n')
+                continue;
+
+            selectors[selectorIndex++] = key[selectorStart..i];
+            selectorStart = i + 1;
+        }
+
+        return selectors;
     }
 
 }

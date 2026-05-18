@@ -24,6 +24,8 @@
 </span>
 
 @code {
+    private static readonly string[] PreventDefaultKeys = ["Home", "End", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+
     private ElementReference _element;
     private ElementReference _bubbleInputElement;
     private bool _hasSyncedBubbleInput;
@@ -140,7 +142,7 @@
                 keydown = new
                 {
                     currentTargetOnly = true,
-                    preventDefaultKeys = new[] { "Home", "End", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight" }
+                    preventDefaultKeys = PreventDefaultKeys
                 }
             });
             _lastRenderedValue = Value;

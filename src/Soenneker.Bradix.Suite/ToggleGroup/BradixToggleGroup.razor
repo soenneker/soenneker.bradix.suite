@@ -92,7 +92,7 @@
         }
 
         _uncontrolledValue = NormalizeSingleValue(DefaultValue);
-        _uncontrolledValues = CreateDistinctList(DefaultValues);
+        _uncontrolledValues = CopyValues(DefaultValues);
         _initialized = true;
         EnsureCurrentTabStopId();
     }
@@ -145,7 +145,7 @@
             return;
         }
 
-        List<string> next = Values is not null ? CreateDistinctList(Values) : [.. _uncontrolledValues];
+        List<string> next = Values is not null ? CopyValues(Values) : [.. _uncontrolledValues];
 
         if (ContainsOrdinal(next, value))
             return;
@@ -162,9 +162,9 @@
             return;
         }
 
-        List<string> next = Values is not null ? CreateDistinctList(Values) : [.. _uncontrolledValues];
+        List<string> next = Values is not null ? CopyValues(Values) : [.. _uncontrolledValues];
 
-        if (!RemoveOrdinal(next, value))
+        if (!RemoveAllOrdinal(next, value))
             return;
 
         await SetMultipleValues(next);
@@ -270,20 +270,16 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task SetMultipleValues(IReadOnlyCollection<string> values)
+    private async Task SetMultipleValues(List<string> next)
     {
-        List<string> next = CreateDistinctList(values);
-
         if (Values is null)
             _uncontrolledValues = next;
 
-        IReadOnlyCollection<string> result = next.ToArray();
-
         if (ValuesChanged.HasDelegate)
-            await ValuesChanged.InvokeAsync(result);
+            await ValuesChanged.InvokeAsync(next);
 
         if (OnValuesChange.HasDelegate)
-            await OnValuesChange.InvokeAsync(result);
+            await OnValuesChange.InvokeAsync(next);
 
         EnsureCurrentTabStopId();
         await InvokeAsync(StateHasChanged);
@@ -329,21 +325,32 @@
         return null;
     }
 
-    private static List<string> CreateDistinctList(IEnumerable<string>? values)
+    private static List<string> CopyValues(IEnumerable<string>? values)
     {
         if (values is null)
             return [];
 
-        List<string> result = [];
-        HashSet<string> seen = new(StringComparer.Ordinal);
-
-        foreach (string value in values)
+        if (values is IReadOnlyCollection<string> readOnlyCollection)
         {
-            if (seen.Add(value))
+            List<string> result = new(readOnlyCollection.Count);
+
+            foreach (string value in readOnlyCollection)
                 result.Add(value);
+
+            return result;
         }
 
-        return result;
+        if (values is ICollection<string> collection)
+        {
+            List<string> result = new(collection.Count);
+
+            foreach (string value in collection)
+                result.Add(value);
+
+            return result;
+        }
+
+        return [.. values];
     }
 
     private static bool ContainsOrdinal(IEnumerable<string> values, string value)
@@ -357,17 +364,20 @@
         return false;
     }
 
-    private static bool RemoveOrdinal(List<string> values, string value)
+    private static bool RemoveAllOrdinal(List<string> values, string value)
     {
+        var removed = false;
+
         for (int i = 0; i < values.Count; i++)
         {
             if (!string.Equals(values[i], value, StringComparison.Ordinal))
                 continue;
 
             values.RemoveAt(i);
-            return true;
+            i--;
+            removed = true;
         }
 
-        return false;
+        return removed;
     }
 }

@@ -20,6 +20,8 @@
 </BradixDismissableLayerBranch>
 
 @code {
+    private static readonly string[] PreventDefaultKeys = ["Enter", " ", "Spacebar", "ArrowDown"];
+
     private ElementReference _button;
     private bool _delegatedInteractionRegistered;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -69,7 +71,7 @@
                 keydown = new
                 {
                     currentTargetOnly = true,
-                    preventDefaultKeys = new[] { "Enter", " ", "Spacebar", "ArrowDown" }
+                    preventDefaultKeys = PreventDefaultKeys
                 }
             });
             _delegatedInteractionRegistered = true;

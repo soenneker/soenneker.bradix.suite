@@ -24,6 +24,8 @@
 }
 
 @code {
+    private static readonly string[] ContentPreventDefaultKeys = ["Tab", "Home", "End", "PageUp", "PageDown"];
+
     private readonly HashSet<string> _submenuPointerGraceItems = [];
     private bool _wasPresent;
     private bool _isExiting;
@@ -574,7 +576,7 @@
                 {
                     method = nameof(HandleDelegatedContentKeyDown),
                     currentTargetOnly = false,
-                    preventDefaultKeys = new[] { "Tab", "Home", "End", "PageUp", "PageDown" }
+                    preventDefaultKeys = ContentPreventDefaultKeys
                 }
             });
             _delegatedInteractionRegistered = true;

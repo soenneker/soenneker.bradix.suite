@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -10,6 +11,16 @@ namespace Soenneker.Bradix;
 
 public sealed class BradixSlot : LeptonIdentifiableContentElement
 {
+    private static readonly MethodInfo CreateComposedEventCallbackDefinition =
+        typeof(BradixSlot).GetMethod(nameof(CreateComposedEventCallback), BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+    private static readonly MethodInfo AddTypedEventCallbackDefinition =
+        typeof(BradixSlot).GetMethod(nameof(AddTypedEventCallback), BindingFlags.Static | BindingFlags.NonPublic)!;
+
+    private static readonly ConcurrentDictionary<Type, MethodInfo> ComposedEventCallbackMethods = new();
+    private static readonly ConcurrentDictionary<Type, MethodInfo> AddTypedEventCallbackMethods = new();
+    private static readonly ConcurrentDictionary<Type, MethodInfo?> InvokeAsyncMethods = new();
+
     [Parameter, EditorRequired]
     public string ElementName { get; set; } = null!;
 
@@ -75,8 +86,7 @@ public sealed class BradixSlot : LeptonIdentifiableContentElement
                             ResolveEventArgumentType(slotValue) ??
                             typeof(object);
 
-        MethodInfo method = typeof(BradixSlot).GetMethod(nameof(CreateComposedEventCallback), BindingFlags.Instance | BindingFlags.NonPublic)!
-                                              .MakeGenericMethod(argumentType);
+        MethodInfo method = ComposedEventCallbackMethods.GetOrAdd(argumentType, static type => CreateComposedEventCallbackDefinition.MakeGenericMethod(type));
 
         return method.Invoke(this, [childValue, slotValue])!;
     }
@@ -113,7 +123,8 @@ public sealed class BradixSlot : LeptonIdentifiableContentElement
             }
             default:
             {
-                MethodInfo? invokeAsync = handler.GetType().GetMethod("InvokeAsync", [typeof(object)]);
+                MethodInfo? invokeAsync = InvokeAsyncMethods.GetOrAdd(handler.GetType(),
+                    static type => type.GetMethod("InvokeAsync", [typeof(object)]));
 
                 if (invokeAsync is null)
                     return;
@@ -208,8 +219,8 @@ public sealed class BradixSlot : LeptonIdentifiableContentElement
 
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(EventCallback<>))
         {
-            MethodInfo method = typeof(BradixSlot).GetMethod(nameof(AddTypedEventCallback), BindingFlags.Static | BindingFlags.NonPublic)!
-                                                  .MakeGenericMethod(type.GetGenericArguments()[0]);
+            Type argumentType = type.GetGenericArguments()[0];
+            MethodInfo method = AddTypedEventCallbackMethods.GetOrAdd(argumentType, static type => AddTypedEventCallbackDefinition.MakeGenericMethod(type));
 
             method.Invoke(null, [builder, sequence, key, value]);
             return;

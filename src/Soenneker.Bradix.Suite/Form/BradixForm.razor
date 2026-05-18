@@ -73,7 +73,17 @@
         if (!_messageIdsByField.TryGetValue(fieldName, out HashSet<string>? ids) || ids.Count == 0)
             return null;
 
-        return string.Join(" ", ids);
+        using var builder = new PooledStringBuilder(ids.Count * 24);
+
+        foreach (string id in ids)
+        {
+            if (builder.Length != 0)
+                builder.Append(' ');
+
+            builder.Append(id);
+        }
+
+        return builder.ToString();
     }
 
     internal bool GetFieldCustomError(string fieldName, string matcherId)
@@ -153,8 +163,8 @@
             return;
         }
 
-        Dictionary<string, bool> syncResults = [];
-        List<BradixFormCustomMatcherEntry> asyncMatchers = [];
+        Dictionary<string, bool>? syncResults = null;
+        List<BradixFormCustomMatcherEntry>? asyncMatchers = null;
 
         foreach (BradixFormCustomMatcherEntry entry in matcherEntries.Values)
         {
@@ -162,10 +172,12 @@
 
             if (task.IsCompletedSuccessfully)
             {
+                syncResults ??= new Dictionary<string, bool>(matcherEntries.Count, StringComparer.Ordinal);
                 syncResults[entry.Id] = task.Result;
                 continue;
             }
 
+            asyncMatchers ??= new List<BradixFormCustomMatcherEntry>(matcherEntries.Count);
             asyncMatchers.Add(entry);
         }
 
@@ -177,10 +189,12 @@
         SetFieldCustomErrors(fieldName, syncResults);
         SetFieldValidity(fieldName, syncValidity);
 
-        if (hasSyncErrors || asyncMatchers.Count == 0 || !IsLatestValidation(fieldName, version))
+        if (hasSyncErrors || asyncMatchers is not { Count: > 0 } || !IsLatestValidation(fieldName, version))
             return;
 
-        Dictionary<string, bool> asyncResults = new(syncResults, StringComparer.Ordinal);
+        Dictionary<string, bool> asyncResults = syncResults is not null
+            ? new Dictionary<string, bool>(syncResults, StringComparer.Ordinal)
+            : new Dictionary<string, bool>(asyncMatchers.Count, StringComparer.Ordinal);
 
         foreach (BradixFormCustomMatcherEntry entry in asyncMatchers)
         {
@@ -268,8 +282,11 @@
                validity.ValueMissing;
     }
 
-    private static bool HasCustomErrors(Dictionary<string, bool> results)
+    private static bool HasCustomErrors(Dictionary<string, bool>? results)
     {
+        if (results is null)
+            return false;
+
         foreach (bool value in results.Values)
         {
             if (value)
@@ -294,7 +311,7 @@
         return _validationVersions.TryGetValue(fieldName, out long current) && current == version;
     }
 
-    private void SetFieldCustomErrors(string fieldName, IReadOnlyDictionary<string, bool>? errors)
+    private void SetFieldCustomErrors(string fieldName, Dictionary<string, bool>? errors)
     {
         if (errors is null || errors.Count == 0)
         {
@@ -303,7 +320,7 @@
             return;
         }
 
-        _customErrorsByField[fieldName] = new Dictionary<string, bool>(errors, StringComparer.Ordinal);
+        _customErrorsByField[fieldName] = errors;
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -342,17 +359,53 @@
             await OnInvalid.InvokeAsync(distinctFieldNames);
     }
 
-    private static IReadOnlyList<string> GetDistinctFieldNames(IEnumerable<string> fieldNames)
+    private static IReadOnlyList<string> GetDistinctFieldNames(string[] fieldNames)
     {
-        HashSet<string> seen = new(StringComparer.Ordinal);
-        List<string> distinctFieldNames = [];
+        if (fieldNames.Length < 2)
+            return fieldNames;
 
-        foreach (string fieldName in fieldNames)
+        for (int i = 0; i < fieldNames.Length; i++)
         {
-            if (seen.Add(fieldName))
+            string fieldName = fieldNames[i];
+
+            for (int j = 0; j < i; j++)
+            {
+                if (!string.Equals(fieldNames[j], fieldName, StringComparison.Ordinal))
+                    continue;
+
+                return CopyDistinctFieldNames(fieldNames, i);
+            }
+        }
+
+        return fieldNames;
+    }
+
+    private static IReadOnlyList<string> CopyDistinctFieldNames(string[] fieldNames, int duplicateIndex)
+    {
+        List<string> distinctFieldNames = new(duplicateIndex);
+
+        for (int i = 0; i < duplicateIndex; i++)
+            distinctFieldNames.Add(fieldNames[i]);
+
+        for (int i = duplicateIndex + 1; i < fieldNames.Length; i++)
+        {
+            string fieldName = fieldNames[i];
+
+            if (!ContainsOrdinal(distinctFieldNames, fieldName))
                 distinctFieldNames.Add(fieldName);
         }
 
         return distinctFieldNames;
+    }
+
+    private static bool ContainsOrdinal(List<string> values, string value)
+    {
+        foreach (string candidate in values)
+        {
+            if (string.Equals(candidate, value, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 }

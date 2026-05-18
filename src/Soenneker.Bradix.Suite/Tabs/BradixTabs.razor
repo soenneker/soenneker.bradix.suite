@@ -116,9 +116,7 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<BradixTabsTrigger> focusableTriggers = GetFocusableTriggers();
-
-        int currentIndex = focusableTriggers.IndexOf(trigger);
+        var focusableCount = CountFocusableTriggers(out var currentIndex, trigger);
 
         if (currentIndex < 0)
             return;
@@ -128,14 +126,18 @@
                 RovingOrientationValue,
                 ResolvedDirection,
                 currentIndex,
-                focusableTriggers.Count,
+                focusableCount,
                 loop,
                 out int targetIndex))
         {
             return;
         }
 
-        BradixTabsTrigger target = focusableTriggers[targetIndex];
+        BradixTabsTrigger? target = GetFocusableTriggerAt(targetIndex);
+
+        if (target is null)
+            return;
+
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -146,32 +148,30 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<BradixTabsTrigger> focusableTriggers = GetFocusableTriggers();
+        var focusableCount = CountFocusableTriggers(out var selectedIndex, out var tabStopIndex);
 
-        if (focusableTriggers.Count == 0)
+        if (focusableCount == 0)
             return;
 
-        BradixTabsTrigger? currentTrigger = FindSelectedTrigger(focusableTriggers)
-                                            ?? FindTabStopTrigger(focusableTriggers, CurrentTabStopId);
-
-        int currentIndex = currentTrigger is null ? 0 : focusableTriggers.IndexOf(currentTrigger);
-
-        if (currentIndex < 0)
-            currentIndex = 0;
+        var currentIndex = selectedIndex >= 0 ? selectedIndex : tabStopIndex >= 0 ? tabStopIndex : 0;
 
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(
                 args.Key,
                 RovingOrientationValue,
                 ResolvedDirection,
                 currentIndex,
-                focusableTriggers.Count,
+                focusableCount,
                 loop,
                 out int targetIndex))
         {
             return;
         }
 
-        BradixTabsTrigger target = focusableTriggers[targetIndex];
+        BradixTabsTrigger? target = GetFocusableTriggerAt(targetIndex);
+
+        if (target is null)
+            return;
+
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -197,54 +197,91 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<BradixTabsTrigger> focusableTriggers = GetFocusableTriggers();
+        var hasFocusableTrigger = false;
+        var hasCurrentTabStop = false;
 
-        if (focusableTriggers.Count == 0)
+        foreach (BradixTabsTrigger trigger in _triggers)
+        {
+            if (trigger.IsDisabled)
+                continue;
+
+            hasFocusableTrigger = true;
+
+            if (CurrentTabStopId is not null && string.Equals(trigger.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
+            {
+                hasCurrentTabStop = true;
+                break;
+            }
+        }
+
+        if (!hasFocusableTrigger)
         {
             CurrentTabStopId = null;
             return;
         }
 
-        if (CurrentTabStopId is not null && FindTabStopTrigger(focusableTriggers, CurrentTabStopId) is not null)
+        if (hasCurrentTabStop)
             return;
 
         if (CurrentTabStopId is not null)
             CurrentTabStopId = null;
     }
 
-    private List<BradixTabsTrigger> GetFocusableTriggers()
+    private int CountFocusableTriggers(out int selectedIndex, out int tabStopIndex)
     {
-        var focusableTriggers = new List<BradixTabsTrigger>(_triggers.Count);
+        selectedIndex = -1;
+        tabStopIndex = -1;
+        var index = 0;
 
         foreach (BradixTabsTrigger trigger in _triggers)
         {
-            if (!trigger.IsDisabled)
-                focusableTriggers.Add(trigger);
+            if (trigger.IsDisabled)
+                continue;
+
+            if (selectedIndex < 0 && trigger.IsSelected)
+                selectedIndex = index;
+
+            if (tabStopIndex < 0 && CurrentTabStopId is not null && string.Equals(trigger.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
+                tabStopIndex = index;
+
+            index++;
         }
 
-        return focusableTriggers;
+        return index;
     }
 
-    private static BradixTabsTrigger? FindSelectedTrigger(List<BradixTabsTrigger> triggers)
+    private int CountFocusableTriggers(out int currentIndex, BradixTabsTrigger current)
     {
-        foreach (BradixTabsTrigger trigger in triggers)
+        currentIndex = -1;
+        var index = 0;
+
+        foreach (BradixTabsTrigger trigger in _triggers)
         {
-            if (trigger.IsSelected)
-                return trigger;
+            if (trigger.IsDisabled)
+                continue;
+
+            if (ReferenceEquals(trigger, current))
+                currentIndex = index;
+
+            index++;
         }
 
-        return null;
+        return index;
     }
 
-    private static BradixTabsTrigger? FindTabStopTrigger(List<BradixTabsTrigger> triggers, string? tabStopId)
+    private BradixTabsTrigger? GetFocusableTriggerAt(int targetIndex)
     {
-        if (tabStopId is null)
-            return null;
+        var index = 0;
 
-        foreach (BradixTabsTrigger trigger in triggers)
+        foreach (BradixTabsTrigger trigger in _triggers)
         {
-            if (string.Equals(trigger.TabStopId, tabStopId, StringComparison.Ordinal))
+            if (trigger.IsDisabled)
+                continue;
+
+            if (index == targetIndex)
                 return trigger;
+
+            index++;
         }
 
         return null;

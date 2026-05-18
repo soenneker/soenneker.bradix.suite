@@ -40,6 +40,8 @@
     private bool _lastRegisteredHasToasts;
     private string? _lastRegisteredHotkeySignature;
     private bool _registered;
+    private string _hotkeyLabel = "F8";
+    private string _hotkeySignature = "F8";
 
     [CascadingParameter]
     private BradixToastProvider? Provider { get; set; }
@@ -50,7 +52,7 @@
     [Parameter]
     public string Label { get; set; } = "Notifications ({hotkey})";
 
-    private string HotkeyLabel => string.Join("+", Hotkey).Replace("Key", "", StringComparison.Ordinal).Replace("Digit", "", StringComparison.Ordinal);
+    private string HotkeyLabel => _hotkeyLabel;
 
     private string ResolvedViewportId => Id ?? Provider?.ViewportId ?? string.Empty;
 
@@ -85,18 +87,23 @@
         }
     }
 
+    protected override void OnParametersSet()
+    {
+        _hotkeyLabel = BuildHotkeyLabel(Hotkey);
+        _hotkeySignature = BuildHotkeySignature(Hotkey);
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
             Provider?.RegisterViewport(ResolvedViewportId);
 
         bool hasToasts = Provider?.ToastCount > 0;
-        string hotkeySignature = string.Join("\u001F", Hotkey);
 
         if (!firstRender &&
             _registered &&
             _lastRegisteredHasToasts == hasToasts &&
-            string.Equals(_lastRegisteredHotkeySignature, hotkeySignature, StringComparison.Ordinal))
+            string.Equals(_lastRegisteredHotkeySignature, _hotkeySignature, StringComparison.Ordinal))
         {
             return;
         }
@@ -105,7 +112,7 @@
         await ToastInterop.RegisterToastViewport(_wrapperElement, _viewportElement, _headFocusProxy, _tailFocusProxy, Hotkey, _dotNetReference);
         _registered = true;
         _lastRegisteredHasToasts = hasToasts;
-        _lastRegisteredHotkeySignature = hotkeySignature;
+        _lastRegisteredHotkeySignature = _hotkeySignature;
     }
 
     public async ValueTask DisposeAsync()
@@ -128,5 +135,75 @@
     public Task HandleResume()
     {
         return Provider?.ResumeToasts() ?? Task.CompletedTask;
+    }
+
+    private static string BuildHotkeyLabel(IReadOnlyList<string> hotkey)
+    {
+        if (hotkey.Count == 0)
+            return string.Empty;
+
+        int length = 0;
+
+        for (int i = 0; i < hotkey.Count; i++)
+            length += GetDisplayKeyLength(hotkey[i]) + (i == 0 ? 0 : 1);
+
+        return string.Create(length, hotkey, static (span, keys) =>
+        {
+            int position = 0;
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                if (i > 0)
+                    span[position++] = '+';
+
+                string key = keys[i];
+                ReadOnlySpan<char> displayKey = GetDisplayKey(key);
+                displayKey.CopyTo(span[position..]);
+                position += displayKey.Length;
+            }
+        });
+    }
+
+    private static string BuildHotkeySignature(IReadOnlyList<string> hotkey)
+    {
+        if (hotkey.Count == 0)
+            return string.Empty;
+
+        int length = hotkey.Count - 1;
+
+        foreach (string key in hotkey)
+            length += key.Length;
+
+        return string.Create(length, hotkey, static (span, keys) =>
+        {
+            int position = 0;
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                if (i > 0)
+                    span[position++] = '\u001F';
+
+                keys[i].AsSpan().CopyTo(span[position..]);
+                position += keys[i].Length;
+            }
+        });
+    }
+
+    private static int GetDisplayKeyLength(string key)
+    {
+        return GetDisplayKey(key).Length;
+    }
+
+    private static ReadOnlySpan<char> GetDisplayKey(string key)
+    {
+        ReadOnlySpan<char> span = key.AsSpan();
+
+        if (span.StartsWith("Key", StringComparison.Ordinal))
+            return span[3..];
+
+        if (span.StartsWith("Digit", StringComparison.Ordinal))
+            return span[5..];
+
+        return span;
     }
 }

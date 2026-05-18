@@ -11,19 +11,32 @@ namespace Soenneker.Bradix;
 public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     where TKey : notnull
 {
-    private readonly Dictionary<TKey, TValue> _map = new();
-    private readonly List<TKey> _keys = [];
+    private readonly Dictionary<TKey, TValue> _map;
+    private readonly List<TKey> _keys;
 
     public BradixOrderedDictionary()
     {
+        _map = new Dictionary<TKey, TValue>();
+        _keys = [];
     }
 
     public BradixOrderedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> entries)
     {
+        var capacity = entries is ICollection<KeyValuePair<TKey, TValue>> collection ? collection.Count : 0;
+
+        _map = capacity > 0 ? new Dictionary<TKey, TValue>(capacity) : new Dictionary<TKey, TValue>();
+        _keys = capacity > 0 ? new List<TKey>(capacity) : [];
+
         foreach (KeyValuePair<TKey, TValue> entry in entries)
         {
             Set(entry.Key, entry.Value);
         }
+    }
+
+    private BradixOrderedDictionary(int capacity)
+    {
+        _map = capacity > 0 ? new Dictionary<TKey, TValue>(capacity) : new Dictionary<TKey, TValue>();
+        _keys = capacity > 0 ? new List<TKey>(capacity) : [];
     }
 
     public int Count => _keys.Count;
@@ -59,12 +72,11 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public BradixOrderedDictionary<TKey, TValue> Set(TKey key, TValue value)
     {
-        if (!_map.ContainsKey(key))
-        {
+        if (_map.TryAdd(key, value))
             _keys.Add(key);
-        }
+        else
+            _map[key] = value;
 
-        _map[key] = value;
         return this;
     }
 
@@ -238,7 +250,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public BradixOrderedDictionary<TKey, TValue> Filter(Predicate<KeyValuePair<TKey, TValue>> predicate)
     {
-        var filtered = new BradixOrderedDictionary<TKey, TValue>();
+        var filtered = new BradixOrderedDictionary<TKey, TValue>(_keys.Count);
 
         foreach (KeyValuePair<TKey, TValue> entry in this)
         {
@@ -264,7 +276,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
 
     public BradixOrderedDictionary<TKey, TValue> ToReversed()
     {
-        var reversed = new BradixOrderedDictionary<TKey, TValue>();
+        var reversed = new BradixOrderedDictionary<TKey, TValue>(_keys.Count);
 
         for (int i = _keys.Count - 1; i >= 0; i--)
         {

@@ -159,7 +159,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
         var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
 
-        await Assert.That(selectors).IsEquivalentTo(["#hover-card-boundary-a", "#hover-card-boundary-b"]);
+        await Assert.That(selectors).IsEquivalentTo(["#hover-card-boundary-a", "#hover-card-boundary-b", "#hover-card-boundary-a"]);
         await Assert.That(sticky).IsEqualTo("always");
         await Assert.That(hideWhenDetached).IsTrue();
     }

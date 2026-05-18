@@ -25,6 +25,8 @@
 </div>
 
 @code {
+    private static readonly string[] PreventDefaultKeys = ["ArrowLeft", "ArrowRight", "Enter", " ", "Spacebar"];
+
     private ElementReference _element;
     private bool _registered;
     private bool _isFocused;
@@ -94,7 +96,7 @@
                 keydown = new
                 {
                     currentTargetOnly = true,
-                    preventDefaultKeys = new[] { "ArrowLeft", "ArrowRight", "Enter", " ", "Spacebar" }
+                    preventDefaultKeys = PreventDefaultKeys
                 }
             });
             _delegatedInteractionRegistered = true;

@@ -89,7 +89,10 @@
         if (_toasts.Count == 0)
             return;
 
-        foreach (BradixToast toast in _toasts.ToArray())
+        BradixToast[] toasts = new BradixToast[_toasts.Count];
+        _toasts.CopyTo(toasts);
+
+        foreach (BradixToast toast in toasts)
         {
             await toast.Pause();
         }
@@ -105,7 +108,10 @@
         if (_toasts.Count == 0)
             return;
 
-        foreach (BradixToast toast in _toasts.ToArray())
+        BradixToast[] toasts = new BradixToast[_toasts.Count];
+        _toasts.CopyTo(toasts);
+
+        foreach (BradixToast toast in toasts)
         {
             await toast.Resume();
         }

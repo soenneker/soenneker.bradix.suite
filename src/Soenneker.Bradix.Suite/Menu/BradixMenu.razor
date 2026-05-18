@@ -154,16 +154,17 @@
 
     internal async Task<bool> HandleItemNavigation(IBradixMenuRovingItem item, string key, bool loop)
     {
-        List<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
-        int currentIndex = enabledItems.IndexOf(item);
-
-        if (currentIndex < 0)
+        int enabledCount = CountEnabledItems(item, out int currentIndex);
+        if (enabledCount == 0 || currentIndex < 0)
             return false;
 
-        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledItems.Count, loop, out int targetIndex))
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledCount, loop, out int targetIndex))
             return false;
 
-        IBradixMenuRovingItem target = enabledItems[targetIndex];
+        IBradixMenuRovingItem? target = GetEnabledItemAt(targetIndex);
+        if (target is null)
+            return false;
+
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -173,9 +174,7 @@
     internal async Task HandleTypeahead(IBradixMenuRovingItem? currentItem, string key)
     {
         string search = _typeahead.Append(key);
-        IReadOnlyList<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
-
-        IBradixMenuRovingItem? nextItem = BradixTypeaheadMatcher.FindNextItem(enabledItems, search, currentItem, item => item.TextValue);
+        IBradixMenuRovingItem? nextItem = FindNextTypeaheadItem(search, currentItem);
 
         if (nextItem is null)
             return;
@@ -338,19 +337,6 @@
         return SetOpen(!CurrentOpen);
     }
 
-    private List<IBradixMenuRovingItem> GetEnabledItems()
-    {
-        var enabledItems = new List<IBradixMenuRovingItem>(_items.Count);
-
-        foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
-        {
-            if (!entry.Value.IsDisabled)
-                enabledItems.Add(entry.Value);
-        }
-
-        return enabledItems;
-    }
-
     private IBradixMenuRovingItem? GetFirstEnabledItem()
     {
         foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
@@ -377,23 +363,103 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixMenuRovingItem> enabledItems = GetEnabledItems();
+        IBradixMenuRovingItem? first = null;
 
-        if (enabledItems.Count == 0)
+        foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
+        {
+            if (entry.Value.IsDisabled)
+                continue;
+
+            first ??= entry.Value;
+
+            if (CurrentTabStopId is not null && string.Equals(entry.Value.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
+                return;
+        }
+
+        if (first is null)
         {
             CurrentTabStopId = null;
             return;
         }
 
-        if (CurrentTabStopId is not null)
+        CurrentTabStopId = first.TabStopId;
+    }
+
+    private int CountEnabledItems(IBradixMenuRovingItem? current, out int currentIndex)
+    {
+        currentIndex = -1;
+        int count = 0;
+
+        foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
         {
-            foreach (IBradixMenuRovingItem item in enabledItems)
-            {
-                if (string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
-                    return;
-            }
+            if (entry.Value.IsDisabled)
+                continue;
+
+            if (ReferenceEquals(entry.Value, current))
+                currentIndex = count;
+
+            count++;
         }
 
-        CurrentTabStopId = enabledItems[0].TabStopId;
+        return count;
+    }
+
+    private IBradixMenuRovingItem? GetEnabledItemAt(int targetIndex)
+    {
+        int index = 0;
+
+        foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
+        {
+            if (entry.Value.IsDisabled)
+                continue;
+
+            if (index == targetIndex)
+                return entry.Value;
+
+            index++;
+        }
+
+        return null;
+    }
+
+    private IBradixMenuRovingItem? FindNextTypeaheadItem(string search, IBradixMenuRovingItem? currentItem)
+    {
+        int enabledCount = CountEnabledItems(currentItem, out int currentIndex);
+        if (enabledCount == 0 || string.IsNullOrEmpty(search))
+            return null;
+
+        string normalizedSearch = BradixTypeaheadMatcher.NormalizeSearch(search);
+        int startIndex = Math.Max(currentIndex, 0);
+        bool excludeCurrentItem = normalizedSearch.Length == 1 && currentItem is not null;
+        IBradixMenuRovingItem? nextItem = FindNextTypeaheadItemInRange(normalizedSearch, currentItem, excludeCurrentItem, startIndex, enabledCount)
+                                      ?? FindNextTypeaheadItemInRange(normalizedSearch, currentItem, excludeCurrentItem, 0, startIndex);
+
+        return currentItem is not null && ReferenceEquals(nextItem, currentItem) ? null : nextItem;
+    }
+
+    private IBradixMenuRovingItem? FindNextTypeaheadItemInRange(string normalizedSearch, IBradixMenuRovingItem? currentItem, bool excludeCurrentItem, int startIndex,
+        int endIndex)
+    {
+        int index = 0;
+
+        foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
+        {
+            IBradixMenuRovingItem item = entry.Value;
+            if (item.IsDisabled)
+                continue;
+
+            if (index >= startIndex && index < endIndex)
+            {
+                if ((!excludeCurrentItem || !ReferenceEquals(item, currentItem)) &&
+                    (item.TextValue ?? string.Empty).StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase))
+                {
+                    return item;
+                }
+            }
+
+            index++;
+        }
+
+        return null;
     }
 }

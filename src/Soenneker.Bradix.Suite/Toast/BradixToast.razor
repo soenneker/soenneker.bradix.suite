@@ -50,6 +50,8 @@
 }
 
 @code {
+    private static readonly string[] EscapeKeys = ["Escape"];
+
     private static readonly IReadOnlyDictionary<string, object> _foregroundAnnounceAttributes = new Dictionary<string, object>
     {
         ["role"] = "status",
@@ -318,7 +320,7 @@
                 keydown = new
                 {
                     method = nameof(HandleDelegatedKeyDown),
-                    keys = new[] { "Escape" }
+                    keys = EscapeKeys
                 }
             });
             _delegatedInteractionRegistered = true;

@@ -25,6 +25,8 @@
 }
 
 @code {
+    private static readonly string[] ToggleKeys = ["Enter", " ", "Spacebar"];
+
     private bool _initialized;
     private bool _delegatedInteractionReady;
     private bool _isFormControl = true;
@@ -149,7 +151,7 @@
                 keydown = new
                 {
                     method = nameof(HandleDelegatedKeyDown),
-                    keys = new[] { "Enter", " ", "Spacebar" },
+                    keys = ToggleKeys,
                     preventDefault = true
                 }
             });
