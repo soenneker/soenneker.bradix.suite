@@ -4,7 +4,7 @@ function getFloatingUi() {
   const floating = globalThis.FloatingUIDOM;
 
   if (!floating) {
-    throw new Error("Floating UI has not been loaded. PopperInterop must load FloatingUIDOM before Popper registration.");
+    throw new Error("Floating UI has not been loaded. IFloatingUiInterop must initialize FloatingUIDOM before Popper registration.");
   }
 
   return floating;

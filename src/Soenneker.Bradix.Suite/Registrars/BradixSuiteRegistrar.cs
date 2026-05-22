@@ -1,6 +1,8 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Soenneker.Blazor.Utils.ResourceLoader.Registrars;
+using Soenneker.Blazor.Interops.Floating.Registrars;
+using Soenneker.Bradix.Configuration;
 
 namespace Soenneker.Bradix;
 
@@ -11,7 +13,17 @@ public static class BradixSuiteRegistrar
 {
     public static IServiceCollection AddBradixSuiteAsScoped(this IServiceCollection services)
     {
-        services.AddResourceLoaderAsScoped();
+        return services.AddBradixSuiteAsScoped(null);
+    }
+
+    public static IServiceCollection AddBradixSuiteAsScoped(this IServiceCollection services, Action<BradixSuiteOptions>? configure)
+    {
+        services.AddFloatingUiInteropAsScoped();
+        services.AddOptions<BradixSuiteOptions>();
+
+        if (configure is not null)
+            services.Configure(configure);
+
         services.TryAddScoped<IBradixSuiteInterop, BradixSuiteInterop>();
         services.TryAddScoped<ICollapsibleInterop, CollapsibleInterop>();
         services.TryAddScoped<IControlsInterop, ControlsInterop>();

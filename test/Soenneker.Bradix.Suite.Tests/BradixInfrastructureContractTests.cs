@@ -3,7 +3,10 @@ using System.IO;
 using System.Threading.Tasks;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Soenneker.Blazor.Interops.Floating.Abstract;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
+using Soenneker.Bradix.Configuration;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -46,12 +49,23 @@ public sealed class BradixInfrastructureContractTests : BunitContext
         Services.AddBradixSuiteAsScoped();
 
         await Assert.That(Services.GetRequiredService<IResourceLoader>()).IsNotNull();
+        await Assert.That(Services.GetRequiredService<IFloatingUiInterop>()).IsNotNull();
         await Assert.That(Services.GetRequiredService<IBradixSuiteInterop>()).IsNotNull();
         await Assert.That(Services.GetServices<IBradixSuiteInterop>()).Count().IsEqualTo(1);
+        await Assert.That(Services.GetServices<IFloatingUiInterop>()).Count().IsEqualTo(1);
+        await Assert.That(Services.GetRequiredService<IOptions<BradixSuiteOptions>>().Value.UseCdn).IsFalse();
     }
 
     [Test]
-    public async Task Static_web_assets_include_required_bradix_and_floating_ui_modules()
+    public async Task Registrar_can_configure_bradix_suite_options()
+    {
+        Services.AddBradixSuiteAsScoped(options => options.UseCdn = true);
+
+        await Assert.That(Services.GetRequiredService<IOptions<BradixSuiteOptions>>().Value.UseCdn).IsTrue();
+    }
+
+    [Test]
+    public async Task Static_web_assets_include_required_bradix_modules()
     {
         string root = Path.Combine(FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot");
 
@@ -65,9 +79,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
             "js/bradix/rovingFocus.js",
             "js/bradix/menu.js",
             "js/bradix/select.js",
-            "js/bradix/tooltip.js",
-            "js/vendor/floating-ui.core.umd.min.js",
-            "js/vendor/floating-ui.dom.umd.min.js"
+            "js/bradix/tooltip.js"
         ];
 
         foreach (string asset in requiredAssets)

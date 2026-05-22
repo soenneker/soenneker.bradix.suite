@@ -2,9 +2,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Interops.Floating.Abstract;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
-using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
+using Soenneker.Bradix.Configuration;
 
 namespace Soenneker.Bradix;
 
@@ -12,16 +14,16 @@ namespace Soenneker.Bradix;
 public sealed class PopperInterop : IPopperInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
-    private readonly IResourceLoader _resourceLoader;
+    private readonly IFloatingUiInterop _floatingUiInterop;
+    private readonly IOptions<BradixSuiteOptions> _options;
 
     private const string _modulePath = "./_content/Soenneker.Bradix.Suite/js/bradix/popper.js";
-    private const string _floatingUiCoreLocalPath = "./_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.core.umd.min.js";
-    private const string _floatingUiDomLocalPath = "./_content/Soenneker.Bradix.Suite/js/vendor/floating-ui.dom.umd.min.js";
 
-    public PopperInterop(IModuleImportUtil moduleImportUtil, IResourceLoader resourceLoader)
+    public PopperInterop(IModuleImportUtil moduleImportUtil, IFloatingUiInterop floatingUiInterop, IOptions<BradixSuiteOptions> options)
     {
         _moduleImportUtil = moduleImportUtil;
-        _resourceLoader = resourceLoader;
+        _floatingUiInterop = floatingUiInterop;
+        _options = options;
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -85,9 +87,8 @@ public sealed class PopperInterop : IPopperInterop
         await _moduleImportUtil.DisposeContentModule(_modulePath);
     }
 
-    private async ValueTask EnsureFloatingUi(CancellationToken cancellationToken)
+    private ValueTask EnsureFloatingUi(CancellationToken cancellationToken)
     {
-        await _resourceLoader.LoadScriptAndWaitForVariable(_floatingUiCoreLocalPath, "FloatingUICore", cancellationToken: cancellationToken);
-        await _resourceLoader.LoadScriptAndWaitForVariable(_floatingUiDomLocalPath, "FloatingUIDOM", cancellationToken: cancellationToken);
+        return _floatingUiInterop.Initialize(_options.Value.UseCdn, cancellationToken);
     }
 }
