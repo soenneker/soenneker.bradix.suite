@@ -26,7 +26,7 @@
                        OnContentKeyDown="HandleContentKeyDown"
                        OnCloseAutoFocusDetailed="HandleCloseAutoFocus"
                        OnPointerDownOutside="OnPointerDownOutside"
-                       OnPointerDownOutsideDetailed="OnPointerDownOutsideDetailed"
+                       OnPointerDownOutsideDetailed="HandlePointerDownOutside"
                        OnFocusOutsideDetailed="HandleFocusOutside"
                        OnInteractOutside="OnInteractOutside"
                        OnInteractOutsideDetailed="OnInteractOutsideDetailed"
@@ -184,6 +184,17 @@
         await RootMenu.FocusTrigger();
     }
 
+    private async Task HandlePointerDownOutside(BradixPointerDownOutsideEventArgs args)
+    {
+        if (OnPointerDownOutsideDetailed.HasDelegate)
+            await OnPointerDownOutsideDetailed.InvokeAsync(args);
+
+        if (args.DefaultPrevented || IsWithinParentMenuContent(args.OriginalEvent.TargetId, args.OriginalEvent.AncestorIds))
+            return;
+
+        await RootMenu.SetOpen(false);
+    }
+
     private async Task HandleContentKeyDown(KeyboardEventArgs args)
     {
         if (OnContentKeyDown.HasDelegate)
@@ -198,5 +209,15 @@
 
         await SubMenu.SetOpen(false);
         await SubMenu.FocusTrigger();
+    }
+
+    private bool IsWithinParentMenuContent(string? targetId, IReadOnlyList<string>? ancestorIds)
+    {
+        string contentId = ParentMenu.ContentId;
+
+        if (string.Equals(targetId, contentId, StringComparison.Ordinal))
+            return true;
+
+        return ancestorIds?.Contains(contentId) == true;
     }
 }

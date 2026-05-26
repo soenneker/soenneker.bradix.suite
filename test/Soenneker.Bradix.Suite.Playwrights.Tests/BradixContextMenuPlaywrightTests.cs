@@ -97,4 +97,27 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
         await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "More Tools", Exact = true }).HoverAsync();
         await Assertions.Expect(page.VisibleMenu()).ToContainTextAsync("Save Page As");
     }
+
+    [Test]
+    public async Task Context_menu_demo_closes_root_from_single_outside_click_with_submenu_open()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/contextmenus"));
+
+        await page.GetByText("Right-click here.", new PageGetByTextOptions { Exact = true }).ClickAsync(new LocatorClickOptions
+        {
+            Button = MouseButton.Right
+        });
+
+        await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "More Tools", Exact = true }).HoverAsync();
+
+        ILocator submenu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "Developer Tools" });
+        await Assertions.Expect(submenu).ToBeVisibleAsync();
+
+        await page.Mouse.ClickAsync(8, 8);
+
+        await Assertions.Expect(page.Locator("[role='menu']:visible")).ToHaveCountAsync(0);
+    }
 }
