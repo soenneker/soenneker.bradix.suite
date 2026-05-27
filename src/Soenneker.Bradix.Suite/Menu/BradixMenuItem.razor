@@ -1,6 +1,7 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using Soenneker.Atomics.ValueBools
 @using Soenneker.Blazor.Utils.Ids
 
 @inherits LeptonIdentifiableContentElement
@@ -52,7 +53,10 @@ else
     private bool _isPointerDown;
     private string? _resolvedTextValue;
     private bool _delegatedInteractionRegistered;
+    private bool _rovingFocusRegistered;
     private bool _rovingFocusBridgeReady;
+    private ValueAtomicBool _disposed;
+    private Task? _initializationTask;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -125,14 +129,54 @@ else
         TabStopId ??= BlazorIdGenerator.New("bradix-menu-item");
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             Menu.RegisterItem(this);
             _registered = true;
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            _initializationTask = InitializeItemInterop();
+        }
+        else if (TextValue is null)
+            _ = ResolveTextValue();
+
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed.TrySetTrue())
+            return;
+
+        if (_initializationTask is not null)
+            await _initializationTask;
+
+        if (_delegatedInteractionRegistered)
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
+
+        if (_rovingFocusRegistered)
+            await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
+
+        if (_registered)
+            Menu.UnregisterItem(this);
+
+        _dotNetReference?.Dispose();
+    }
+
+    private async Task InitializeItemInterop()
+    {
+        try
+        {
+            if (_dotNetReference is null)
+                return;
+
             await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+            _rovingFocusRegistered = true;
+
+            if (_disposed.Read())
+                return;
+
             await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
             {
                 keydown = new
@@ -142,28 +186,30 @@ else
                 }
             });
             _delegatedInteractionRegistered = true;
-        }
 
-        if (TextValue is null)
+            if (TextValue is null)
+                await ResolveTextValue();
+        }
+        catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+        {
+        }
+    }
+
+    private async Task ResolveTextValue()
+    {
+        if (_disposed.Read() || TextValue is not null)
+            return;
+
+        try
         {
             string textContent = await DomInterop.GetTextContent(_element);
 
             if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
                 _resolvedTextValue = textContent;
         }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_delegatedInteractionRegistered)
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
-
-        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
-
-        if (_registered)
-            Menu.UnregisterItem(this);
-
-        _dotNetReference?.Dispose();
+        catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+        {
+        }
     }
 
     public ValueTask Focus() => ControlsInterop.FocusElementPreventScroll(_element);
@@ -274,5 +320,10 @@ else
     {
         _rovingFocusBridgeReady = true;
         return Task.CompletedTask;
+    }
+
+    private static bool ShouldIgnoreInteropException(Exception ex)
+    {
+        return ex is ObjectDisposedException or JSDisconnectedException;
     }
 }

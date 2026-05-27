@@ -53,7 +53,6 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
     private bool _pendingExitEvaluation;
     private bool _exitSuspended;
     private bool _elementReferenceCaptured;
-    private bool _forceExitAnimationFillModeForwards;
     private ValueAtomicBool _disposed;
     private string _previousAnimationName = "none";
 
@@ -71,7 +70,6 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
             _rendered = true;
             _pendingExitEvaluation = false;
             _exitSuspended = false;
-            _forceExitAnimationFillModeForwards = false;
         }
         else if (_rendered)
         {
@@ -218,10 +216,7 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
         if (!_exitSuspended || Present)
             return;
 
-        _forceExitAnimationFillModeForwards = true;
-        await InvokeAsync(StateHasChanged);
-        await Task.Yield();
-        await CompleteUnmount();
+        await InvokeAsync(CompleteUnmount);
     }
 
     private async Task CompleteUnmount()
@@ -234,7 +229,6 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
             _registered = false;
         }
 
-        _forceExitAnimationFillModeForwards = false;
         _rendered = false;
 
         if (OnExitComplete.HasDelegate)
@@ -263,14 +257,6 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
         {
             attributes["data-closed"] = string.Empty;
             attributes.Remove("data-open");
-        }
-
-        if (_forceExitAnimationFillModeForwards)
-        {
-            if (attributes.TryGetValue("style", out object? style) && style is string styleValue && !string.IsNullOrWhiteSpace(styleValue))
-                attributes["style"] = $"{styleValue.TrimEnd(';')}; animation-fill-mode: forwards;";
-            else
-                attributes["style"] = "animation-fill-mode: forwards;";
         }
 
         return attributes;

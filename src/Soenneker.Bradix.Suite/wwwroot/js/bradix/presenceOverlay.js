@@ -25,14 +25,43 @@ export function registerPresence(element, dotNetRef) {
 
   unregisterPresence(element);
 
+  let fillModeForced = false;
+  let previousAnimationFillMode = "";
+
+  const restoreAnimationFillMode = () => {
+    if (!fillModeForced) {
+      return;
+    }
+
+    element.style.animationFillMode = previousAnimationFillMode;
+    previousAnimationFillMode = "";
+    fillModeForced = false;
+  };
+
+  const forceAnimationFillModeForwards = () => {
+    if (!fillModeForced) {
+      previousAnimationFillMode = element.style.animationFillMode || "";
+      fillModeForced = true;
+    }
+
+    element.style.animationFillMode = "forwards";
+  };
+
+  const isClosing = () => element.hasAttribute("data-closed") || element.getAttribute("data-state") === "closed";
+
   const handleAnimationStart = (event) => {
     if (event.target === element) {
+      restoreAnimationFillMode();
       invokeDotNetSafely(dotNetRef, "HandleAnimationStart", event.animationName || "none", getComputedStyle(element).animationName || "none");
     }
   };
 
   const handleAnimationEnd = (event) => {
     if (event.target === element) {
+      if (isClosing()) {
+        forceAnimationFillModeForwards();
+      }
+
       invokeDotNetSafely(dotNetRef, "HandleAnimationEnd", event.animationName || "none", getComputedStyle(element).animationName || "none");
     }
   };

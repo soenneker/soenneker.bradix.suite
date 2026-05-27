@@ -2,6 +2,7 @@
 
 @using Microsoft.JSInterop
 @using System.Threading
+@using Soenneker.Atomics.ValueBools
 @using Soenneker.Blazor.Utils.Ids
 
 @inherits LeptonIdentifiableContentElement
@@ -31,10 +32,12 @@
     private bool _registered;
     private bool _isFocused;
     private bool _pointerGraceActive;
+    private ValueAtomicBool _disposed;
     private string? _resolvedTextValue;
     private CancellationTokenSource? _openPointerMoveCts;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _delegatedInteractionRegistered;
+    private Task? _initializationTask;
 
     [CascadingParameter]
     internal BradixMenu SubMenu { get; set; } = null!;
@@ -83,7 +86,7 @@
         TabStopId ??= BlazorIdGenerator.New("bradix-menu-sub-trigger");
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
@@ -91,31 +94,25 @@
             SubMenu.RegisterTrigger(_element);
             SubMenu.RegisterAnchor(_element);
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
-            {
-                keydown = new
-                {
-                    currentTargetOnly = true,
-                    preventDefaultKeys = PreventDefaultKeys
-                }
-            });
-            _delegatedInteractionRegistered = true;
+            _initializationTask = InitializeTriggerInterop();
             _registered = true;
         }
+        else if (TextValue is null)
+            _ = ResolveTextValue();
 
-        if (TextValue is null)
-        {
-            string textContent = await DomInterop.GetTextContent(_element);
-
-            if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
-                _resolvedTextValue = textContent;
-        }
+        return Task.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return;
+
         CancelOpenPointerMove();
         ClearPointerGraceState();
+
+        if (_initializationTask is not null)
+            await _initializationTask;
 
         if (_registered)
             ParentMenu.UnregisterItem(this);
@@ -125,6 +122,48 @@
 
         await MenuInterop.CancelMenuSubmenuPointerGrace(_element);
         _dotNetReference?.Dispose();
+    }
+
+    private async Task InitializeTriggerInterop()
+    {
+        try
+        {
+            if (_dotNetReference is null)
+                return;
+
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            {
+                keydown = new
+                {
+                    currentTargetOnly = true,
+                    preventDefaultKeys = PreventDefaultKeys
+                }
+            });
+            _delegatedInteractionRegistered = true;
+
+            if (TextValue is null)
+                await ResolveTextValue();
+        }
+        catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+        {
+        }
+    }
+
+    private async Task ResolveTextValue()
+    {
+        if (_disposed.Read() || TextValue is not null)
+            return;
+
+        try
+        {
+            string textContent = await DomInterop.GetTextContent(_element);
+
+            if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
+                _resolvedTextValue = textContent;
+        }
+        catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+        {
+        }
     }
 
     public ValueTask Focus() => ControlsInterop.FocusElementPreventScroll(_element);
@@ -291,5 +330,10 @@
     {
         _pointerGraceActive = false;
         ParentContent.SetSubmenuPointerGrace(TabStopId, false);
+    }
+
+    private static bool ShouldIgnoreInteropException(Exception ex)
+    {
+        return ex is ObjectDisposedException or JSDisconnectedException;
     }
 }
