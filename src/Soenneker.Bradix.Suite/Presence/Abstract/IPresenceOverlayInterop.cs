@@ -26,5 +26,9 @@ public interface IPresenceOverlayInterop : IAsyncDisposable
 
     ValueTask RegisterRemoveScroll(bool allowPinchZoom = false, CancellationToken cancellationToken = default);
 
+    ValueTask RegisterRemoveScroll(string registrationId, bool allowPinchZoom = false, CancellationToken cancellationToken = default);
+
     ValueTask UnregisterRemoveScroll(CancellationToken cancellationToken = default);
+
+    ValueTask UnregisterRemoveScroll(string registrationId, CancellationToken cancellationToken = default);
 }

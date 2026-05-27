@@ -71,10 +71,22 @@ public sealed class PresenceOverlayInterop : IPresenceOverlayInterop
         await module.InvokeVoidAsync("registerRemoveScroll", cancellationToken, allowPinchZoom);
     }
 
+    public async ValueTask RegisterRemoveScroll(string registrationId, bool allowPinchZoom = false, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("registerRemoveScroll", cancellationToken, registrationId, allowPinchZoom);
+    }
+
     public async ValueTask UnregisterRemoveScroll(CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
         await module.InvokeVoidAsync("unregisterRemoveScroll", cancellationToken);
+    }
+
+    public async ValueTask UnregisterRemoveScroll(string registrationId, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("unregisterRemoveScroll", cancellationToken, registrationId);
     }
 
     public async ValueTask DisposeAsync()

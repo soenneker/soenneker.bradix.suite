@@ -1,8 +1,9 @@
 const presenceHandlers = new WeakMap();
 let focusGuardsCount = 0;
 const hideOthersState = new WeakMap();
-let removeScrollCount = 0;
-const removeScrollAllowPinchZoomStack = [];
+const removeScrollRegistrations = new Map();
+let removeScrollLegacyCount = 0;
+const removeScrollLegacyAllowPinchZoomStack = [];
 let originalBodyOverflow = "";
 let originalBodyPaddingRight = "";
 let originalDocumentTouchAction = "";
@@ -140,12 +141,15 @@ export function unregisterHideOthers(element) {
   hideOthersState.delete(element);
 }
 
-export function registerRemoveScroll(allowPinchZoom) {
+export function registerRemoveScroll(registrationIdOrAllowPinchZoom, maybeAllowPinchZoom) {
   if (!document.body || !document.documentElement) {
     return;
   }
 
-  if (removeScrollCount === 0) {
+  const registrationId = getRemoveScrollRegistrationId(registrationIdOrAllowPinchZoom);
+  const allowPinchZoom = registrationId ? maybeAllowPinchZoom : registrationIdOrAllowPinchZoom;
+
+  if (!hasActiveRemoveScroll()) {
     originalBodyOverflow = document.body.style.overflow || "";
     originalBodyPaddingRight = document.body.style.paddingRight || "";
     originalDocumentTouchAction = document.documentElement.style.touchAction || "";
@@ -158,29 +162,49 @@ export function registerRemoveScroll(allowPinchZoom) {
     }
   }
 
-  removeScrollAllowPinchZoomStack.push(Boolean(allowPinchZoom));
-  removeScrollCount += 1;
+  if (registrationId) {
+    removeScrollRegistrations.set(registrationId, Boolean(allowPinchZoom));
+  } else {
+    removeScrollLegacyAllowPinchZoomStack.push(Boolean(allowPinchZoom));
+    removeScrollLegacyCount += 1;
+  }
+
   updateRemoveScrollTouchAction();
 }
 
-export function unregisterRemoveScroll() {
-  if (!document.body) {
+export function unregisterRemoveScroll(registrationId) {
+  if (!document.body || !document.documentElement) {
     return;
   }
 
-  if (removeScrollAllowPinchZoomStack.length > 0) {
-    removeScrollAllowPinchZoomStack.pop();
+  const activeRegistrationId = getRemoveScrollRegistrationId(registrationId);
+
+  if (activeRegistrationId) {
+    removeScrollRegistrations.delete(activeRegistrationId);
+  } else {
+    if (removeScrollLegacyAllowPinchZoomStack.length > 0) {
+      removeScrollLegacyAllowPinchZoomStack.pop();
+    }
+
+    removeScrollLegacyCount = Math.max(removeScrollLegacyCount - 1, 0);
   }
 
-  removeScrollCount = Math.max(removeScrollCount - 1, 0);
-
-  if (removeScrollCount === 0) {
+  if (!hasActiveRemoveScroll()) {
     document.body.style.overflow = originalBodyOverflow;
     document.body.style.paddingRight = originalBodyPaddingRight;
     document.documentElement.style.touchAction = originalDocumentTouchAction;
+    removeScrollLegacyAllowPinchZoomStack.length = 0;
   } else {
     updateRemoveScrollTouchAction();
   }
+}
+
+function getRemoveScrollRegistrationId(value) {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function hasActiveRemoveScroll() {
+  return removeScrollRegistrations.size > 0 || removeScrollLegacyCount > 0;
 }
 
 function updateRemoveScrollTouchAction() {
@@ -188,6 +212,7 @@ function updateRemoveScrollTouchAction() {
     return;
   }
 
-  const allowPinchZoom = removeScrollAllowPinchZoomStack.some(Boolean);
+  const allowPinchZoom = removeScrollLegacyAllowPinchZoomStack.some(Boolean) ||
+    Array.from(removeScrollRegistrations.values()).some(Boolean);
   document.documentElement.style.touchAction = allowPinchZoom ? originalDocumentTouchAction : "none";
 }

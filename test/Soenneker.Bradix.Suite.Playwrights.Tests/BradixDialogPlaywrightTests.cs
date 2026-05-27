@@ -139,14 +139,26 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialogs"));
 
+        string initialBodyOverflow = await page.EvaluateAsync<string>("() => document.body.style.overflow");
+        string initialBodyPaddingRight = await page.EvaluateAsync<string>("() => document.body.style.paddingRight");
+        string initialDocumentTouchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");
+
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
 
         ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Edit profile", Exact = true });
         await Assertions.Expect(dialog).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("body")).ToHaveCSSAsync("overflow", "hidden");
 
         await ClickJustOutsideActiveDialog(page, dialog);
 
         await Assertions.Expect(dialog).Not.ToBeVisibleAsync();
+
+        await page.WaitForFunctionAsync(
+            @"([overflow, paddingRight, touchAction]) =>
+                document.body.style.overflow === overflow &&
+                document.body.style.paddingRight === paddingRight &&
+                document.documentElement.style.touchAction === touchAction",
+            new[] { initialBodyOverflow, initialBodyPaddingRight, initialDocumentTouchAction });
     }
 }
 

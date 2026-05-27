@@ -1,4 +1,5 @@
 @namespace Soenneker.Bradix
+@using System
 
 @inherits LeptonContent
 @implements IBradixRemoveScroll
@@ -7,6 +8,8 @@
 
 @ChildContent
 @code {
+    private readonly string _registrationId = Guid.NewGuid().ToString("N");
+    private bool _disposed;
     private bool _registered;
 
     [Parameter]
@@ -17,13 +20,25 @@
         if (!firstRender)
             return;
 
-        await PresenceOverlayInterop.RegisterRemoveScroll(AllowPinchZoom);
+        await PresenceOverlayInterop.RegisterRemoveScroll(_registrationId, AllowPinchZoom);
         _registered = true;
+
+        if (_disposed)
+            await Unregister();
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_registered)
-            await PresenceOverlayInterop.UnregisterRemoveScroll();
+        _disposed = true;
+        await Unregister();
+    }
+
+    private async ValueTask Unregister()
+    {
+        if (!_registered)
+            return;
+
+        await PresenceOverlayInterop.UnregisterRemoveScroll(_registrationId);
+        _registered = false;
     }
 }
