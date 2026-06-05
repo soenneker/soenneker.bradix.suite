@@ -6,6 +6,7 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
+/// <inheritdoc cref="IControlsInterop"/>
 public sealed class ControlsInterop : IControlsInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
@@ -163,6 +164,10 @@ public sealed class ControlsInterop : IControlsInterop
         await module.InvokeVoidAsync("unregisterOneTimePasswordInput", cancellationToken, element);
     }
 
+    /// <summary>
+    /// Asynchronously releases resources used by the current instance.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async ValueTask DisposeAsync()
     {
         await _moduleImportUtil.DisposeContentModule(_modulePath);

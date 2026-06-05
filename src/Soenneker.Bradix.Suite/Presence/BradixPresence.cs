@@ -10,38 +10,74 @@ using Soenneker.Lepton.Suite;
 
 namespace Soenneker.Bradix;
 
+/// <summary>
+/// Represents the bradix presence.
+/// </summary>
 public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDisposable
 {
+    /// <summary>
+    /// Gets or sets presence overlay interop.
+    /// </summary>
     [Inject]
     public IPresenceOverlayInterop PresenceOverlayInterop { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether present.
+    /// </summary>
     [Parameter]
     public bool Present { get; set; }
 
+    /// <summary>
+    /// Gets or sets tag.
+    /// </summary>
     [Parameter]
     public string Tag { get; set; } = "div";
 
+    /// <summary>
+    /// Gets or sets on exit complete.
+    /// </summary>
     [Parameter]
     public EventCallback OnExitComplete { get; set; }
 
+    /// <summary>
+    /// Gets or sets on element reference captured.
+    /// </summary>
     [Parameter]
     public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
 
+    /// <summary>
+    /// Gets or sets on key down.
+    /// </summary>
     [Parameter]
     public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
 
+    /// <summary>
+    /// Gets or sets on pointer enter.
+    /// </summary>
     [Parameter]
     public EventCallback<PointerEventArgs> OnPointerEnter { get; set; }
 
+    /// <summary>
+    /// Gets or sets on pointer leave.
+    /// </summary>
     [Parameter]
     public EventCallback<PointerEventArgs> OnPointerLeave { get; set; }
 
+    /// <summary>
+    /// Gets or sets on pointer down.
+    /// </summary>
     [Parameter]
     public EventCallback<PointerEventArgs> OnPointerDown { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether prevent key down default.
+    /// </summary>
     [Parameter]
     public bool PreventKeyDownDefault { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether emit open closed attributes.
+    /// </summary>
     [Parameter]
     public bool EmitOpenClosedAttributes { get; set; } = true;
 
@@ -168,6 +204,10 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
         builder.CloseElement();
     }
 
+    /// <summary>
+    /// Asynchronously releases resources used by the current instance.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async ValueTask DisposeAsync()
     {
         if (!_disposed.TrySetTrue())
@@ -189,6 +229,12 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
         _dotNetReference = null;
     }
 
+    /// <summary>
+    /// Executes the handle animation start operation.
+    /// </summary>
+    /// <param name="animationName">The animation name.</param>
+    /// <param name="currentAnimationName">The current animation name.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     [JSInvokable]
     public Task HandleAnimationStart(string animationName, string? currentAnimationName = null)
     {
@@ -196,6 +242,12 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Executes the handle animation end operation.
+    /// </summary>
+    /// <param name="animationName">The animation name.</param>
+    /// <param name="currentAnimationName">The current animation name.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     [JSInvokable]
     public async Task HandleAnimationEnd(string animationName, string? currentAnimationName = null)
     {

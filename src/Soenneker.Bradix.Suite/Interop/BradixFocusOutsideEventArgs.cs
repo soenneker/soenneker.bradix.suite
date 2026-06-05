@@ -1,5 +1,8 @@
 namespace Soenneker.Bradix;
 
+/// <summary>
+/// Represents the bradix focus outside event args.
+/// </summary>
 public sealed class BradixFocusOutsideEventArgs : BradixPreventableEventArgs
 {
     public BradixFocusOutsideEventArgs(BradixDelegatedFocusEvent originalEvent)
@@ -7,5 +10,8 @@ public sealed class BradixFocusOutsideEventArgs : BradixPreventableEventArgs
         OriginalEvent = originalEvent;
     }
 
+    /// <summary>
+    /// Gets original event.
+    /// </summary>
     public BradixDelegatedFocusEvent OriginalEvent { get; }
 }

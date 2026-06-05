@@ -7,6 +7,7 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
+/// <inheritdoc cref="IToastInterop"/>
 public sealed class ToastInterop : IToastInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
@@ -50,6 +51,10 @@ public sealed class ToastInterop : IToastInterop
         return textContent ?? [];
     }
 
+    /// <summary>
+    /// Asynchronously releases resources used by the current instance.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async ValueTask DisposeAsync()
     {
         await _moduleImportUtil.DisposeContentModule(_modulePath);

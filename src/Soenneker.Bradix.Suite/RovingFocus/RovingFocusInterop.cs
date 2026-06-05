@@ -6,6 +6,7 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
+/// <inheritdoc cref="IRovingFocusInterop"/>
 public sealed class RovingFocusInterop : IRovingFocusInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
@@ -35,6 +36,10 @@ public sealed class RovingFocusInterop : IRovingFocusInterop
         await module.InvokeVoidAsync("unregisterRovingFocusNavigationKeys", cancellationToken, element);
     }
 
+    /// <summary>
+    /// Asynchronously releases resources used by the current instance.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async ValueTask DisposeAsync()
     {
         await _moduleImportUtil.DisposeContentModule(_modulePath);

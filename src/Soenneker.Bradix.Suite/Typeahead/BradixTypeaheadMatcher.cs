@@ -8,6 +8,13 @@ namespace Soenneker.Bradix;
 /// </summary>
 public static class BradixTypeaheadMatcher
 {
+    /// <summary>
+    /// Executes the find next match operation.
+    /// </summary>
+    /// <param name="values">The values.</param>
+    /// <param name="search">The search.</param>
+    /// <param name="currentMatch">The current match.</param>
+    /// <returns>The result of the operation.</returns>
     public static string? FindNextMatch(IReadOnlyList<string> values, string search, string? currentMatch = null)
     {
         if (values.Count == 0 || string.IsNullOrEmpty(search))
@@ -38,6 +45,16 @@ public static class BradixTypeaheadMatcher
         return string.Equals(nextMatch, currentMatch, StringComparison.Ordinal) ? null : nextMatch;
     }
 
+    /// <summary>
+    /// Executes the find next item operation.
+    /// </summary>
+    /// <typeparam name="TItem">The TItem type.</typeparam>
+    /// <param name="items">The items.</param>
+    /// <param name="search">The search.</param>
+    /// <param name="currentItem">The current item.</param>
+    /// <param name="textSelector">The text selector.</param>
+    /// <param name="comparer">The comparer.</param>
+    /// <returns>The result of the operation.</returns>
     public static TItem? FindNextItem<TItem>(IReadOnlyList<TItem> items, string search, TItem? currentItem, Func<TItem, string?> textSelector,
         IEqualityComparer<TItem>? comparer = null)
     {
@@ -72,6 +89,11 @@ public static class BradixTypeaheadMatcher
         return currentItem is not null && nextItem is not null && comparer.Equals(nextItem, currentItem) ? default : nextItem;
     }
 
+    /// <summary>
+    /// Executes the normalize search operation.
+    /// </summary>
+    /// <param name="search">The search.</param>
+    /// <returns>The result of the operation.</returns>
     public static string NormalizeSearch(string search)
     {
         if (string.IsNullOrEmpty(search))

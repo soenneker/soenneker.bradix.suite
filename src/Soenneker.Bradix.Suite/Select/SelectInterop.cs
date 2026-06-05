@@ -6,6 +6,7 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
+/// <inheritdoc cref="ISelectInterop"/>
 public sealed class SelectInterop : ISelectInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
@@ -109,6 +110,10 @@ public sealed class SelectInterop : ISelectInterop
         return await module.InvokeAsync<string?>("getSelectOptionValueAtPoint", cancellationToken, clientX, clientY);
     }
 
+    /// <summary>
+    /// Asynchronously releases resources used by the current instance.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async ValueTask DisposeAsync()
     {
         await _moduleImportUtil.DisposeContentModule(_modulePath);

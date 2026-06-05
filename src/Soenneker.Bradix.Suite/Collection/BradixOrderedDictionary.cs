@@ -39,10 +39,19 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         _keys = capacity > 0 ? new List<TKey>(capacity) : [];
     }
 
+    /// <summary>
+    /// Gets or sets count.
+    /// </summary>
     public int Count => _keys.Count;
 
+    /// <summary>
+    /// Gets or sets keys.
+    /// </summary>
     public IEnumerable<TKey> Keys => _keys;
 
+    /// <summary>
+    /// Gets values.
+    /// </summary>
     public IEnumerable<TValue> Values
     {
         get
@@ -54,22 +63,43 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         }
     }
 
+    /// <summary>
+    /// Gets or sets the element at the specified index.
+    /// </summary>
+    /// <param name="key">The key.</param>
     public TValue this[TKey key]
     {
         get => _map[key];
         set => Set(key, value);
     }
 
+    /// <summary>
+    /// Executes the contains key operation.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>A value indicating whether the operation succeeded.</returns>
     public bool ContainsKey(TKey key)
     {
         return _map.ContainsKey(key);
     }
 
+    /// <summary>
+    /// Attempts to get value.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>A value indicating whether the operation succeeded.</returns>
     public bool TryGetValue(TKey key, out TValue value)
     {
         return _map.TryGetValue(key, out value!);
     }
 
+    /// <summary>
+    /// Sets the value.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the operation.</returns>
     public BradixOrderedDictionary<TKey, TValue> Set(TKey key, TValue value)
     {
         if (_map.TryAdd(key, value))
@@ -80,6 +110,13 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return this;
     }
 
+    /// <summary>
+    /// Executes the insert operation.
+    /// </summary>
+    /// <param name="index">The index.</param>
+    /// <param name="key">The key.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the operation.</returns>
     public BradixOrderedDictionary<TKey, TValue> Insert(int index, TKey key, TValue value)
     {
         bool has = _map.ContainsKey(key);
@@ -119,6 +156,11 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return this;
     }
 
+    /// <summary>
+    /// Executes the delete operation.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>A value indicating whether the operation succeeded.</returns>
     public bool Delete(TKey key)
     {
         bool removed = _map.Remove(key);
@@ -131,69 +173,135 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return removed;
     }
 
+    /// <summary>
+    /// Deletes at.
+    /// </summary>
+    /// <param name="index">The index.</param>
+    /// <returns>A value indicating whether the operation succeeded.</returns>
     public bool DeleteAt(int index)
     {
         return TryGetKeyAt(index, out TKey key) && Delete(key);
     }
 
+    /// <summary>
+    /// Executes the clear operation.
+    /// </summary>
     public void Clear()
     {
         _map.Clear();
         _keys.Clear();
     }
 
+    /// <summary>
+    /// Executes the index of operation.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>The result of the operation.</returns>
     public int IndexOf(TKey key)
     {
         return _keys.IndexOf(key);
     }
 
+    /// <summary>
+    /// Executes the key at operation.
+    /// </summary>
+    /// <param name="index">The index.</param>
+    /// <returns>The result of the operation.</returns>
     public TKey? KeyAt(int index)
     {
         return TryGetKeyAt(index, out TKey key) ? key : default;
     }
 
+    /// <summary>
+    /// Executes the at operation.
+    /// </summary>
+    /// <param name="index">The index.</param>
+    /// <returns>The result of the operation.</returns>
     public TValue? At(int index)
     {
         return TryGetKeyAt(index, out TKey key) ? _map[key] : default;
     }
 
+    /// <summary>
+    /// Executes the entry at operation.
+    /// </summary>
+    /// <param name="index">The index.</param>
+    /// <returns>The result of the operation.</returns>
     public KeyValuePair<TKey, TValue>? EntryAt(int index)
     {
         return TryGetKeyAt(index, out TKey key) ? new KeyValuePair<TKey, TValue>(key, _map[key]) : null;
     }
 
+    /// <summary>
+    /// Executes the before operation.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>The result of the operation.</returns>
     public KeyValuePair<TKey, TValue>? Before(TKey key)
     {
         return EntryAt(IndexOf(key) - 1);
     }
 
+    /// <summary>
+    /// Executes the after operation.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>The result of the operation.</returns>
     public KeyValuePair<TKey, TValue>? After(TKey key)
     {
         return EntryAt(IndexOf(key) + 1);
     }
 
+    /// <summary>
+    /// Executes the first operation.
+    /// </summary>
+    /// <returns>The result of the operation.</returns>
     public KeyValuePair<TKey, TValue>? First()
     {
         return EntryAt(0);
     }
 
+    /// <summary>
+    /// Executes the last operation.
+    /// </summary>
+    /// <returns>The result of the operation.</returns>
     public KeyValuePair<TKey, TValue>? Last()
     {
         return EntryAt(-1);
     }
 
+    /// <summary>
+    /// Sets before.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <param name="newKey">The new key.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the operation.</returns>
     public BradixOrderedDictionary<TKey, TValue> SetBefore(TKey key, TKey newKey, TValue value)
     {
         int index = IndexOf(key);
         return index < 0 ? this : Insert(index, newKey, value);
     }
 
+    /// <summary>
+    /// Sets after.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <param name="newKey">The new key.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the operation.</returns>
     public BradixOrderedDictionary<TKey, TValue> SetAfter(TKey key, TKey newKey, TValue value)
     {
         int index = IndexOf(key);
         return index < 0 ? this : Insert(index + 1, newKey, value);
     }
 
+    /// <summary>
+    /// Executes the from operation.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <param name="offset">The offset.</param>
+    /// <returns>The result of the operation.</returns>
     public TValue? From(TKey key, int offset)
     {
         int index = IndexOf(key);
@@ -206,6 +314,12 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return At(destination);
     }
 
+    /// <summary>
+    /// Executes the key from operation.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <param name="offset">The offset.</param>
+    /// <returns>The result of the operation.</returns>
     public TKey? KeyFrom(TKey key, int offset)
     {
         int index = IndexOf(key);
@@ -218,6 +332,11 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return KeyAt(destination);
     }
 
+    /// <summary>
+    /// Executes the find operation.
+    /// </summary>
+    /// <param name="predicate">The predicate.</param>
+    /// <returns>The result of the operation.</returns>
     public KeyValuePair<TKey, TValue>? Find(Predicate<KeyValuePair<TKey, TValue>> predicate)
     {
         foreach (KeyValuePair<TKey, TValue> entry in this)
@@ -231,6 +350,11 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return null;
     }
 
+    /// <summary>
+    /// Executes the find index operation.
+    /// </summary>
+    /// <param name="predicate">The predicate.</param>
+    /// <returns>The result of the operation.</returns>
     public int FindIndex(Predicate<KeyValuePair<TKey, TValue>> predicate)
     {
         var index = 0;
@@ -248,6 +372,11 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return -1;
     }
 
+    /// <summary>
+    /// Executes the filter operation.
+    /// </summary>
+    /// <param name="predicate">The predicate.</param>
+    /// <returns>The result of the operation.</returns>
     public BradixOrderedDictionary<TKey, TValue> Filter(Predicate<KeyValuePair<TKey, TValue>> predicate)
     {
         var filtered = new BradixOrderedDictionary<TKey, TValue>(_keys.Count);
@@ -261,6 +390,11 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return filtered;
     }
 
+    /// <summary>
+    /// Executes the to sorted operation.
+    /// </summary>
+    /// <param name="comparison">The comparison.</param>
+    /// <returns>The result of the operation.</returns>
     public BradixOrderedDictionary<TKey, TValue> ToSorted(Comparison<KeyValuePair<TKey, TValue>> comparison)
     {
         var entries = new List<KeyValuePair<TKey, TValue>>(_keys.Count);
@@ -274,6 +408,10 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return new BradixOrderedDictionary<TKey, TValue>(entries);
     }
 
+    /// <summary>
+    /// Executes the to reversed operation.
+    /// </summary>
+    /// <returns>The result of the operation.</returns>
     public BradixOrderedDictionary<TKey, TValue> ToReversed()
     {
         var reversed = new BradixOrderedDictionary<TKey, TValue>(_keys.Count);
@@ -287,6 +425,10 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return reversed;
     }
 
+    /// <summary>
+    /// Gets enumerator.
+    /// </summary>
+    /// <returns>The result of the operation.</returns>
     public Enumerator GetEnumerator() => new(this);
 
     IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => GetEnumerator();
@@ -296,6 +438,9 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         return GetEnumerator();
     }
 
+    /// <summary>
+    /// Represents the enumerator structure.
+    /// </summary>
     public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
     {
         private readonly BradixOrderedDictionary<TKey, TValue> _dictionary;
@@ -308,10 +453,17 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
             Current = default;
         }
 
+        /// <summary>
+        /// Gets current.
+        /// </summary>
         public KeyValuePair<TKey, TValue> Current { get; private set; }
 
         readonly object IEnumerator.Current => Current;
 
+        /// <summary>
+        /// Executes the move next operation.
+        /// </summary>
+        /// <returns>A value indicating whether the operation succeeded.</returns>
         public bool MoveNext()
         {
             int nextIndex = _index + 1;
@@ -329,12 +481,18 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
             return true;
         }
 
+        /// <summary>
+        /// Executes the reset operation.
+        /// </summary>
         public void Reset()
         {
             _index = -1;
             Current = default;
         }
 
+        /// <summary>
+        /// Releases resources used by the current instance.
+        /// </summary>
         public readonly void Dispose()
         {
         }

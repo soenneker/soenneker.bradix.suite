@@ -19,6 +19,9 @@ public sealed class BradixTypeaheadBuffer
         _resetAfter = resetAfter ?? TimeSpan.FromSeconds(1);
     }
 
+    /// <summary>
+    /// Gets current search.
+    /// </summary>
     public string CurrentSearch
     {
         get
@@ -28,6 +31,11 @@ public sealed class BradixTypeaheadBuffer
         }
     }
 
+    /// <summary>
+    /// Executes the append operation.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>The result of the operation.</returns>
     public string Append(string key)
     {
         if (string.IsNullOrEmpty(key))
@@ -42,6 +50,9 @@ public sealed class BradixTypeaheadBuffer
         return _search;
     }
 
+    /// <summary>
+    /// Executes the reset operation.
+    /// </summary>
     public void Reset()
     {
         _search = string.Empty;

@@ -5,6 +5,7 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
+/// <inheritdoc cref="IKeyboardModeInterop"/>
 public sealed class KeyboardModeInterop : IKeyboardModeInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
@@ -27,6 +28,10 @@ public sealed class KeyboardModeInterop : IKeyboardModeInterop
         return await module.InvokeAsync<bool>("isKeyboardInteractionMode", cancellationToken);
     }
 
+    /// <summary>
+    /// Asynchronously releases resources used by the current instance.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async ValueTask DisposeAsync()
     {
         await _moduleImportUtil.DisposeContentModule(_modulePath);

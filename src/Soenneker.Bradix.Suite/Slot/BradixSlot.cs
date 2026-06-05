@@ -9,6 +9,9 @@ using Soenneker.Lepton.Suite;
 
 namespace Soenneker.Bradix;
 
+/// <summary>
+/// Represents the bradix slot.
+/// </summary>
 public sealed class BradixSlot : LeptonIdentifiableContentElement
 {
     private static readonly MethodInfo CreateComposedEventCallbackDefinition =
@@ -21,9 +24,15 @@ public sealed class BradixSlot : LeptonIdentifiableContentElement
     private static readonly ConcurrentDictionary<Type, MethodInfo> AddTypedEventCallbackMethods = new();
     private static readonly ConcurrentDictionary<Type, MethodInfo?> InvokeAsyncMethods = new();
 
+    /// <summary>
+    /// Gets or sets element name.
+    /// </summary>
     [Parameter, EditorRequired]
     public string ElementName { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets child attributes.
+    /// </summary>
     [Parameter]
     public IReadOnlyDictionary<string, object>? ChildAttributes { get; set; }
 

@@ -11,11 +11,22 @@ namespace Soenneker.Bradix;
 /// </summary>
 public static class BradixSuiteRegistrar
 {
+    /// <summary>
+    /// Adds bradix suite as scoped.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The result of the operation.</returns>
     public static IServiceCollection AddBradixSuiteAsScoped(this IServiceCollection services)
     {
         return services.AddBradixSuiteAsScoped(null);
     }
 
+    /// <summary>
+    /// Adds bradix suite as scoped.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configure.</param>
+    /// <returns>The result of the operation.</returns>
     public static IServiceCollection AddBradixSuiteAsScoped(this IServiceCollection services, Action<BradixSuiteOptions>? configure)
     {
         services.AddFloatingUiInteropAsScoped();

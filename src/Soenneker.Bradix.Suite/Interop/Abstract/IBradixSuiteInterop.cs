@@ -9,5 +9,10 @@ namespace Soenneker.Bradix;
 /// </summary>
 public interface IBradixSuiteInterop : IAsyncDisposable
 {
+    /// <summary>
+    /// Executes the initialize operation.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     ValueTask Initialize(CancellationToken cancellationToken = default);
 }
