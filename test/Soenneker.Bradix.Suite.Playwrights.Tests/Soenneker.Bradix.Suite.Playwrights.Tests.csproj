@@ -26,7 +26,7 @@
         <PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.68" />
         <PackageReference Include="Soenneker.Utils.Test" Version="4.0.317" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.8" />
-        <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.827" />
+        <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.828" />
         <PackageReference Include="TUnit" Version="1.48.6" />
     </ItemGroup>
 </Project>
