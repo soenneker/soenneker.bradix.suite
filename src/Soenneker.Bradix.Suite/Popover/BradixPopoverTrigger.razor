@@ -7,6 +7,7 @@
     @if (Popover?.HasCustomAnchor == true)
     {
         <button @ref="_button"
+                @onpointerdown="HandlePointerDown"
                 @onclick="HandleClick"
                 @attributes="ButtonAttributes">
             @ChildContent
@@ -16,6 +17,7 @@
     {
         <BradixPopperAnchor>
             <button @ref="_button"
+                    @onpointerdown="HandlePointerDown"
                     @onclick="HandleClick"
                     @attributes="ButtonAttributes">
                 @ChildContent
@@ -26,6 +28,7 @@
 
 @code {
     private ElementReference _button;
+    private bool _ignoreNextClickToggle;
 
     [CascadingParameter]
     private BradixPopover? Popover { get; set; }
@@ -68,10 +71,21 @@
 
     private async Task HandleClick(MouseEventArgs args)
     {
-        if (!Disabled && Popover is not null)
+        if (_ignoreNextClickToggle)
+            _ignoreNextClickToggle = false;
+        else if (!Disabled && Popover is not null)
             await Popover.ToggleOpen();
 
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);
+    }
+
+    private async Task HandlePointerDown(PointerEventArgs args)
+    {
+        if (Disabled || Popover is null || args.Button != 0 || args.CtrlKey)
+            return;
+
+        _ignoreNextClickToggle = true;
+        await Popover.ToggleOpen();
     }
 }
