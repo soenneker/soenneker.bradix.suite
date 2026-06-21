@@ -320,20 +320,23 @@ public sealed class BradixSelectRenderTests : BunitContext
     [Test]
     public async Task Popper_position_forwards_collision_boundary_selectors_and_sticky()
     {
-        _ = Render(CreateSelect(defaultOpen: true, position: SelectPosition.Popper, configureContent: content =>
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, position: SelectPosition.Popper, configureContent: content =>
         {
             content.AddAttribute(20, nameof(BradixSelectContent.CollisionBoundarySelector), "#select-boundary-a");
             content.AddAttribute(21, nameof(BradixSelectContent.CollisionBoundarySelectors), new[] { "#select-boundary-b", "#select-boundary-a" });
             content.AddAttribute(22, nameof(BradixSelectContent.Sticky), "always");
         }));
 
-        JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
-        object? options = invocation.Arguments[4];
-        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
-        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+            object? options = invocation.Arguments[4];
+            var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
+            var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
 
-        await Assert.That(selectors).IsEquivalentTo(["#select-boundary-a", "#select-boundary-b", "#select-boundary-a"]);
-        await Assert.That(sticky).IsEqualTo("always");
+            await Assert.That(selectors).IsEquivalentTo(["#select-boundary-a", "#select-boundary-b", "#select-boundary-a"]);
+            await Assert.That(sticky).IsEqualTo("always");
+        });
     }
 
 
