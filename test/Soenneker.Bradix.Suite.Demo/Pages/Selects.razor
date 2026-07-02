@@ -1,4 +1,5 @@
 @page "/selects"
+@inject NavigationManager Navigation
 
 <PageTitle>Select</PageTitle>
 
@@ -91,6 +92,41 @@
         </BradixSelect>
     </section>
 </section>
+
+@if (ShowTestScenarios)
+{
+    <section class="website-demo-page">
+        <section class="card website-demo-card stack stack--compact" data-testid="select-scroll-boundary">
+            <BradixSelect>
+                <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit select-demo__trigger"
+                                     aria-label="Open scroll boundary select">
+                    <BradixSelectValue Placeholder="@_scrollBoundaryPlaceholder" />
+                    <BradixSelectIcon />
+                </BradixSelectTrigger>
+
+                <BradixSelectPortal>
+                    <BradixSelectContent Class="select-surface stack stack--compact"
+                                         SideOffset="6">
+                        <BradixSelectScrollUpButton>Scroll up</BradixSelectScrollUpButton>
+                        <BradixSelectViewport Class="stack">
+                            <BradixSelectGroup>
+                                <BradixSelectLabel>Scroll boundary options</BradixSelectLabel>
+                                @foreach (string option in ScrollBoundaryOptions)
+                                {
+                                    <BradixSelectItem Value="@option" TextValue="@option">
+                                        <BradixSelectItemText>@option</BradixSelectItemText>
+                                        <BradixSelectItemIndicator>✓</BradixSelectItemIndicator>
+                                    </BradixSelectItem>
+                                }
+                            </BradixSelectGroup>
+                        </BradixSelectViewport>
+                        <BradixSelectScrollDownButton>Scroll down</BradixSelectScrollDownButton>
+                    </BradixSelectContent>
+                </BradixSelectPortal>
+            </BradixSelect>
+        </section>
+    </section>
+}
 
 <section class="website-demo-page">
     <section class="card website-demo-card stack stack--compact">
@@ -202,8 +238,45 @@
     private string _nativeFormSubmission = "No submission yet.";
 
     private RenderFragment _placeholder => builder => builder.AddContent(0, "Select a fruit…");
+    private RenderFragment _scrollBoundaryPlaceholder => builder => builder.AddContent(0, "Select a boundary option…");
     private RenderFragment _nativeFormPlaceholder => builder => builder.AddContent(0, "Select a framework…");
     private RenderFragment _dialogPlaceholder => builder => builder.AddContent(0, "Select a framework…");
+
+    private bool ShowTestScenarios => Navigation.ToBaseRelativePath(Navigation.Uri).Contains("testScenarios=true", StringComparison.OrdinalIgnoreCase);
+
+    private static readonly string[] ScrollBoundaryOptions =
+    [
+        "Boundary option 01",
+        "Boundary option 02",
+        "Boundary option 03",
+        "Boundary option 04",
+        "Boundary option 05",
+        "Boundary option 06",
+        "Boundary option 07",
+        "Boundary option 08",
+        "Boundary option 09",
+        "Boundary option 10",
+        "Boundary option 11",
+        "Boundary option 12",
+        "Boundary option 13",
+        "Boundary option 14",
+        "Boundary option 15",
+        "Boundary option 16",
+        "Boundary option 17",
+        "Boundary option 18",
+        "Boundary option 19",
+        "Boundary option 20",
+        "Boundary option 21",
+        "Boundary option 22",
+        "Boundary option 23",
+        "Boundary option 24",
+        "Boundary option 25",
+        "Boundary option 26",
+        "Boundary option 27",
+        "Boundary option 28",
+        "Boundary option 29",
+        "Boundary option 30"
+    ];
 
     private Task HandleSelectedValueChanged(string? value)
     {

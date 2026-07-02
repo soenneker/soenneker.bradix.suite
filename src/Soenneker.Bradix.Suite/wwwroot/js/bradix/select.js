@@ -63,8 +63,22 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
       return;
     }
 
-    const scrolledBy = Math.abs(itemAligned.state.previousScrollTop - viewport.scrollTop);
+    const scrollDelta = viewport.scrollTop - itemAligned.state.previousScrollTop;
+    const scrolledBy = Math.abs(scrollDelta);
     if (scrolledBy <= 0) {
+      itemAligned.state.previousScrollTop = viewport.scrollTop;
+      return;
+    }
+
+    const isBottomAnchored = wrapper.style.bottom === "0px";
+    const isTopAnchored = wrapper.style.top === "0px";
+    const isRevealingMoreContent = isBottomAnchored
+      ? scrollDelta > 0
+      : isTopAnchored
+        ? scrollDelta < 0
+        : true;
+
+    if (!isRevealingMoreContent) {
       itemAligned.state.previousScrollTop = viewport.scrollTop;
       return;
     }
@@ -81,7 +95,7 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
       const heightDiff = nextHeight - clampedNextHeight;
 
       wrapper.style.height = `${clampedNextHeight}px`;
-      if (wrapper.style.bottom === "0px") {
+      if (isBottomAnchored) {
         viewport.scrollTop = heightDiff > 0 ? heightDiff : 0;
         wrapper.style.justifyContent = "flex-end";
       }

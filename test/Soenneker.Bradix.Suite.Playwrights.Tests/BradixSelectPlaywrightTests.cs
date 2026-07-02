@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Extensions.TestPages;
@@ -276,6 +277,52 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
+    public async ValueTask Select_demo_mouse_wheel_overscroll_stays_at_bottom()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+        await page.SetViewportSizeAsync(420, 420);
+
+        await page.GotoAndWaitForReady(
+            $"{BaseUrl}selects?testScenarios=true",
+            static p => p.GetByRole(AriaRole.Combobox, new PageGetByRoleOptions { Name = "Open scroll boundary select", Exact = true }),
+            expectedTitle: "Select");
+
+        ILocator trigger = page.GetByRole(AriaRole.Combobox, new PageGetByRoleOptions { Name = "Open scroll boundary select", Exact = true });
+        await trigger.ClickAsync();
+
+        ILocator listBox = page.Locator("[role='listbox'][data-position='item-aligned']:visible").First;
+        ILocator viewport = listBox.Locator("[data-radix-select-viewport]");
+        await Assertions.Expect(listBox).ToBeVisibleAsync();
+
+        LocatorBoundingBoxResult? viewportBox = await viewport.BoundingBoxAsync();
+        await Assert.That(viewportBox).IsNotNull();
+        await page.Mouse.MoveAsync(viewportBox!.X + viewportBox.Width / 2, viewportBox.Y + viewportBox.Height / 2);
+
+        double[] metrics = await ReadViewportScrollMetrics(viewport);
+        for (var i = 0; i < 24 && !IsAtScrollBottom(metrics); i++)
+        {
+            await page.Mouse.WheelAsync(0, 700);
+            await Task.Delay(25);
+            metrics = await ReadViewportScrollMetrics(viewport);
+        }
+
+        double maxScrollTop = GetMaxScrollTop(metrics);
+        await Assert.That(maxScrollTop).IsGreaterThan(0);
+        await Assert.That(IsAtScrollBottom(metrics)).IsTrue();
+
+        for (var i = 0; i < 6; i++)
+        {
+            await page.Mouse.WheelAsync(0, 700);
+            await Task.Delay(25);
+        }
+
+        double[] afterOverscrollMetrics = await ReadViewportScrollMetrics(viewport);
+        await Assert.That(afterOverscrollMetrics[0]).IsGreaterThan(0);
+        await Assert.That(IsAtScrollBottom(afterOverscrollMetrics)).IsTrue();
+    }
+
+    [Test]
     public async ValueTask Select_demo_supports_nested_select_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();
@@ -350,6 +397,21 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         float x = box!.X > 40 ? box.X - 20 : box.X + box.Width + 20;
         float y = box.Y > 40 ? box.Y - 20 : box.Y + 20;
         await page.Mouse.ClickAsync(x, y);
+    }
+
+    private static Task<double[]> ReadViewportScrollMetrics(ILocator viewport)
+    {
+        return viewport.EvaluateAsync<double[]>("element => [element.scrollTop, element.scrollHeight, element.clientHeight]");
+    }
+
+    private static bool IsAtScrollBottom(double[] metrics)
+    {
+        return Math.Ceiling(metrics[0]) >= GetMaxScrollTop(metrics) - 1;
+    }
+
+    private static double GetMaxScrollTop(double[] metrics)
+    {
+        return Math.Max(metrics[1] - metrics[2], 0);
     }
 }
 

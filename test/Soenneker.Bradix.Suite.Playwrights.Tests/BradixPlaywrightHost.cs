@@ -1,11 +1,24 @@
 using Soenneker.Playwrights.TestHosts;
 using Soenneker.Playwrights.TestEnvironment.Options;
+using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
 public sealed class BradixPlaywrightHost : PlaywrightHostedTestHost
 {
+    public override async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await base.DisposeAsync();
+        }
+        catch (ObjectDisposedException ex) when (ex.ObjectName == "System.Threading.SemaphoreSlim")
+        {
+        }
+    }
+
     protected override PlaywrightTestHostOptions CreateOptions()
     {
         return new PlaywrightTestHostOptions
