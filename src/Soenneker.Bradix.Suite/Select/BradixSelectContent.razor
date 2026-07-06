@@ -102,6 +102,7 @@ else
     private bool _hasContentElement;
     private bool _hasViewportElement;
     private bool _itemAlignedRegistered;
+    private bool _openLayoutPassQueued;
     private bool _viewportRegistered;
     private bool _shouldRepositionOnScrollButton = true;
     private bool _pointerTrackerRegistered;
@@ -234,6 +235,7 @@ else
         {
             _didFocusOpenItem = false;
             _pendingOpenAutoFocus = false;
+            _openLayoutPassQueued = false;
             _shouldRepositionOnScrollButton = true;
 
             StopAutoScroll();
@@ -332,7 +334,11 @@ else
 
     internal void QueueOpenLayoutPass()
     {
-        _ = InvokeAsync(CompleteOpenLayoutPass);
+        if (!UseItemAlignedPosition || Select?.CurrentOpen != true || _openLayoutPassQueued)
+            return;
+
+        _openLayoutPassQueued = true;
+        _ = InvokeAsync(RunQueuedOpenLayoutPass);
     }
 
     internal async Task FocusContent()
@@ -638,6 +644,13 @@ else
 
         if (!_didFocusOpenItem)
             await ApplyOpenAutoFocus();
+    }
+
+    private async Task RunQueuedOpenLayoutPass()
+    {
+        await Task.Yield();
+        _openLayoutPassQueued = false;
+        await CompleteOpenLayoutPass();
     }
 
     private async Task ApplyOpenAutoFocus()

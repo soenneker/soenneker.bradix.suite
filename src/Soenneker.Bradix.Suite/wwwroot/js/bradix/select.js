@@ -530,38 +530,74 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
     selectedItem,
     selectedItemText,
     dir,
+    animationFrameId: 0,
     shouldExpandOnScroll: false,
     previousScrollTop: viewport ? viewport.scrollTop : 0
   };
-  const update = () => positionSelectItemAligned(
-    wrapper,
-    state.content,
-    state.viewport,
-    state.trigger,
-    state.valueNode,
-    state.selectedItem,
-    state.selectedItemText,
-    state.dir
-  );
+  const updateNow = () => {
+    if (state.animationFrameId) {
+      cancelAnimationFrame(state.animationFrameId);
+      state.animationFrameId = 0;
+    }
+
+    positionSelectItemAligned(
+      wrapper,
+      state.content,
+      state.viewport,
+      state.trigger,
+      state.valueNode,
+      state.selectedItem,
+      state.selectedItemText,
+      state.dir
+    );
+  };
+  const update = () => {
+    if (state.animationFrameId) {
+      return;
+    }
+
+    state.animationFrameId = requestAnimationFrame(() => {
+      state.animationFrameId = 0;
+      positionSelectItemAligned(
+        wrapper,
+        state.content,
+        state.viewport,
+        state.trigger,
+        state.valueNode,
+        state.selectedItem,
+        state.selectedItemText,
+        state.dir
+      );
+    });
+  };
   const resizeObserver = new ResizeObserver(update);
 
   resizeObserver.observe(content);
-  resizeObserver.observe(viewport);
-  resizeObserver.observe(trigger);
-  resizeObserver.observe(selectedItem);
-  resizeObserver.observe(selectedItemText);
+  if (viewport) {
+    resizeObserver.observe(viewport);
+  }
+  if (trigger) {
+    resizeObserver.observe(trigger);
+  }
+  if (selectedItem) {
+    resizeObserver.observe(selectedItem);
+  }
+  if (selectedItemText) {
+    resizeObserver.observe(selectedItemText);
+  }
 
   window.addEventListener("resize", update);
   window.addEventListener("scroll", update, true);
 
   selectItemAlignedHandlers.set(wrapper, {
     update,
+    updateNow,
     resizeObserver,
     state
   });
 
   requestAnimationFrame(() => {
-    update();
+    updateNow();
     state.previousScrollTop = viewport ? viewport.scrollTop : 0;
     requestAnimationFrame(() => {
       state.shouldExpandOnScroll = true;
@@ -570,14 +606,39 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
 }
 
 export function updateSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir) {
-  unregisterSelectItemAlignedPosition(wrapper);
-  registerSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir);
+  const handlers = selectItemAlignedHandlers.get(wrapper);
+
+  if (!handlers) {
+    registerSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir);
+    return;
+  }
+
+  const state = handlers.state;
+  const canReuseRegistration =
+    state.content === content &&
+    state.viewport === viewport &&
+    state.trigger === trigger &&
+    state.valueNode === valueNode &&
+    state.selectedItem === selectedItem &&
+    state.selectedItemText === selectedItemText;
+
+  if (!canReuseRegistration) {
+    registerSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir);
+    return;
+  }
+
+  state.dir = dir;
+  handlers.updateNow();
 }
 
 export function unregisterSelectItemAlignedPosition(wrapper) {
   const handlers = selectItemAlignedHandlers.get(wrapper);
   if (!handlers) {
     return;
+  }
+
+  if (handlers.state.animationFrameId) {
+    cancelAnimationFrame(handlers.state.animationFrameId);
   }
 
   handlers.resizeObserver.disconnect();
@@ -611,7 +672,7 @@ function queueItemAlignedPositionFromViewport(viewport, content, wrapper) {
       return;
     }
 
-    registerSelectItemAlignedPosition(
+    updateSelectItemAlignedPosition(
       wrapper,
       content,
       viewport,

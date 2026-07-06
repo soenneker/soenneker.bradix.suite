@@ -136,6 +136,9 @@
 
     internal void RegisterTextElement(ElementReference element)
     {
+        if (_hasItemTextElement && _itemTextElement.Equals(element))
+            return;
+
         _itemTextElement = element;
         _hasItemTextElement = true;
         Content?.QueueOpenLayoutPass();
