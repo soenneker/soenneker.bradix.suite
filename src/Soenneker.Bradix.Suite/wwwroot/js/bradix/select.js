@@ -33,6 +33,10 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
     return;
   }
 
+  const itemAlignedWrapper = wrapper instanceof HTMLElement && wrapper.getAttribute("data-radix-select-position") === "item-aligned"
+    ? wrapper
+    : null;
+
   unregisterSelectViewport(viewport);
 
   const registration = {
@@ -54,11 +58,11 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
   };
 
   const expandOnScroll = () => {
-    if (!wrapper) {
+    if (!itemAlignedWrapper) {
       return;
     }
 
-    const itemAligned = selectItemAlignedHandlers.get(wrapper);
+    const itemAligned = selectItemAlignedHandlers.get(itemAlignedWrapper);
     if (!itemAligned || !itemAligned.state.shouldExpandOnScroll) {
       return;
     }
@@ -70,8 +74,8 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
       return;
     }
 
-    const isBottomAnchored = wrapper.style.bottom === "0px";
-    const isTopAnchored = wrapper.style.top === "0px";
+    const isBottomAnchored = itemAlignedWrapper.style.bottom === "0px";
+    const isTopAnchored = itemAlignedWrapper.style.top === "0px";
     const isRevealingMoreContent = isBottomAnchored
       ? scrollDelta > 0
       : isTopAnchored
@@ -85,8 +89,8 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
 
     const CONTENT_MARGIN = 10;
     const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
-    const cssMinHeight = parseFloat(wrapper.style.minHeight || "0");
-    const cssHeight = parseFloat(wrapper.style.height || "0");
+    const cssMinHeight = parseFloat(itemAlignedWrapper.style.minHeight || "0");
+    const cssHeight = parseFloat(itemAlignedWrapper.style.height || "0");
     const previousHeight = Math.max(cssMinHeight, cssHeight);
 
     if (previousHeight < availableHeight) {
@@ -94,10 +98,10 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
       const clampedNextHeight = Math.min(availableHeight, nextHeight);
       const heightDiff = nextHeight - clampedNextHeight;
 
-      wrapper.style.height = `${clampedNextHeight}px`;
+      itemAlignedWrapper.style.height = `${clampedNextHeight}px`;
       if (isBottomAnchored) {
         viewport.scrollTop = heightDiff > 0 ? heightDiff : 0;
-        wrapper.style.justifyContent = "flex-end";
+        itemAlignedWrapper.style.justifyContent = "flex-end";
       }
     }
 
@@ -144,7 +148,7 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
 
   selectViewportHandlers.set(viewport, registration);
   queueNotify();
-  queueItemAlignedPositionFromViewport(viewport, content, wrapper);
+  queueItemAlignedPositionFromViewport(viewport, content, itemAlignedWrapper);
 }
 
 export function unregisterSelectViewport(viewport) {
@@ -516,7 +520,13 @@ export function unregisterSelectWindowDismiss(content) {
 }
 
 export function registerSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir) {
-  if (!wrapper || !content) {
+  if (!(wrapper instanceof HTMLElement)
+    || !(content instanceof HTMLElement)
+    || !(viewport instanceof HTMLElement)
+    || !(trigger instanceof HTMLElement)
+    || !(valueNode instanceof HTMLElement)
+    || !(selectedItem instanceof HTMLElement)
+    || !(selectedItemText instanceof HTMLElement)) {
     return;
   }
 
@@ -652,7 +662,7 @@ function clampValue(value, min, max) {
 }
 
 function queueItemAlignedPositionFromViewport(viewport, content, wrapper) {
-  if (!viewport || !content || !wrapper || wrapper.getAttribute("data-radix-select-position") !== "item-aligned") {
+  if (!viewport || !content || !(wrapper instanceof HTMLElement) || wrapper.getAttribute("data-radix-select-position") !== "item-aligned") {
     return;
   }
 
