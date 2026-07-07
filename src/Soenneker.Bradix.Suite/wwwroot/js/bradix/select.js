@@ -62,57 +62,6 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
     registration.animationFrameIds.add(frameId);
   };
 
-  const expandOnScroll = () => {
-    if (!itemAlignedWrapper) {
-      return;
-    }
-
-    const itemAligned = selectItemAlignedHandlers.get(itemAlignedWrapper);
-    if (!itemAligned || !itemAligned.state.shouldExpandOnScroll) {
-      return;
-    }
-
-    const scrollDelta = viewport.scrollTop - itemAligned.state.previousScrollTop;
-    const scrolledBy = Math.abs(scrollDelta);
-    if (scrolledBy <= 0) {
-      itemAligned.state.previousScrollTop = viewport.scrollTop;
-      return;
-    }
-
-    const isBottomAnchored = itemAlignedWrapper.style.bottom === "0px";
-    const isTopAnchored = itemAlignedWrapper.style.top === "0px";
-    const isRevealingMoreContent = isBottomAnchored
-      ? scrollDelta > 0
-      : isTopAnchored
-        ? scrollDelta < 0
-        : true;
-
-    if (!isRevealingMoreContent) {
-      itemAligned.state.previousScrollTop = viewport.scrollTop;
-      return;
-    }
-
-    const CONTENT_MARGIN = 10;
-    const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
-    const cssMinHeight = parseFloat(itemAlignedWrapper.style.minHeight || "0");
-    const cssHeight = parseFloat(itemAlignedWrapper.style.height || "0");
-    const previousHeight = Math.max(cssMinHeight, cssHeight);
-
-    if (previousHeight < availableHeight) {
-      const nextHeight = previousHeight + scrolledBy;
-      const clampedNextHeight = Math.min(availableHeight, nextHeight);
-      const heightDiff = nextHeight - clampedNextHeight;
-
-      itemAlignedWrapper.style.height = `${clampedNextHeight}px`;
-      if (isBottomAnchored) {
-        viewport.scrollTop = heightDiff > 0 ? heightDiff : 0;
-        itemAlignedWrapper.style.justifyContent = "flex-end";
-      }
-    }
-
-    itemAligned.state.previousScrollTop = viewport.scrollTop;
-  };
-
   const notify = () => {
     if (selectViewportHandlers.get(viewport) !== registration) {
       return;
@@ -129,7 +78,6 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
   };
 
   const scroll = () => {
-    expandOnScroll();
     notify();
   };
   viewport.addEventListener("scroll", scroll);
@@ -546,9 +494,7 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
     selectedItemText,
     dir,
     animationFrameId: 0,
-    hasPositioned: false,
-    shouldExpandOnScroll: false,
-    previousScrollTop: viewport ? viewport.scrollTop : 0
+    hasPositioned: false
   };
   const updateNow = (preserveViewportScroll = state.hasPositioned) => {
     if (state.animationFrameId) {
@@ -623,10 +569,6 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
 
   requestAnimationFrame(() => {
     updateNow();
-    state.previousScrollTop = viewport ? viewport.scrollTop : 0;
-    requestAnimationFrame(() => {
-      state.shouldExpandOnScroll = true;
-    });
   });
 }
 
