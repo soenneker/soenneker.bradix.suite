@@ -112,6 +112,7 @@ else
     private double _viewportScrollTop;
     private double _viewportScrollHeight;
     private double _viewportHeight;
+    private string? _lastItemAlignedPositionValue;
     private CancellationTokenSource? _autoScrollCts;
     private ElementReference _contentElement;
     private ElementReference _viewportElement;
@@ -237,6 +238,7 @@ else
             _pendingOpenAutoFocus = false;
             _openLayoutPassQueued = false;
             _shouldRepositionOnScrollButton = true;
+            _lastItemAlignedPositionValue = null;
 
             StopAutoScroll();
 
@@ -370,17 +372,23 @@ else
             return;
 
         _shouldRepositionOnScrollButton = false;
-        await UpdateItemAlignedPosition();
+        await UpdateItemAlignedPosition(force: true);
         await FocusViewport();
     }
 
     [JSInvokable]
     public Task HandleViewportMetricsChanged(double scrollTop, double scrollHeight, double viewportHeight)
     {
+        bool couldScrollUp = CanScrollUp;
+        bool couldScrollDown = CanScrollDown;
+
         _viewportScrollTop = scrollTop;
         _viewportScrollHeight = scrollHeight;
         _viewportHeight = viewportHeight;
-        return InvokeAsync(StateHasChanged);
+
+        return couldScrollUp != CanScrollUp || couldScrollDown != CanScrollDown
+            ? InvokeAsync(StateHasChanged)
+            : Task.CompletedTask;
     }
 
     [JSInvokable]
@@ -539,7 +547,7 @@ else
         return Select?.SetFocusedItemFromScript(value) ?? Task.CompletedTask;
     }
 
-    private async Task UpdateItemAlignedPosition()
+    private async Task UpdateItemAlignedPosition(bool force = false)
     {
         if (Select is null || !UseItemAlignedPosition || !_hasContentElement || !_hasViewportElement || !Select.HasTrigger || !Select.HasValueNode)
             return;
@@ -547,6 +555,9 @@ else
         IBradixSelectCollectionItem? selectedItem = Select.GetSelectedOrFirstEnabledItem();
 
         if (selectedItem is null || !selectedItem.HasItemTextElement)
+            return;
+
+        if (_itemAlignedRegistered && !force && string.Equals(_lastItemAlignedPositionValue, selectedItem.Value, StringComparison.Ordinal))
             return;
 
         if (_itemAlignedRegistered)
@@ -563,6 +574,8 @@ else
             if (OnPlaced.HasDelegate)
                 await OnPlaced.InvokeAsync();
         }
+
+        _lastItemAlignedPositionValue = selectedItem.Value;
     }
 
     private async Task RunAutoScroll(bool upward, CancellationToken cancellationToken)
@@ -640,7 +653,7 @@ else
             return;
 
         if (UseItemAlignedPosition)
-            await UpdateItemAlignedPosition();
+            await UpdateItemAlignedPosition(force: true);
 
         if (!_didFocusOpenItem)
             await ApplyOpenAutoFocus();

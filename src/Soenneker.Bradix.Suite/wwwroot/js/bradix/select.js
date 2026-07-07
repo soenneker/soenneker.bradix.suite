@@ -18,6 +18,11 @@ const selectContentKeyboardKeys = new Set([
 const TYPEAHEAD_RESET_MS = 700;
 const POINTER_UP_OPTION_RETRY_COUNT = 8;
 
+function isSelectViewportScrollEvent(event, viewport) {
+  const target = event?.target;
+  return viewport instanceof HTMLElement && target instanceof Node && (target === viewport || viewport.contains(target));
+}
+
 function invokeDotNetSafely(dotNetRef, methodName, ...args) {
   try {
     const invocation = dotNetRef?.invokeMethodAsync?.(methodName, ...args);
@@ -541,10 +546,11 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
     selectedItemText,
     dir,
     animationFrameId: 0,
+    hasPositioned: false,
     shouldExpandOnScroll: false,
     previousScrollTop: viewport ? viewport.scrollTop : 0
   };
-  const updateNow = () => {
+  const updateNow = (preserveViewportScroll = state.hasPositioned) => {
     if (state.animationFrameId) {
       cancelAnimationFrame(state.animationFrameId);
       state.animationFrameId = 0;
@@ -558,14 +564,21 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
       state.valueNode,
       state.selectedItem,
       state.selectedItemText,
-      state.dir
+      state.dir,
+      preserveViewportScroll
     );
+    state.hasPositioned = true;
   };
-  const update = () => {
+  const update = (event) => {
+    if (event instanceof Event && isSelectViewportScrollEvent(event, state.viewport)) {
+      return;
+    }
+
     if (state.animationFrameId) {
       return;
     }
 
+    const preserveViewportScroll = state.hasPositioned;
     state.animationFrameId = requestAnimationFrame(() => {
       state.animationFrameId = 0;
       positionSelectItemAligned(
@@ -576,8 +589,10 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
         state.valueNode,
         state.selectedItem,
         state.selectedItemText,
-        state.dir
+        state.dir,
+        preserveViewportScroll
       );
+      state.hasPositioned = true;
     });
   };
   const resizeObserver = new ResizeObserver(update);
@@ -695,7 +710,7 @@ function queueItemAlignedPositionFromViewport(viewport, content, wrapper) {
   });
 }
 
-function positionSelectItemAligned(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir) {
+function positionSelectItemAligned(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir, preserveViewportScroll = false) {
   if (!wrapper || !content || !viewport || !trigger || !valueNode || !selectedItem || !selectedItemText) {
     return;
   }
@@ -782,7 +797,9 @@ function positionSelectItemAligned(wrapper, content, viewport, trigger, valueNod
       contentBorderTopWidth + viewport.offsetTop + (isFirstItem ? viewportPaddingTop : 0) + selectedItemHalfHeight
     );
     wrapper.style.height = `${clampedTopEdgeToTriggerMiddle + itemMiddleToContentBottom}px`;
-    viewport.scrollTop = contentTopToItemMiddle - topEdgeToTriggerMiddle + viewport.offsetTop;
+    if (!preserveViewportScroll) {
+      viewport.scrollTop = contentTopToItemMiddle - topEdgeToTriggerMiddle + viewport.offsetTop;
+    }
   }
 
   wrapper.style.minHeight = `${minContentHeight}px`;
