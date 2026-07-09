@@ -45,12 +45,17 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
   unregisterSelectViewport(viewport);
 
   const registration = {
-    animationFrameIds: new Set()
+    animationFrameId: 0,
+    itemAlignedFrameId: 0
   };
 
   const queueNotify = () => {
-    const frameId = requestAnimationFrame(() => {
-      registration.animationFrameIds.delete(frameId);
+    if (registration.animationFrameId) {
+      return;
+    }
+
+    registration.animationFrameId = requestAnimationFrame(() => {
+      registration.animationFrameId = 0;
 
       if (selectViewportHandlers.get(viewport) !== registration) {
         return;
@@ -59,7 +64,6 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
       notify();
     });
 
-    registration.animationFrameIds.add(frameId);
   };
 
   const notify = () => {
@@ -77,9 +81,7 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
     );
   };
 
-  const scroll = () => {
-    notify();
-  };
+  const scroll = queueNotify;
   viewport.addEventListener("scroll", scroll);
 
   const viewportResizeObserver = new ResizeObserver(() => {
@@ -115,11 +117,11 @@ export function unregisterSelectViewport(viewport) {
   if (handlers.contentResizeObserver) {
     handlers.contentResizeObserver.disconnect();
   }
-  if (handlers.animationFrameIds) {
-    for (const frameId of handlers.animationFrameIds) {
-      cancelAnimationFrame(frameId);
-    }
-    handlers.animationFrameIds.clear();
+  if (handlers.animationFrameId) {
+    cancelAnimationFrame(handlers.animationFrameId);
+  }
+  if (handlers.itemAlignedFrameId) {
+    cancelAnimationFrame(handlers.itemAlignedFrameId);
   }
 
   selectViewportHandlers.delete(viewport);
@@ -265,8 +267,7 @@ function applyFocusedSelectValue(content, registration) {
 }
 
 function getEnabledSelectOptions(content) {
-  return Array.from(content.querySelectorAll("[role='option']"))
-    .filter(option => !option.hasAttribute("data-disabled") && option.getAttribute("aria-disabled") !== "true");
+  return Array.from(content.querySelectorAll("[role='option']:not([data-disabled]):not([aria-disabled='true'])"));
 }
 
 function getCurrentSelectOption(content, options) {
@@ -298,14 +299,15 @@ function getTypeaheadSelectOption(options, current, key, registration) {
   }, TYPEAHEAD_RESET_MS);
 
   const currentIndex = Math.max(options.indexOf(current), -1);
-  const ordered = registration.search.length === 1
-    ? options
-    : options.slice(currentIndex + 1).concat(options.slice(0, currentIndex + 1));
-  let target = findTypeaheadOption(ordered, registration.search);
+  const ordered = options.slice(currentIndex + 1).concat(options.slice(0, currentIndex + 1));
+  const repeatedCharacterSearch = registration.search.length > 1
+    && Array.from(registration.search).every(character => character === normalizedKey);
+  const search = repeatedCharacterSearch ? normalizedKey : registration.search;
+  let target = findTypeaheadOption(ordered, search);
 
   if (!target && registration.search !== normalizedKey) {
     registration.search = normalizedKey;
-    target = findTypeaheadOption(options, registration.search);
+    target = findTypeaheadOption(ordered, registration.search);
   }
 
   return target;
@@ -567,7 +569,13 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
     state
   });
 
-  requestAnimationFrame(() => {
+  state.animationFrameId = requestAnimationFrame(() => {
+    state.animationFrameId = 0;
+
+    if (selectItemAlignedHandlers.get(wrapper)?.state !== state) {
+      return;
+    }
+
     updateNow();
   });
 }
@@ -623,7 +631,22 @@ function queueItemAlignedPositionFromViewport(viewport, content, wrapper) {
     return;
   }
 
-  requestAnimationFrame(() => {
+  const registration = selectViewportHandlers.get(viewport);
+  if (!registration) {
+    return;
+  }
+
+  if (registration.itemAlignedFrameId) {
+    cancelAnimationFrame(registration.itemAlignedFrameId);
+  }
+
+  registration.itemAlignedFrameId = requestAnimationFrame(() => {
+    registration.itemAlignedFrameId = 0;
+
+    if (selectViewportHandlers.get(viewport) !== registration) {
+      return;
+    }
+
     const trigger = content.id
       ? document.querySelector(`[role='combobox'][aria-controls='${CSS.escape(content.id)}']`)
       : null;

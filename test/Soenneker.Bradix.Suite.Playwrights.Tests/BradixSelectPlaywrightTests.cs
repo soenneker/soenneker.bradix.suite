@@ -191,6 +191,32 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
+    public async ValueTask Select_demo_repeated_typeahead_cycles_matching_options()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+
+        await page.GotoAndWaitForReady(
+            $"{BaseUrl}selects",
+            static p => p.Locator("[role='combobox']").First,
+            expectedTitle: "Select");
+
+        ILocator trigger = page.Locator("[role='combobox']").First;
+        await trigger.ClickAsync();
+
+        ILocator listbox = page.Locator("[role='listbox']:visible").First;
+        ILocator banana = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Banana", Exact = true });
+        ILocator blueberry = page.GetByRole(AriaRole.Option, new PageGetByRoleOptions { Name = "Blueberry", Exact = true });
+
+        await listbox.FocusAsync();
+        await page.Keyboard.PressAsync("b");
+        await Assertions.Expect(banana).ToBeFocusedAsync();
+
+        await page.Keyboard.PressAsync("b");
+        await Assertions.Expect(blueberry).ToBeFocusedAsync();
+    }
+
+    [Test]
     public async ValueTask Select_demo_typeahead_skips_disabled_matching_option()
     {
         await using BrowserSession session = await CreateSession();

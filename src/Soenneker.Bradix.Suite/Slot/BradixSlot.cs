@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.Web;
 using Soenneker.Lepton.Suite;
 
 namespace Soenneker.Bradix;
@@ -14,16 +13,6 @@ namespace Soenneker.Bradix;
 /// </summary>
 public sealed class BradixSlot : LeptonIdentifiableContentElement
 {
-    private static readonly MethodInfo CreateComposedEventCallbackDefinition =
-        typeof(BradixSlot).GetMethod(nameof(CreateComposedEventCallback), BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-    private static readonly MethodInfo AddTypedEventCallbackDefinition =
-        typeof(BradixSlot).GetMethod(nameof(AddTypedEventCallback), BindingFlags.Static | BindingFlags.NonPublic)!;
-
-    private static readonly ConcurrentDictionary<Type, MethodInfo> ComposedEventCallbackMethods = new();
-    private static readonly ConcurrentDictionary<Type, MethodInfo> AddTypedEventCallbackMethods = new();
-    private static readonly ConcurrentDictionary<Type, MethodInfo?> InvokeAsyncMethods = new();
-
     /// <summary>
     /// Gets or sets element name.
     /// </summary>
@@ -91,18 +80,7 @@ public sealed class BradixSlot : LeptonIdentifiableContentElement
 
     private object ComposeEventHandlers(object childValue, object slotValue)
     {
-        Type argumentType = ResolveEventArgumentType(childValue) ??
-                            ResolveEventArgumentType(slotValue) ??
-                            typeof(object);
-
-        MethodInfo method = ComposedEventCallbackMethods.GetOrAdd(argumentType, static type => CreateComposedEventCallbackDefinition.MakeGenericMethod(type));
-
-        return method.Invoke(this, [childValue, slotValue])!;
-    }
-
-    private EventCallback<TArgument> CreateComposedEventCallback<TArgument>(object childValue, object slotValue)
-    {
-        return EventCallback.Factory.Create<TArgument>(this, async (TArgument args) =>
+        return EventCallback.Factory.Create<object?>(this, async args =>
         {
             await InvokeHandler(childValue, args);
             await InvokeHandler(slotValue, args);
@@ -113,60 +91,80 @@ public sealed class BradixSlot : LeptonIdentifiableContentElement
     {
         switch (handler)
         {
+            case BradixEventCallback callback:
+                await callback.InvokeAsync(argument);
+                return;
             case EventCallback eventCallback:
                 await eventCallback.InvokeAsync(argument);
                 return;
-            case MulticastDelegate @delegate:
-            {
-                ParameterInfo[] parameters = @delegate.Method.GetParameters();
-                object? result = parameters.Length == 0
-                    ? @delegate.DynamicInvoke()
-                    : @delegate.DynamicInvoke(argument);
-
-                if (result is Task task)
-                    await task;
-                else if (result is ValueTask valueTask)
-                    await valueTask;
-
+            case EventCallback<object?> callback:
+                await callback.InvokeAsync(argument);
                 return;
-            }
+            case EventCallback<EventArgs> callback:
+                await callback.InvokeAsync(argument as EventArgs ?? EventArgs.Empty);
+                return;
+            case Action action:
+                action();
+                return;
+            case Func<Task> callback:
+                await callback();
+                return;
+            case Func<ValueTask> callback:
+                await callback();
+                return;
             default:
-            {
-                MethodInfo? invokeAsync = InvokeAsyncMethods.GetOrAdd(handler.GetType(),
-                    static type => type.GetMethod("InvokeAsync", [typeof(object)]));
-
-                if (invokeAsync is null)
-                    return;
-
-                object? result = invokeAsync.Invoke(handler, [argument]);
-
-                if (result is Task task)
-                    await task;
-                else if (result is ValueTask valueTask)
-                    await valueTask;
-
+                await InvokeTypedHandler(handler, argument);
                 return;
-            }
         }
     }
 
-    private static Type? ResolveEventArgumentType(object handler)
+    private static Task InvokeTypedHandler(object handler, object? argument)
     {
-        if (handler is MulticastDelegate @delegate)
+        return argument switch
         {
-            ParameterInfo[] parameters = @delegate.Method.GetParameters();
-            return parameters.Length > 0 ? parameters[0].ParameterType : typeof(object);
+            ChangeEventArgs args => InvokeTypedHandler(handler, args),
+            ClipboardEventArgs args => InvokeTypedHandler(handler, args),
+            DragEventArgs args => InvokeTypedHandler(handler, args),
+            Microsoft.AspNetCore.Components.Web.ErrorEventArgs args => InvokeTypedHandler(handler, args),
+            FocusEventArgs args => InvokeTypedHandler(handler, args),
+            KeyboardEventArgs args => InvokeTypedHandler(handler, args),
+            PointerEventArgs args => InvokeTypedHandler(handler, args),
+            WheelEventArgs args => InvokeTypedHandler(handler, args),
+            MouseEventArgs args => InvokeTypedHandler(handler, args),
+            ProgressEventArgs args => InvokeTypedHandler(handler, args),
+            TouchEventArgs args => InvokeTypedHandler(handler, args),
+            EventArgs args => InvokeTypedHandler(handler, args),
+            null => InvokeTypedHandler<object?>(handler, null),
+            _ => ThrowUnsupportedHandler(handler)
+        };
+    }
+
+    private static async Task InvokeTypedHandler<TArgument>(object handler, TArgument argument)
+    {
+        switch (handler)
+        {
+            case EventCallback<TArgument> callback:
+                await callback.InvokeAsync(argument);
+                return;
+            case Action<TArgument> callback:
+                callback(argument);
+                return;
+            case Func<TArgument, Task> callback:
+                await callback(argument);
+                return;
+            case Func<TArgument, ValueTask> callback:
+                await callback(argument);
+                return;
+            default:
+                await ThrowUnsupportedHandler(handler);
+                return;
         }
+    }
 
-        Type type = handler.GetType();
-
-        if (type == typeof(EventCallback))
-            return typeof(object);
-
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(EventCallback<>))
-            return type.GetGenericArguments()[0];
-
-        return null;
+    private static Task ThrowUnsupportedHandler(object handler)
+    {
+        throw new InvalidOperationException($"Unsupported BradixSlot event handler type '{handler.GetType().FullName}'. " +
+                                            $"Wrap custom typed handlers with {nameof(BradixEventCallback)}.Create.");
     }
 
     private static bool IsEventHandler(string key)
@@ -206,7 +204,7 @@ public sealed class BradixSlot : LeptonIdentifiableContentElement
         return value.Trim().TrimEnd(';') + ";";
     }
 
-    private static void AddAttribute(RenderTreeBuilder builder, int sequence, string key, object value)
+    private void AddAttribute(RenderTreeBuilder builder, int sequence, string key, object value)
     {
         switch (value)
         {
@@ -222,24 +220,11 @@ public sealed class BradixSlot : LeptonIdentifiableContentElement
             case MulticastDelegate @delegate:
                 builder.AddAttribute(sequence, key, @delegate);
                 return;
+            case BradixEventCallback callback:
+                builder.AddAttribute(sequence, key, EventCallback.Factory.Create<object?>(this, callback.InvokeAsync));
+                return;
         }
 
-        Type type = value.GetType();
-
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(EventCallback<>))
-        {
-            Type argumentType = type.GetGenericArguments()[0];
-            MethodInfo method = AddTypedEventCallbackMethods.GetOrAdd(argumentType, static type => AddTypedEventCallbackDefinition.MakeGenericMethod(type));
-
-            method.Invoke(null, [builder, sequence, key, value]);
-            return;
-        }
-
-        builder.AddAttribute(sequence, key, value);
-    }
-
-    private static void AddTypedEventCallback<TArgument>(RenderTreeBuilder builder, int sequence, string key, EventCallback<TArgument> value)
-    {
         builder.AddAttribute(sequence, key, value);
     }
 }

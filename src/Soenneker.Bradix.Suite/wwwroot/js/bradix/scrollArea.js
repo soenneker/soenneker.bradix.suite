@@ -45,7 +45,15 @@ export function registerScrollAreaViewport(viewport, content, dotNetRef) {
 
   unregisterScrollAreaViewport(viewport);
 
+  const registration = {
+    animationFrameId: 0
+  };
+
   const notify = () => {
+    if (scrollAreaViewportHandlers.get(viewport) !== registration) {
+      return;
+    }
+
     const contentElement = content || viewport.firstElementChild;
     invokeDotNetSafe(
       dotNetRef,
@@ -59,24 +67,35 @@ export function registerScrollAreaViewport(viewport, content, dotNetRef) {
     );
   };
 
-  const scroll = () => notify();
+  const queueNotify = () => {
+    if (registration.animationFrameId) {
+      return;
+    }
+
+    registration.animationFrameId = requestAnimationFrame(() => {
+      registration.animationFrameId = 0;
+      notify();
+    });
+  };
+
+  const scroll = queueNotify;
   viewport.addEventListener("scroll", scroll);
 
-  const viewportResizeObserver = new ResizeObserver(() => {
-    requestAnimationFrame(notify);
-  });
+  const viewportResizeObserver = new ResizeObserver(queueNotify);
   viewportResizeObserver.observe(viewport);
 
   let contentResizeObserver = null;
   if (content) {
-    contentResizeObserver = new ResizeObserver(() => {
-      requestAnimationFrame(notify);
-    });
+    contentResizeObserver = new ResizeObserver(queueNotify);
     contentResizeObserver.observe(content);
   }
 
-  requestAnimationFrame(notify);
-  scrollAreaViewportHandlers.set(viewport, { scroll, viewportResizeObserver, contentResizeObserver, content });
+  registration.scroll = scroll;
+  registration.viewportResizeObserver = viewportResizeObserver;
+  registration.contentResizeObserver = contentResizeObserver;
+  registration.content = content;
+  scrollAreaViewportHandlers.set(viewport, registration);
+  queueNotify();
 }
 
 export function unregisterScrollAreaViewport(viewport) {
@@ -91,6 +110,10 @@ export function unregisterScrollAreaViewport(viewport) {
 
   if (handlers.contentResizeObserver) {
     handlers.contentResizeObserver.disconnect();
+  }
+
+  if (handlers.animationFrameId) {
+    cancelAnimationFrame(handlers.animationFrameId);
   }
 
   scrollAreaViewportHandlers.delete(viewport);

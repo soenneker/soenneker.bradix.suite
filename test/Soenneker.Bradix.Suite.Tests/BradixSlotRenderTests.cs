@@ -5,6 +5,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -82,6 +83,64 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Slot_composes_typed_event_callbacks_in_child_first_order()
+    {
+        List<string> calls = [];
+        var receiver = new object();
+
+        EventCallback<MouseEventArgs> slotCallback = EventCallback.Factory.Create<MouseEventArgs>(receiver,
+            (MouseEventArgs args) => calls.Add($"slot:{args.Detail}"));
+        EventCallback<MouseEventArgs> childCallback = EventCallback.Factory.Create<MouseEventArgs>(receiver,
+            (MouseEventArgs args) => calls.Add($"child:{args.Detail}"));
+
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixSlot>(0);
+            builder.AddAttribute(1, nameof(BradixSlot.ElementName), "button");
+            builder.AddAttribute(2, nameof(BradixSlot.AdditionalAttributes), new Dictionary<string, object>
+            {
+                ["onclick"] = slotCallback
+            });
+            builder.AddAttribute(3, nameof(BradixSlot.ChildAttributes), new Dictionary<string, object>
+            {
+                ["onclick"] = childCallback
+            });
+            builder.CloseComponent();
+        });
+
+        await cut.Find("button").ClickAsync(new MouseEventArgs { Detail = 2 });
+
+        await Assert.That(string.Join(",", calls)).IsEqualTo("child:2,slot:2");
+    }
+
+    [Test]
+    public async Task Slot_composes_wrapped_custom_event_callbacks_without_reflection()
+    {
+        List<string> calls = [];
+        BradixEventCallback slotCallback = BradixEventCallback.Create<CustomEventArgs>(args => calls.Add($"slot:{args.Value}"));
+        BradixEventCallback childCallback = BradixEventCallback.Create<CustomEventArgs>(args => calls.Add($"child:{args.Value}"));
+
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixSlot>(0);
+            builder.AddAttribute(1, nameof(BradixSlot.ElementName), "button");
+            builder.AddAttribute(2, nameof(BradixSlot.AdditionalAttributes), new Dictionary<string, object>
+            {
+                ["oncustom"] = slotCallback
+            });
+            builder.AddAttribute(3, nameof(BradixSlot.ChildAttributes), new Dictionary<string, object>
+            {
+                ["oncustom"] = childCallback
+            });
+            builder.CloseComponent();
+        });
+
+        await cut.Find("button").TriggerEventAsync("oncustom", new CustomEventArgs { Value = 42 });
+
+        await Assert.That(string.Join(",", calls)).IsEqualTo("child:42,slot:42");
+    }
+
+    [Test]
     public async Task Slot_requires_non_empty_element_name()
     {
         await Assert.That(() => Render(builder =>
@@ -90,5 +149,10 @@ public sealed class BradixSlotRenderTests : BunitContext
             builder.AddAttribute(1, nameof(BradixSlot.ElementName), "");
             builder.CloseComponent();
         })).Throws<InvalidOperationException>();
+    }
+
+    private sealed class CustomEventArgs : EventArgs
+    {
+        public int Value { get; init; }
     }
 }
