@@ -22,7 +22,7 @@
         <PackageReference Include="bunit" Version="2.7.2" />
         <PackageReference Include="Soenneker.Utils.Test" Version="4.0.322" />
         <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="4.0.339" />
-        <PackageReference Include="Soenneker.Lepton.Suite" Version="4.0.34" />
+        <PackageReference Include="Soenneker.Lepton.Suite" Version="4.0.35" />
         <PackageReference Include="TUnit" Version="1.59.0" />
     </ItemGroup>
 
