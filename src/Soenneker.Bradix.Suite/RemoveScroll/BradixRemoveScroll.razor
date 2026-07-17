@@ -1,5 +1,5 @@
 @namespace Soenneker.Bradix
-@using System
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits LeptonContent
 @implements IBradixRemoveScroll
@@ -8,7 +8,7 @@
 
 @ChildContent
 @code {
-    private readonly string _registrationId = Guid.NewGuid().ToString("N");
+    private readonly string _registrationId = BlazorIdGenerator.New("bradix-remove-scroll");
     private bool _disposed;
     private bool _registered;
 
