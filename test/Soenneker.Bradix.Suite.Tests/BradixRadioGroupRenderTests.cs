@@ -163,7 +163,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
                 builder.AddAttribute(4, nameof(BradixRadioGroup.OnValueChange), onValueChange);
 
             if (orientation is not null)
-                builder.AddAttribute(5, nameof(BradixRadioGroup.Orientation), orientation);
+                builder.AddAttribute(5, nameof(BradixRadioGroup.Orientation), (object) orientation);
 
             builder.AddAttribute(6, nameof(BradixRadioGroup.ChildContent), (RenderFragment) (contentBuilder =>
             {
