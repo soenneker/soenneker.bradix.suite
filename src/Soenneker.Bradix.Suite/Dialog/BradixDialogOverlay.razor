@@ -10,7 +10,6 @@
                     Tag="div"
                     Class="@Class"
                     Style="@OverlayStyle"
-                    EmitOpenClosedAttributes="@EmitOpenClosedAttributes"
                     AdditionalAttributes="OverlayAttributes"
                     OnExitComplete="@HandleExitComplete">
         @ChildContent
@@ -29,9 +28,6 @@
 
     [Parameter]
     public bool ForceMount { get; set; }
-
-    [Parameter]
-    public bool EmitOpenClosedAttributes { get; set; } = true;
 
     private bool IsPresent => Dialog?.CurrentOpen == true || ForceMount || PortalForceMount;
 

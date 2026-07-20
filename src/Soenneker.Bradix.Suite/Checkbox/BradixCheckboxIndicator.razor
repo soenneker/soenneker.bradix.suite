@@ -20,8 +20,6 @@
 
     private Dictionary<string, object> IndicatorAttributes => BuildAttributes(
         ("data-state", GetDataState(Checkbox.CurrentChecked)),
-        ("data-checked", Checkbox.IsChecked ? string.Empty : null),
-        ("data-unchecked", IsUncheckedState(Checkbox.CurrentChecked) ? string.Empty : null),
         ("data-disabled", Checkbox.IsDisabled ? string.Empty : null),
         ("style", "pointer-events: none;"));
 

@@ -47,7 +47,7 @@ export function registerPresence(element, dotNetRef) {
     element.style.animationFillMode = "forwards";
   };
 
-  const isClosing = () => element.hasAttribute("data-closed") || element.getAttribute("data-state") === "closed";
+  const isClosing = () => element.getAttribute("data-state") === "closed";
 
   const handleAnimationStart = (event) => {
     if (event.target === element) {

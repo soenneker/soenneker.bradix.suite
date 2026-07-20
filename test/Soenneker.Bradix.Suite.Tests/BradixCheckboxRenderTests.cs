@@ -37,6 +37,8 @@ public sealed class BradixCheckboxRenderTests : BunitContext
 
         await Assert.That(button.GetAttribute("aria-checked")).IsEqualTo("false");
         await Assert.That(button.GetAttribute("data-state")).IsEqualTo("unchecked");
+        await Assert.That(button.HasAttribute("data-checked")).IsFalse();
+        await Assert.That(button.HasAttribute("data-unchecked")).IsFalse();
     }
 
     [Test]
@@ -102,6 +104,8 @@ public sealed class BradixCheckboxRenderTests : BunitContext
 
         IElement indicator = cut.Find("span");
         await Assert.That(indicator.GetAttribute("style")).Contains("pointer-events: none");
+        await Assert.That(indicator.GetAttribute("data-state")).IsEqualTo("unchecked");
+        await Assert.That(indicator.HasAttribute("data-unchecked")).IsFalse();
     }
 
     [Test]

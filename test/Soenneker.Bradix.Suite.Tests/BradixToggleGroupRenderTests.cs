@@ -26,7 +26,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         string? requestedValue = null;
 
         IRenderedComponent<ContainerFragment> cut = Render(CreateSingleGroup(EventCallback.Factory.Create<string?>(this, value => requestedValue = value)));
-        IElement group = cut.Find("[role='group']");
+        IElement group = cut.Find("[role='radiogroup']");
 
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
 
@@ -53,7 +53,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         IReadOnlyCollection<string>? requestedValues = null;
 
         IRenderedComponent<ContainerFragment> cut = Render(CreateMultipleGroup(EventCallback.Factory.Create<IReadOnlyCollection<string>>(this, values => requestedValues = values)));
-        await Assert.That(cut.Find("[role='group']")).IsNotNull();
+        await Assert.That(cut.Find("[role='toolbar']")).IsNotNull();
 
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
 

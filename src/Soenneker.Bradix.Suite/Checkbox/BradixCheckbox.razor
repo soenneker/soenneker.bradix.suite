@@ -85,8 +85,6 @@
         ("aria-checked", IsIndeterminate ? "mixed" : IsChecked ? "true" : "false"),
         ("aria-required", Required ? "true" : null),
         ("data-state", GetDataState(CurrentChecked)),
-        ("data-checked", IsChecked ? string.Empty : null),
-        ("data-unchecked", !IsChecked && !IsIndeterminate ? string.Empty : null),
         ("data-disabled", Disabled ? string.Empty : null),
         ("disabled", Disabled ? true : null),
         ("value", Value));

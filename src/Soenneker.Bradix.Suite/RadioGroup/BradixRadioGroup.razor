@@ -62,6 +62,7 @@
         ("aria-required", Required ? "true" : null),
         ("aria-orientation", Orientation?.Value),
         ("data-disabled", Disabled ? string.Empty : null),
+        ("data-orientation", Orientation?.Value),
         ("dir", ResolvedDirection));
 
     protected override void OnInitialized()

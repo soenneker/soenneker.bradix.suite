@@ -73,7 +73,7 @@
     private string? NormalizedOrientation => Orientation?.Value;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
-        ("role", "group"),
+        ("role", IsSingle ? "radiogroup" : "toolbar"),
         ("tabindex", RovingFocus ? 0 : null),
         ("data-orientation", NormalizedOrientation),
         ("dir", ResolvedDirection));

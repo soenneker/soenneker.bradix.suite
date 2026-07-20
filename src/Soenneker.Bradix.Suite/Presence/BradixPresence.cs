@@ -75,12 +75,6 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
     [Parameter]
     public bool PreventKeyDownDefault { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether emit open closed attributes.
-    /// </summary>
-    [Parameter]
-    public bool EmitOpenClosedAttributes { get; set; } = true;
-
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
@@ -291,43 +285,7 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
 
     private Dictionary<string, object> BuildRenderAttributes()
     {
-        Dictionary<string, object> attributes = BuildAttributes();
-
-        bool isOpen = ResolveOpenState(attributes);
-
-        if (!EmitOpenClosedAttributes)
-        {
-            attributes.Remove("data-open");
-            attributes.Remove("data-closed");
-        }
-        else if (isOpen)
-        {
-            attributes["data-open"] = string.Empty;
-            attributes.Remove("data-closed");
-        }
-        else
-        {
-            attributes["data-closed"] = string.Empty;
-            attributes.Remove("data-open");
-        }
-
-        return attributes;
-    }
-
-    private bool ResolveOpenState(Dictionary<string, object> attributes)
-    {
-        if (attributes.TryGetValue("data-state", out object? dataState))
-        {
-            string? state = dataState?.ToString();
-
-            if (string.Equals(state, "open", StringComparison.Ordinal))
-                return true;
-
-            if (string.Equals(state, "closed", StringComparison.Ordinal))
-                return false;
-        }
-
-        return Present;
+        return BuildAttributes();
     }
 
     private Task HandleKeyDown(KeyboardEventArgs args)

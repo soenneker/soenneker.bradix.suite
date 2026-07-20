@@ -91,9 +91,6 @@
     [Parameter]
     public bool CloseOnFocusOutside { get; set; } = true;
 
-    [Parameter]
-    public bool EmitOpenClosedAttributes { get; set; } = true;
-
     private bool IsPresent => ForceMount || PortalForceMount || Dialog?.CurrentOpen == true;
 
     private bool ShouldRenderContainer => IsPresent || _isExiting;
@@ -316,7 +313,6 @@ ResetState:
                                 Class="@Class"
                                 Style="@Style"
                                 AdditionalAttributes="@ContentAttributes"
-                                EmitOpenClosedAttributes="@EmitOpenClosedAttributes"
                                 OnKeyDown="@HandleContentKeyDown"
                                 OnExitComplete="@HandleExitComplete">
                     @ChildContent

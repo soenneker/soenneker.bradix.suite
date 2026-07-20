@@ -40,7 +40,7 @@ public sealed class BradixAccordionAnimationRenderTests : BunitContext
         IElement content = cut.Find("[role='region'][data-state='closed']");
         await Assert.That(content.HasAttribute("hidden")).IsFalse();
         await Assert.That(cut.Markup).Contains("Content One");
-        await Assert.That(content.HasAttribute("data-closed")).IsTrue();
+        await Assert.That(content.GetAttribute("data-state")).IsEqualTo("closed");
     }
 
     private static RenderFragment CreateAccordion()

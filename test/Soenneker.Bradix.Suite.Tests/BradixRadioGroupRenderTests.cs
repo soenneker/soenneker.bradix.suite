@@ -33,14 +33,16 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     [Test]
     public async Task Radio_group_renders_checked_state_without_hidden_input_outside_form()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", required: true));
+        IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", required: true, orientation: Orientation.Horizontal));
 
         IElement group = cut.Find("[role='radiogroup']");
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
 
         await Assert.That(group.GetAttribute("aria-required")).IsEqualTo("true");
+        await Assert.That(group.GetAttribute("data-orientation")).IsEqualTo("horizontal");
         await Assert.That(buttons[0].GetAttribute("aria-checked")).IsEqualTo("true");
         await Assert.That(buttons[0].GetAttribute("data-state")).IsEqualTo("checked");
+        await Assert.That(buttons[0].HasAttribute("data-checked")).IsFalse();
         await Assert.That(cut.FindAll("input[type='radio']")).IsEmpty();
     }
 
@@ -143,7 +145,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
         await Assert.That(buttons[2].GetAttribute("aria-checked")).IsEqualTo("false");
     }
 
-    private static RenderFragment CreateRadioGroup(string? defaultValue = null, string? name = null, bool required = false, EventCallback<string?> onValueChange = default, bool forceMountIndicator = false, bool includeDisabledMiddle = true, string? itemForm = null)
+    private static RenderFragment CreateRadioGroup(string? defaultValue = null, string? name = null, bool required = false, EventCallback<string?> onValueChange = default, bool forceMountIndicator = false, bool includeDisabledMiddle = true, string? itemForm = null, Orientation? orientation = null)
     {
         return builder =>
         {
@@ -160,7 +162,10 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
             if (onValueChange.HasDelegate)
                 builder.AddAttribute(4, nameof(BradixRadioGroup.OnValueChange), onValueChange);
 
-            builder.AddAttribute(5, nameof(BradixRadioGroup.ChildContent), (RenderFragment) (contentBuilder =>
+            if (orientation is not null)
+                builder.AddAttribute(5, nameof(BradixRadioGroup.Orientation), orientation);
+
+            builder.AddAttribute(6, nameof(BradixRadioGroup.ChildContent), (RenderFragment) (contentBuilder =>
             {
                 RenderItem(contentBuilder, 0, "one", forceMountIndicator, form: itemForm);
                 RenderItem(contentBuilder, 10, "two", forceMountIndicator, includeDisabledMiddle, itemForm);
