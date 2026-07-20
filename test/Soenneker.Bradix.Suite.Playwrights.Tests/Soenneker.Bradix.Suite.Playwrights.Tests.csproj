@@ -21,9 +21,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Playwrights.Extensions.TestPages" Version="4.0.34" />
-<PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.152" />
-<PackageReference Include="TUnit" Version="1.59.0" />
+        <PackageReference Include="Soenneker.Playwrights.Extensions.TestPages" Version="4.0.40" />
+<PackageReference Include="Soenneker.Playwrights.Tests.Unit" Version="4.0.163" />
+<PackageReference Include="TUnit" Version="1.61.15" />
     </ItemGroup>
 </Project>
 
