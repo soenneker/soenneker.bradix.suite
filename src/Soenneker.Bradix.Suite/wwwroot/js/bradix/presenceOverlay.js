@@ -78,13 +78,15 @@ export function registerPresence(element, dotNetRef) {
 
 export function getPresenceState(element) {
   if (!element) {
-    return { animationName: "none", display: "none" };
+    return { animationName: "none", display: "none", hasActiveAnimation: false };
   }
 
   const styles = getComputedStyle(element);
+  const animations = typeof element.getAnimations === "function" ? element.getAnimations() : [];
   return {
     animationName: styles.animationName || "none",
-    display: styles.display || ""
+    display: styles.display || "",
+    hasActiveAnimation: animations.some(animation => animation.playState === "pending" || animation.playState === "running")
   };
 }
 

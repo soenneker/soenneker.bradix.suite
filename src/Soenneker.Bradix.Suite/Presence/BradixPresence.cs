@@ -143,7 +143,8 @@ public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDis
 
                 bool hasExitAnimation = snapshot.Display != "none"
                                         && !string.Equals(snapshot.AnimationName, "none", StringComparison.Ordinal)
-                                        && !string.Equals(snapshot.AnimationName, _previousAnimationName, StringComparison.Ordinal);
+                                        && !string.Equals(snapshot.AnimationName, _previousAnimationName, StringComparison.Ordinal)
+                                        && snapshot.HasActiveAnimation != false;
 
                 if (hasExitAnimation)
                 {
