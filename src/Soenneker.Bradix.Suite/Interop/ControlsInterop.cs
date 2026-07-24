@@ -134,9 +134,10 @@ public sealed class ControlsInterop : IControlsInterop
         await module.InvokeVoidAsync("focusElementByIdDeferred", cancellationToken, elementId);
     }
 
-    public ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default)
+    public async ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default)
     {
-        return element.FocusAsync(preventScroll: true);
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("focusElementPreventScroll", cancellationToken, element);
     }
 
     public async ValueTask<bool> FocusFirstMatchingDescendant(ElementReference element, string selector, CancellationToken cancellationToken = default)
