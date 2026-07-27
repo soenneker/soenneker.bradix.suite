@@ -211,6 +211,9 @@
         if (Disabled || Select is null || _pointerType != "mouse")
             return;
 
+        if (Select.ConsumeSuppressNextMousePointerUpSelection())
+            return;
+
         if (Select.HasTriggerPointerDownPosition)
         {
             double deltaX = Math.Abs(Math.Round(args.PageX) - Math.Round(Select.TriggerPointerDownX));

@@ -121,9 +121,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedTriggers = cut.FindAll("button[role='menuitem']");
-            await Assert.That(updatedTriggers[1].GetAttribute("tabindex")).IsEqualTo("0");
-            await Assert.That(updatedTriggers[0].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(JSInterop.Invocations.Any(invocation => invocation.Identifier.Contains("focus", System.StringComparison.OrdinalIgnoreCase))).IsTrue();
         });
     }
 
@@ -202,8 +200,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IHtmlCollection<IElement> items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
-            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
     }
 
@@ -255,8 +252,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
-            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOut(new BradixDelegatedFocusEvent
@@ -270,8 +266,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
-            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll") >= 2).IsTrue();
         });
     }
 

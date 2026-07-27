@@ -14,12 +14,12 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     public BradixScrollAreaRenderTests()
     {
         BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("registerScrollAreaRoot", _ => true);
-        module.SetupVoid("unregisterScrollAreaRoot", _ => true);
-        module.SetupVoid("registerScrollAreaViewport", _ => true);
-        module.SetupVoid("unregisterScrollAreaViewport", _ => true);
-        module.SetupVoid("registerScrollAreaScrollbar", _ => true);
-        module.SetupVoid("unregisterScrollAreaScrollbar", _ => true);
+        module.SetupVoid("registerScrollAreaRoot", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterScrollAreaRoot", _ => true).SetVoidResult();
+        module.SetupVoid("registerScrollAreaViewport", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterScrollAreaViewport", _ => true).SetVoidResult();
+        module.SetupVoid("registerScrollAreaScrollbar", _ => true).SetVoidResult();
+        module.SetupVoid("unregisterScrollAreaScrollbar", _ => true).SetVoidResult();
 
         Services.AddBradixTestInterops();
     }

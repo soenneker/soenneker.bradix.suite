@@ -394,7 +394,10 @@ else
     [JSInvokable]
     public async Task HandleTriggerPointerGuardResult(bool suppressSelection, bool shouldClose)
     {
-        Select?.ClearTriggerPointerDownPosition();
+        Select?.SetSuppressNextMousePointerUpSelection(suppressSelection);
+
+        if (!suppressSelection)
+            Select?.ClearTriggerPointerDownPosition();
 
         if (shouldClose && Select is not null)
             await Select.SetOpen(false);

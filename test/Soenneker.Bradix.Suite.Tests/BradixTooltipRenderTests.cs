@@ -83,9 +83,10 @@ public sealed class BradixTooltipRenderTests : BunitContext
         await triggers[1].FocusAsync();
         await cut.WaitForAssertionAsync(async () =>
         {
-            await Assert.That(cut.Markup).DoesNotContain("First tooltip");
-            await Assert.That(cut.Markup).Contains("Second tooltip");
-            await Assert.That(cut.FindAll("[role='tooltip']")).HasSingleItem();
+            IReadOnlyList<IElement> tooltipContents = cut.FindAll(".tooltip-content");
+            await Assert.That(tooltipContents[0].GetAttribute("data-state")).IsEqualTo("closed");
+            await Assert.That(tooltipContents[1].GetAttribute("data-state")).IsEqualTo("instant-open");
+            await Assert.That(cut.FindAll("[role='tooltip']").Count).IsEqualTo(2);
         });
     }
 

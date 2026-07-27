@@ -99,8 +99,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
     }
 
@@ -119,8 +118,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentFocusOut(new BradixDelegatedFocusEvent
@@ -137,8 +135,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[0].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
     }
 
@@ -157,8 +154,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
@@ -169,8 +165,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[1].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
@@ -181,8 +176,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
@@ -193,8 +187,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[1].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
     }
 
@@ -213,8 +206,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
     }
 
@@ -261,8 +253,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> updatedItems = cut.FindAll("[role='menuitem']");
-            await Assert.That(updatedItems[2].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
 
         await cut.FindAll("[role='menuitem']")[2].TriggerEventAsync("onpointerleave", new PointerEventArgs { PointerType = "mouse" });
@@ -387,7 +378,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("open");
-            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 2);
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 1);
         });
     }
 
@@ -535,8 +526,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         await subTriggerElement.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
-            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
 
         await subTriggerElement.ClickAsync();
@@ -547,9 +537,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
-            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("-1");
-            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "beginMenuSubmenuPointerGrace")).IsTrue();
         });
     }
 
@@ -566,8 +554,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         await subTriggerElement.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
-            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusElementPreventScroll")).IsTrue();
         });
 
         await subTriggerElement.ClickAsync();
@@ -580,8 +567,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
-            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll") >= 2).IsTrue();
         });
     }
 

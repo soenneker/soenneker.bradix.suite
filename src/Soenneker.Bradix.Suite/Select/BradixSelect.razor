@@ -56,6 +56,7 @@
     private bool _hasBubbleSelectElement;
     private bool _bubbleSelectRegistered;
     private bool _bubbleSelectValueInitialized;
+    private bool _suppressNextMousePointerUpSelection;
     private string? _lastBubbleSelectValue;
     private bool _isFormControl = true;
     private bool _formControlStateResolved;
@@ -386,6 +387,18 @@
     internal void ClearTriggerPointerDownPosition()
     {
         _triggerPointerDownPosition = null;
+    }
+
+    internal void SetSuppressNextMousePointerUpSelection(bool suppress)
+    {
+        _suppressNextMousePointerUpSelection = suppress;
+    }
+
+    internal bool ConsumeSuppressNextMousePointerUpSelection()
+    {
+        bool suppress = _suppressNextMousePointerUpSelection;
+        _suppressNextMousePointerUpSelection = false;
+        return suppress;
     }
 
     internal void SetFocusedItem(string? value)

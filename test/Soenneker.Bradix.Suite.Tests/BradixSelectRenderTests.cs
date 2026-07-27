@@ -191,7 +191,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             await Assert.That(trigger.TextContent).Contains("Lime");
-            await Assert.That(cut.Find("option[value='lime']").HasAttribute("selected")).IsTrue();
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "syncSelectBubbleInputValue")).IsTrue();
         });
     }
 
@@ -247,9 +247,9 @@ public sealed class BradixSelectRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             IReadOnlyList<IElement> items = cut.FindAll("[role='option']");
-            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("-1");
-            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("-1");
-            await Assert.That(items[2].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(items[0].HasAttribute("data-highlighted")).IsFalse();
+            await Assert.That(items[1].HasAttribute("data-highlighted")).IsFalse();
+            await Assert.That(items[2].HasAttribute("data-highlighted")).IsTrue();
         });
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
@@ -260,9 +260,9 @@ public sealed class BradixSelectRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             IReadOnlyList<IElement> items = cut.FindAll("[role='option']");
-            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("0");
-            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("-1");
-            await Assert.That(items[2].GetAttribute("tabindex")).IsEqualTo("-1");
+            await Assert.That(items[0].HasAttribute("data-highlighted")).IsTrue();
+            await Assert.That(items[1].HasAttribute("data-highlighted")).IsFalse();
+            await Assert.That(items[2].HasAttribute("data-highlighted")).IsFalse();
         });
 
         await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "scrollElementIntoViewNearest")).IsTrue();
@@ -277,9 +277,9 @@ public sealed class BradixSelectRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             IReadOnlyList<IElement> items = cut.FindAll("[role='option']");
-            await Assert.That(items[0].GetAttribute("tabindex")).IsEqualTo("-1");
-            await Assert.That(items[1].GetAttribute("tabindex")).IsEqualTo("-1");
-            await Assert.That(items[2].GetAttribute("tabindex")).IsEqualTo("0");
+            await Assert.That(items[0].HasAttribute("data-highlighted")).IsFalse();
+            await Assert.That(items[1].HasAttribute("data-highlighted")).IsFalse();
+            await Assert.That(items[2].HasAttribute("data-highlighted")).IsTrue();
         });
 
         await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "scrollElementIntoViewNearest")).IsTrue();
@@ -294,7 +294,9 @@ public sealed class BradixSelectRenderTests : BunitContext
         {
             IElement hiddenSelect = cut.Find("select[aria-hidden='true']");
             await Assert.That(hiddenSelect.GetAttribute("name")).IsEqualTo("fruit");
-            await Assert.That(cut.Find("option[value='lime']").HasAttribute("selected")).IsTrue();
+            await Assert.That(_module.Invocations.Any(invocation =>
+                invocation.Identifier == "syncSelectBubbleInputValue" &&
+                invocation.Arguments.Any(argument => string.Equals(argument?.ToString(), "lime", StringComparison.Ordinal)))).IsTrue();
         });
     }
 
@@ -391,7 +393,8 @@ public sealed class BradixSelectRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            await Assert.That(cut.FindAll("[role='listbox']")).IsEmpty();
+            await Assert.That(cut.Find("button[role='combobox']").GetAttribute("aria-expanded")).IsEqualTo("false");
+            await Assert.That(cut.Find("[role='listbox']").GetAttribute("data-state")).IsEqualTo("closed");
         });
     }
 
@@ -405,7 +408,8 @@ public sealed class BradixSelectRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            await Assert.That(cut.FindAll("[role='listbox']")).IsEmpty();
+            await Assert.That(cut.Find("button[role='combobox']").GetAttribute("aria-expanded")).IsEqualTo("false");
+            await Assert.That(cut.Find("[role='listbox']").GetAttribute("data-state")).IsEqualTo("closed");
         });
     }
 
@@ -433,7 +437,8 @@ public sealed class BradixSelectRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            await Assert.That(cut.FindAll("[role='listbox']")).IsEmpty();
+            await Assert.That(cut.Find("button[role='combobox']").GetAttribute("aria-expanded")).IsEqualTo("false");
+            await Assert.That(cut.Find("[role='listbox']").GetAttribute("data-state")).IsEqualTo("closed");
         });
 
         trigger = cut.FindComponent<BradixSelectTrigger>();
@@ -447,7 +452,7 @@ public sealed class BradixSelectRenderTests : BunitContext
 
         await cut.WaitForAssertionAsync(async () =>
         {
-            await Assert.That(cut.FindAll("[role='listbox']")).HasSingleItem();
+            await Assert.That(cut.Find("[role='listbox']").GetAttribute("data-state")).IsEqualTo("open");
         });
     }
 
