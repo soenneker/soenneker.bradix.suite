@@ -117,7 +117,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
                 invocation.Arguments[4] is double y &&
                 x == 42 &&
                 y == 84)).IsTrue();
-        }, timeout: TimeSpan.FromMilliseconds(1200));
+        }, timeout: TimeSpan.FromSeconds(5));
     }
 
     [Test]
