@@ -90,6 +90,20 @@ public sealed class BradixInfrastructureContractTests : BunitContext
         }
     }
 
+    [Test]
+    public async Task Form_invalid_capture_coalesces_dispatches_without_swallowing_callback_failures()
+    {
+        string path = Path.Combine(FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot", "js", "bradix", "forms.js");
+        string source = await File.ReadAllTextAsync(path);
+
+        await Assert.That(source).Contains("invalidDispatchQueued");
+        await Assert.That(source).Contains("queueMicrotask(dispatchInvalidControls)");
+        await Assert.That(source).Contains("seenControlNames");
+        await Assert.That(source).Contains("isDisposedDotNetReferenceError");
+        await Assert.That(source).Contains("throw error;");
+        await Assert.That(source).DoesNotContain(".catch(() => {})");
+    }
+
     private static string FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);

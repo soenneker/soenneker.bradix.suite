@@ -149,6 +149,10 @@
         if (HasBuiltInError(validity))
         {
             await FormInterop.SetFormControlCustomValidity(element, null);
+
+            if (!IsLatestValidation(fieldName, version))
+                return;
+
             SetFieldCustomErrors(fieldName, null);
             SetFieldValidity(fieldName, validity);
             return;
@@ -158,63 +162,103 @@
             matcherEntries.Count == 0)
         {
             await FormInterop.SetFormControlCustomValidity(element, null);
+
+            if (!IsLatestValidation(fieldName, version))
+                return;
+
             SetFieldCustomErrors(fieldName, null);
             SetFieldValidity(fieldName, validity);
             return;
         }
 
         Dictionary<string, bool>? syncResults = null;
-        List<BradixFormCustomMatcherEntry>? asyncMatchers = null;
+        List<(BradixFormCustomMatcherEntry Entry, ValueTask<bool> Task)>? asyncMatchers = null;
+        var consumedAsyncMatcherCount = 0;
 
-        foreach (BradixFormCustomMatcherEntry entry in matcherEntries.Values)
+        try
         {
-            ValueTask<bool> task = entry.Match(snapshot.Value, snapshot.FormData);
-
-            if (task.IsCompletedSuccessfully)
+            foreach (BradixFormCustomMatcherEntry entry in matcherEntries.Values)
             {
-                syncResults ??= new Dictionary<string, bool>(matcherEntries.Count, StringComparer.Ordinal);
-                syncResults[entry.Id] = task.Result;
-                continue;
+                ValueTask<bool> task = entry.Match(snapshot.Value, snapshot.FormData);
+
+                if (task.IsCompletedSuccessfully)
+                {
+                    syncResults ??= new Dictionary<string, bool>(matcherEntries.Count, StringComparer.Ordinal);
+                    syncResults[entry.Id] = task.Result;
+                    continue;
+                }
+
+                asyncMatchers ??= new List<(BradixFormCustomMatcherEntry, ValueTask<bool>)>(matcherEntries.Count);
+                asyncMatchers.Add((entry, task));
             }
 
-            asyncMatchers ??= new List<BradixFormCustomMatcherEntry>(matcherEntries.Count);
-            asyncMatchers.Add(entry);
-        }
+            bool hasSyncErrors = HasCustomErrors(syncResults);
 
-        bool hasSyncErrors = HasCustomErrors(syncResults);
-
-        await FormInterop.SetFormControlCustomValidity(element, hasSyncErrors ? _defaultInvalidMessage : null);
-
-        BradixFormValiditySnapshot syncValidity = await FormInterop.GetFormControlValidity(element);
-        SetFieldCustomErrors(fieldName, syncResults);
-        SetFieldValidity(fieldName, syncValidity);
-
-        if (hasSyncErrors || asyncMatchers is not { Count: > 0 } || !IsLatestValidation(fieldName, version))
-            return;
-
-        Dictionary<string, bool> asyncResults = syncResults is not null
-            ? new Dictionary<string, bool>(syncResults, StringComparer.Ordinal)
-            : new Dictionary<string, bool>(asyncMatchers.Count, StringComparer.Ordinal);
-
-        foreach (BradixFormCustomMatcherEntry entry in asyncMatchers)
-        {
-            asyncResults[entry.Id] = await entry.Match(snapshot.Value, snapshot.FormData);
+            await FormInterop.SetFormControlCustomValidity(element, hasSyncErrors ? _defaultInvalidMessage : null);
 
             if (!IsLatestValidation(fieldName, version))
                 return;
+
+            BradixFormValiditySnapshot syncValidity = await FormInterop.GetFormControlValidity(element);
+
+            if (!IsLatestValidation(fieldName, version))
+                return;
+
+            SetFieldCustomErrors(fieldName, syncResults);
+            SetFieldValidity(fieldName, syncValidity);
+
+            if (hasSyncErrors || asyncMatchers is not { Count: > 0 })
+                return;
+
+            Dictionary<string, bool> asyncResults = syncResults is not null
+                ? new Dictionary<string, bool>(syncResults, StringComparer.Ordinal)
+                : new Dictionary<string, bool>(asyncMatchers.Count, StringComparer.Ordinal);
+
+            while (consumedAsyncMatcherCount < asyncMatchers.Count)
+            {
+                (BradixFormCustomMatcherEntry entry, ValueTask<bool> task) = asyncMatchers[consumedAsyncMatcherCount++];
+                asyncResults[entry.Id] = await task;
+
+                if (!IsLatestValidation(fieldName, version))
+                    return;
+            }
+
+            bool hasAsyncErrors = HasCustomErrors(asyncResults);
+
+            await FormInterop.SetFormControlCustomValidity(element, hasAsyncErrors ? _defaultInvalidMessage : null);
+
+            if (!IsLatestValidation(fieldName, version))
+                return;
+
+            BradixFormValiditySnapshot asyncValidity = await FormInterop.GetFormControlValidity(element);
+
+            if (!IsLatestValidation(fieldName, version))
+                return;
+
+            SetFieldCustomErrors(fieldName, asyncResults);
+            SetFieldValidity(fieldName, asyncValidity);
         }
+        finally
+        {
+            if (asyncMatchers is { Count: > 0 } && consumedAsyncMatcherCount < asyncMatchers.Count)
+                _ = ObserveRemainingMatchers(asyncMatchers, consumedAsyncMatcherCount);
+        }
+    }
 
-        bool hasAsyncErrors = HasCustomErrors(asyncResults);
-
-        await FormInterop.SetFormControlCustomValidity(element, hasAsyncErrors ? _defaultInvalidMessage : null);
-
-        BradixFormValiditySnapshot asyncValidity = await FormInterop.GetFormControlValidity(element);
-
-        if (!IsLatestValidation(fieldName, version))
-            return;
-
-        SetFieldCustomErrors(fieldName, asyncResults);
-        SetFieldValidity(fieldName, asyncValidity);
+    private static async Task ObserveRemainingMatchers(List<(BradixFormCustomMatcherEntry Entry, ValueTask<bool> Task)> asyncMatchers, int startIndex)
+    {
+        for (int i = startIndex; i < asyncMatchers.Count; i++)
+        {
+            try
+            {
+                _ = await asyncMatchers[i].Task.ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // These matcher results can no longer affect the superseded or failed validation,
+                // but each started ValueTask still must be consumed exactly once.
+            }
+        }
     }
 
     internal void RegisterFieldMessageId(string fieldName, string id)

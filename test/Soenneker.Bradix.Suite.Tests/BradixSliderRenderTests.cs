@@ -60,6 +60,42 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Slider_scientific_notation_step_preserves_decimal_precision()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [0], step: 1e-7));
+
+        IElement thumb = cut.Find("[role='slider']");
+        await thumb.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        thumb = cut.Find("[role='slider']");
+
+        await Assert.That(thumb.GetAttribute("aria-valuenow")).IsEqualTo("1E-07");
+    }
+
+    [Test]
+    public async Task Slider_subnormal_scientific_notation_step_remains_finite()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [0], step: 1e-309));
+
+        IElement thumb = cut.Find("[role='slider']");
+        await thumb.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        thumb = cut.Find("[role='slider']");
+
+        await Assert.That(thumb.GetAttribute("aria-valuenow")).IsEqualTo("1E-309");
+    }
+
+    [Test]
+    public async Task Slider_ordinary_decimal_step_preserves_decimal_precision()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [0.25], step: 0.125));
+
+        IElement thumb = cut.Find("[role='slider']");
+        await thumb.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        thumb = cut.Find("[role='slider']");
+
+        await Assert.That(thumb.GetAttribute("aria-valuenow")).IsEqualTo("0.375");
+    }
+
+    [Test]
     public async Task Home_and_end_update_first_and_last_thumb_in_multi_thumb_slider()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20, 80]));
@@ -175,16 +211,18 @@ public sealed class BradixSliderRenderTests : BunitContext
         await Assert.That(keys.Contains("PageDown")).IsTrue();
     }
 
-    private static RenderFragment CreateSlider(IReadOnlyList<double> defaultValues, double minStepsBetweenThumbs = 0, string? name = null, Action? onValueCommit = null, string? form = null)
+    private static RenderFragment CreateSlider(IReadOnlyList<double> defaultValues, double minStepsBetweenThumbs = 0, string? name = null, Action? onValueCommit = null,
+        string? form = null, double step = 1)
     {
         return builder =>
         {
             builder.OpenComponent<BradixSlider>(0);
             builder.AddAttribute(1, nameof(BradixSlider.DefaultValues), defaultValues);
             builder.AddAttribute(2, nameof(BradixSlider.MinStepsBetweenThumbs), minStepsBetweenThumbs);
+            builder.AddAttribute(3, nameof(BradixSlider.Step), step);
 
             if (name is not null)
-                builder.AddAttribute(3, nameof(BradixSlider.Name), name);
+                builder.AddAttribute(4, nameof(BradixSlider.Name), name);
 
             if (onValueCommit is not null)
                 builder.AddAttribute(5, nameof(BradixSlider.OnValueCommit), EventCallback.Factory.Create<IReadOnlyList<double>>(new object(), _ => onValueCommit()));
@@ -192,7 +230,7 @@ public sealed class BradixSliderRenderTests : BunitContext
             if (form is not null)
                 builder.AddAttribute(6, nameof(BradixSlider.Form), form);
 
-            builder.AddAttribute(4, nameof(BradixSlider.ChildContent), (RenderFragment) (contentBuilder =>
+            builder.AddAttribute(7, nameof(BradixSlider.ChildContent), (RenderFragment) (contentBuilder =>
             {
                 contentBuilder.OpenComponent<BradixSliderTrack>(0);
                 contentBuilder.AddAttribute(1, nameof(BradixSliderTrack.Class), "track");

@@ -45,4 +45,19 @@ public sealed class BradixOrderedDictionaryTests
         await Assert.That(dictionary.From("alpha", 2)).IsEqualTo(3);
         await Assert.That(dictionary.From("beta", -1)).IsEqualTo(1);
     }
+
+    [Test]
+    public async Task Before_and_after_return_null_at_boundaries_and_for_missing_keys()
+    {
+        var dictionary = new BradixOrderedDictionary<string, int>();
+
+        dictionary.Set("alpha", 1);
+        dictionary.Set("beta", 2);
+        dictionary.Set("gamma", 3);
+
+        await Assert.That(dictionary.Before("alpha")).IsNull();
+        await Assert.That(dictionary.After("gamma")).IsNull();
+        await Assert.That(dictionary.Before("missing")).IsNull();
+        await Assert.That(dictionary.After("missing")).IsNull();
+    }
 }

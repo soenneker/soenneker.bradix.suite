@@ -100,15 +100,39 @@ internal static class BradixSliderMath
 
     public static int GetDecimalCount(double value)
     {
-        string formatted = value.ToString(CultureInfo.InvariantCulture);
-        int separatorIndex = formatted.IndexOf('.');
-        return separatorIndex >= 0 ? formatted.Length - separatorIndex - 1 : 0;
+        Span<char> formatted = stackalloc char[32];
+
+        if (!value.TryFormat(formatted, out int charsWritten, provider: CultureInfo.InvariantCulture))
+            return 0;
+
+        ReadOnlySpan<char> formattedSpan = formatted[..charsWritten];
+        int exponentSeparatorIndex = formattedSpan.IndexOfAny('E', 'e');
+        ReadOnlySpan<char> significand = exponentSeparatorIndex >= 0 ? formattedSpan[..exponentSeparatorIndex] : formattedSpan;
+        int decimalSeparatorIndex = significand.IndexOf('.');
+        int decimalCount = decimalSeparatorIndex >= 0 ? significand.Length - decimalSeparatorIndex - 1 : 0;
+
+        if (exponentSeparatorIndex < 0 ||
+            !int.TryParse(formattedSpan[(exponentSeparatorIndex + 1)..], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int exponent))
+        {
+            return decimalCount;
+        }
+
+        return Math.Max(0, decimalCount - exponent);
     }
 
     public static double RoundValue(double value, int decimalCount)
     {
         double rounder = Math.Pow(10, decimalCount);
-        return Math.Round(value * rounder) / rounder;
+
+        if (!double.IsFinite(rounder) || rounder == 0)
+            return value;
+
+        double scaledValue = value * rounder;
+
+        if (!double.IsFinite(scaledValue))
+            return value;
+
+        return Math.Round(scaledValue) / rounder;
     }
 
     public static string? GetThumbLabel(int index, int totalValues)

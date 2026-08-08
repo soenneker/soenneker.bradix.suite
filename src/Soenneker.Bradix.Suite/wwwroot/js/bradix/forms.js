@@ -9,6 +9,15 @@ const checkboxRootHandlers = new WeakMap();
 const associatedFormResetHandlers = new WeakMap();
 const formRootHandlers = new WeakMap();
 
+function isDisposedDotNetReferenceError(error) {
+  const message = typeof error === "string" ? error : error?.message;
+
+  return typeof message === "string" &&
+    message.includes("There is no tracked object with id") &&
+    message.includes("DotNetObjectReference") &&
+    message.includes("disposed");
+}
+
 export function registerCheckboxRoot(element, dotNetRef, formId = null) {
   if (!element) {
     return;
@@ -67,30 +76,68 @@ export function registerFormRoot(element, dotNetRef) {
 
   unregisterFormRoot(element);
 
-  const invalid = (event) => {
-    event.preventDefault();
+  const registration = {
+    dotNetRef,
+    invalidDispatchQueued: false
+  };
 
-    const invalidElements = Array.from(element.elements || []).filter((candidate) => {
-      return candidate instanceof HTMLElement && isInvalidFormControl(candidate);
-    });
+  const dispatchInvalidControls = () => {
+    registration.invalidDispatchQueued = false;
 
-    const firstInvalid = invalidElements[0];
+    if (formRootHandlers.get(element) !== registration) {
+      return;
+    }
 
-    if (firstInvalid && firstInvalid === event.target && typeof firstInvalid.focus === "function") {
+    const controls = element.elements || [];
+    const invalidControlNames = [];
+    const seenControlNames = new Set();
+    let firstInvalid = null;
+
+    for (let index = 0; index < controls.length; index++) {
+      const candidate = controls[index];
+
+      if (!(candidate instanceof HTMLElement) || !isInvalidFormControl(candidate)) {
+        continue;
+      }
+
+      firstInvalid ||= candidate;
+
+      const name = candidate.getAttribute("name") || candidate.getAttribute("id") || "";
+      if (name && !seenControlNames.has(name)) {
+        seenControlNames.add(name);
+        invalidControlNames.push(name);
+      }
+    }
+
+    if (firstInvalid && typeof firstInvalid.focus === "function") {
       firstInvalid.focus();
     }
 
-    if (dotNetRef) {
-      const invalidControlNames = invalidElements
-        .map((candidate) => candidate.getAttribute("name") || candidate.getAttribute("id") || "")
-        .filter((value) => value);
+    if (registration.dotNetRef) {
+      void registration.dotNetRef.invokeMethodAsync("HandleInvalidControls", invalidControlNames).catch((error) => {
+        if (formRootHandlers.get(element) !== registration && isDisposedDotNetReferenceError(error)) {
+          return;
+        }
 
-      dotNetRef.invokeMethodAsync("HandleInvalidControls", invalidControlNames);
+        throw error;
+      });
     }
   };
 
+  const invalid = (event) => {
+    event.preventDefault();
+
+    if (registration.invalidDispatchQueued) {
+      return;
+    }
+
+    registration.invalidDispatchQueued = true;
+    queueMicrotask(dispatchInvalidControls);
+  };
+
+  registration.invalid = invalid;
   element.addEventListener("invalid", invalid, true);
-  formRootHandlers.set(element, { invalid, dotNetRef });
+  formRootHandlers.set(element, registration);
 }
 
 export function unregisterFormRoot(element) {

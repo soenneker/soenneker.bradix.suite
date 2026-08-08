@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Sources;
 using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
@@ -262,8 +264,10 @@ public sealed class BradixFormRenderTests : BunitContext
     [Test]
     public async Task Custom_async_matcher_displays_default_message_when_matcher_fails()
     {
+        var invocationCount = 0;
         IRenderedComponent<BradixForm> cut = RenderCustomMessageForm((Func<string?, BradixFormDataSnapshot, Task<bool>>)(async (value, _) =>
         {
+            invocationCount++;
             await Task.Yield();
             return string.Equals(value, "taken", StringComparison.Ordinal);
         }));
@@ -279,6 +283,130 @@ public sealed class BradixFormRenderTests : BunitContext
         {
             await Assert.That(cut.Find("span[id]").TextContent.Trim()).IsEqualTo("This value is not valid");
         });
+
+        await Assert.That(invocationCount).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Pending_async_matcher_is_observed_when_sync_matcher_reports_an_error()
+    {
+        var source = new TrackingValueTaskSource();
+        var asyncInvocationCount = 0;
+        var syncInvocationCount = 0;
+        IRenderedComponent<BradixForm> cut = RenderCustomMatcherForm(
+            ("async-message", (Func<string?, BradixFormDataSnapshot, ValueTask<bool>>)((_, _) =>
+            {
+                asyncInvocationCount++;
+                return source.CreateValueTask();
+            })),
+            ("sync-message", (Func<string?, BradixFormDataSnapshot, bool>)((_, _) =>
+            {
+                syncInvocationCount++;
+                return true;
+            })));
+
+        IRenderedComponent<BradixFormControl> control = cut.FindComponent<BradixFormControl>();
+        Task validation = control.Instance.HandleControlStateChanged(CreateValidControlSnapshot());
+
+        await validation;
+        await Assert.That(asyncInvocationCount).IsEqualTo(1);
+        await Assert.That(syncInvocationCount).IsEqualTo(1);
+
+        source.SetResult(false);
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(source.GetResultCount).IsEqualTo(1);
+        });
+    }
+
+    [Test]
+    public async Task Pending_async_matchers_are_observed_when_validation_becomes_stale()
+    {
+        var firstSource = new TrackingValueTaskSource();
+        var secondSource = new TrackingValueTaskSource();
+        var firstInvocationCount = 0;
+        var secondInvocationCount = 0;
+        IRenderedComponent<BradixForm> cut = RenderCustomMatcherForm(
+            ("first-message", (Func<string?, BradixFormDataSnapshot, ValueTask<bool>>)((_, _) =>
+            {
+                firstInvocationCount++;
+                return firstSource.CreateValueTask();
+            })),
+            ("second-message", (Func<string?, BradixFormDataSnapshot, ValueTask<bool>>)((_, _) =>
+            {
+                secondInvocationCount++;
+                return secondSource.CreateValueTask();
+            })));
+
+        IRenderedComponent<BradixFormControl> control = cut.FindComponent<BradixFormControl>();
+        Task staleValidation = control.Instance.HandleControlStateChanged(CreateValidControlSnapshot());
+
+        await control.Instance.HandleControlStateChanged(CreateControlSnapshot("newer", new BradixFormValiditySnapshot
+        {
+            Valid = false,
+            ValueMissing = true
+        }, new Dictionary<string, string[]>()));
+
+        firstSource.SetResult(false);
+        secondSource.SetResult(false);
+        await staleValidation;
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(firstSource.GetResultCount).IsEqualTo(1);
+            await Assert.That(secondSource.GetResultCount).IsEqualTo(1);
+        });
+
+        await Assert.That(firstInvocationCount).IsEqualTo(1);
+        await Assert.That(secondInvocationCount).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Later_async_matcher_is_observed_when_sibling_faults()
+    {
+        var faultedSource = new TrackingValueTaskSource();
+        var siblingSource = new TrackingValueTaskSource();
+        var faultedInvocationCount = 0;
+        var siblingInvocationCount = 0;
+        IRenderedComponent<BradixForm> cut = RenderCustomMatcherForm(
+            ("faulted-message", (Func<string?, BradixFormDataSnapshot, ValueTask<bool>>)((_, _) =>
+            {
+                faultedInvocationCount++;
+                return faultedSource.CreateValueTask();
+            })),
+            ("sibling-message", (Func<string?, BradixFormDataSnapshot, ValueTask<bool>>)((_, _) =>
+            {
+                siblingInvocationCount++;
+                return siblingSource.CreateValueTask();
+            })));
+
+        IRenderedComponent<BradixFormControl> control = cut.FindComponent<BradixFormControl>();
+        Task validation = control.Instance.HandleControlStateChanged(CreateValidControlSnapshot());
+
+        faultedSource.SetException(new InvalidOperationException("matcher failed"));
+        siblingSource.SetException(new InvalidOperationException("sibling failed"));
+
+        Exception? validationException = null;
+        try
+        {
+            await validation;
+        }
+        catch (Exception exception)
+        {
+            validationException = exception;
+        }
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(faultedSource.GetResultCount).IsEqualTo(1);
+            await Assert.That(siblingSource.GetResultCount).IsEqualTo(1);
+        });
+
+        await Assert.That(validationException is InvalidOperationException).IsTrue();
+        await Assert.That(validationException!.Message).IsEqualTo("matcher failed");
+        await Assert.That(faultedInvocationCount).IsEqualTo(1);
+        await Assert.That(siblingInvocationCount).IsEqualTo(1);
     }
 
     [Test]
@@ -468,6 +596,40 @@ public sealed class BradixFormRenderTests : BunitContext
             })));
     }
 
+    private IRenderedComponent<BradixForm> RenderCustomMatcherForm(params (string Id, object Matcher)[] matchers)
+    {
+        return Render<BradixForm>(parameters => parameters
+            .Add(form => form.ChildContent, (RenderFragment)(contentBuilder =>
+            {
+                contentBuilder.OpenComponent<BradixFormField>(0);
+                contentBuilder.AddAttribute(1, nameof(BradixFormField.Name), "confirmPassword");
+                contentBuilder.AddAttribute(2, nameof(BradixFormField.ChildContent), (RenderFragment)(fieldBuilder =>
+                {
+                    fieldBuilder.OpenComponent<BradixFormControl>(0);
+                    fieldBuilder.AddAttribute(1, nameof(BradixFormControl.Type), "password");
+                    fieldBuilder.CloseComponent();
+
+                    var sequence = 2;
+                    foreach ((string id, object matcher) in matchers)
+                    {
+                        fieldBuilder.OpenComponent<BradixFormMessage>(sequence++);
+                        fieldBuilder.AddAttribute(sequence++, nameof(BradixFormMessage.Id), id);
+                        fieldBuilder.AddAttribute(sequence++, nameof(BradixFormMessage.Match), matcher);
+                        fieldBuilder.CloseComponent();
+                    }
+                }));
+                contentBuilder.CloseComponent();
+            })));
+    }
+
+    private static BradixFormControlSnapshot CreateValidControlSnapshot()
+    {
+        return CreateControlSnapshot("value", new BradixFormValiditySnapshot(), new Dictionary<string, string[]>
+        {
+            ["confirmPassword"] = ["value"]
+        });
+    }
+
     private static BradixFormControlSnapshot CreateControlSnapshot(string value, BradixFormValiditySnapshot validity, Dictionary<string, string[]> formValues)
     {
         return new BradixFormControlSnapshot
@@ -479,6 +641,37 @@ public sealed class BradixFormRenderTests : BunitContext
                 Values = formValues
             }
         };
+    }
+
+    private sealed class TrackingValueTaskSource : IValueTaskSource<bool>
+    {
+        private ManualResetValueTaskSourceCore<bool> _source = new()
+        {
+            RunContinuationsAsynchronously = true
+        };
+
+        private int _getResultCount;
+
+        public int GetResultCount => Volatile.Read(ref _getResultCount);
+
+        public ValueTask<bool> CreateValueTask() => new(this, _source.Version);
+
+        public void SetResult(bool result) => _source.SetResult(result);
+
+        public void SetException(Exception exception) => _source.SetException(exception);
+
+        public bool GetResult(short token)
+        {
+            Interlocked.Increment(ref _getResultCount);
+            return _source.GetResult(token);
+        }
+
+        public ValueTaskSourceStatus GetStatus(short token) => _source.GetStatus(token);
+
+        public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags)
+        {
+            _source.OnCompleted(continuation, state, token, flags);
+        }
     }
 
 }

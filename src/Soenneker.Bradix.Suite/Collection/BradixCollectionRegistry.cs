@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+
 namespace Soenneker.Bradix;
 
 /// <summary>
@@ -7,6 +9,7 @@ namespace Soenneker.Bradix;
 public sealed class BradixCollectionRegistry<TItem>
 {
     private readonly BradixOrderedDictionary<string, TItem> _items = new();
+    private IReadOnlyList<BradixCollectionEntry<TItem>>? _snapshot;
 
     /// <summary>
     /// Gets or sets count.
@@ -21,6 +24,7 @@ public sealed class BradixCollectionRegistry<TItem>
     public void Register(string key, TItem item)
     {
         _items.Set(key, item);
+        _snapshot = null;
     }
 
     /// <summary>
@@ -32,6 +36,7 @@ public sealed class BradixCollectionRegistry<TItem>
     public void Insert(int index, string key, TItem item)
     {
         _items.Insert(index, key, item);
+        _snapshot = null;
     }
 
     /// <summary>
@@ -42,7 +47,11 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <param name="item">The item.</param>
     public void SetBefore(string key, string newKey, TItem item)
     {
+        if (!_items.ContainsKey(key))
+            return;
+
         _items.SetBefore(key, newKey, item);
+        _snapshot = null;
     }
 
     /// <summary>
@@ -53,7 +62,11 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <param name="item">The item.</param>
     public void SetAfter(string key, string newKey, TItem item)
     {
+        if (!_items.ContainsKey(key))
+            return;
+
         _items.SetAfter(key, newKey, item);
+        _snapshot = null;
     }
 
     /// <summary>
@@ -63,7 +76,12 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <returns>A value indicating whether the operation succeeded.</returns>
     public bool Unregister(string key)
     {
-        return _items.Delete(key);
+        bool removed = _items.Delete(key);
+
+        if (removed)
+            _snapshot = null;
+
+        return removed;
     }
 
     /// <summary>
@@ -83,6 +101,9 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <returns>The result of the operation.</returns>
     public IReadOnlyList<BradixCollectionEntry<TItem>> Snapshot()
     {
+        if (_snapshot is not null)
+            return _snapshot;
+
         var snapshot = new BradixCollectionEntry<TItem>[_items.Count];
         var index = 0;
 
@@ -91,7 +112,8 @@ public sealed class BradixCollectionRegistry<TItem>
             snapshot[index++] = new BradixCollectionEntry<TItem>(entry.Key, entry.Value);
         }
 
-        return snapshot;
+        _snapshot = Array.AsReadOnly(snapshot);
+        return _snapshot;
     }
 
     /// <summary>
@@ -108,6 +130,10 @@ public sealed class BradixCollectionRegistry<TItem>
     /// </summary>
     public void Clear()
     {
+        if (_items.Count == 0)
+            return;
+
         _items.Clear();
+        _snapshot = null;
     }
 }

@@ -239,7 +239,8 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     /// <returns>The result of the operation.</returns>
     public KeyValuePair<TKey, TValue>? Before(TKey key)
     {
-        return EntryAt(IndexOf(key) - 1);
+        int index = IndexOf(key);
+        return index <= 0 ? null : EntryAt(index - 1);
     }
 
     /// <summary>
@@ -249,7 +250,8 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     /// <returns>The result of the operation.</returns>
     public KeyValuePair<TKey, TValue>? After(TKey key)
     {
-        return EntryAt(IndexOf(key) + 1);
+        int index = IndexOf(key);
+        return index < 0 || index >= Count - 1 ? null : EntryAt(index + 1);
     }
 
     /// <summary>

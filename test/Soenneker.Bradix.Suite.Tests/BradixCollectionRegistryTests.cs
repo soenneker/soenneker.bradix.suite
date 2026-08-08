@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,6 +17,54 @@ public sealed class BradixCollectionRegistryTests
         registry.Register("blue", new BradixCollectionRegistryDemoItem("Blue"));
 
         await Assert.That(string.Join(",", registry.Snapshot().Select(entry => entry.Key))).IsEqualTo("alpha,beta,blue");
+    }
+
+    [Test]
+    public async Task Snapshot_is_read_only_reused_and_invalidated_by_mutations()
+    {
+        var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();
+        registry.Register("alpha", new BradixCollectionRegistryDemoItem("Alpha"));
+
+        IReadOnlyList<BradixCollectionEntry<BradixCollectionRegistryDemoItem>> first = registry.Snapshot();
+        IReadOnlyList<BradixCollectionEntry<BradixCollectionRegistryDemoItem>> reused = registry.Snapshot();
+
+        await Assert.That(ReferenceEquals(first, reused)).IsTrue();
+
+        registry.SetBefore("missing", "amber", new BradixCollectionRegistryDemoItem("Amber"));
+        registry.SetAfter("missing", "blue", new BradixCollectionRegistryDemoItem("Blue"));
+        registry.Unregister("missing");
+        await Assert.That(ReferenceEquals(first, registry.Snapshot())).IsTrue();
+
+        var mutableView = (IList<BradixCollectionEntry<BradixCollectionRegistryDemoItem>>)first;
+        await Assert.That(() =>
+        {
+            mutableView[0] = new BradixCollectionEntry<BradixCollectionRegistryDemoItem>("changed", new BradixCollectionRegistryDemoItem("Changed"));
+        }).Throws<NotSupportedException>();
+
+        registry.Register("beta", new BradixCollectionRegistryDemoItem("Beta"));
+        IReadOnlyList<BradixCollectionEntry<BradixCollectionRegistryDemoItem>> afterRegister = registry.Snapshot();
+        await Assert.That(ReferenceEquals(first, afterRegister)).IsFalse();
+
+        registry.Insert(0, "beta", new BradixCollectionRegistryDemoItem("Beta updated"));
+        IReadOnlyList<BradixCollectionEntry<BradixCollectionRegistryDemoItem>> afterInsert = registry.Snapshot();
+        await Assert.That(ReferenceEquals(afterRegister, afterInsert)).IsFalse();
+
+        registry.SetBefore("beta", "amber", new BradixCollectionRegistryDemoItem("Amber"));
+        IReadOnlyList<BradixCollectionEntry<BradixCollectionRegistryDemoItem>> afterSetBefore = registry.Snapshot();
+        await Assert.That(ReferenceEquals(afterInsert, afterSetBefore)).IsFalse();
+
+        registry.SetAfter("beta", "blue", new BradixCollectionRegistryDemoItem("Blue"));
+        IReadOnlyList<BradixCollectionEntry<BradixCollectionRegistryDemoItem>> afterSetAfter = registry.Snapshot();
+        await Assert.That(ReferenceEquals(afterSetBefore, afterSetAfter)).IsFalse();
+
+        registry.Unregister("amber");
+        IReadOnlyList<BradixCollectionEntry<BradixCollectionRegistryDemoItem>> afterUnregister = registry.Snapshot();
+        await Assert.That(ReferenceEquals(afterSetAfter, afterUnregister)).IsFalse();
+
+        registry.Clear();
+        IReadOnlyList<BradixCollectionEntry<BradixCollectionRegistryDemoItem>> afterClear = registry.Snapshot();
+        await Assert.That(ReferenceEquals(afterUnregister, afterClear)).IsFalse();
+        await Assert.That(ReferenceEquals(afterClear, registry.Snapshot())).IsTrue();
     }
 
     [Test]
