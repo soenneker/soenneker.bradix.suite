@@ -313,11 +313,8 @@ public sealed class BradixFormRenderTests : BunitContext
         await Assert.That(syncInvocationCount).IsEqualTo(1);
 
         source.SetResult(false);
-
-        await cut.WaitForAssertionAsync(async () =>
-        {
-            await Assert.That(source.GetResultCount).IsEqualTo(1);
-        });
+        await source.WaitForGetResultAsync();
+        await Assert.That(source.GetResultCount).IsEqualTo(1);
     }
 
     [Test]
@@ -650,11 +647,14 @@ public sealed class BradixFormRenderTests : BunitContext
             RunContinuationsAsynchronously = true
         };
 
+        private readonly TaskCompletionSource _getResultObserved = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int _getResultCount;
 
         public int GetResultCount => Volatile.Read(ref _getResultCount);
 
         public ValueTask<bool> CreateValueTask() => new(this, _source.Version);
+
+        public Task WaitForGetResultAsync() => _getResultObserved.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
         public void SetResult(bool result) => _source.SetResult(result);
 
@@ -663,6 +663,7 @@ public sealed class BradixFormRenderTests : BunitContext
         public bool GetResult(short token)
         {
             Interlocked.Increment(ref _getResultCount);
+            _getResultObserved.TrySetResult();
             return _source.GetResult(token);
         }
 
