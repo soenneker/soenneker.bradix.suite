@@ -1,6 +1,7 @@
 import { cssEscape, readBooleanDataAttribute } from "./core/dom.js";
 
-const rovingFocusHandlers = new WeakMap();
+const rovingFocusElements = new WeakSet();
+let rovingFocusRegistrationCount = 0;
 const rovingFocusKeys = new Set([
   "ArrowLeft",
   "ArrowRight",
@@ -23,71 +24,15 @@ export function registerRovingFocusNavigationKeys(element, dotNetRef) {
     return;
   }
 
-  unregisterRovingFocusNavigationKeys(element);
+  if (!rovingFocusElements.has(element)) {
+    rovingFocusElements.add(element);
+    rovingFocusRegistrationCount += 1;
 
-  const keydown = (event) => {
-    if (event.target !== event.currentTarget) {
-      return;
+    if (rovingFocusRegistrationCount === 1) {
+      document.addEventListener("keydown", handleRovingFocusKeydown, true);
+      document.addEventListener("mousedown", handleRovingFocusMousedown, true);
     }
-
-    if (readBooleanDataAttribute(element, "bradixPreventEnter") && event.key === "Enter") {
-      event.preventDefault();
-      return;
-    }
-
-    if (readBooleanDataAttribute(element, "bradixSpaceClick") && (event.key === " " || event.key === "Spacebar")) {
-      event.preventDefault();
-      element.click();
-      return;
-    }
-
-    const groupId = element.getAttribute("data-bradix-roving-group");
-
-    if (!groupId) {
-      if (rovingFocusKeys.has(event.key)) {
-        event.preventDefault();
-      }
-
-      return;
-    }
-
-    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
-      return;
-    }
-
-    const target = getRovingFocusTarget(element, event.key);
-
-    if (!target) {
-      return;
-    }
-
-    event.preventDefault();
-
-    const clickOnFocus = readBooleanDataAttribute(element, "bradixRovingClickOnFocus");
-
-    setTimeout(() => {
-      target.focus();
-
-      if (clickOnFocus && rovingFocusSelectionKeys.has(event.key)) {
-        target.click();
-      }
-    }, 0);
-  };
-
-  const mousedown = (event) => {
-    if (readBooleanDataAttribute(element, "bradixPreventNonprimaryMousedown") && (event.button !== 0 || event.ctrlKey)) {
-      event.preventDefault();
-      return;
-    }
-
-    if (readBooleanDataAttribute(element, "bradixPreventMousedownWhenDisabled") && !isRovingFocusableElement(element)) {
-      event.preventDefault();
-    }
-  };
-
-  element.addEventListener("keydown", keydown);
-  element.addEventListener("mousedown", mousedown);
-  rovingFocusHandlers.set(element, { keydown, mousedown });
+  }
 
   if (dotNetRef) {
     dotNetRef.invokeMethodAsync("HandleRovingFocusBridgeReady").catch(() => {});
@@ -95,15 +40,88 @@ export function registerRovingFocusNavigationKeys(element, dotNetRef) {
 }
 
 export function unregisterRovingFocusNavigationKeys(element) {
-  const handlers = rovingFocusHandlers.get(element);
-
-  if (!handlers) {
+  if (!element || !rovingFocusElements.has(element)) {
     return;
   }
 
-  element.removeEventListener("keydown", handlers.keydown);
-  element.removeEventListener("mousedown", handlers.mousedown);
-  rovingFocusHandlers.delete(element);
+  rovingFocusElements.delete(element);
+  rovingFocusRegistrationCount = Math.max(0, rovingFocusRegistrationCount - 1);
+
+  if (rovingFocusRegistrationCount === 0) {
+    document.removeEventListener("keydown", handleRovingFocusKeydown, true);
+    document.removeEventListener("mousedown", handleRovingFocusMousedown, true);
+  }
+}
+
+function handleRovingFocusKeydown(event) {
+  const element = event.target instanceof HTMLElement ? event.target : null;
+
+  if (!element || !rovingFocusElements.has(element)) {
+    return;
+  }
+
+  if (readBooleanDataAttribute(element, "bradixPreventEnter") && event.key === "Enter") {
+    event.preventDefault();
+    return;
+  }
+
+  if (readBooleanDataAttribute(element, "bradixSpaceClick") && (event.key === " " || event.key === "Spacebar")) {
+    event.preventDefault();
+    element.click();
+    return;
+  }
+
+  const groupId = element.getAttribute("data-bradix-roving-group");
+
+  if (!groupId) {
+    if (rovingFocusKeys.has(event.key)) {
+      event.preventDefault();
+    }
+
+    return;
+  }
+
+  if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+    return;
+  }
+
+  const target = getRovingFocusTarget(element, event.key);
+
+  if (!target) {
+    return;
+  }
+
+  event.preventDefault();
+  const clickOnFocus = readBooleanDataAttribute(element, "bradixRovingClickOnFocus");
+
+  setTimeout(() => {
+    target.focus();
+
+    if (clickOnFocus && rovingFocusSelectionKeys.has(event.key)) {
+      target.click();
+    }
+  }, 0);
+}
+
+function handleRovingFocusMousedown(event) {
+  let element = event.target instanceof HTMLElement ? event.target : null;
+
+  while (element && !rovingFocusElements.has(element)) {
+    element = element.parentElement;
+  }
+
+  if (!element) {
+    return;
+  }
+
+  if (readBooleanDataAttribute(element, "bradixPreventNonprimaryMousedown") && (event.button !== 0 || event.ctrlKey)) {
+    event.preventDefault();
+    return;
+  }
+
+  if (readBooleanDataAttribute(element, "bradixPreventMousedownWhenDisabled") && !isRovingFocusableElement(element)) {
+    event.preventDefault();
+  }
 }
 
 function isRovingFocusableElement(element) {

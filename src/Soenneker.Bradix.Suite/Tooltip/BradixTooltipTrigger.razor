@@ -2,17 +2,16 @@
 
 @using Microsoft.JSInterop
 
-@inherits LeptonContentElement
+@inherits BradixContentElement
 
 @implements IBradixTooltipTrigger
 
 @inject ITooltipInterop TooltipInterop
 <button @ref="_triggerElement"
         @onclick="HandleClick"
-        @onpointermove="HandlePointerMove"
+        @onpointerenter="HandlePointerMove"
         @onpointerleave="HandlePointerLeave"
         @onmouseenter="HandleMouseEnter"
-        @onmousemove="HandleMouseMove"
         @onmouseleave="HandleMouseLeave"
         @onpointerdown="HandlePointerDown"
         @onpointerup="HandlePointerUp"

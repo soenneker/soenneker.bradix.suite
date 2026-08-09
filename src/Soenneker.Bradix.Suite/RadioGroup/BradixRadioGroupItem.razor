@@ -3,7 +3,7 @@
 @using Microsoft.JSInterop
 @using Soenneker.Blazor.Utils.Ids
 
-@inherits LeptonIdentifiableContentElement
+@inherits BradixIdentifiableContentElement
 
 @implements IBradixRadioGroupItem
 
@@ -31,7 +31,6 @@
 @code {
     private ElementReference _element;
     private ElementReference _bubbleInputElement;
-    private DotNetObjectReference<object>? _dotNetReference;
     private bool _hasSyncedBubbleInput;
     private bool _isFormControl = true;
     private bool _formControlStateResolved;
@@ -127,8 +126,8 @@
         {
             Group.RegisterItem(this);
             _registered = true;
-            _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+            await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element);
+            _rovingFocusBridgeReady = true;
             await RadioGroupInterop.RegisterRadioGroupItemKeys(_element);
             _lastRenderedChecked = IsChecked;
         }
@@ -149,9 +148,17 @@
 
         if (ShouldRenderBubbleInput)
         {
-            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedChecked != IsChecked;
-            await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, false, dispatchEvent);
+            if (!_hasSyncedBubbleInput || _lastRenderedChecked != IsChecked)
+            {
+                bool dispatchEvent = _hasSyncedBubbleInput;
+                await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, false, dispatchEvent);
+            }
+
             _hasSyncedBubbleInput = true;
+        }
+        else
+        {
+            _hasSyncedBubbleInput = false;
         }
 
         _lastRenderedChecked = IsChecked;
@@ -161,8 +168,6 @@
     {
         await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
         await RadioGroupInterop.UnregisterRadioGroupItemKeys(_element);
-        _dotNetReference?.Dispose();
-
         if (_registered)
             Group.UnregisterItem(this);
     }

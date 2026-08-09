@@ -1,12 +1,12 @@
 @namespace Soenneker.Bradix
 
-@inherits LeptonContentElement
+@inherits BradixContentElement
 
 @using Soenneker.Blazor.Utils.Ids
 @implements IBradixToggleGroup
 
 <CascadingValue Value="this">
-    <div @attributes="RootAttributes" @onfocus="HandleFocus">
+    <div dir="@ResolvedDirection" @attributes="RootAttributes" @onfocus="HandleFocus">
         @ChildContent
     </div>
 </CascadingValue>
@@ -75,8 +75,7 @@
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", IsSingle ? "radiogroup" : "toolbar"),
         ("tabindex", RovingFocus ? 0 : null),
-        ("data-orientation", NormalizedOrientation),
-        ("dir", ResolvedDirection));
+        ("data-orientation", NormalizedOrientation));
 
     protected override void OnInitialized()
     {

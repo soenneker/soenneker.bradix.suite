@@ -2,7 +2,7 @@
 
 @using Microsoft.JSInterop
 
-@inherits LeptonIdentifiableContentElement
+@inherits BradixIdentifiableContentElement
 
 @implements IBradixTabsTrigger
 
@@ -19,7 +19,6 @@
     private ElementReference _element;
     private bool _rovingFocusBridgeReady;
     private bool _registered;
-    private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
     internal BradixTabs Tabs { get; set; } = null!;
@@ -79,14 +78,13 @@
 
         Tabs.RegisterTrigger(this);
         _registered = true;
-        _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+        await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element);
+        _rovingFocusBridgeReady = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
-        _dotNetReference?.Dispose();
 
         if (_registered)
             Tabs.UnregisterTrigger(this);

@@ -2,7 +2,7 @@
 
 @using Microsoft.JSInterop
 
-@inherits LeptonElement
+@inherits BradixElement
 
 @implements IBradixSliderThumb
 
@@ -32,6 +32,7 @@
     private bool _isFormControl = true;
     private bool _formControlStateResolved;
     private double? _lastRenderedValue;
+    private double? _lastSyncedBubbleValue;
     private string? _lastResolvedForm;
     private bool _registered;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -164,9 +165,21 @@
 
         if (ShouldRenderBubbleInput && Value is not null)
         {
-            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedValue != Value;
-            await ControlsInterop.SyncSliderBubbleInputValue(_bubbleInputElement, Slider.NormalizeStepValue(Value.Value), dispatchEvent);
+            double normalizedValue = Slider.NormalizeStepValue(Value.Value);
+
+            if (!_hasSyncedBubbleInput || _lastSyncedBubbleValue != normalizedValue)
+            {
+                bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedValue != Value;
+                await ControlsInterop.SyncSliderBubbleInputValue(_bubbleInputElement, normalizedValue, dispatchEvent);
+                _lastSyncedBubbleValue = normalizedValue;
+            }
+
             _hasSyncedBubbleInput = true;
+        }
+        else
+        {
+            _hasSyncedBubbleInput = false;
+            _lastSyncedBubbleValue = null;
         }
 
         _lastRenderedValue = Value;

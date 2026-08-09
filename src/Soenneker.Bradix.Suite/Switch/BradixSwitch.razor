@@ -2,7 +2,7 @@
 
 @using Microsoft.JSInterop
 
-@inherits LeptonContentElement
+@inherits BradixContentElement
 
 @implements IBradixSwitch
 
@@ -183,9 +183,17 @@
 
         if (ShouldRenderBubbleInput)
         {
-            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedState != CurrentChecked;
-            await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, CurrentChecked, false, dispatchEvent);
+            if (!_hasSyncedBubbleInput || _lastRenderedState != CurrentChecked)
+            {
+                bool dispatchEvent = _hasSyncedBubbleInput;
+                await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, CurrentChecked, false, dispatchEvent);
+            }
+
             _hasSyncedBubbleInput = true;
+        }
+        else
+        {
+            _hasSyncedBubbleInput = false;
         }
 
         _lastRenderedState = CurrentChecked;
@@ -242,7 +250,7 @@
     [JSInvokable]
     public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
     {
-        if (Disabled || !IsActivationKey(args.Key))
+        if (Disabled || !IsSpaceKey(args.Key))
             return Task.CompletedTask;
 
         return SetChecked(!CurrentChecked);
@@ -265,8 +273,8 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private static bool IsActivationKey(string key)
+    private static bool IsSpaceKey(string key)
     {
-        return key is "Enter" or " " or "Spacebar";
+        return key is " " or "Spacebar";
     }
 }

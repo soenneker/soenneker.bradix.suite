@@ -138,7 +138,14 @@ export function focusElementDeferred(element) {
     return;
   }
 
-  const focus = () => focusElement(element, false);
+  const focus = () => {
+    const activeElement = document.activeElement;
+
+    if (activeElement === element || activeElement === document.body || activeElement == null) {
+      focusElement(element, false);
+    }
+  };
+
   window.setTimeout(focus, 0);
   window.setTimeout(focus, 50);
   window.setTimeout(focus, 150);
@@ -233,8 +240,7 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     });
   }
 
-  const getFractions = (event) => {
-    const rect = element.getBoundingClientRect();
+  const getFractions = (event, rect = element.getBoundingClientRect()) => {
     const x = rect.width <= 0 ? 0 : (event.clientX - rect.left) / rect.width;
     const y = rect.height <= 0 ? 0 : (event.clientY - rect.top) / rect.height;
 
@@ -267,19 +273,51 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     }
 
     const thumbIndex = getThumbIndex(event);
-    const fractions = getFractions(event);
+    const dragRect = element.getBoundingClientRect();
+    const fractions = getFractions(event, dragRect);
 
     await dotNetRef.invokeMethodAsync("HandlePointerStart", fractions.x, fractions.y, thumbIndex);
 
-    const pointermove = async (moveEvent) => {
-      const moveFractions = getFractions(moveEvent);
-      await dotNetRef.invokeMethodAsync("HandlePointerMove", moveFractions.x, moveFractions.y);
+    let moveFrame = 0;
+    let pendingMove = null;
+    const flushMove = async () => {
+      if (!pendingMove) {
+        return;
+      }
+
+      const move = pendingMove;
+      pendingMove = null;
+      await dotNetRef.invokeMethodAsync("HandlePointerMove", move.x, move.y);
+    };
+    const cancelPendingMove = () => {
+      if (moveFrame) {
+        cancelAnimationFrame(moveFrame);
+        moveFrame = 0;
+      }
+      pendingMove = null;
+    };
+    const pointermove = (moveEvent) => {
+      pendingMove = getFractions(moveEvent, dragRect);
+      if (moveFrame) {
+        return;
+      }
+
+      moveFrame = requestAnimationFrame(() => {
+        moveFrame = 0;
+        flushMove().catch(console.error);
+      });
     };
 
-    const pointerup = async () => {
+    const pointerup = async (upEvent) => {
       document.removeEventListener("pointermove", pointermove);
       document.removeEventListener("pointerup", pointerup);
       document.removeEventListener("pointercancel", pointercancel);
+      if (moveFrame) {
+        cancelAnimationFrame(moveFrame);
+        moveFrame = 0;
+      }
+      pendingMove = getFractions(upEvent, dragRect);
+      await flushMove();
       if (typeof element.hasPointerCapture === "function" &&
         typeof element.releasePointerCapture === "function") {
         try {
@@ -296,6 +334,7 @@ export function registerSliderPointerBridge(element, dotNetRef) {
       document.removeEventListener("pointermove", pointermove);
       document.removeEventListener("pointerup", pointerup);
       document.removeEventListener("pointercancel", pointercancel);
+      cancelPendingMove();
       if (typeof element.hasPointerCapture === "function" &&
         typeof element.releasePointerCapture === "function") {
         try {
@@ -317,6 +356,7 @@ export function registerSliderPointerBridge(element, dotNetRef) {
       handlers.pointermove = pointermove;
       handlers.pointerup = pointerup;
       handlers.pointercancel = pointercancel;
+      handlers.cancelPendingMove = cancelPendingMove;
     }
   };
 
@@ -335,7 +375,7 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     await dotNetRef.invokeMethodAsync("HandlePointerEnd");
   };
 
-  sliderPointerHandlers.set(element, { pointerdown, click, pointermove: null, pointerup: null, pointercancel: null, resizeObserver, mutationObserver });
+  sliderPointerHandlers.set(element, { pointerdown, click, pointermove: null, pointerup: null, pointercancel: null, cancelPendingMove: null, resizeObserver, mutationObserver });
   element.addEventListener("pointerdown", pointerdown);
   element.addEventListener("click", click);
 }
@@ -353,6 +393,8 @@ export function unregisterSliderPointerBridge(element) {
   if (handlers.pointermove) {
     document.removeEventListener("pointermove", handlers.pointermove);
   }
+
+  handlers.cancelPendingMove?.();
 
   if (handlers.pointerup) {
     document.removeEventListener("pointerup", handlers.pointerup);
@@ -420,7 +462,15 @@ export function focusElementByIdDeferred(elementId) {
     return;
   }
 
-  const focus = () => focusElement(document.getElementById(elementId), false);
+  const focus = () => {
+    const element = document.getElementById(elementId);
+    const activeElement = document.activeElement;
+
+    if (activeElement === element || activeElement === document.body || activeElement == null) {
+      focusElement(element, false);
+    }
+  };
+
   setTimeout(focus, 0);
   setTimeout(focus, 50);
   setTimeout(focus, 150);

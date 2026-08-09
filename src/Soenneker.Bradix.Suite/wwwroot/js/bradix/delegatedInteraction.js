@@ -8,7 +8,8 @@ export function registerDelegatedInteraction(element, dotNetRef, options) {
     return;
   }
 
-  delegatedInteractionHandlers.set(element, { dotNetRef, options: options || {} });
+  const resolvedOptions = options || {};
+  delegatedInteractionHandlers.set(element, { dotNetRef, options: resolvedOptions });
   ensureDelegatedInteractionListeners();
 
   if (typeof options?.readyMethod === "string" && options.readyMethod) {
@@ -30,7 +31,6 @@ function ensureDelegatedInteractionListeners() {
   }
 
   delegatedInteractionListenersRegistered = true;
-
   document.addEventListener("click", (event) => dispatchDelegatedInteraction("click", event), true);
   document.addEventListener("mousedown", (event) => dispatchDelegatedInteraction("mousedown", event));
   document.addEventListener("pointerdown", (event) => dispatchDelegatedInteraction("pointerdown", event));
@@ -44,28 +44,37 @@ function ensureDelegatedInteractionListeners() {
 }
 
 function dispatchDelegatedInteraction(type, event) {
-  const registrations = findDelegatedInteractionRegistrations(event.target);
+  let node = event.target instanceof Node ? event.target : null;
 
-  if (registrations.length === 0) {
-    return;
-  }
+  while (node) {
+    const registration = node instanceof HTMLElement
+      ? delegatedInteractionHandlers.get(node)
+      : null;
 
-  for (const registration of registrations) {
-    const config = registration.options && registration.options[type];
-
-    if (!config) {
+    if (!registration) {
+      node = node.parentNode;
       continue;
     }
 
-    if (config.currentTargetOnly !== false && event.target !== registration.element) {
+    const config = registration.options && registration.options[type];
+
+    if (!config) {
+      node = node.parentNode;
+      continue;
+    }
+
+    if (config.currentTargetOnly !== false && event.target !== node) {
+      node = node.parentNode;
       continue;
     }
 
     if (config.checkForDefaultPrevented !== false && event.defaultPrevented) {
+      node = node.parentNode;
       continue;
     }
 
     if (Array.isArray(config.keys) && !config.keys.includes(event.key)) {
+      node = node.parentNode;
       continue;
     }
 
@@ -85,12 +94,14 @@ function dispatchDelegatedInteraction(type, event) {
 
     if (typeof config.filter === "string" && config.filter === "primaryMousedown") {
       if (event.button !== 0 || event.ctrlKey) {
+        node = node.parentNode;
         continue;
       }
     }
 
     if (typeof config.filter === "string" && config.filter === "primaryMousePointerDown") {
       if (event.button !== 0 || event.ctrlKey || (event.pointerType && event.pointerType !== "mouse")) {
+        node = node.parentNode;
         continue;
       }
     }
@@ -111,10 +122,12 @@ function dispatchDelegatedInteraction(type, event) {
     }
 
     if (!config.method) {
+      node = node.parentNode;
       continue;
     }
 
     registration.dotNetRef.invokeMethodAsync(config.method, createDelegatedEventSnapshot(type, event)).catch(() => {});
+    node = node.parentNode;
   }
 }
 
@@ -184,27 +197,4 @@ function retargetPointerUpToOption(pointerDownEvent, dotNetRef, pointerSelectMet
   };
 
   document.addEventListener("pointerup", pointerUp, { capture: true, once: true });
-}
-
-function findDelegatedInteractionRegistrations(start) {
-  let node = start instanceof Node ? start : null;
-  const registrations = [];
-
-  while (node) {
-    if (node instanceof HTMLElement) {
-      const registration = delegatedInteractionHandlers.get(node);
-
-      if (registration) {
-        registrations.push({
-          element: node,
-          dotNetRef: registration.dotNetRef,
-          options: registration.options
-        });
-      }
-    }
-
-    node = node.parentNode;
-  }
-
-  return registrations;
 }

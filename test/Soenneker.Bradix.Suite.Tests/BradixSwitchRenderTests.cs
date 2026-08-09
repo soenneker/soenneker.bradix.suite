@@ -98,6 +98,19 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Delegated_space_toggles_switch_but_enter_does_not()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch());
+        IRenderedComponent<BradixSwitch> component = cut.FindComponent<BradixSwitch>();
+
+        await component.Instance.HandleDelegatedKeyDown(new BradixDelegatedKeyboardEvent { Key = "Enter" });
+        await Assert.That(cut.Find("button").GetAttribute("aria-checked")).IsEqualTo("false");
+
+        await component.Instance.HandleDelegatedKeyDown(new BradixDelegatedKeyboardEvent { Key = " " });
+        await Assert.That(cut.Find("button").GetAttribute("aria-checked")).IsEqualTo("true");
+    }
+
+    [Test]
     public async Task Uncontrolled_switch_resets_to_default_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(defaultChecked: true));

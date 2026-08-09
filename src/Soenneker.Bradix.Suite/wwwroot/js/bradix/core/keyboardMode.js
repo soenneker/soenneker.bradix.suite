@@ -8,16 +8,19 @@ function ensureKeyboardInteractionTracking() {
 
   keyboardInteractionTrackingInitialized = true;
 
-  document.addEventListener("keydown", () => {
-    keyboardInteractionMode = true;
-  }, { capture: true });
-
-  const handlePointer = () => {
+  const handlePointerMove = () => {
     keyboardInteractionMode = false;
   };
 
-  document.addEventListener("pointerdown", handlePointer, { capture: true });
-  document.addEventListener("pointermove", handlePointer, { capture: true });
+  document.addEventListener("keydown", () => {
+    keyboardInteractionMode = true;
+    document.addEventListener("pointermove", handlePointerMove, { capture: true, once: true });
+  }, { capture: true });
+
+  document.addEventListener("pointerdown", () => {
+    keyboardInteractionMode = false;
+    document.removeEventListener("pointermove", handlePointerMove, true);
+  }, { capture: true });
 }
 
 export function isKeyboardInteractionMode() {

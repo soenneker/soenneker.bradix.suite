@@ -13,7 +13,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Represents the bradix presence.
 /// </summary>
-public sealed class BradixPresence : LeptonIdentifiableContentElement, IAsyncDisposable
+public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDisposable
 {
     /// <summary>
     /// Gets or sets presence overlay interop.

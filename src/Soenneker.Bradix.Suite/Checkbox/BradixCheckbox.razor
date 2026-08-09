@@ -2,7 +2,7 @@
 
 @using Microsoft.JSInterop
 
-@inherits LeptonContentElement
+@inherits BradixContentElement
 
 @implements IBradixCheckbox
 
@@ -184,9 +184,17 @@
 
         if (ShouldRenderBubbleInput)
         {
-            bool dispatchEvent = _hasSyncedBubbleInput && _lastRenderedState != CurrentChecked;
-            await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, IsIndeterminate, dispatchEvent);
+            if (!_hasSyncedBubbleInput || _lastRenderedState != CurrentChecked)
+            {
+                bool dispatchEvent = _hasSyncedBubbleInput;
+                await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, IsIndeterminate, dispatchEvent);
+            }
+
             _hasSyncedBubbleInput = true;
+        }
+        else
+        {
+            _hasSyncedBubbleInput = false;
         }
 
         _lastRenderedState = CurrentChecked;

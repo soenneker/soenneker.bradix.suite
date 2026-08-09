@@ -1,6 +1,7 @@
 import { getTabbableCandidates, focusFirst, focusElement } from "./core/focus.js";
 
 const toastViewportHandlers = new WeakMap();
+const toastSwipeHandlers = new WeakMap();
 
 export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, hotkey, dotNetRef) {
   if (!viewport) {
@@ -83,7 +84,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
 
     invokeResume();
   };
-  const pointermove = () => invokePause();
+  const pointerenter = () => invokePause();
   const pointerleave = () => {
     if (!resolvedWrapper || resolvedWrapper.contains(document.activeElement)) {
       return;
@@ -133,7 +134,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
   if (resolvedWrapper) {
     resolvedWrapper.addEventListener("focusin", focusin);
     resolvedWrapper.addEventListener("focusout", focusout);
-    resolvedWrapper.addEventListener("pointermove", pointermove);
+    resolvedWrapper.addEventListener("pointerenter", pointerenter);
     resolvedWrapper.addEventListener("pointerleave", pointerleave);
   }
   window.addEventListener("blur", windowBlur);
@@ -152,7 +153,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     documentTabKeydown,
     focusin,
     focusout,
-    pointermove,
+    pointerenter,
     pointerleave,
     windowBlur,
     windowFocus,
@@ -176,7 +177,7 @@ export function unregisterToastViewport(viewport) {
   if (handlers.wrapper) {
     handlers.wrapper.removeEventListener("focusin", handlers.focusin);
     handlers.wrapper.removeEventListener("focusout", handlers.focusout);
-    handlers.wrapper.removeEventListener("pointermove", handlers.pointermove);
+    handlers.wrapper.removeEventListener("pointerenter", handlers.pointerenter);
     handlers.wrapper.removeEventListener("pointerleave", handlers.pointerleave);
   }
   window.removeEventListener("blur", handlers.windowBlur);
@@ -190,6 +191,169 @@ export function unregisterToastViewport(viewport) {
   }
 
   toastViewportHandlers.delete(viewport);
+}
+
+export function registerToastSwipe(toast, direction, threshold, notifyStart, notifyMove, dotNetRef) {
+  if (!toast) {
+    return;
+  }
+
+  unregisterToastSwipe(toast);
+
+  const state = {
+    pointerId: null,
+    pointerType: "",
+    startX: 0,
+    startY: 0,
+    moveX: 0,
+    moveY: 0,
+    started: false
+  };
+
+  const reset = (clearVisualState) => {
+    state.pointerId = null;
+    state.started = false;
+    state.moveX = 0;
+    state.moveY = 0;
+    if (clearVisualState) {
+      delete toast.dataset.swipe;
+    }
+  };
+
+  const pointerdown = (event) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    state.pointerId = event.pointerId;
+    state.pointerType = event.pointerType || "";
+    state.startX = event.clientX;
+    state.startY = event.clientY;
+    state.moveX = 0;
+    state.moveY = 0;
+    state.started = false;
+    delete toast.dataset.swipe;
+    clearSwipeProperties(toast);
+  };
+
+  const pointermove = (event) => {
+    if (state.pointerId === null || state.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const x = event.clientX - state.startX;
+    const y = event.clientY - state.startY;
+    const horizontal = direction === "left" || direction === "right";
+    const moveX = horizontal ? clampSwipeDelta(x, direction) : 0;
+    const moveY = horizontal ? 0 : clampSwipeDelta(y, direction);
+    const startBuffer = state.pointerType.toLowerCase() === "touch" ? 10 : 2;
+
+    if (!state.started) {
+      if (!isSwipeDeltaInDirection(moveX, moveY, direction, startBuffer)) {
+        if (Math.abs(x) > startBuffer || Math.abs(y) > startBuffer) {
+          reset(true);
+        }
+        return;
+      }
+
+      state.started = true;
+      toast.dataset.swipe = "start";
+      try {
+        toast.setPointerCapture(event.pointerId);
+      } catch {
+      }
+
+      if (notifyStart) {
+        dotNetRef?.invokeMethodAsync("HandleSwipeStartFromJs", moveX, moveY).catch(console.error);
+      }
+    }
+
+    state.moveX = moveX;
+    state.moveY = moveY;
+    toast.dataset.swipe = "move";
+    toast.style.setProperty("--radix-toast-swipe-move-x", `${moveX}px`);
+    toast.style.setProperty("--radix-toast-swipe-move-y", `${moveY}px`);
+
+    if (notifyMove) {
+      dotNetRef?.invokeMethodAsync("HandleSwipeMoveFromJs", moveX, moveY).catch(console.error);
+    }
+  };
+
+  const complete = (event, canceled) => {
+    if (state.pointerId === null || state.pointerId !== event.pointerId) {
+      return;
+    }
+
+    try {
+      toast.releasePointerCapture(event.pointerId);
+    } catch {
+    }
+
+    if (!state.started) {
+      reset(true);
+      return;
+    }
+
+    const moveX = state.moveX;
+    const moveY = state.moveY;
+    const ended = !canceled && isSwipeDeltaInDirection(moveX, moveY, direction, threshold);
+    toast.dataset.swipe = ended ? "end" : "cancel";
+    toast.style.removeProperty("--radix-toast-swipe-move-x");
+    toast.style.removeProperty("--radix-toast-swipe-move-y");
+
+    if (ended) {
+      toast.style.setProperty("--radix-toast-swipe-end-x", `${moveX}px`);
+      toast.style.setProperty("--radix-toast-swipe-end-y", `${moveY}px`);
+    } else {
+      toast.style.removeProperty("--radix-toast-swipe-end-x");
+      toast.style.removeProperty("--radix-toast-swipe-end-y");
+    }
+
+    reset(false);
+    dotNetRef?.invokeMethodAsync("HandleSwipeCompletedFromJs", ended, moveX, moveY).catch(console.error);
+  };
+
+  const pointerup = event => complete(event, false);
+  const pointercancel = event => complete(event, true);
+  toast.addEventListener("pointerdown", pointerdown);
+  toast.addEventListener("pointermove", pointermove);
+  toast.addEventListener("pointerup", pointerup);
+  toast.addEventListener("pointercancel", pointercancel);
+  toastSwipeHandlers.set(toast, { pointerdown, pointermove, pointerup, pointercancel });
+}
+
+export function unregisterToastSwipe(toast) {
+  const handlers = toastSwipeHandlers.get(toast);
+  if (!handlers) {
+    return;
+  }
+
+  toast.removeEventListener("pointerdown", handlers.pointerdown);
+  toast.removeEventListener("pointermove", handlers.pointermove);
+  toast.removeEventListener("pointerup", handlers.pointerup);
+  toast.removeEventListener("pointercancel", handlers.pointercancel);
+  toastSwipeHandlers.delete(toast);
+}
+
+function clearSwipeProperties(toast) {
+  toast.style.removeProperty("--radix-toast-swipe-move-x");
+  toast.style.removeProperty("--radix-toast-swipe-move-y");
+  toast.style.removeProperty("--radix-toast-swipe-end-x");
+  toast.style.removeProperty("--radix-toast-swipe-end-y");
+}
+
+function clampSwipeDelta(delta, direction) {
+  return direction === "left" || direction === "up" ? Math.min(0, delta) : Math.max(0, delta);
+}
+
+function isSwipeDeltaInDirection(x, y, direction, threshold) {
+  const deltaX = Math.abs(x);
+  const deltaY = Math.abs(y);
+  const isDeltaX = deltaX > deltaY;
+  if (direction === "right") return isDeltaX && x > threshold;
+  if (direction === "left") return isDeltaX && x < -threshold;
+  if (direction === "down") return !isDeltaX && y > threshold;
+  return !isDeltaX && y < -threshold;
 }
 
 export function isToastFocused(toast) {

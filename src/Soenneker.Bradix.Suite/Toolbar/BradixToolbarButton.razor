@@ -3,7 +3,7 @@
 @using Microsoft.JSInterop
 @using Soenneker.Blazor.Utils.Ids
 
-@inherits LeptonIdentifiableContentElement
+@inherits BradixIdentifiableContentElement
 
 @implements IBradixToolbarRovingItem
 @implements IBradixToolbarButton
@@ -20,7 +20,6 @@
 
 @code {
     private ElementReference _element;
-    private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
     private bool _rovingFocusBridgeReady;
 
@@ -62,15 +61,13 @@
 
         Toolbar.RegisterItem(this);
         _registered = true;
-        _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+        await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element);
+        _rovingFocusBridgeReady = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
-        _dotNetReference?.Dispose();
-
         if (_registered)
             Toolbar.UnregisterItem(this);
     }

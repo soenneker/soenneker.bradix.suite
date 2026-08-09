@@ -2,7 +2,7 @@
 
 @using Microsoft.JSInterop
 
-@inherits LeptonContentElement
+@inherits BradixContentElement
 
 @implements IBradixScrollAreaViewport
 
@@ -33,6 +33,9 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         ScrollArea.RegisterViewport(_viewport, _content);
+
+        if (_registered)
+            return;
 
         if (_dotNetReference is null)
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);

@@ -84,6 +84,7 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switches"));
+        await WaitForSwitchRoot(page, "#airplane-mode");
 
         ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
         await toggle.PressAsync("Enter");
@@ -98,11 +99,19 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switches"));
+        await WaitForSwitchRoot(page, "#airplane-mode");
 
         ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
         await toggle.PressAsync("Space");
 
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "true");
+    }
+
+    private static Task WaitForSwitchRoot(IPage page, string selector)
+    {
+        return page.WaitForFunctionAsync(
+            "selector => document.querySelector(selector)?.hasAttribute('data-bradix-checkbox-root') === true",
+            selector);
     }
 }
 

@@ -3,7 +3,7 @@
 @using Microsoft.JSInterop
 @using Soenneker.Blazor.Utils.Ids
 
-@inherits LeptonContentElement
+@inherits BradixContentElement
 
 @implements IBradixSelect
 @implements IAsyncDisposable
@@ -824,9 +824,12 @@
             return;
 
         string? nextValue = CurrentValue;
-        bool dispatchEvent = _bubbleSelectValueInitialized && !string.Equals(_lastBubbleSelectValue, nextValue, StringComparison.Ordinal);
+        bool valueChanged = !string.Equals(_lastBubbleSelectValue, nextValue, StringComparison.Ordinal);
 
-        await ControlsInterop.SyncSelectBubbleInputValue(_bubbleSelectElement, nextValue, dispatchEvent);
+        if (_bubbleSelectValueInitialized && !valueChanged)
+            return;
+
+        await ControlsInterop.SyncSelectBubbleInputValue(_bubbleSelectElement, nextValue, _bubbleSelectValueInitialized);
 
         _lastBubbleSelectValue = nextValue;
         _bubbleSelectValueInitialized = true;

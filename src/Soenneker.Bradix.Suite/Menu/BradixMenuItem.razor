@@ -4,7 +4,7 @@
 @using Soenneker.Atomics.ValueBools
 @using Soenneker.Blazor.Utils.Ids
 
-@inherits LeptonIdentifiableContentElement
+@inherits BradixIdentifiableContentElement
 
 @implements IBradixMenuRovingItem
 @implements IBradixMenuItem
@@ -22,7 +22,7 @@
        @onkeydown="HandleKeyDown"
        @onpointerdown="HandlePointerDown"
        @onpointerup="HandlePointerUp"
-       @onpointermove="HandlePointerMove"
+        @onpointermove="HandlePointerMove"
        @onpointerleave="HandlePointerLeave"
        @attributes="ItemAttributes">
         @ChildContent
@@ -37,7 +37,7 @@ else
          @onkeydown="HandleKeyDown"
          @onpointerdown="HandlePointerDown"
          @onpointerup="HandlePointerUp"
-         @onpointermove="HandlePointerMove"
+          @onpointermove="HandlePointerMove"
          @onpointerleave="HandlePointerLeave"
          @attributes="ItemAttributes">
         @ChildContent

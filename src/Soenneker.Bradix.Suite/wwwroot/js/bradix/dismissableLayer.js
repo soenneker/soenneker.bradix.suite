@@ -42,7 +42,14 @@ function isBranchTarget(target, layer) {
 }
 
 function updateDismissableLayerPointerEvents() {
-  const highestDisabledIndex = [...dismissableLayers].map((layer) => layer.disableOutsidePointerEvents).lastIndexOf(true);
+  let highestDisabledIndex = -1;
+
+  for (let index = dismissableLayers.length - 1; index >= 0; index -= 1) {
+    if (dismissableLayers[index].disableOutsidePointerEvents) {
+      highestDisabledIndex = index;
+      break;
+    }
+  }
 
   if (highestDisabledIndex >= 0) {
     if (!hasStoredDismissableBodyPointerEvents) {

@@ -2,7 +2,7 @@
 
 @using Microsoft.JSInterop
 
-@inherits LeptonContentElement
+@inherits BradixContentElement
 
 @implements IBradixScrollAreaScrollbar
 
@@ -26,6 +26,9 @@
     private bool _hasThumb;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
+    private bool _registrationDirty = true;
+    private string? _registeredOrientation;
+    private string? _registeredDirection;
 
     [CascadingParameter]
     internal BradixScrollArea ScrollArea { get; set; } = null!;
@@ -44,6 +47,12 @@
     protected override void OnParametersSet()
     {
         ScrollArea.RegisterScrollbar(Orientation.Value, ForceMount);
+
+        if (!string.Equals(_registeredOrientation, Orientation.Value, StringComparison.Ordinal) ||
+            !string.Equals(_registeredDirection, ScrollArea.ResolvedDirection, StringComparison.Ordinal))
+        {
+            _registrationDirty = true;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -62,11 +71,17 @@
             return;
         }
 
+        if (_registered && !_registrationDirty)
+            return;
+
         if (_dotNetReference is null)
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
 
         await ScrollAreaInterop.RegisterScrollAreaScrollbar(_scrollbar, _thumb, ScrollArea.ViewportElement, orientation, ScrollArea.ResolvedDirection, _dotNetReference);
         _registered = true;
+        _registrationDirty = false;
+        _registeredOrientation = orientation;
+        _registeredDirection = ScrollArea.ResolvedDirection;
     }
 
     public async ValueTask DisposeAsync()
@@ -86,6 +101,7 @@
             return;
 
         _hasThumb = true;
+        _registrationDirty = true;
         _ = InvokeAsync(StateHasChanged);
     }
 

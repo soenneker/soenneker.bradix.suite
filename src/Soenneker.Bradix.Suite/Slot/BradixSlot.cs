@@ -11,7 +11,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Represents the bradix slot.
 /// </summary>
-public sealed class BradixSlot : LeptonIdentifiableContentElement
+public sealed class BradixSlot : BradixIdentifiableContentElement
 {
     /// <summary>
     /// Gets or sets element name.

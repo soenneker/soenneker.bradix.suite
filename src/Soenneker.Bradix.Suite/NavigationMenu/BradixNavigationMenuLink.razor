@@ -3,7 +3,7 @@
 @using Microsoft.JSInterop
 @using Soenneker.Atomics.ValueBools
 
-@inherits LeptonIdentifiableContentElement
+@inherits BradixIdentifiableContentElement
 
 @implements IBradixNavigationMenuLink
 @implements IBradixNavigationMenuFocusGroupItem
@@ -19,7 +19,6 @@
 
 @code {
     private ElementReference _element;
-    private DotNetObjectReference<BradixNavigationMenuLink>? _dotNetReference;
     private bool _registered;
     private bool _rovingFocusBridgeReady;
     private ValueAtomicBool _disposed;
@@ -80,12 +79,11 @@
             _focusGroupRegistered = true;
         }
 
-        _dotNetReference ??= DotNetObjectReference.Create(this);
-
         try
         {
-            await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
+            await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element);
             _registered = true;
+            _rovingFocusBridgeReady = true;
         }
         catch (Exception ex) when (ShouldIgnoreInteropException(ex))
         {
@@ -107,9 +105,6 @@
             {
             }
         }
-
-        _dotNetReference?.Dispose();
-        _dotNetReference = null;
 
         if (_rootRegistration is not null)
             NavigationMenu?.UnregisterTrigger(_rootRegistration);

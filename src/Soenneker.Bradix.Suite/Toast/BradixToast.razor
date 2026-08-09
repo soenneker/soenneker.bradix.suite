@@ -3,7 +3,7 @@
 @using System.Threading
 @using Microsoft.JSInterop
 
-@inherits LeptonContentElement
+@inherits BradixContentElement
 
 @implements IBradixToast
 
@@ -89,6 +89,12 @@
     private bool _lastKnownOpen;
     private long? _activePointerId;
     private bool _delegatedInteractionRegistered;
+    private bool _swipeRegistered;
+    private bool _swipeRegistrationUnavailable;
+    private string? _registeredSwipeDirection;
+    private double _registeredSwipeThreshold;
+    private bool _registeredSwipeStartCallback;
+    private bool _registeredSwipeMoveCallback;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -182,10 +188,15 @@
             if (!string.IsNullOrWhiteSpace(_swipeState))
                 attributes["data-swipe"] = _swipeState;
 
-            attributes["onpointerdown"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDown);
-            attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove);
-            attributes["onpointerup"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUp);
-            attributes["onpointercancel"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerCancel);
+            // Native JS owns the high-frequency path in a browser. These handlers are a
+            // compatibility fallback for prerendering and JS runtimes that cannot register it.
+            if (!_swipeRegistered)
+            {
+                attributes["onpointerdown"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDown);
+                attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove);
+                attributes["onpointerup"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUp);
+                attributes["onpointercancel"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerCancel);
+            }
 
             return attributes;
         }
@@ -227,6 +238,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_registered)
+            await SyncSwipeRegistration();
+
         if (_announceVisible && !_renderAnnounceText && !_announceRenderScheduled)
         {
             _announceRenderScheduled = true;
@@ -256,6 +270,8 @@
 
         if (_delegatedInteractionRegistered)
             await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_toastElement);
+
+        await UnregisterSwipe();
 
         if (_portalMounted)
             await PortalInterop.UnmountPortal(_toastElement);
@@ -332,6 +348,8 @@
             _registered = true;
         }
 
+        await SyncSwipeRegistration();
+
         await UpdateAnnounceText();
 
         if (CurrentOpen && !(Provider?.IsClosePaused ?? false))
@@ -353,6 +371,8 @@
             await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_toastElement);
             _delegatedInteractionRegistered = false;
         }
+
+        await UnregisterSwipe();
 
         if (_portalMounted)
         {
@@ -534,11 +554,7 @@
             return;
         }
 
-        BradixToastSwipeEventArgs args = new()
-        {
-            DeltaX = _swipeMoveX,
-            DeltaY = _swipeMoveY
-        };
+        var args = new BradixToastSwipeEventArgs { DeltaX = _swipeMoveX, DeltaY = _swipeMoveY };
 
         if (IsDeltaInDirection(_swipeMoveX, _swipeMoveY, Provider.SwipeDirection, Provider.SwipeThreshold))
         {
@@ -582,12 +598,7 @@
             return;
         }
 
-        BradixToastSwipeEventArgs args = new()
-        {
-            DeltaX = _swipeMoveX,
-            DeltaY = _swipeMoveY
-        };
-
+        var args = new BradixToastSwipeEventArgs { DeltaX = _swipeMoveX, DeltaY = _swipeMoveY };
         _swipeState = "cancel";
         _swipeMoveX = 0;
         _swipeMoveY = 0;
@@ -649,6 +660,104 @@
         return direction.Value is SwipeDirection.LeftValue or SwipeDirection.UpValue
             ? Math.Min(0, delta)
             : Math.Max(0, delta);
+    }
+
+    [JSInvokable]
+    public Task HandleSwipeStartFromJs(double deltaX, double deltaY)
+    {
+        return OnSwipeStart.HasDelegate
+            ? OnSwipeStart.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = deltaX, DeltaY = deltaY })
+            : Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleSwipeMoveFromJs(double deltaX, double deltaY)
+    {
+        return OnSwipeMove.HasDelegate
+            ? OnSwipeMove.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = deltaX, DeltaY = deltaY })
+            : Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public async Task HandleSwipeCompletedFromJs(bool ended, double deltaX, double deltaY)
+    {
+        var args = new BradixToastSwipeEventArgs { DeltaX = deltaX, DeltaY = deltaY };
+        _swipeState = ended ? "end" : "cancel";
+        _swipeMoveX = 0;
+        _swipeMoveY = 0;
+        _swipeEndX = ended ? deltaX : 0;
+        _swipeEndY = ended ? deltaY : 0;
+
+        if (ended)
+        {
+            if (OnSwipeEnd.HasDelegate)
+                await OnSwipeEnd.InvokeAsync(args);
+        }
+        else if (OnSwipeCancel.HasDelegate)
+        {
+            await OnSwipeCancel.InvokeAsync(args);
+        }
+
+        await ControlsInterop.SuppressNextClick(_toastElement);
+
+        if (ended)
+            await Close();
+        else
+            await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SyncSwipeRegistration()
+    {
+        if (Provider is null || _swipeRegistrationUnavailable)
+            return;
+
+        string direction = Provider.SwipeDirection.Value;
+        double threshold = Provider.SwipeThreshold;
+        bool hasStartCallback = OnSwipeStart.HasDelegate;
+        bool hasMoveCallback = OnSwipeMove.HasDelegate;
+        if (_swipeRegistered && string.Equals(_registeredSwipeDirection, direction, StringComparison.Ordinal) &&
+            _registeredSwipeThreshold.Equals(threshold) && _registeredSwipeStartCallback == hasStartCallback &&
+            _registeredSwipeMoveCallback == hasMoveCallback)
+            return;
+
+        try
+        {
+            _dotNetReference ??= DotNetObjectReference.Create<object>(this);
+            IJSObjectReference module = await ToastInterop.Initialize();
+            await module.InvokeVoidAsync("registerToastSwipe", _toastElement, direction, threshold,
+                hasStartCallback, hasMoveCallback, _dotNetReference);
+            _registeredSwipeDirection = direction;
+            _registeredSwipeThreshold = threshold;
+            _registeredSwipeStartCallback = hasStartCallback;
+            _registeredSwipeMoveCallback = hasMoveCallback;
+            _swipeRegistered = true;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception)
+        {
+            // Native swipe is an optimization. Preserve the Blazor event path when JS is
+            // unavailable (including prerendering and strict test runtimes).
+            _swipeRegistrationUnavailable = true;
+        }
+    }
+
+    private async Task UnregisterSwipe()
+    {
+        if (!_swipeRegistered)
+            return;
+
+        try
+        {
+            IJSObjectReference module = await ToastInterop.Initialize();
+            await module.InvokeVoidAsync("unregisterToastSwipe", _toastElement);
+        }
+        catch (Exception)
+        {
+            // The component can be disposed after its JS runtime has disconnected.
+        }
+
+        _registeredSwipeDirection = null;
+        _swipeRegistered = false;
     }
 
     private async Task UpdateAnnounceText()

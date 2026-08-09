@@ -3,7 +3,7 @@
 @using Microsoft.JSInterop
 @using Soenneker.Atomics.ValueBools
 
-@inherits LeptonIdentifiableContentElement
+@inherits BradixIdentifiableContentElement
 
 @implements IBradixNavigationMenuTrigger
 
@@ -11,7 +11,6 @@
 @inject INavigationMenuInterop NavigationMenuInterop
 <button @ref="_button"
         @onpointerenter="HandlePointerEnter"
-        @onpointermove="HandlePointerMove"
         @onpointerleave="HandlePointerLeave"
         @onclick="HandleClick"
         @onfocus="HandleFocus"
@@ -59,22 +58,33 @@
 
     private bool IsOpen => Item?.IsOpen == true;
 
-    private Dictionary<string, object> TriggerAttributes => BuildAttributes(
-        ("id", Item?.TriggerId),
-        ("type", "button"),
-        ("disabled", Disabled ? true : null),
-        ("data-disabled", Disabled ? string.Empty : null),
-        ("data-state", IsOpen ? "open" : "closed"),
-        ("data-bradix-roving-group", NavigationMenu?.TriggerRovingGroupId),
-        ("data-bradix-roving-item", string.Empty),
-        ("data-bradix-roving-item-id", Item?.ResolvedValue),
-        ("data-bradix-roving-orientation", NavigationMenu?.Orientation?.Value),
-        ("data-bradix-roving-dir", NavigationMenu?.ResolvedDirection),
-        ("data-bradix-roving-loop", "true"),
-        ("data-debug-dispose-count", NavigationMenu?.GetDebugTriggerDisposeCount(Item?.ResolvedValue).ToString(System.Globalization.CultureInfo.InvariantCulture)),
-        ("aria-expanded", IsOpen ? "true" : "false"),
-        ("aria-controls", Item?.ContentId),
-        ("tabindex", null));
+    private Dictionary<string, object> TriggerAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = BuildAttributes(
+                ("id", Item?.TriggerId),
+                ("type", "button"),
+                ("disabled", Disabled ? true : null),
+                ("data-disabled", Disabled ? string.Empty : null),
+                ("data-state", IsOpen ? "open" : "closed"),
+                ("data-bradix-roving-group", NavigationMenu?.TriggerRovingGroupId),
+                ("data-bradix-roving-item", string.Empty),
+                ("data-bradix-roving-item-id", Item?.ResolvedValue),
+                ("data-bradix-roving-orientation", NavigationMenu?.Orientation?.Value),
+                ("data-bradix-roving-dir", NavigationMenu?.ResolvedDirection),
+                ("data-bradix-roving-loop", "true"),
+                ("data-debug-dispose-count", NavigationMenu?.GetDebugTriggerDisposeCount(Item?.ResolvedValue).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("aria-expanded", IsOpen ? "true" : "false"),
+                ("aria-controls", Item?.ContentId),
+                ("tabindex", null));
+
+            if (!_hasPointerMoveOpened)
+                attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove);
+
+            return attributes;
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
