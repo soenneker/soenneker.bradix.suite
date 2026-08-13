@@ -45,7 +45,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.11" />
         <PackageReference Include="Soenneker.Gen.EnumValues" Version="4.0.42" />
         <PackageReference Include="Soenneker.Blazor.Extensions.EventCallback" Version="4.0.455" />
         <PackageReference Include="Soenneker.Blazor.Interops.Floating" Version="4.0.51" />
