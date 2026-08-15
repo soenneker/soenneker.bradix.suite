@@ -66,6 +66,50 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Force_mounted_closed_content_keeps_links_but_is_inert()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(builder =>
+        {
+            builder.OpenComponent<BradixNavigationMenu>(0);
+            builder.AddAttribute(1, nameof(BradixNavigationMenu.ChildContent), (RenderFragment)(content =>
+            {
+                content.OpenComponent<BradixNavigationMenuList>(0);
+                content.AddAttribute(1, nameof(BradixNavigationMenuList.ChildContent), (RenderFragment)(list =>
+                {
+                    list.OpenComponent<BradixNavigationMenuItem>(0);
+                    list.AddAttribute(1, nameof(BradixNavigationMenuItem.Value), "docs");
+                    list.AddAttribute(2, nameof(BradixNavigationMenuItem.ChildContent), (RenderFragment)(item =>
+                    {
+                        item.OpenComponent<BradixNavigationMenuTrigger>(0);
+                        item.AddAttribute(1, nameof(BradixNavigationMenuTrigger.ChildContent), (RenderFragment)(trigger => trigger.AddContent(0, "Docs")));
+                        item.CloseComponent();
+
+                        item.OpenComponent<BradixNavigationMenuContent>(2);
+                        item.AddAttribute(3, nameof(BradixNavigationMenuContent.ForceMount), true);
+                        item.AddAttribute(4, nameof(BradixNavigationMenuContent.ChildContent), (RenderFragment)(menuContent =>
+                        {
+                            menuContent.OpenComponent<BradixNavigationMenuLink>(0);
+                            menuContent.AddAttribute(1, "href", "/docs");
+                            menuContent.AddAttribute(2, nameof(BradixNavigationMenuLink.ChildContent), (RenderFragment)(link => link.AddContent(0, "Documentation")));
+                            menuContent.CloseComponent();
+                        }));
+                        item.CloseComponent();
+                    }));
+                    list.CloseComponent();
+                }));
+                content.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+
+        IElement panel = cut.Find("[aria-labelledby][data-state='closed']");
+        await Assert.That(cut.Find("a[href='/docs']").TextContent).IsEqualTo("Documentation");
+        await Assert.That(panel.HasAttribute("hidden")).IsTrue();
+        await Assert.That(panel.GetAttribute("aria-hidden")).IsEqualTo("true");
+        await Assert.That(panel.HasAttribute("inert")).IsTrue();
+    }
+
+    [Test]
     public async Task Root_navigation_menu_sets_default_label_and_positioning()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>

@@ -69,6 +69,19 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Force_mounted_closed_content_remains_present_but_inert()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(forceMount: true));
+        IElement trigger = cut.Find("button");
+        IElement content = cut.Find($"#{trigger.GetAttribute("aria-controls")}");
+
+        await Assert.That(content.TextContent).Contains("Content");
+        await Assert.That(content.HasAttribute("hidden")).IsTrue();
+        await Assert.That(content.GetAttribute("aria-hidden")).IsEqualTo("true");
+        await Assert.That(content.HasAttribute("inert")).IsTrue();
+    }
+
+    [Test]
     public async Task Disabled_trigger_does_not_toggle_uncontrolled_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(triggerDisabled: true));
@@ -103,7 +116,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         await Assert.That(cut.Markup).Contains("Content");
     }
 
-    private static RenderFragment CreateCollapsible(bool? open = null, bool defaultOpen = false, EventCallback<bool> onOpenChange = default, string? rootId = null, bool triggerDisabled = false, string? contentRole = null, string? contentLabelledBy = null)
+    private static RenderFragment CreateCollapsible(bool? open = null, bool defaultOpen = false, EventCallback<bool> onOpenChange = default, string? rootId = null, bool triggerDisabled = false, string? contentRole = null, string? contentLabelledBy = null, bool forceMount = false)
     {
         return builder =>
         {
@@ -131,6 +144,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
                 contentBuilder.CloseComponent();
 
                 contentBuilder.OpenComponent<BradixCollapsibleContent>(2);
+                contentBuilder.AddAttribute(6, nameof(BradixCollapsibleContent.ForceMount), forceMount);
                 if (contentRole is not null)
                     contentBuilder.AddAttribute(4, nameof(BradixCollapsibleContent.Role), contentRole);
                 if (contentLabelledBy is not null)

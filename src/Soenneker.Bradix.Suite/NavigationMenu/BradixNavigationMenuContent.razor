@@ -132,6 +132,13 @@
             attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? Orientation.Horizontal.Value;
             attributes["aria-labelledby"] = Item?.TriggerId ?? string.Empty;
 
+            if (ForceMount && !IsOpen)
+            {
+                attributes["hidden"] = true;
+                attributes["aria-hidden"] = "true";
+                attributes["inert"] = true;
+            }
+
             string motion = ResolveMotion();
             if (!string.IsNullOrWhiteSpace(motion))
                 attributes["data-motion"] = motion;

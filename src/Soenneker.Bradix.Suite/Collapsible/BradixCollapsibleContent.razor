@@ -49,6 +49,13 @@
             attributes["id"] = Collapsible.ContentId!;
             attributes["data-state"] = BradixDataStates.Open(Collapsible.IsOpen);
 
+            if (ForceMount && !Collapsible.IsOpen)
+            {
+                attributes["hidden"] = true;
+                attributes["aria-hidden"] = "true";
+                attributes["inert"] = true;
+            }
+
             if (Collapsible.Disabled)
                 attributes["data-disabled"] = string.Empty;
 

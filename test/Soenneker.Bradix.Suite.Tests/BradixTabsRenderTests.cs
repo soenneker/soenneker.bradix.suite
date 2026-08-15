@@ -79,14 +79,16 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Force_mount_keeps_inactive_panel_present_without_hidden_attribute()
+    public async Task Force_mount_keeps_inactive_panel_present_but_inert()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", forceMount: true));
 
         IElement tab2Panel = cut.Find("#" + cut.FindAll("button")[1].GetAttribute("aria-controls"));
 
-        await Assert.That(tab2Panel.HasAttribute("hidden")).IsFalse();
-        await Assert.That(tab2Panel.GetAttribute("tabindex")).IsEqualTo("0");
+        await Assert.That(tab2Panel.HasAttribute("hidden")).IsTrue();
+        await Assert.That(tab2Panel.GetAttribute("aria-hidden")).IsEqualTo("true");
+        await Assert.That(tab2Panel.HasAttribute("inert")).IsTrue();
+        await Assert.That(tab2Panel.GetAttribute("tabindex")).IsEqualTo("-1");
         await Assert.That(tab2Panel.TextContent).Contains("Content 2");
     }
 

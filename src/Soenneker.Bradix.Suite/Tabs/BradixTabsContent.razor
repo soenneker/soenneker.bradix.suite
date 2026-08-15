@@ -35,9 +35,11 @@
     private IReadOnlyDictionary<string, object> ContentAttributes => BuildAttributes(
         ("role", "tabpanel"),
         ("aria-labelledby", TriggerId),
-        ("hidden", !Present),
+        ("hidden", !IsSelected),
+        ("aria-hidden", !IsSelected ? "true" : null),
+        ("inert", !IsSelected ? true : null),
         ("id", ContentId),
-        ("tabindex", 0),
+        ("tabindex", IsSelected ? 0 : -1),
         ("data-state", IsSelected ? "active" : "inactive"),
         ("data-orientation", Tabs.RovingOrientationValue),
         ("style", BuildContentStyle()));
