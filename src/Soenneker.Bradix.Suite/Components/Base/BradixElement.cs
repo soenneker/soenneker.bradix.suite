@@ -15,6 +15,7 @@ public abstract class BradixElement : LeptonElement
 {
     private readonly Dictionary<string, object> _attributesA = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, object> _attributesB = new(StringComparer.OrdinalIgnoreCase);
+    private BradixAttributeDictionary? _additionalAttributeDictionaries;
     private bool _useAttributesA;
 
     protected virtual string? AttributeId => null;
@@ -153,6 +154,23 @@ public abstract class BradixElement : LeptonElement
         return CompleteAttributes(attributes);
     }
 
+    /// <summary>
+    /// Builds a double-buffered copy of unmatched attributes for a child component.
+    /// </summary>
+    protected Dictionary<string, object> BuildAdditionalAttributes(int extraCapacity = 0)
+    {
+        return BuildAdditionalAttributes(AdditionalAttributes, extraCapacity);
+    }
+
+    /// <summary>
+    /// Builds a double-buffered copy of the supplied attributes for a child component.
+    /// </summary>
+    protected Dictionary<string, object> BuildAdditionalAttributes(IReadOnlyDictionary<string, object>? attributes, int extraCapacity = 0)
+    {
+        _additionalAttributeDictionaries ??= new BradixAttributeDictionary();
+        return _additionalAttributeDictionaries.Create(attributes, extraCapacity);
+    }
+
     private Dictionary<string, object> BeginAttributes()
     {
         _useAttributesA = !_useAttributesA;
@@ -166,8 +184,45 @@ public abstract class BradixElement : LeptonElement
     private Dictionary<string, object> CompleteAttributes(Dictionary<string, object> attributes)
     {
         SetAttribute(attributes, "id", AttributeId);
-        MergeAdditionalAttributes(attributes);
+        MergeBradixAdditionalAttributes(attributes);
         return attributes;
+    }
+
+    private void MergeBradixAdditionalAttributes(Dictionary<string, object> attributes)
+    {
+        if (AdditionalAttributes is not { Count: > 0 })
+            return;
+
+        if (AdditionalAttributes is Dictionary<string, object> dictionary)
+        {
+            foreach (KeyValuePair<string, object> pair in dictionary)
+                MergeAdditionalAttribute(attributes, pair.Key, pair.Value);
+
+            return;
+        }
+
+        foreach ((string key, object value) in AdditionalAttributes)
+            MergeAdditionalAttribute(attributes, key, value);
+    }
+
+    private static void MergeAdditionalAttribute(Dictionary<string, object> attributes, string key, object? value)
+    {
+        if (value is null)
+            return;
+
+        if (key.Equals("class", StringComparison.OrdinalIgnoreCase))
+        {
+            MergeClassAttribute(attributes, value as string ?? value.ToString());
+            return;
+        }
+
+        if (key.Equals("style", StringComparison.OrdinalIgnoreCase))
+        {
+            MergeStyleAttribute(attributes, value as string ?? value.ToString());
+            return;
+        }
+
+        attributes[key] = value;
     }
 }
 

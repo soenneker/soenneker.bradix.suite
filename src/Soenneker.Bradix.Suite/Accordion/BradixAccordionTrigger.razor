@@ -39,7 +39,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 7);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(7);
 
             attributes["data-orientation"] = Accordion.Orientation.Value;
             attributes["data-bradix-roving-group"] = Accordion.GroupId;

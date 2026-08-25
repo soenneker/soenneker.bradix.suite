@@ -159,7 +159,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 8);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(8);
 
             attributes["role"] = "menu";
             attributes["tabindex"] = -1;

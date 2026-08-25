@@ -299,22 +299,38 @@ function getTypeaheadSelectOption(options, current, key, registration) {
   }, TYPEAHEAD_RESET_MS);
 
   const currentIndex = Math.max(options.indexOf(current), -1);
-  const ordered = options.slice(currentIndex + 1).concat(options.slice(0, currentIndex + 1));
-  const repeatedCharacterSearch = registration.search.length > 1
-    && Array.from(registration.search).every(character => character === normalizedKey);
+  let repeatedCharacterSearch = registration.search.length > 1;
+
+  if (repeatedCharacterSearch) {
+    for (const character of registration.search) {
+      if (character !== normalizedKey) {
+        repeatedCharacterSearch = false;
+        break;
+      }
+    }
+  }
+
   const search = repeatedCharacterSearch ? normalizedKey : registration.search;
-  let target = findTypeaheadOption(ordered, search);
+  let target = findTypeaheadOption(options, search, currentIndex + 1);
 
   if (!target && registration.search !== normalizedKey) {
     registration.search = normalizedKey;
-    target = findTypeaheadOption(ordered, registration.search);
+    target = findTypeaheadOption(options, registration.search, currentIndex + 1);
   }
 
   return target;
 }
 
-function findTypeaheadOption(options, search) {
-  return options.find(option => (option.textContent || "").trim().toLowerCase().startsWith(search));
+function findTypeaheadOption(options, search, startIndex) {
+  for (let offset = 0; offset < options.length; offset++) {
+    const option = options[(startIndex + offset) % options.length];
+
+    if ((option.textContent || "").trim().toLowerCase().startsWith(search)) {
+      return option;
+    }
+  }
+
+  return undefined;
 }
 
 function setHighlightedSelectOption(content, target) {
@@ -741,7 +757,7 @@ function positionSelectItemAligned(wrapper, content, viewport, trigger, valueNod
   const itemOffsetMiddle = selectedItem.offsetTop + selectedItemHalfHeight;
   const contentTopToItemMiddle = contentBorderTopWidth + contentPaddingTop + itemOffsetMiddle;
   const itemMiddleToContentBottom = fullContentHeight - contentTopToItemMiddle;
-  const items = Array.from(viewport.querySelectorAll("[role='option']"));
+  const items = viewport.querySelectorAll("[role='option']");
   const willAlignWithoutTopOverflow = contentTopToItemMiddle <= topEdgeToTriggerMiddle;
 
   if (willAlignWithoutTopOverflow) {

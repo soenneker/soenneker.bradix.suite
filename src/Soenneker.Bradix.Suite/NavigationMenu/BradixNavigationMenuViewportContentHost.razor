@@ -60,7 +60,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(Registration.AdditionalAttributes, 5);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(Registration.AdditionalAttributes, 5);
 
             if (!string.IsNullOrWhiteSpace(Registration.Class))
                 attributes["class"] = Registration.Class;

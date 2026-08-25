@@ -117,7 +117,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 8);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(8);
 
             if (!string.IsNullOrWhiteSpace(Item?.ContentId))
                 attributes["id"] = Item.ContentId;

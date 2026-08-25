@@ -180,11 +180,11 @@ export function clearFormCustomValidity(form) {
     return;
   }
 
-  Array.from(form.elements).forEach((element) => {
+  for (const element of form.elements) {
     if (element && typeof element.setCustomValidity === "function") {
       element.setCustomValidity("");
     }
-  });
+  }
 }
 
 export function focusServerInvalidFormControl(element) {
@@ -197,11 +197,13 @@ export function focusServerInvalidFormControl(element) {
     return false;
   }
 
-  const invalidElements = Array.from(form.elements || []).filter((candidate) => {
-    return candidate instanceof HTMLElement && isInvalidFormControl(candidate);
-  });
-
-  const firstInvalid = invalidElements[0];
+  let firstInvalid = null;
+  for (const candidate of form.elements || []) {
+    if (candidate instanceof HTMLElement && isInvalidFormControl(candidate)) {
+      firstInvalid = candidate;
+      break;
+    }
+  }
 
   if (firstInvalid === element && typeof element.focus === "function") {
     element.focus();

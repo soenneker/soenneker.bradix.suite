@@ -15,6 +15,7 @@
 @code {
     private bool _initialized;
     private string? _uncontrolledValue;
+    private BradixMenuRadioGroupContext? _radioGroupContext;
 
     [Parameter]
     public string? Value { get; set; }
@@ -33,12 +34,26 @@
 
     private string? CurrentValue => Value ?? _uncontrolledValue;
 
-    private BradixMenuRadioGroupContext RadioGroupContext => new()
+    private BradixMenuRadioGroupContext RadioGroupContext
     {
-        CurrentValue = CurrentValue,
-        Disabled = Disabled,
-        SetValue = SetValue
-    };
+        get
+        {
+            string? currentValue = CurrentValue;
+
+            if (_radioGroupContext is null || !string.Equals(_radioGroupContext.CurrentValue, currentValue, StringComparison.Ordinal) ||
+                _radioGroupContext.Disabled != Disabled)
+            {
+                _radioGroupContext = new BradixMenuRadioGroupContext
+                {
+                    CurrentValue = currentValue,
+                    Disabled = Disabled,
+                    SetValue = SetValue
+                };
+            }
+
+            return _radioGroupContext;
+        }
+    }
 
     protected override void OnParametersSet()
     {

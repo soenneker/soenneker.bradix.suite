@@ -41,7 +41,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 1);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(1);
 
             attributes["data-orientation"] = Accordion.Orientation.Value;
 

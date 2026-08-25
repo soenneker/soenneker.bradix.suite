@@ -44,7 +44,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 7);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(7);
 
             attributes["id"] = Collapsible.ContentId!;
             attributes["data-state"] = BradixDataStates.Open(Collapsible.IsOpen);

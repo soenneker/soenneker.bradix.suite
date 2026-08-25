@@ -136,10 +136,9 @@ export function registerHideOthers(element) {
   unregisterHideOthers(element);
 
   const changed = [];
-  const bodyChildren = Array.from(document.body.children);
   const branchSelector = "[data-bradix-dismissable-layer-branch]";
 
-  for (const child of bodyChildren) {
+  for (const child of document.body.children) {
     if (child === element || child.contains(element) || element.contains(child)) {
       continue;
     }
@@ -243,7 +242,14 @@ function updateRemoveScrollTouchAction() {
     return;
   }
 
-  const allowPinchZoom = removeScrollLegacyAllowPinchZoomStack.some(Boolean) ||
-    Array.from(removeScrollRegistrations.values()).some(Boolean);
+  let allowPinchZoom = removeScrollLegacyAllowPinchZoomStack.some(Boolean);
+  if (!allowPinchZoom) {
+    for (const registrationAllowsPinchZoom of removeScrollRegistrations.values()) {
+      if (registrationAllowsPinchZoom) {
+        allowPinchZoom = true;
+        break;
+      }
+    }
+  }
   document.documentElement.style.touchAction = allowPinchZoom ? originalDocumentTouchAction : "none";
 }

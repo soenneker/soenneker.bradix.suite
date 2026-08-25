@@ -42,6 +42,7 @@
     private bool _registered;
     private string _hotkeyLabel = "F8";
     private string _hotkeySignature = "F8";
+    private string _regionAriaLabel = "Notifications (F8)";
 
     [CascadingParameter]
     private BradixToastProvider? Provider { get; set; }
@@ -52,20 +53,16 @@
     [Parameter]
     public string Label { get; set; } = "Notifications ({hotkey})";
 
-    private string HotkeyLabel => _hotkeyLabel;
-
     private string ResolvedViewportId => Id ?? Provider?.ViewportId ?? string.Empty;
 
     private Dictionary<string, object> RegionAttributes
     {
         get
         {
-            var attributes = new Dictionary<string, object>
-            {
-                ["role"] = "region",
-                ["aria-label"] = Label.Replace("{hotkey}", HotkeyLabel, StringComparison.Ordinal),
-                ["tabindex"] = -1
-            };
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(attributes: null, extraCapacity: 4);
+            attributes["role"] = "region";
+            attributes["aria-label"] = _regionAriaLabel;
+            attributes["tabindex"] = -1;
 
             if (Provider?.ToastCount <= 0)
                 attributes["style"] = "pointer-events:none;";
@@ -91,6 +88,7 @@
     {
         _hotkeyLabel = BuildHotkeyLabel(Hotkey);
         _hotkeySignature = BuildHotkeySignature(Hotkey);
+        _regionAriaLabel = Label.Replace("{hotkey}", _hotkeyLabel, StringComparison.Ordinal);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

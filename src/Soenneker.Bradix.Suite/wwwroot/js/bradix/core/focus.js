@@ -60,7 +60,14 @@ function findVisible(elements, container) {
 export function getTabbableEdges(container) {
   const candidates = getTabbableCandidates(container);
   const first = findVisible(candidates, container);
-  const last = findVisible([...candidates].reverse(), container);
+  let last = null;
+  for (let index = candidates.length - 1; index >= 0; index--) {
+    const candidate = candidates[index];
+    if (!isHidden(candidate, container)) {
+      last = candidate;
+      break;
+    }
+  }
   return [first, last];
 }
 
@@ -77,9 +84,10 @@ export function focusElement(element, select) {
   }
 }
 
-export function focusFirst(candidates, select) {
+export function focusFirst(candidates, select, startIndex = 0, step = 1) {
   const previous = document.activeElement;
-  for (const candidate of candidates) {
+  for (let index = startIndex; index >= 0 && index < candidates.length; index += step) {
+    const candidate = candidates[index];
     focusElement(candidate, select);
     if (document.activeElement !== previous) {
       return true;
@@ -90,5 +98,14 @@ export function focusFirst(candidates, select) {
 }
 
 export function removeLinks(items) {
-  return items.filter((item) => item.tagName !== "A");
+  let writeIndex = 0;
+  for (let index = 0; index < items.length; index++) {
+    const item = items[index];
+    if (item.tagName !== "A") {
+      items[writeIndex++] = item;
+    }
+  }
+
+  items.length = writeIndex;
+  return items;
 }

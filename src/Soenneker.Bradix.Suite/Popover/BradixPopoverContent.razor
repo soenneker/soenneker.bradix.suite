@@ -151,7 +151,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 5);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(5);
 
             bool hasExplicitRole = attributes.ContainsKey("role");
 

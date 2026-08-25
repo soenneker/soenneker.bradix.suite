@@ -74,7 +74,11 @@ export function registerNavigationMenuContentFocusBridge(content, trigger, start
       return;
     }
 
-    focusFirst(side === "start" ? candidates : [...candidates].reverse(), true);
+    if (side === "start") {
+      focusFirst(candidates, true);
+    } else {
+      focusFirst(candidates, true, candidates.length - 1, -1);
+    }
   };
 
   const handleStartProxyFocus = (event) => {
@@ -107,11 +111,12 @@ export function registerNavigationMenuContentFocusBridge(content, trigger, start
     const focusedElement = document.activeElement;
     const index = candidates.findIndex((candidate) => candidate === focusedElement);
     const isMovingBackwards = event.shiftKey;
-    const nextCandidates = isMovingBackwards
-      ? candidates.slice(0, index).reverse()
-      : candidates.slice(index + 1);
+    const nextIndex = isMovingBackwards
+      ? (index < 0 ? candidates.length - 2 : index - 1)
+      : index + 1;
+    const step = isMovingBackwards ? -1 : 1;
 
-    if (focusFirst(nextCandidates, true)) {
+    if (focusFirst(candidates, true, nextIndex, step)) {
       event.preventDefault();
     } else {
       focusElement(isMovingBackwards ? startProxy : endProxy, false);

@@ -36,6 +36,8 @@
 </BradixDismissableLayerBranch>
 
 @code {
+    private readonly BradixAttributeDictionary _attributeDictionaries = new();
+
     [CascadingParameter]
     private BradixMenu SubMenu { get; set; } = null!;
 
@@ -135,7 +137,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 4);
+            Dictionary<string, object> attributes = _attributeDictionaries.Create(AdditionalAttributes, 4);
 
             attributes["aria-labelledby"] = Sub.TriggerId;
             return attributes;

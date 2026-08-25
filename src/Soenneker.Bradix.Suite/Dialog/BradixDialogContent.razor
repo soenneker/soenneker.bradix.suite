@@ -105,7 +105,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 5);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(5);
 
             attributes["role"] = string.IsNullOrWhiteSpace(Role) ? "dialog" : Role;
             attributes["data-state"] = Dialog?.CurrentOpen == true ? "open" : "closed";

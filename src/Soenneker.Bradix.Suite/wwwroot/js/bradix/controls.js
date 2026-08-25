@@ -196,12 +196,10 @@ export function registerSliderPointerBridge(element, dotNetRef) {
   let mutationObserver = null;
 
   const updateThumbOffsets = () => {
-    const sliderThumbs = Array.from(element.querySelectorAll('[role="slider"]'));
-
-    sliderThumbs.forEach((thumb) => {
+    for (const thumb of element.querySelectorAll('[role="slider"]')) {
       const wrapper = thumb.parentElement;
       if (!wrapper) {
-        return;
+        continue;
       }
 
       const orientation = thumb.getAttribute("data-orientation") || "horizontal";
@@ -212,14 +210,14 @@ export function registerSliderPointerBridge(element, dotNetRef) {
 
       if (!Number.isFinite(size) || size <= 0 || !Number.isFinite(percent)) {
         wrapper.style.setProperty("--bradix-slider-thumb-in-bounds-offset", "0px");
-        return;
+        continue;
       }
 
       const halfSize = size / 2;
       const offsetAtPercent = (percent / 50) * halfSize;
       const offset = (halfSize - offsetAtPercent * direction) * direction;
       wrapper.style.setProperty("--bradix-slider-thumb-in-bounds-offset", `${offset}px`);
-    });
+    }
   };
 
   updateThumbOffsets();
@@ -227,7 +225,9 @@ export function registerSliderPointerBridge(element, dotNetRef) {
   if (typeof ResizeObserver === "function") {
     resizeObserver = new ResizeObserver(updateThumbOffsets);
     resizeObserver.observe(element);
-    Array.from(element.querySelectorAll('[role="slider"]')).forEach((thumb) => resizeObserver.observe(thumb));
+    for (const thumb of element.querySelectorAll('[role="slider"]')) {
+      resizeObserver.observe(thumb);
+    }
   }
 
   if (typeof MutationObserver === "function") {
@@ -254,8 +254,21 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     const thumb = event.target && typeof event.target.closest === "function"
       ? event.target.closest('[role="slider"]')
       : null;
-    const sliderThumbs = Array.from(element.querySelectorAll('[role="slider"]'));
-    return thumb ? sliderThumbs.indexOf(thumb) : -1;
+
+    if (!thumb) {
+      return -1;
+    }
+
+    let index = 0;
+    for (const candidate of element.querySelectorAll('[role="slider"]')) {
+      if (candidate === thumb) {
+        return index;
+      }
+
+      index++;
+    }
+
+    return -1;
   };
 
   const pointerdown = async (event) => {
@@ -528,9 +541,25 @@ export function registerOneTimePasswordInput(element, dotNetRef) {
 
     const focusBoundaryInput = (start) => {
       const root = element.closest('[role="group"]');
-      const inputs = Array.from((root || document).querySelectorAll("[data-radix-otp-input]"))
-        .filter((input) => !input.disabled && !input.readOnly);
-      const next = start ? inputs[0] : inputs[inputs.length - 1];
+      const inputs = (root || document).querySelectorAll("[data-radix-otp-input]");
+      let next = null;
+
+      if (start) {
+        for (const input of inputs) {
+          if (!input.disabled && !input.readOnly) {
+            next = input;
+            break;
+          }
+        }
+      } else {
+        for (let index = inputs.length - 1; index >= 0; index--) {
+          const input = inputs[index];
+          if (!input.disabled && !input.readOnly) {
+            next = input;
+            break;
+          }
+        }
+      }
 
       if (next && typeof next.focus === "function") {
         next.focus({ preventScroll: true });

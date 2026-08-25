@@ -27,12 +27,29 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     }
   };
   const getSortedCandidates = (backwards) => {
-    const toastItems = Array.from(viewport.querySelectorAll('[data-radix-toast-root]'));
-    const orderedItems = backwards ? toastItems : [...toastItems].reverse();
-    return orderedItems.flatMap((toast) => {
-      const candidates = [toast, ...getTabbableCandidates(toast)];
-      return backwards ? candidates.reverse() : candidates;
-    });
+    const toastItems = viewport.querySelectorAll('[data-radix-toast-root]');
+    const candidates = [];
+
+    if (backwards) {
+      for (const toast of toastItems) {
+        const toastCandidates = getTabbableCandidates(toast);
+        for (let index = toastCandidates.length - 1; index >= 0; index--) {
+          candidates.push(toastCandidates[index]);
+        }
+        candidates.push(toast);
+      }
+    } else {
+      for (let toastIndex = toastItems.length - 1; toastIndex >= 0; toastIndex--) {
+        const toast = toastItems[toastIndex];
+        candidates.push(toast);
+        const toastCandidates = getTabbableCandidates(toast);
+        for (const candidate of toastCandidates) {
+          candidates.push(candidate);
+        }
+      }
+    }
+
+    return candidates;
   };
   const focusFromProxy = (backwards) => {
     const previous = document.activeElement;
@@ -58,7 +75,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
       return;
     }
 
-    const toastItems = Array.from(viewport.querySelectorAll('[data-radix-toast-root]'));
+    const toastItems = viewport.querySelectorAll('[data-radix-toast-root]');
     const target = toastItems.length > 0 ? toastItems[toastItems.length - 1] : null;
     focusElement(target, false);
 
@@ -111,8 +128,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
 
     const sortedCandidates = getSortedCandidates(backwards);
     const index = sortedCandidates.findIndex((candidate) => candidate === document.activeElement);
-    const nextCandidates = sortedCandidates.slice(index + 1);
-    if (focusFirst(nextCandidates, false)) {
+    if (focusFirst(sortedCandidates, false, index + 1)) {
       event.preventDefault();
     } else {
       focusElement(backwards ? resolvedHeadProxy : resolvedTailProxy, false);
@@ -368,25 +384,24 @@ export function getToastAnnounceText(element) {
   return collectToastAnnounceText(element);
 }
 
-function collectToastAnnounceText(container) {
-  const textContent = [];
-  const childNodes = Array.from(container.childNodes || []);
+function collectToastAnnounceText(container, textContent = []) {
+  const childNodes = container.childNodes || [];
 
-  childNodes.forEach((node) => {
+  for (const node of childNodes) {
     if (node.nodeType === Node.TEXT_NODE && node.textContent) {
       textContent.push(node.textContent);
-      return;
+      continue;
     }
 
     if (!(node instanceof HTMLElement)) {
-      return;
+      continue;
     }
 
     const isHidden = node.ariaHidden === "true" || node.hidden || node.style.display === "none";
     const isExcluded = node.dataset && node.dataset.radixToastAnnounceExclude === "";
 
     if (isHidden) {
-      return;
+      continue;
     }
 
     if (isExcluded) {
@@ -394,11 +409,11 @@ function collectToastAnnounceText(container) {
       if (altText) {
         textContent.push(altText);
       }
-      return;
+      continue;
     }
 
-    textContent.push(...collectToastAnnounceText(node));
-  });
+    collectToastAnnounceText(node, textContent);
+  }
 
   return textContent;
 }

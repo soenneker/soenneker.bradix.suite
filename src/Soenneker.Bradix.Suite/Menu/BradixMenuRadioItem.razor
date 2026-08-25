@@ -21,6 +21,8 @@
 </CascadingValue>
 
 @code {
+    private BradixMenuItemIndicatorContext? _indicatorContext;
+
     [CascadingParameter]
     internal BradixMenuRadioGroupContext Group { get; set; } = null!;
 
@@ -46,11 +48,25 @@
 
     private bool IsChecked => string.Equals(Group.CurrentValue, Value, StringComparison.Ordinal);
 
-    private BradixMenuItemIndicatorContext IndicatorContext => new()
+    private BradixMenuItemIndicatorContext IndicatorContext
     {
-        CheckedState = IsChecked ? BradixCheckboxCheckedState.Checked : BradixCheckboxCheckedState.Unchecked,
-        Disabled = IsDisabled
-    };
+        get
+        {
+            BradixCheckboxCheckedState checkedState = IsChecked ? BradixCheckboxCheckedState.Checked : BradixCheckboxCheckedState.Unchecked;
+            bool disabled = IsDisabled;
+
+            if (_indicatorContext is null || _indicatorContext.CheckedState != checkedState || _indicatorContext.Disabled != disabled)
+            {
+                _indicatorContext = new BradixMenuItemIndicatorContext
+                {
+                    CheckedState = checkedState,
+                    Disabled = disabled
+                };
+            }
+
+            return _indicatorContext;
+        }
+    }
 
     private async Task HandleSelect()
     {

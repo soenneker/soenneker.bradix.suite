@@ -33,6 +33,7 @@ else
 }
 
 @code {
+    private BradixDialogCloseContext? _closeContext;
     private ElementReference _button;
     private bool _delegatedInteractionReady;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -61,12 +62,24 @@ else
     [Parameter]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-    private BradixDialogCloseContext CloseContext => new()
+    private BradixDialogCloseContext CloseContext
     {
-        Disabled = Disabled,
-        AriaLabel = AriaLabel,
-        Close = HandleChildClick
-    };
+        get
+        {
+            if (_closeContext is null || _closeContext.Disabled != Disabled ||
+                !string.Equals(_closeContext.AriaLabel, AriaLabel, StringComparison.Ordinal))
+            {
+                _closeContext = new BradixDialogCloseContext
+                {
+                    Disabled = Disabled,
+                    AriaLabel = AriaLabel,
+                    Close = HandleChildClick
+                };
+            }
+
+            return _closeContext;
+        }
+    }
 
     private Dictionary<string, object> ButtonAttributes => MergeCloseAttributes(BuildAttributes(
         ("type", "button"),
@@ -86,10 +99,16 @@ else
         if (AdditionalAttributes is null)
             return attributes;
 
-        foreach (KeyValuePair<string, object> attribute in AdditionalAttributes)
+        if (AdditionalAttributes is Dictionary<string, object> dictionary)
         {
-            attributes[attribute.Key] = attribute.Value;
+            foreach (KeyValuePair<string, object> attribute in dictionary)
+                attributes[attribute.Key] = attribute.Value;
+
+            return attributes;
         }
+
+        foreach (KeyValuePair<string, object> attribute in AdditionalAttributes)
+            attributes[attribute.Key] = attribute.Value;
 
         return attributes;
     }

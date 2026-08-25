@@ -11,6 +11,8 @@
 </BradixMenuSubTrigger>
 
 @code {
+    private readonly BradixAttributeDictionary _attributeDictionaries = new();
+
     [Parameter]
     public string? Id { get; set; }
 
@@ -36,7 +38,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 1);
+            Dictionary<string, object> attributes = _attributeDictionaries.Create(AdditionalAttributes, 1);
 
             attributes["data-radix-menubar-subtrigger"] = string.Empty;
             return attributes;

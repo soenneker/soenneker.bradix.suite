@@ -30,7 +30,7 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BradixAttributeDictionary.Create(AdditionalAttributes, 2);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(2);
 
             if (Field?.IsValid == true)
                 attributes["data-valid"] = string.Empty;

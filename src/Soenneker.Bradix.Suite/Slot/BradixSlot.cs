@@ -49,33 +49,44 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
         if (ChildAttributes is null)
             return merged;
 
-        foreach ((string key, object value) in ChildAttributes)
+        if (ChildAttributes is Dictionary<string, object> dictionary)
         {
-            if (merged.TryGetValue(key, out object? slotValue))
-            {
-                if (IsEventHandler(key))
-                {
-                    merged[key] = ComposeEventHandlers(childValue: value, slotValue);
-                    continue;
-                }
+            foreach (KeyValuePair<string, object> pair in dictionary)
+                MergeChildAttribute(merged, pair.Key, pair.Value);
 
-                if (string.Equals(key, "class", StringComparison.OrdinalIgnoreCase))
-                {
-                    merged[key] = MergeStringValues(slotValue, value);
-                    continue;
-                }
-
-                if (string.Equals(key, "style", StringComparison.OrdinalIgnoreCase))
-                {
-                    merged[key] = MergeStyleValues(slotValue, value);
-                    continue;
-                }
-            }
-
-            merged[key] = value;
+            return merged;
         }
 
+        foreach ((string key, object value) in ChildAttributes)
+            MergeChildAttribute(merged, key, value);
+
         return merged;
+    }
+
+    private void MergeChildAttribute(Dictionary<string, object> merged, string key, object value)
+    {
+        if (merged.TryGetValue(key, out object? slotValue))
+        {
+            if (IsEventHandler(key))
+            {
+                merged[key] = ComposeEventHandlers(childValue: value, slotValue);
+                return;
+            }
+
+            if (string.Equals(key, "class", StringComparison.OrdinalIgnoreCase))
+            {
+                merged[key] = MergeStringValues(slotValue, value);
+                return;
+            }
+
+            if (string.Equals(key, "style", StringComparison.OrdinalIgnoreCase))
+            {
+                merged[key] = MergeStyleValues(slotValue, value);
+                return;
+            }
+        }
+
+        merged[key] = value;
     }
 
     private object ComposeEventHandlers(object childValue, object slotValue)

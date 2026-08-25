@@ -23,6 +23,7 @@
 @code {
     private bool _initialized;
     private BradixCheckboxCheckedState _uncontrolledChecked = BradixCheckboxCheckedState.Unchecked;
+    private BradixMenuItemIndicatorContext? _indicatorContext;
 
     [Parameter]
     public BradixCheckboxCheckedState? Checked { get; set; }
@@ -53,11 +54,24 @@
 
     private BradixCheckboxCheckedState CurrentChecked => Checked ?? _uncontrolledChecked;
 
-    private BradixMenuItemIndicatorContext IndicatorContext => new()
+    private BradixMenuItemIndicatorContext IndicatorContext
     {
-        CheckedState = CurrentChecked,
-        Disabled = Disabled
-    };
+        get
+        {
+            BradixCheckboxCheckedState checkedState = CurrentChecked;
+
+            if (_indicatorContext is null || _indicatorContext.CheckedState != checkedState || _indicatorContext.Disabled != Disabled)
+            {
+                _indicatorContext = new BradixMenuItemIndicatorContext
+                {
+                    CheckedState = checkedState,
+                    Disabled = Disabled
+                };
+            }
+
+            return _indicatorContext;
+        }
+    }
 
     private string AriaChecked => CurrentChecked == BradixCheckboxCheckedState.Indeterminate
         ? "mixed"
