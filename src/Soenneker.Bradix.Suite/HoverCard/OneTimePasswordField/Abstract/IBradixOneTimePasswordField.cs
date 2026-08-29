@@ -84,6 +84,9 @@ public interface IBradixOneTimePasswordField : IAsyncDisposable{
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler when the associated form resets.</summary>
+    /// <summary>
+    /// Interop handler when the associated form resets.
+    /// </summary>
+    /// <returns>A task that completes when the handle form reset operation is complete.</returns>
     Task HandleFormReset();
 }

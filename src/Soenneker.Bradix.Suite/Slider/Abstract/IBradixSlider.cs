@@ -67,15 +67,32 @@ public interface IBradixSlider : IAsyncDisposable {
     string? Form { get; set; }
 
 
-    /// <summary>Called from script when a pointer drag begins.</summary>
+    /// <summary>
+    /// Called from script when a pointer drag begins.
+    /// </summary>
+    /// <param name="xFraction">x Fraction to invoke when the operation runs.</param>
+    /// <param name="yFraction">y Fraction to invoke when the operation runs.</param>
+    /// <param name="thumbIndex">Thumb Index for the handle pointer start operation.</param>
+    /// <returns>A task that completes when the handle pointer start operation is complete.</returns>
     Task HandlePointerStart(double xFraction, double yFraction, int thumbIndex);
 
-    /// <summary>Called from script during a pointer drag.</summary>
+    /// <summary>
+    /// Called from script during a pointer drag.
+    /// </summary>
+    /// <param name="xFraction">x Fraction to invoke when the operation runs.</param>
+    /// <param name="yFraction">y Fraction to invoke when the operation runs.</param>
+    /// <returns>A task that completes when the handle pointer move operation is complete.</returns>
     Task HandlePointerMove(double xFraction, double yFraction);
 
-    /// <summary>Called from script when a pointer drag ends.</summary>
+    /// <summary>
+    /// Called from script when a pointer drag ends.
+    /// </summary>
+    /// <returns>A task that completes when the handle pointer end operation is complete.</returns>
     Task HandlePointerEnd();
 
-    /// <summary>Called from script when a pointer gesture is cancelled.</summary>
+    /// <summary>
+    /// Called from script when a pointer gesture is cancelled.
+    /// </summary>
+    /// <returns>A task that completes when the handle pointer cancel operation is complete.</returns>
     Task HandlePointerCancel();
 }

@@ -26,7 +26,10 @@ public interface IBradixMenubar : IAsyncDisposable {
     string? Dir { get; set; }
 
 
-    /// <summary>Handles a document-level pointer down outside interaction from JavaScript interop.</summary>
+    /// <summary>
+    /// Handles a document-level pointer down outside interaction from JavaScript interop.
+    /// </summary>
+    /// <returns>A task that completes when the handle document pointer down outside operation is complete.</returns>
     Task HandleDocumentPointerDownOutside();
 
     /// <summary>Gets or sets the element id.</summary>

@@ -12,25 +12,25 @@ namespace Soenneker.Bradix;
 public interface ICollapsibleInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Collapsible so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the observe collapsible content operation.
+    /// Observes collapsible Content.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the observe collapsible content operation is complete.</returns>
     ValueTask ObserveCollapsibleContent(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unobserve collapsible content operation.
+    /// Stops observing collapsible Content.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the unobserve collapsible content operation is complete.</returns>
     ValueTask UnobserveCollapsibleContent(ElementReference element, CancellationToken cancellationToken = default);
 }

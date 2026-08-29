@@ -12,96 +12,96 @@ namespace Soenneker.Bradix;
 public interface IPresenceOverlayInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Presence Overlay so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register presence operation.
+    /// Registers presence for the Presence Overlay.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the presence registration is complete.</returns>
     ValueTask RegisterPresence(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets presence state.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested bradix Presence Snapshot.</returns>
     ValueTask<BradixPresenceSnapshot> GetPresenceState(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister presence operation.
+    /// Unregisters presence for the Presence Overlay.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the presence registration has been removed.</returns>
     ValueTask UnregisterPresence(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register focus guards operation.
+    /// Registers focus Guards for the Presence Overlay.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the focus guards registration is complete.</returns>
     ValueTask RegisterFocusGuards(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister focus guards operation.
+    /// Unregisters focus Guards for the Presence Overlay.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the focus guards registration has been removed.</returns>
     ValueTask UnregisterFocusGuards(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register hide others operation.
+    /// Registers hide Others for the Presence Overlay.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the hide others registration is complete.</returns>
     ValueTask RegisterHideOthers(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister hide others operation.
+    /// Unregisters hide Others for the Presence Overlay.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the hide others registration has been removed.</returns>
     ValueTask UnregisterHideOthers(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register remove scroll operation.
+    /// Registers remove Scroll.
     /// </summary>
-    /// <param name="allowPinchZoom">The allow pinch zoom.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="allowPinchZoom">Whether allow pinch zoom.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the remove scroll registration is complete.</returns>
     ValueTask RegisterRemoveScroll(bool allowPinchZoom = false, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register remove scroll operation.
+    /// Registers remove Scroll.
     /// </summary>
-    /// <param name="registrationId">The registration id.</param>
-    /// <param name="allowPinchZoom">The allow pinch zoom.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="registrationId">Identifier of the registration to target.</param>
+    /// <param name="allowPinchZoom">Whether allow pinch zoom.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the remove scroll registration is complete.</returns>
     ValueTask RegisterRemoveScroll(string registrationId, bool allowPinchZoom = false, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister remove scroll operation.
+    /// Unregisters remove Scroll for the Presence Overlay.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the remove scroll registration has been removed.</returns>
     ValueTask UnregisterRemoveScroll(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister remove scroll operation.
+    /// Unregisters remove Scroll for the Presence Overlay.
     /// </summary>
-    /// <param name="registrationId">The registration id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="registrationId">Identifier of the registration to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the remove scroll registration has been removed.</returns>
     ValueTask UnregisterRemoveScroll(string registrationId, CancellationToken cancellationToken = default);
 }

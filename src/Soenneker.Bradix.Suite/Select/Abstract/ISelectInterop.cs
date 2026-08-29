@@ -12,145 +12,145 @@ namespace Soenneker.Bradix;
 public interface ISelectInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Select so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register select item aligned position operation.
+    /// Registers select Item Aligned Position.
     /// </summary>
-    /// <param name="wrapper">The wrapper.</param>
-    /// <param name="content">The content.</param>
-    /// <param name="viewport">The viewport.</param>
-    /// <param name="trigger">The trigger.</param>
-    /// <param name="valueNode">The value node.</param>
-    /// <param name="selectedItem">The selected item.</param>
-    /// <param name="selectedItemText">The selected item text.</param>
-    /// <param name="dir">The dir.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="wrapper">Wrapper instance to initialize or invoke.</param>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="viewport">Viewport element or dimensions to use.</param>
+    /// <param name="trigger">Pointer event that initiated the interaction.</param>
+    /// <param name="valueNode">Value Node for the register select item aligned position operation.</param>
+    /// <param name="selectedItem">Selected Item for the register select item aligned position operation.</param>
+    /// <param name="selectedItemText">Selected Item Text for the register select item aligned position operation.</param>
+    /// <param name="dir">Dir for the register select item aligned position operation.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select item aligned position registration is complete.</returns>
     ValueTask RegisterSelectItemAlignedPosition(ElementReference wrapper, ElementReference content, ElementReference viewport, ElementReference trigger,
         ElementReference valueNode, ElementReference selectedItem, ElementReference selectedItemText, string dir, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates select item aligned position.
     /// </summary>
-    /// <param name="wrapper">The wrapper.</param>
-    /// <param name="content">The content.</param>
-    /// <param name="viewport">The viewport.</param>
-    /// <param name="trigger">The trigger.</param>
-    /// <param name="valueNode">The value node.</param>
-    /// <param name="selectedItem">The selected item.</param>
-    /// <param name="selectedItemText">The selected item text.</param>
-    /// <param name="dir">The dir.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="wrapper">Wrapper instance to initialize or invoke.</param>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="viewport">Viewport element or dimensions to use.</param>
+    /// <param name="trigger">Pointer event that initiated the interaction.</param>
+    /// <param name="valueNode">Value Node for the update select item aligned position operation.</param>
+    /// <param name="selectedItem">Selected Item for the update select item aligned position operation.</param>
+    /// <param name="selectedItemText">Selected Item Text for the update select item aligned position operation.</param>
+    /// <param name="dir">Dir for the update select item aligned position operation.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select item aligned position update is complete.</returns>
     ValueTask UpdateSelectItemAlignedPosition(ElementReference wrapper, ElementReference content, ElementReference viewport, ElementReference trigger,
         ElementReference valueNode, ElementReference selectedItem, ElementReference selectedItemText, string dir, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister select item aligned position operation.
+    /// Unregisters select Item Aligned Position for the Select.
     /// </summary>
-    /// <param name="wrapper">The wrapper.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="wrapper">Wrapper instance to initialize or invoke.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select item aligned position registration has been removed.</returns>
     ValueTask UnregisterSelectItemAlignedPosition(ElementReference wrapper, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register select viewport operation.
+    /// Registers select Viewport for the Select.
     /// </summary>
-    /// <param name="viewport">The viewport.</param>
-    /// <param name="content">The content.</param>
-    /// <param name="wrapper">The wrapper.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="viewport">Viewport element or dimensions to use.</param>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="wrapper">Wrapper instance to initialize or invoke.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select viewport registration is complete.</returns>
     ValueTask RegisterSelectViewport(ElementReference viewport, ElementReference content, ElementReference wrapper,
         DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister select viewport operation.
+    /// Unregisters select Viewport for the Select.
     /// </summary>
-    /// <param name="viewport">The viewport.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="viewport">Viewport element or dimensions to use.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select viewport registration has been removed.</returns>
     ValueTask UnregisterSelectViewport(ElementReference viewport, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register select content keyboard operation.
+    /// Registers select Content Keyboard for the Select.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select content keyboard registration is complete.</returns>
     ValueTask RegisterSelectContentKeyboard(ElementReference content, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister select content keyboard operation.
+    /// Unregisters select Content Keyboard for the Select.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select content keyboard registration has been removed.</returns>
     ValueTask UnregisterSelectContentKeyboard(ElementReference content, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the scroll select viewport by item operation.
+    /// Scrolls select Viewport By Item.
     /// </summary>
-    /// <param name="viewport">The viewport.</param>
-    /// <param name="item">The item.</param>
-    /// <param name="upward">The upward.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="viewport">Viewport element or dimensions to use.</param>
+    /// <param name="item">Receives the entry when the key is found.</param>
+    /// <param name="upward">Whether upward.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the scroll select viewport by item operation is complete.</returns>
     ValueTask ScrollSelectViewportByItem(ElementReference viewport, ElementReference item, bool upward, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register select content pointer tracker operation.
+    /// Registers select Content Pointer Tracker.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="pageX">The page x.</param>
-    /// <param name="pageY">The page y.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="pageX">Page X for the register select content pointer tracker operation.</param>
+    /// <param name="pageY">Page Y for the register select content pointer tracker operation.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select content pointer tracker registration is complete.</returns>
     ValueTask RegisterSelectContentPointerTracker(ElementReference content, DotNetObjectReference<object> dotNetReference, double pageX, double pageY,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister select content pointer tracker operation.
+    /// Unregisters select Content Pointer Tracker for the Select.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select content pointer tracker registration has been removed.</returns>
     ValueTask UnregisterSelectContentPointerTracker(ElementReference content, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register select window dismiss operation.
+    /// Registers select Window Dismiss for the Select.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select window dismiss registration is complete.</returns>
     ValueTask RegisterSelectWindowDismiss(ElementReference content, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister select window dismiss operation.
+    /// Unregisters select Window Dismiss for the Select.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select window dismiss registration has been removed.</returns>
     ValueTask UnregisterSelectWindowDismiss(ElementReference content, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets select option value at point.
     /// </summary>
-    /// <param name="clientX">The client x.</param>
-    /// <param name="clientY">The client y.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="clientX">client X used to communicate with the external service.</param>
+    /// <param name="clientY">client Y used to communicate with the external service.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the text returned by get Select Option Value At Point.</returns>
     ValueTask<string?> GetSelectOptionValueAtPoint(double clientX, double clientY, CancellationToken cancellationToken = default);
 }

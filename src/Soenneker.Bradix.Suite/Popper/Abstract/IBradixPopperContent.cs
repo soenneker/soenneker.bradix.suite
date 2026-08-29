@@ -64,7 +64,24 @@ public interface IBradixPopperContent : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler when popper geometry updates.</summary>
+    /// <summary>
+    /// Interop handler when popper geometry updates.
+    /// </summary>
+    /// <param name="side">Side for the handle position changed operation.</param>
+    /// <param name="align">Align for the handle position changed operation.</param>
+    /// <param name="left">Left for the handle position changed operation.</param>
+    /// <param name="top">Top for the handle position changed operation.</param>
+    /// <param name="availableWidth">Available Width for the handle position changed operation.</param>
+    /// <param name="availableHeight">Available Height for the handle position changed operation.</param>
+    /// <param name="anchorWidth">Anchor Width for the handle position changed operation.</param>
+    /// <param name="anchorHeight">Anchor Height for the handle position changed operation.</param>
+    /// <param name="arrowX">Arrow X for the handle position changed operation.</param>
+    /// <param name="arrowY">Arrow Y for the handle position changed operation.</param>
+    /// <param name="shouldHideArrow">Whether should hide arrow.</param>
+    /// <param name="hidden">Whether hidden.</param>
+    /// <param name="transformOriginX">Transform Origin X for the handle position changed operation.</param>
+    /// <param name="transformOriginY">Transform Origin Y for the handle position changed operation.</param>
+    /// <returns>A task that completes when the handle position changed operation is complete.</returns>
     Task HandlePositionChanged(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth,
         double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY);
 }

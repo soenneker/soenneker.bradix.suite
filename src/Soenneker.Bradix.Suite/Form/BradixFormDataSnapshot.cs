@@ -14,20 +14,20 @@ public sealed class BradixFormDataSnapshot
     public Dictionary<string, string[]> Values { get; set; } = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Executes the contains operation.
+    /// Returns the value produced by contains.
     /// </summary>
-    /// <param name="name">The name.</param>
-    /// <returns>A value indicating whether the operation succeeded.</returns>
+    /// <param name="name">Optional name used to scope the generated variant.</param>
+    /// <returns>true if the value is present in the current window; otherwise, false.</returns>
     public bool Contains(string name)
     {
         return Values.ContainsKey(name);
     }
 
     /// <summary>
-    /// Gets the value.
+    /// Returns the configured resulting text used by the Bradix Form Data Snapshot.
     /// </summary>
-    /// <param name="name">The name.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="name">Optional name used to scope the generated variant.</param>
+    /// <returns>The requested text.</returns>
     public string? Get(string name)
     {
         return Values.TryGetValue(name, out string[]? values) && values.Length > 0
@@ -38,8 +38,8 @@ public sealed class BradixFormDataSnapshot
     /// <summary>
     /// Gets all.
     /// </summary>
-    /// <param name="name">The name.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="name">Optional name used to scope the generated variant.</param>
+    /// <returns>The requested collection.</returns>
     public IReadOnlyList<string> GetAll(string name)
     {
         return Values.TryGetValue(name, out string[]? values)

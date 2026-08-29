@@ -11,7 +11,7 @@ public class BradixPreventableEventArgs
     public bool DefaultPrevented { get; private set; }
 
     /// <summary>
-    /// Executes the prevent default operation.
+    /// Prevent Default on the Bradix Preventable Event Args.
     /// </summary>
     public void PreventDefault()
     {

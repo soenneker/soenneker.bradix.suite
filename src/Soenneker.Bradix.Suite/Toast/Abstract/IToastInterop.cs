@@ -13,47 +13,47 @@ namespace Soenneker.Bradix;
 public interface IToastInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Toast so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register toast viewport operation.
+    /// Registers toast Viewport.
     /// </summary>
-    /// <param name="wrapper">The wrapper.</param>
-    /// <param name="viewport">The viewport.</param>
-    /// <param name="headProxy">The head proxy.</param>
-    /// <param name="tailProxy">The tail proxy.</param>
-    /// <param name="hotkey">The hotkey.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="wrapper">Wrapper instance to initialize or invoke.</param>
+    /// <param name="viewport">Viewport element or dimensions to use.</param>
+    /// <param name="headProxy">Head Proxy for the register toast viewport operation.</param>
+    /// <param name="tailProxy">Tail Proxy for the register toast viewport operation.</param>
+    /// <param name="hotkey">hotkey to process.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the toast viewport registration is complete.</returns>
     ValueTask RegisterToastViewport(ElementReference wrapper, ElementReference viewport, ElementReference headProxy, ElementReference tailProxy,
         IReadOnlyList<string> hotkey, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister toast viewport operation.
+    /// Unregisters toast Viewport for the Toast.
     /// </summary>
-    /// <param name="viewport">The viewport.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="viewport">Viewport element or dimensions to use.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the toast viewport registration has been removed.</returns>
     ValueTask UnregisterToastViewport(ElementReference viewport, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the is toast focused operation.
+    /// Determines whether the Toast toast Focused.
     /// </summary>
-    /// <param name="toast">The toast.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="toast">Toast for the is toast focused operation.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>true if the Toast toast Focused; otherwise, false.</returns>
     ValueTask<bool> IsToastFocused(ElementReference toast, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets toast announce text.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested string[].</returns>
     ValueTask<string[]> GetToastAnnounceText(ElementReference element, CancellationToken cancellationToken = default);
 }

@@ -12,25 +12,25 @@ namespace Soenneker.Bradix;
 public interface IRadioGroupInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Radio Group so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register radio group item keys operation.
+    /// Registers radio Group Item Keys for the Radio Group.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the radio group item keys registration is complete.</returns>
     ValueTask RegisterRadioGroupItemKeys(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister radio group item keys operation.
+    /// Unregisters radio Group Item Keys for the Radio Group.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the radio group item keys registration has been removed.</returns>
     ValueTask UnregisterRadioGroupItemKeys(ElementReference element, CancellationToken cancellationToken = default);
 }

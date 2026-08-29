@@ -32,10 +32,10 @@ public sealed class BradixTypeaheadBuffer
     }
 
     /// <summary>
-    /// Executes the append operation.
+    /// Appends bradix Typeahead Buffer.
     /// </summary>
-    /// <param name="key">The key.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="key">Key used to locate the target entry.</param>
+    /// <returns>The text produced by append.</returns>
     public string Append(string key)
     {
         if (string.IsNullOrEmpty(key))
@@ -51,7 +51,7 @@ public sealed class BradixTypeaheadBuffer
     }
 
     /// <summary>
-    /// Executes the reset operation.
+    /// Resets bradix Typeahead Buffer.
     /// </summary>
     public void Reset()
     {

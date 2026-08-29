@@ -67,6 +67,10 @@ public interface IBradixToast : IAsyncDisposable {
     EventCallback<BradixToastSwipeEventArgs> OnSwipeEnd { get; set; }
 
 
-    /// <summary>Called from script for delegated escape key handling.</summary>
+    /// <summary>
+    /// Called from script for delegated escape key handling.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed to the application.</param>
+    /// <returns>A task that completes when the handle delegated key down operation is complete.</returns>
     Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args);
 }

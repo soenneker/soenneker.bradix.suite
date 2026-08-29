@@ -57,22 +57,26 @@ public interface IBradixCheckbox : IAsyncDisposable {
     /// <summary>
     /// Called when delegated interaction handling is ready on the root button.
     /// </summary>
+    /// <returns>A task that completes when the handle delegated interaction ready operation is complete.</returns>
     Task HandleDelegatedInteractionReady();
 
     /// <summary>
     /// Resets the checkbox to its initial unchecked state when the owning form resets.
     /// </summary>
+    /// <returns>A task that completes when the handle form reset operation is complete.</returns>
     Task HandleFormReset();
 
     /// <summary>
     /// Handles a delegated click routed from JavaScript.
     /// </summary>
-    /// <param name="mouseEvent">The delegated mouse event payload.</param>
+    /// <param name="mouseEvent">Mouse Event for the handle delegated click operation.</param>
+    /// <returns>A task that completes when the handle delegated click operation is complete.</returns>
     Task HandleDelegatedClick(BradixDelegatedMouseEvent mouseEvent);
 
     /// <summary>
     /// Handles delegated keyboard activation routed from JavaScript.
     /// </summary>
-    /// <param name="keyboardEvent">The delegated keyboard event payload.</param>
+    /// <param name="keyboardEvent">Keyboard Event for the handle delegated key down operation.</param>
+    /// <returns>A task that completes when the handle delegated key down operation is complete.</returns>
     Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent keyboardEvent);
 }

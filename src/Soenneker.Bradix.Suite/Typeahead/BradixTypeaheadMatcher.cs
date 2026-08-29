@@ -9,12 +9,12 @@ namespace Soenneker.Bradix;
 public static class BradixTypeaheadMatcher
 {
     /// <summary>
-    /// Executes the find next match operation.
+    /// Finds next Match.
     /// </summary>
-    /// <param name="values">The values.</param>
-    /// <param name="search">The search.</param>
-    /// <param name="currentMatch">The current match.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="values">Values supplied to find next match.</param>
+    /// <param name="search">Search text or criteria to apply.</param>
+    /// <param name="currentMatch">Current Match for the find next match operation.</param>
+    /// <returns>The resulting text.</returns>
     public static string? FindNextMatch(IReadOnlyList<string> values, string search, string? currentMatch = null)
     {
         if (values.Count == 0 || string.IsNullOrEmpty(search))
@@ -56,15 +56,15 @@ public static class BradixTypeaheadMatcher
     }
 
     /// <summary>
-    /// Executes the find next item operation.
+    /// Finds the next item whose selected text starts with the search text, wrapping around the list as needed.
     /// </summary>
-    /// <typeparam name="TItem">The TItem type.</typeparam>
-    /// <param name="items">The items.</param>
-    /// <param name="search">The search.</param>
-    /// <param name="currentItem">The current item.</param>
-    /// <param name="textSelector">The text selector.</param>
-    /// <param name="comparer">The comparer.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <typeparam name="TItem">Type of item being searched.</typeparam>
+    /// <param name="items">Ordered items to search.</param>
+    /// <param name="search">Search text or criteria to apply.</param>
+    /// <param name="currentItem">Currently selected item, used as the starting point.</param>
+    /// <param name="textSelector">Callback that returns the searchable text for an item.</param>
+    /// <param name="comparer">Comparer used to identify the current item.</param>
+    /// <returns>The next matching item, or <see langword="null"/> when no different match is found.</returns>
     public static TItem? FindNextItem<TItem>(IReadOnlyList<TItem> items, string search, TItem? currentItem, Func<TItem, string?> textSelector,
         IEqualityComparer<TItem>? comparer = null)
     {
@@ -110,10 +110,10 @@ public static class BradixTypeaheadMatcher
     }
 
     /// <summary>
-    /// Executes the normalize search operation.
+    /// Normalizes search.
     /// </summary>
-    /// <param name="search">The search.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="search">Search text or criteria to apply.</param>
+    /// <returns>The resulting text.</returns>
     public static string NormalizeSearch(string search)
     {
         if (string.IsNullOrEmpty(search))

@@ -12,203 +12,203 @@ namespace Soenneker.Bradix;
 public interface IControlsInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Controls so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the sync checkbox bubble input state operation.
+    /// Synchronizes checkbox Bubble Input State.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="isChecked">The is checked.</param>
-    /// <param name="isIndeterminate">The is indeterminate.</param>
-    /// <param name="dispatchEvent">The dispatch event.</param>
-    /// <param name="bubbles">The bubbles.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="isChecked">Whether checked.</param>
+    /// <param name="isIndeterminate">Whether indeterminate.</param>
+    /// <param name="dispatchEvent">Whether dispatch event.</param>
+    /// <param name="bubbles">Whether bubbles.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the sync checkbox bubble input state operation is complete.</returns>
     ValueTask SyncCheckboxBubbleInputState(ElementReference element, bool isChecked, bool isIndeterminate, bool dispatchEvent, bool bubbles = true,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the click element operation.
+    /// Clicks element.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the click element operation is complete.</returns>
     ValueTask ClickElement(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the focus element deferred operation.
+    /// Focuses element Deferred.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the focus element deferred operation is complete.</returns>
     ValueTask FocusElementDeferred(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the select input text operation.
+    /// Selects input Text.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select input text operation is complete.</returns>
     ValueTask SelectInputText(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the sync input value operation.
+    /// Synchronizes input Value.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="value">The value.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="value">CSS value used to construct the utility class.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the sync input value operation is complete.</returns>
     ValueTask SyncInputValue(ElementReference element, string? value, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the is direction rtl operation.
+    /// Determines whether the Controls direction Rtl.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>true if the Controls direction Rtl; otherwise, false.</returns>
     ValueTask<bool> IsDirectionRtl(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register slider pointer bridge operation.
+    /// Registers slider Pointer Bridge for the Controls.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the slider pointer bridge registration is complete.</returns>
     ValueTask RegisterSliderPointerBridge(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister slider pointer bridge operation.
+    /// Unregisters slider Pointer Bridge for the Controls.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the slider pointer bridge registration has been removed.</returns>
     ValueTask UnregisterSliderPointerBridge(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the sync slider bubble input value operation.
+    /// Synchronizes slider Bubble Input Value.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="value">The value.</param>
-    /// <param name="dispatchEvent">The dispatch event.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="value">CSS value used to construct the utility class.</param>
+    /// <param name="dispatchEvent">Whether dispatch event.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the sync slider bubble input value operation is complete.</returns>
     ValueTask SyncSliderBubbleInputValue(ElementReference element, double value, bool dispatchEvent, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register select bubble input operation.
+    /// Registers select Bubble Input for the Controls.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select bubble input registration is complete.</returns>
     ValueTask RegisterSelectBubbleInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister select bubble input operation.
+    /// Unregisters select Bubble Input for the Controls.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the select bubble input registration has been removed.</returns>
     ValueTask UnregisterSelectBubbleInput(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the sync select bubble input value operation.
+    /// Synchronizes select Bubble Input Value.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="value">The value.</param>
-    /// <param name="dispatchEvent">The dispatch event.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="value">CSS value used to construct the utility class.</param>
+    /// <param name="dispatchEvent">Whether dispatch event.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the sync select bubble input value operation is complete.</returns>
     ValueTask SyncSelectBubbleInputValue(ElementReference element, string? value, bool dispatchEvent, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the capture pointer operation.
+    /// Captures pointer.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="pointerId">The pointer id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="pointerId">Identifier of the pointer to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the capture pointer operation is complete.</returns>
     ValueTask CapturePointer(ElementReference element, long pointerId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the release pointer operation.
+    /// Releases pointer for the Controls.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="pointerId">The pointer id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="pointerId">Identifier of the pointer to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the release pointer operation is complete.</returns>
     ValueTask ReleasePointer(ElementReference element, long pointerId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the suppress next click operation.
+    /// Suppresses next Click.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the suppress next click operation is complete.</returns>
     ValueTask SuppressNextClick(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the focus element by id operation.
+    /// Focuses element By ID.
     /// </summary>
-    /// <param name="elementId">The element id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="elementId">ID of the DOM element to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the focus element by id operation is complete.</returns>
     ValueTask FocusElementById(string? elementId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the focus element by id deferred operation.
+    /// Focuses element By ID Deferred.
     /// </summary>
-    /// <param name="elementId">The element id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="elementId">ID of the DOM element to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the focus element by id deferred operation is complete.</returns>
     ValueTask FocusElementByIdDeferred(string? elementId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the focus element prevent scroll operation.
+    /// Focuses element Prevent Scroll.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the focus element prevent scroll operation is complete.</returns>
     ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the focus first matching descendant operation.
+    /// Focuses first Matching Descendant.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="selector">The selector.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="selector">CSS selector used by the variant.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>true if focuses first Matching Descendant; otherwise, false.</returns>
     ValueTask<bool> FocusFirstMatchingDescendant(ElementReference element, string selector, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the scroll element into view nearest operation.
+    /// Scrolls element Into View Nearest for the Controls.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the scroll element into view nearest operation is complete.</returns>
     ValueTask ScrollElementIntoViewNearest(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register one time password input operation.
+    /// Registers one Time Password Input for the Controls.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the one time password input registration is complete.</returns>
     ValueTask RegisterOneTimePasswordInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister one time password input operation.
+    /// Unregisters one Time Password Input for the Controls.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the one time password input registration has been removed.</returns>
     ValueTask UnregisterOneTimePasswordInput(ElementReference element, CancellationToken cancellationToken = default);
 }

@@ -12,28 +12,28 @@ namespace Soenneker.Bradix;
 public interface IMenubarInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Menubar so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register menubar document dismiss operation.
+    /// Registers menubar Document Dismiss for the Menubar.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="menubarId">The menubar id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="menubarId">Identifier of the menubar to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the menubar document dismiss registration is complete.</returns>
     ValueTask RegisterMenubarDocumentDismiss(ElementReference element, object dotNetReference, string menubarId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister menubar document dismiss operation.
+    /// Unregisters menubar Document Dismiss for the Menubar.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the menubar document dismiss registration has been removed.</returns>
     ValueTask UnregisterMenubarDocumentDismiss(ElementReference element, CancellationToken cancellationToken = default);
 }

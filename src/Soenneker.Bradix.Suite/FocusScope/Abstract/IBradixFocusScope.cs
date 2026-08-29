@@ -45,9 +45,15 @@ public interface IBradixFocusScope : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler for mount autofocus.</summary>
+    /// <summary>
+    /// Interop handler for mount autofocus.
+    /// </summary>
+    /// <returns>true if interop handler for mount autofocus; otherwise, false.</returns>
     Task<bool> HandleMountAutoFocus();
 
-    /// <summary>Interop handler for unmount autofocus.</summary>
+    /// <summary>
+    /// Interop handler for unmount autofocus.
+    /// </summary>
+    /// <returns>true if interop handler for unmount autofocus; otherwise, false.</returns>
     Task<bool> HandleUnmountAutoFocus();
 }

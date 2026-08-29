@@ -12,63 +12,63 @@ namespace Soenneker.Bradix;
 public interface IHoverCardAvatarInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Hover Card Avatar so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the disable hover card content tab navigation operation.
+    /// Disables hover Card Content Tab Navigation.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the disable hover card content tab navigation operation is complete.</returns>
     ValueTask DisableHoverCardContentTabNavigation(ElementReference content, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register hover card selection containment operation.
+    /// Registers hover Card Selection Containment for the Hover Card Avatar.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the hover card selection containment registration is complete.</returns>
     ValueTask RegisterHoverCardSelectionContainment(ElementReference content, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the begin hover card selection containment operation.
+    /// Begins hover Card Selection Containment.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the begin hover card selection containment operation is complete.</returns>
     ValueTask BeginHoverCardSelectionContainment(ElementReference content, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister hover card selection containment operation.
+    /// Unregisters hover Card Selection Containment for the Hover Card Avatar.
     /// </summary>
-    /// <param name="content">The content.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="content">Content to render, store, or send.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the hover card selection containment registration has been removed.</returns>
     ValueTask UnregisterHoverCardSelectionContainment(ElementReference content, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register avatar image loading status operation.
+    /// Registers avatar Image Loading Status.
     /// </summary>
-    /// <param name="src">The src.</param>
-    /// <param name="crossOrigin">The cross origin.</param>
-    /// <param name="referrerPolicy">The referrer policy.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="src">Src for the register avatar image loading status operation.</param>
+    /// <param name="crossOrigin">CORS mode assigned to the script element.</param>
+    /// <param name="referrerPolicy">Referrer Policy for the register avatar image loading status operation.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the avatar image loading status registration is complete.</returns>
     ValueTask RegisterAvatarImageLoadingStatus(string? src, string? crossOrigin, string? referrerPolicy,
         DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister avatar image loading status operation.
+    /// Unregisters avatar Image Loading Status for the Hover Card Avatar.
     /// </summary>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the avatar image loading status registration has been removed.</returns>
     ValueTask UnregisterAvatarImageLoadingStatus(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 }

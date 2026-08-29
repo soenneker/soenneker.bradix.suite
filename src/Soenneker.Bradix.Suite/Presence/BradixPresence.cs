@@ -225,11 +225,11 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
     }
 
     /// <summary>
-    /// Executes the handle animation start operation.
+    /// Handles the animation start callback.
     /// </summary>
-    /// <param name="animationName">The animation name.</param>
-    /// <param name="currentAnimationName">The current animation name.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="animationName">Name of the animation to target.</param>
+    /// <param name="currentAnimationName">Name of the current animation to target.</param>
+    /// <returns>A task that completes when the handle animation start operation is complete.</returns>
     [JSInvokable]
     public Task HandleAnimationStart(string animationName, string? currentAnimationName = null)
     {
@@ -238,11 +238,11 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
     }
 
     /// <summary>
-    /// Executes the handle animation end operation.
+    /// Handles the animation end callback.
     /// </summary>
-    /// <param name="animationName">The animation name.</param>
-    /// <param name="currentAnimationName">The current animation name.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="animationName">Name of the animation to target.</param>
+    /// <param name="currentAnimationName">Name of the current animation to target.</param>
+    /// <returns>A task that completes when the handle animation end operation is complete.</returns>
     [JSInvokable]
     public async Task HandleAnimationEnd(string animationName, string? currentAnimationName = null)
     {

@@ -17,7 +17,10 @@ public interface IBradixMenuSubTrigger : IAsyncDisposable {
     string? TabStopId { get; }
 
 
-    /// <summary>Moves keyboard focus to this trigger without scrolling the page.</summary>
+    /// <summary>
+    /// Moves keyboard focus to this trigger without scrolling the page.
+    /// </summary>
+    /// <returns>A task that completes when the focus operation is complete.</returns>
     ValueTask Focus();
 
     /// <summary>Gets or sets the element id.</summary>

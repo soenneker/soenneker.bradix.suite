@@ -27,6 +27,10 @@ public interface IBradixOneTimePasswordFieldInput : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler for paste events from script.</summary>
+    /// <summary>
+    /// Interop handler for paste events from script.
+    /// </summary>
+    /// <param name="value">CSS value used to construct the utility class.</param>
+    /// <returns>A task that completes when the handle paste operation is complete.</returns>
     Task HandlePaste(string value);
 }

@@ -24,6 +24,11 @@ public interface IBradixNavigationMenuViewport : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler when viewport dimensions change.</summary>
+    /// <summary>
+    /// Interop handler when viewport dimensions change.
+    /// </summary>
+    /// <param name="width">Width to apply.</param>
+    /// <param name="height">Height to apply.</param>
+    /// <returns>A task that completes when the handle viewport size changed operation is complete.</returns>
     Task HandleViewportSizeChanged(double width, double height);
 }

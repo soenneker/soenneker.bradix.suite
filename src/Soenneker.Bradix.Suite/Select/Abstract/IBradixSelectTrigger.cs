@@ -25,6 +25,10 @@ public interface IBradixSelectTrigger : IAsyncDisposable {
     bool Disabled { get; set; }
 
 
-    /// <summary>Called from script for delegated primary pointer down handling.</summary>
+    /// <summary>
+    /// Called from script for delegated primary pointer down handling.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed to the application.</param>
+    /// <returns>A task that completes when the handle delegated pointer down operation is complete.</returns>
     Task HandleDelegatedPointerDown(BradixDelegatedMouseEvent args);
 }

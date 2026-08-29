@@ -85,15 +85,33 @@ public interface IBradixSelectContent : IAsyncDisposable {
     EventCallback OnPlaced { get; set; }
 
 
-    /// <summary>Called from script when viewport scroll metrics change.</summary>
+    /// <summary>
+    /// Called from script when viewport scroll metrics change.
+    /// </summary>
+    /// <param name="scrollTop">Scroll Top for the handle viewport metrics changed operation.</param>
+    /// <param name="scrollHeight">Scroll Height for the handle viewport metrics changed operation.</param>
+    /// <param name="viewportHeight">Viewport Height for the handle viewport metrics changed operation.</param>
+    /// <returns>A task that completes when the handle viewport metrics changed operation is complete.</returns>
     Task HandleViewportMetricsChanged(double scrollTop, double scrollHeight, double viewportHeight);
 
-    /// <summary>Called from script with pointer guard results from the trigger.</summary>
+    /// <summary>
+    /// Called from script with pointer guard results from the trigger.
+    /// </summary>
+    /// <param name="suppressSelection">Whether suppress selection.</param>
+    /// <param name="shouldClose">Whether should close.</param>
+    /// <returns>A task that completes when the handle trigger pointer guard result operation is complete.</returns>
     Task HandleTriggerPointerGuardResult(bool suppressSelection, bool shouldClose);
 
-    /// <summary>Called from script when a window-level dismiss should run.</summary>
+    /// <summary>
+    /// Called from script when a window-level dismiss should run.
+    /// </summary>
+    /// <returns>A task that completes when the handle window dismiss operation is complete.</returns>
     Task HandleWindowDismiss();
 
-    /// <summary>Called from script for delegated keyboard handling in the content.</summary>
+    /// <summary>
+    /// Called from script for delegated keyboard handling in the content.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed to the application.</param>
+    /// <returns>A task that completes when the handle delegated content key down operation is complete.</returns>
     Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args);
 }

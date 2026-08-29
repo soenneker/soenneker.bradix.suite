@@ -76,15 +76,28 @@ public interface IBradixTooltipContent : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler when another tooltip requests exclusive open.</summary>
+    /// <summary>
+    /// Interop handler when another tooltip requests exclusive open.
+    /// </summary>
+    /// <returns>A task that completes when the handle tooltip open from outside operation is complete.</returns>
     Task HandleTooltipOpenFromOutside();
 
-    /// <summary>Interop handler when the trigger scrolls.</summary>
+    /// <summary>
+    /// Interop handler when the trigger scrolls.
+    /// </summary>
+    /// <returns>A task that completes when the handle tooltip trigger scroll operation is complete.</returns>
     Task HandleTooltipTriggerScroll();
 
-    /// <summary>Interop handler when the pointer leaves the grace area.</summary>
+    /// <summary>
+    /// Interop handler when the pointer leaves the grace area.
+    /// </summary>
+    /// <returns>A task that completes when the handle tooltip grace area exit operation is complete.</returns>
     Task HandleTooltipGraceAreaExit();
 
-    /// <summary>Interop handler when pointer grace transit state changes.</summary>
+    /// <summary>
+    /// Interop handler when pointer grace transit state changes.
+    /// </summary>
+    /// <param name="inTransit">Whether in transit.</param>
+    /// <returns>A task that completes when the handle pointer grace area changed operation is complete.</returns>
     Task HandlePointerGraceAreaChanged(bool inTransit);
 }

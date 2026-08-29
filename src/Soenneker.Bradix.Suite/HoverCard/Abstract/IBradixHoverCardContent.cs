@@ -91,6 +91,10 @@ public interface IBradixHoverCardContent : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler when the document receives pointer up after selection.</summary>
+    /// <summary>
+    /// Interop handler when the document receives pointer up after selection.
+    /// </summary>
+    /// <param name="hasSelection">Whether has selection.</param>
+    /// <returns>A task that completes when the handle document pointer up operation is complete.</returns>
     Task HandleDocumentPointerUp(bool hasSelection);
 }

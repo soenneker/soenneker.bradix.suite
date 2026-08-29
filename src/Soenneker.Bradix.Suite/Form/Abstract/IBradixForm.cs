@@ -37,6 +37,10 @@ public interface IBradixForm : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler when invalid controls are reported from script.</summary>
+    /// <summary>
+    /// Interop handler when invalid controls are reported from script.
+    /// </summary>
+    /// <param name="fieldNames">field Names to process.</param>
+    /// <returns>A task that completes when the handle invalid controls operation is complete.</returns>
     Task HandleInvalidControls(string[] fieldNames);
 }

@@ -90,11 +90,13 @@ public interface IBradixDismissableLayer : IAsyncDisposable {
     /// Handles a pointer down outside event forwarded from JavaScript.
     /// </summary>
     /// <param name="originalEvent">Optional original mouse event payload.</param>
+    /// <returns>A task that completes when the handle pointer down outside operation is complete.</returns>
     Task HandlePointerDownOutside(BradixDelegatedMouseEvent? originalEvent = null);
 
     /// <summary>
     /// Handles a focus outside event forwarded from JavaScript.
     /// </summary>
     /// <param name="originalEvent">Optional original focus event payload.</param>
+    /// <returns>A task that completes when the handle focus outside operation is complete.</returns>
     Task HandleFocusOutside(BradixDelegatedFocusEvent? originalEvent = null);
 }

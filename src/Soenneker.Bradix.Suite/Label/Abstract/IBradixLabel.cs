@@ -28,6 +28,10 @@ public interface IBradixLabel : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler for delegated mouse down events.</summary>
+    /// <summary>
+    /// Interop handler for delegated mouse down events.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed to the application.</param>
+    /// <returns>A task that completes when the handle mouse down from javascript operation is complete.</returns>
     Task HandleMouseDownFromJs(BradixDelegatedMouseEvent args);
 }

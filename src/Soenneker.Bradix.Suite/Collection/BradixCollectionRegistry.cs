@@ -17,10 +17,10 @@ public sealed class BradixCollectionRegistry<TItem>
     public int Count => _items.Count;
 
     /// <summary>
-    /// Executes the register operation.
+    /// Registers a callback with the Bradix Collection Registry.
     /// </summary>
-    /// <param name="key">The key.</param>
-    /// <param name="item">The item.</param>
+    /// <param name="key">Key used to locate the target entry.</param>
+    /// <param name="item">Receives the entry when the key is found.</param>
     public void Register(string key, TItem item)
     {
         _items.Set(key, item);
@@ -28,11 +28,11 @@ public sealed class BradixCollectionRegistry<TItem>
     }
 
     /// <summary>
-    /// Executes the insert operation.
+    /// Inserts bradix Collection Registry for the Bradix Collection Registry.
     /// </summary>
-    /// <param name="index">The index.</param>
-    /// <param name="key">The key.</param>
-    /// <param name="item">The item.</param>
+    /// <param name="index">Zero-based position of the target item.</param>
+    /// <param name="key">Key used to locate the target entry.</param>
+    /// <param name="item">Receives the entry when the key is found.</param>
     public void Insert(int index, string key, TItem item)
     {
         _items.Insert(index, key, item);
@@ -42,9 +42,9 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <summary>
     /// Sets before.
     /// </summary>
-    /// <param name="key">The key.</param>
-    /// <param name="newKey">The new key.</param>
-    /// <param name="item">The item.</param>
+    /// <param name="key">Key used to locate the target entry.</param>
+    /// <param name="newKey">Replacement key to insert.</param>
+    /// <param name="item">Receives the entry when the key is found.</param>
     public void SetBefore(string key, string newKey, TItem item)
     {
         if (!_items.ContainsKey(key))
@@ -57,9 +57,9 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <summary>
     /// Sets after.
     /// </summary>
-    /// <param name="key">The key.</param>
-    /// <param name="newKey">The new key.</param>
-    /// <param name="item">The item.</param>
+    /// <param name="key">Key used to locate the target entry.</param>
+    /// <param name="newKey">Replacement key to insert.</param>
+    /// <param name="item">Receives the entry when the key is found.</param>
     public void SetAfter(string key, string newKey, TItem item)
     {
         if (!_items.ContainsKey(key))
@@ -70,10 +70,10 @@ public sealed class BradixCollectionRegistry<TItem>
     }
 
     /// <summary>
-    /// Executes the unregister operation.
+    /// Removes the callback identified by the supplied ID from the Bradix Collection Registry.
     /// </summary>
-    /// <param name="key">The key.</param>
-    /// <returns>A value indicating whether the operation succeeded.</returns>
+    /// <param name="key">Key used to locate the target entry.</param>
+    /// <returns>true if removes the callback identified by the supplied ID from the Bradix Collection Registry; otherwise, false.</returns>
     public bool Unregister(string key)
     {
         bool removed = _items.Delete(key);
@@ -85,20 +85,20 @@ public sealed class BradixCollectionRegistry<TItem>
     }
 
     /// <summary>
-    /// Attempts to execute get.
+    /// Attempts to retrieve the entry for the specified key without creating a new value.
     /// </summary>
-    /// <param name="key">The key.</param>
-    /// <param name="item">The item.</param>
-    /// <returns>A value indicating whether the operation succeeded.</returns>
+    /// <param name="key">Key used to locate the target entry.</param>
+    /// <param name="item">Receives the entry when the key is found.</param>
+    /// <returns>true if a matching value was found and assigned to the output parameter; otherwise, false.</returns>
     public bool TryGet(string key, out TItem item)
     {
         return _items.TryGetValue(key, out item!);
     }
 
     /// <summary>
-    /// Executes the snapshot operation.
+    /// Returns the value produced by snapshot.
     /// </summary>
-    /// <returns>The result of the operation.</returns>
+    /// <returns>The requested collection.</returns>
     public IReadOnlyList<BradixCollectionEntry<TItem>> Snapshot()
     {
         if (_snapshot is not null)
@@ -119,14 +119,14 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <summary>
     /// Gets enumerator.
     /// </summary>
-    /// <returns>The result of the operation.</returns>
+    /// <returns>The requested bradix Ordered Dictionary.Enumerator.</returns>
     public BradixOrderedDictionary<string, TItem>.Enumerator GetEnumerator()
     {
         return _items.GetEnumerator();
     }
 
     /// <summary>
-    /// Executes the clear operation.
+    /// Removes all entries managed by the Bradix Collection Registry.
     /// </summary>
     public void Clear()
     {

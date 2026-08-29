@@ -27,9 +27,15 @@ public interface IBradixToastViewport : IAsyncDisposable {
     string Label { get; set; }
 
 
-    /// <summary>Called from script when the pause hotkey chord is pressed.</summary>
+    /// <summary>
+    /// Called from script when the pause hotkey chord is pressed.
+    /// </summary>
+    /// <returns>A task that completes when the handle pause operation is complete.</returns>
     Task HandlePause();
 
-    /// <summary>Called from script when the resume hotkey chord is pressed.</summary>
+    /// <summary>
+    /// Called from script when the resume hotkey chord is pressed.
+    /// </summary>
+    /// <returns>A task that completes when the handle resume operation is complete.</returns>
     Task HandleResume();
 }

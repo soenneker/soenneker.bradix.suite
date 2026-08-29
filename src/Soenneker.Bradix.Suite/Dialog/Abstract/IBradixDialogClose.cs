@@ -48,11 +48,13 @@ public interface IBradixDialogClose : IAsyncDisposable {
     /// <summary>
     /// Called when delegated interaction handling is ready on the close button.
     /// </summary>
+    /// <returns>A task that completes when the handle delegated interaction ready operation is complete.</returns>
     Task HandleDelegatedInteractionReady();
 
     /// <summary>
     /// Handles a delegated click routed from JavaScript.
     /// </summary>
-    /// <param name="mouseEvent">The delegated mouse event payload.</param>
+    /// <param name="mouseEvent">Mouse Event for the handle delegated click operation.</param>
+    /// <returns>A task that completes when the handle delegated click operation is complete.</returns>
     Task HandleDelegatedClick(BradixDelegatedMouseEvent mouseEvent);
 }

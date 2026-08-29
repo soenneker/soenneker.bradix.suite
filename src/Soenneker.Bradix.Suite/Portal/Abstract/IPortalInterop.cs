@@ -12,28 +12,28 @@ namespace Soenneker.Bradix;
 public interface IPortalInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Portal so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the mount portal operation.
+    /// Mounts portal.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="containerSelector">The container selector.</param>
-    /// <param name="container">The container.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="containerSelector">Container Selector for the mount portal operation.</param>
+    /// <param name="container">Element that will contain the rendered component.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the mount portal operation is complete.</returns>
     ValueTask MountPortal(ElementReference element, string? containerSelector = null, ElementReference container = default,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unmount portal operation.
+    /// Unmounts portal.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the unmount portal operation is complete.</returns>
     ValueTask UnmountPortal(ElementReference element, CancellationToken cancellationToken = default);
 }

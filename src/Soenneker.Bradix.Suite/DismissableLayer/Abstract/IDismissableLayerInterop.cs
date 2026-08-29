@@ -12,52 +12,52 @@ namespace Soenneker.Bradix;
 public interface IDismissableLayerInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Dismissable Layer so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register dismissable layer operation.
+    /// Registers dismissable Layer.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="disableOutsidePointerEvents">The disable outside pointer events.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="disableOutsidePointerEvents">Whether disable outside pointer events.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the dismissable layer registration is complete.</returns>
     ValueTask RegisterDismissableLayer(ElementReference element, object dotNetReference, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates dismissable layer.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="disableOutsidePointerEvents">The disable outside pointer events.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="disableOutsidePointerEvents">Whether disable outside pointer events.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the dismissable layer update is complete.</returns>
     ValueTask UpdateDismissableLayer(ElementReference element, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister dismissable layer operation.
+    /// Unregisters dismissable Layer for the Dismissable Layer.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the dismissable layer registration has been removed.</returns>
     ValueTask UnregisterDismissableLayer(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register dismissable layer branch operation.
+    /// Registers dismissable Layer Branch for the Dismissable Layer.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the dismissable layer branch registration is complete.</returns>
     ValueTask RegisterDismissableLayerBranch(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister dismissable layer branch operation.
+    /// Unregisters dismissable Layer Branch for the Dismissable Layer.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the dismissable layer branch registration has been removed.</returns>
     ValueTask UnregisterDismissableLayerBranch(ElementReference element, CancellationToken cancellationToken = default);
 }

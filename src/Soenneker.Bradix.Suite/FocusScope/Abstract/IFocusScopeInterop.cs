@@ -12,46 +12,46 @@ namespace Soenneker.Bradix;
 public interface IFocusScopeInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the Focus Scope so it is ready for use.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested javaScript Object Reference.</returns>
     ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the register focus scope operation.
+    /// Registers focus Scope.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="loop">The loop.</param>
-    /// <param name="trapped">The trapped.</param>
-    /// <param name="preventMountAutoFocus">The prevent mount auto focus.</param>
-    /// <param name="preventUnmountAutoFocus">The prevent unmount auto focus.</param>
-    /// <param name="invokeMountAutoFocus">The invoke mount auto focus.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="loop">Whether loop.</param>
+    /// <param name="trapped">Whether trapped.</param>
+    /// <param name="preventMountAutoFocus">Whether prevent mount auto focus.</param>
+    /// <param name="preventUnmountAutoFocus">Whether prevent unmount auto focus.</param>
+    /// <param name="invokeMountAutoFocus">Whether invoke mount auto focus.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the focus scope registration is complete.</returns>
     ValueTask RegisterFocusScope(ElementReference element, DotNetObjectReference<object> dotNetReference, bool loop, bool trapped,
         bool preventMountAutoFocus, bool preventUnmountAutoFocus, bool invokeMountAutoFocus, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates focus scope.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="loop">The loop.</param>
-    /// <param name="trapped">The trapped.</param>
-    /// <param name="preventMountAutoFocus">The prevent mount auto focus.</param>
-    /// <param name="preventUnmountAutoFocus">The prevent unmount auto focus.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="loop">Whether loop.</param>
+    /// <param name="trapped">Whether trapped.</param>
+    /// <param name="preventMountAutoFocus">Whether prevent mount auto focus.</param>
+    /// <param name="preventUnmountAutoFocus">Whether prevent unmount auto focus.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the focus scope update is complete.</returns>
     ValueTask UpdateFocusScope(ElementReference element, bool loop, bool trapped, bool preventMountAutoFocus, bool preventUnmountAutoFocus,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the unregister focus scope operation.
+    /// Unregisters focus Scope.
     /// </summary>
-    /// <param name="element">The element.</param>
-    /// <param name="unmountAutoFocusPrevented">The unmount auto focus prevented.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="element">DOM element to inspect or update.</param>
+    /// <param name="unmountAutoFocusPrevented">Whether unmount auto focus prevented.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the focus scope registration has been removed.</returns>
     ValueTask UnregisterFocusScope(ElementReference element, bool unmountAutoFocusPrevented = false, CancellationToken cancellationToken = default);
 }

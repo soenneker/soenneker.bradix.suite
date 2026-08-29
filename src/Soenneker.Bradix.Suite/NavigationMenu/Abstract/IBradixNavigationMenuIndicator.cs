@@ -24,6 +24,11 @@ public interface IBradixNavigationMenuIndicator : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler when indicator size/position updates.</summary>
+    /// <summary>
+    /// Interop handler when indicator size/position updates.
+    /// </summary>
+    /// <param name="size">Size for the handle indicator position changed operation.</param>
+    /// <param name="offset">Zero-based offset from the start of the input.</param>
+    /// <returns>A task that completes when the handle indicator position changed operation is complete.</returns>
     Task HandleIndicatorPositionChanged(double size, double offset);
 }

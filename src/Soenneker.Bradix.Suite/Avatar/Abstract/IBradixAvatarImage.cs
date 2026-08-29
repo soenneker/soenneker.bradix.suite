@@ -37,6 +37,7 @@ public interface IBradixAvatarImage : IAsyncDisposable {
     /// <summary>
     /// Handles a loading status update emitted from JavaScript.
     /// </summary>
-    /// <param name="status">The serialized loading status value.</param>
+    /// <param name="status">Status for the handle image loading status changed operation.</param>
+    /// <returns>A task that completes when the handle image loading status changed operation is complete.</returns>
     Task HandleImageLoadingStatusChanged(string status);
 }

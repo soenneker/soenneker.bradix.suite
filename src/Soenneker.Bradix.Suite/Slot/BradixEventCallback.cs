@@ -20,6 +20,9 @@ public sealed class BradixEventCallback
     /// <summary>
     /// Wraps a typed Blazor event callback.
     /// </summary>
+    /// <typeparam name="TArgument">Type of argument used by the operation.</typeparam>
+    /// <param name="callback">Callback to invoke when a matching payload is received.</param>
+    /// <returns>The same builder instance, so additional classes or variants can be chained.</returns>
     public static BradixEventCallback Create<TArgument>(EventCallback<TArgument> callback)
     {
         return new BradixEventCallback(argument => callback.InvokeAsync(GetArgument<TArgument>(argument)));
@@ -28,6 +31,9 @@ public sealed class BradixEventCallback
     /// <summary>
     /// Wraps a synchronous typed event handler.
     /// </summary>
+    /// <typeparam name="TArgument">Type of argument used by the operation.</typeparam>
+    /// <param name="callback">Callback to invoke when a matching payload is received.</param>
+    /// <returns>The same builder instance, so additional classes or variants can be chained.</returns>
     public static BradixEventCallback Create<TArgument>(Action<TArgument> callback)
     {
         ArgumentNullException.ThrowIfNull(callback);
@@ -42,6 +48,9 @@ public sealed class BradixEventCallback
     /// <summary>
     /// Wraps an asynchronous typed event handler.
     /// </summary>
+    /// <typeparam name="TArgument">Type of argument used by the operation.</typeparam>
+    /// <param name="callback">Callback to invoke when a matching payload is received.</param>
+    /// <returns>The same builder instance, so additional classes or variants can be chained.</returns>
     public static BradixEventCallback Create<TArgument>(Func<TArgument, Task> callback)
     {
         ArgumentNullException.ThrowIfNull(callback);
@@ -51,6 +60,9 @@ public sealed class BradixEventCallback
     /// <summary>
     /// Wraps an asynchronous typed event handler that returns a <see cref="ValueTask"/>.
     /// </summary>
+    /// <typeparam name="TArgument">Type of argument used by the operation.</typeparam>
+    /// <param name="callback">Callback to invoke when a matching payload is received.</param>
+    /// <returns>The same builder instance, so additional classes or variants can be chained.</returns>
     public static BradixEventCallback Create<TArgument>(Func<TArgument, ValueTask> callback)
     {
         ArgumentNullException.ThrowIfNull(callback);

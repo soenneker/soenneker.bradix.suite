@@ -49,15 +49,29 @@ public interface IBradixSwitch : IAsyncDisposable {
     EventCallback<bool> OnCheckedChange { get; set; }
 
 
-    /// <summary>Called from script when delegated interaction wiring is ready.</summary>
+    /// <summary>
+    /// Called from script when delegated interaction wiring is ready.
+    /// </summary>
+    /// <returns>A task that completes when the handle delegated interaction ready operation is complete.</returns>
     Task HandleDelegatedInteractionReady();
 
-    /// <summary>Called from script when the owning form is reset.</summary>
+    /// <summary>
+    /// Called from script when the owning form is reset.
+    /// </summary>
+    /// <returns>A task that completes when the handle form reset operation is complete.</returns>
     Task HandleFormReset();
 
-    /// <summary>Called from script for delegated click handling.</summary>
+    /// <summary>
+    /// Called from script for delegated click handling.
+    /// </summary>
+    /// <param name="_">_ for the handle delegated click operation.</param>
+    /// <returns>A task that completes when the handle delegated click operation is complete.</returns>
     Task HandleDelegatedClick(BradixDelegatedMouseEvent _);
 
-    /// <summary>Called from script for delegated keyboard activation handling.</summary>
+    /// <summary>
+    /// Called from script for delegated keyboard activation handling.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed to the application.</param>
+    /// <returns>A task that completes when the handle delegated key down operation is complete.</returns>
     Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args);
 }

@@ -41,9 +41,15 @@ public interface IBradixToolbarLink : IAsyncDisposable {
     string? TabStopId { get; }
 
 
-    /// <summary>Moves focus to the toolbar link.</summary>
+    /// <summary>
+    /// Moves focus to the toolbar link.
+    /// </summary>
+    /// <returns>A task that completes when the focus operation is complete.</returns>
     ValueTask Focus();
 
-    /// <summary>Called from script when the roving-focus bridge is ready.</summary>
+    /// <summary>
+    /// Called from script when the roving-focus bridge is ready.
+    /// </summary>
+    /// <returns>A task that completes when the handle roving focus bridge ready operation is complete.</returns>
     Task HandleRovingFocusBridgeReady();
 }

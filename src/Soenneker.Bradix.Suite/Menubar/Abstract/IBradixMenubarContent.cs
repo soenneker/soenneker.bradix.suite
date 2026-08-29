@@ -98,9 +98,17 @@ public interface IBradixMenubarContent : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Handles a delegated keydown event from JavaScript interop.</summary>
+    /// <summary>
+    /// Handles a delegated keydown event from JavaScript interop.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed to the application.</param>
+    /// <returns>A task that completes when the handle delegated content key down operation is complete.</returns>
     Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args);
 
-    /// <summary>Handles a delegated focusout event from JavaScript interop.</summary>
+    /// <summary>
+    /// Handles a delegated focusout event from JavaScript interop.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed to the application.</param>
+    /// <returns>A task that completes when the handle delegated content focus out operation is complete.</returns>
     Task HandleDelegatedContentFocusOut(BradixDelegatedFocusEvent args);
 }

@@ -28,6 +28,9 @@ public interface IBradixNavigationMenuTrigger : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler when roving focus bridge is ready.</summary>
+    /// <summary>
+    /// Interop handler when roving focus bridge is ready.
+    /// </summary>
+    /// <returns>A task that completes when the handle roving focus bridge ready operation is complete.</returns>
     Task HandleRovingFocusBridgeReady();
 }

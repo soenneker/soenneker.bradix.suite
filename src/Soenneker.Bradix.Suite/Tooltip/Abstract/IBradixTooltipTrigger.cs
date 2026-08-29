@@ -22,6 +22,9 @@ public interface IBradixTooltipTrigger : IAsyncDisposable {
     IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
 
-    /// <summary>Interop handler for document pointer up.</summary>
+    /// <summary>
+    /// Interop handler for document pointer up.
+    /// </summary>
+    /// <returns>A task that completes when the handle document pointer up operation is complete.</returns>
     Task HandleDocumentPointerUp();
 }
