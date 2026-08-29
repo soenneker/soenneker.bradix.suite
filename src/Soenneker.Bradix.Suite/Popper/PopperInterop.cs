@@ -10,7 +10,7 @@ using Soenneker.Bradix.Configuration;
 
 namespace Soenneker.Bradix;
 
-///<inheritdoc cref="IPopperInterop"/>
+/// <inheritdoc cref="IPopperInterop"/>
 public sealed class PopperInterop : IPopperInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;

@@ -6,7 +6,7 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
-///<inheritdoc cref="IFocusScopeInterop"/>
+/// <inheritdoc cref="IFocusScopeInterop"/>
 public sealed class FocusScopeInterop : IFocusScopeInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;

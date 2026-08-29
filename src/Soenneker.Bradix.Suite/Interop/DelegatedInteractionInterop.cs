@@ -6,7 +6,7 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
-///<inheritdoc cref="IDelegatedInteractionInterop"/>
+/// <inheritdoc cref="IDelegatedInteractionInterop"/>
 public sealed class DelegatedInteractionInterop : IDelegatedInteractionInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;

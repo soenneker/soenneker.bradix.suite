@@ -5,7 +5,7 @@ using Microsoft.JSInterop;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
-///<inheritdoc cref="IPresenceOverlayInterop"/>
+/// <inheritdoc cref="IPresenceOverlayInterop"/>
 public sealed class PresenceOverlayInterop : IPresenceOverlayInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;

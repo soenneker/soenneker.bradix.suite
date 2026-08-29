@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Bradix;
 
-///<inheritdoc cref="IBradixSuiteInterop"/>
+/// <inheritdoc cref="IBradixSuiteInterop"/>
 public sealed class BradixSuiteInterop : IBradixSuiteInterop
 {
     private readonly ICollapsibleInterop _collapsibleInterop;
