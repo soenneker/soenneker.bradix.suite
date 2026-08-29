@@ -12,8 +12,6 @@ Bradix provides the behavior and structure needed for dialogs, menus, popovers, 
 
 Use Bradix when you are building a design system or application UI and want composable behavior instead of pre-styled controls. It is not a theme, CSS framework, or official port of Radix UI.
 
-> This package currently targets .NET 10.
-
 ## Installation
 
 ```bash
