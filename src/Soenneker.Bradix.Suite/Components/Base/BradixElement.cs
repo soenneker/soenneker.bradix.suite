@@ -226,12 +226,14 @@ public abstract class BradixElement : LeptonElement
     }
 }
 
+/// <inheritdoc cref="ILeptonContentElement" />
 public abstract class BradixContentElement : BradixElement, ILeptonContentElement
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 }
 
+/// <inheritdoc cref="ILeptonIdentifiableElement" />
 public abstract class BradixIdentifiableElement : BradixElement, ILeptonIdentifiableElement
 {
     [Parameter]
@@ -242,6 +244,7 @@ public abstract class BradixIdentifiableElement : BradixElement, ILeptonIdentifi
     protected IReadOnlyDictionary<string, object> EffectiveAttributes => BuildAttributes();
 }
 
+/// <inheritdoc cref="ILeptonIdentifiableContentElement" />
 public abstract class BradixIdentifiableContentElement : BradixIdentifiableElement, ILeptonIdentifiableContentElement
 {
     [Parameter]
