@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
+[NotInParallel]
 public sealed class BradixScrollAreaRenderTests : BunitContext
 {
     public BradixScrollAreaRenderTests()

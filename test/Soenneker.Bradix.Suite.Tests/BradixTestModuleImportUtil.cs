@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
@@ -16,21 +17,11 @@ internal sealed class BradixTestModuleImportUtil : IModuleImportUtil
         _jsRuntime = jsRuntime;
     }
 
-    public async ValueTask<ModuleImportItem> GetContentModule(string path, CancellationToken cancellationToken = default)
-    {
-        IJSObjectReference reference = await GetContentModuleReference(path, cancellationToken);
-        var item = new ModuleImportItem { ScriptReference = reference };
-        item.ModuleLoadedTcs.TrySetResult(true);
-        return item;
-    }
+    public ValueTask<ModuleImportItem> GetContentModule(string path, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("Bradix tests use module references directly.");
 
-    public async ValueTask<ModuleImportItem> GetExternalModule(string url, CancellationToken cancellationToken = default)
-    {
-        IJSObjectReference reference = await GetExternalModuleReference(url, cancellationToken);
-        var item = new ModuleImportItem { ScriptReference = reference };
-        item.ModuleLoadedTcs.TrySetResult(true);
-        return item;
-    }
+    public ValueTask<ModuleImportItem> GetExternalModule(string url, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("Bradix tests use module references directly.");
 
     public ValueTask<IJSObjectReference> GetContentModuleReference(string path, CancellationToken cancellationToken = default)
     {

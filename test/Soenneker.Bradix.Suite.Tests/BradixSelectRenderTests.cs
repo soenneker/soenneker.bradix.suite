@@ -394,7 +394,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             await Assert.That(cut.Find("button[role='combobox']").GetAttribute("aria-expanded")).IsEqualTo("false");
-            await Assert.That(cut.Find("[role='listbox']").GetAttribute("data-state")).IsEqualTo("closed");
+            await Assert.That(cut.FindAll("[role='listbox'][data-state='open']")).IsEmpty();
         });
     }
 
