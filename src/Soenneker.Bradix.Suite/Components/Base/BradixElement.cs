@@ -51,6 +51,14 @@ public abstract class BradixElement : LeptonElement
         return CompleteAttributes(attributes);
     }
 
+    protected Dictionary<string, object> BuildAttributes(params ReadOnlySpan<(string Key, object? Value)> values)
+    {
+        Dictionary<string, object> attributes = BeginAttributes();
+        foreach (var value in values)
+            SetAttribute(attributes, value.Key, value.Value);
+        return CompleteAttributes(attributes);
+    }
+
     protected override Dictionary<string, object> BuildAttributes(params (string Key, object? Value)[] values)
     {
         Dictionary<string, object> attributes = BeginAttributes();

@@ -6,7 +6,6 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
-/// <inheritdoc cref="IDomInterop"/>
 public sealed class DomInterop : IDomInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
@@ -21,6 +20,18 @@ public sealed class DomInterop : IDomInterop
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
     {
         return _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+    }
+
+    public async ValueTask<string> ObserveTextContent(ElementReference element, object receiver, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        return await module.InvokeAsync<string>("observeTextContent", cancellationToken, element, receiver) ?? string.Empty;
+    }
+
+    public async ValueTask UnobserveTextContent(ElementReference element, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("unobserveTextContent", cancellationToken, element);
     }
 
     public async ValueTask<string> GetTextContent(ElementReference element, CancellationToken cancellationToken = default)

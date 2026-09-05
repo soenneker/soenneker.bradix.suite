@@ -6,6 +6,7 @@
 
 @implements IBradixSelectCollectionItem
 @implements IBradixSelectItem
+@implements IHandleEvent
 
 @inject IDomInterop DomInterop
 @inject IControlsInterop ControlsInterop
@@ -26,6 +27,10 @@
 </CascadingValue>
 
 @code {
+    // Handlers below explicitly refresh changed items or selection/open state.
+    // Pointer bookkeeping alone must not render the item subtree.
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
+
     private ElementReference _element;
     private bool _registered;
     private bool _isFocused;
@@ -33,6 +38,10 @@
     private string? _resolvedTextValue;
     private ElementReference _itemTextElement;
     private bool _hasItemTextElement;
+    private bool _hasItemTextContent;
+    private bool _disposed;
+    private BradixTextObserver? _textObserver;
+    private bool _pointerFocusPending;
 
     [CascadingParameter]
     private BradixSelect? Select { get; set; }
@@ -89,6 +98,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed)
+            return;
+
         if (firstRender && Select is not null)
         {
             if (string.IsNullOrWhiteSpace(Value))
@@ -98,25 +110,25 @@
             _registered = true;
         }
 
-        if (TextValue is null && !_hasItemTextElement && string.IsNullOrWhiteSpace(_resolvedTextValue))
+        if (TextValue is null && !_hasItemTextContent)
         {
-            string textContent = await DomInterop.GetTextContent(_element);
-
-            if (!string.Equals(_resolvedTextValue, textContent, StringComparison.Ordinal))
-            {
-                _resolvedTextValue = textContent;
-
-                if (Select is not null)
-                    await Select.NotifyItemTextChanged();
-            }
+            _textObserver ??= new BradixTextObserver(DomInterop, text => InvokeAsync(() => NotifyResolvedText(text)));
+            await _textObserver.Observe(_element);
+        }
+        else if (_textObserver is not null)
+        {
+            await _textObserver.DisposeAsync();
+            _textObserver = null;
         }
     }
 
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
         if (_registered)
             Select?.UnregisterItem(this);
-
+        if (_textObserver is not null)
+            await _textObserver.DisposeAsync();
     }
 
     ValueTask IBradixSelectCollectionItem.Focus() => ControlsInterop.FocusElementPreventScroll(_element);
@@ -127,11 +139,23 @@
 
     internal async Task NotifyResolvedText(string? text)
     {
-        if (TextValue is null)
-            _resolvedTextValue = text;
+        if (_disposed || TextValue is not null || string.Equals(_resolvedTextValue, text, StringComparison.Ordinal))
+            return;
 
+        _resolvedTextValue = text;
         if (Select is not null)
             await Select.NotifyItemTextChanged();
+    }
+
+    internal void RegisterTextContent() => _hasItemTextContent = true;
+
+    internal void UnregisterTextContent()
+    {
+        _hasItemTextContent = false;
+        _hasItemTextElement = false;
+        _itemTextElement = default;
+        if (!_disposed && _registered)
+            _ = InvokeAsync(StateHasChanged);
     }
 
     internal void RegisterTextElement(ElementReference element)
@@ -244,8 +268,19 @@
             return;
         }
 
-        Select.SetFocusedItem(Value);
-        await ControlsInterop.FocusElementPreventScroll(_element);
+        if (_isFocused || _pointerFocusPending)
+            return;
+
+        _pointerFocusPending = true;
+        try
+        {
+            Select.SetFocusedItem(Value);
+            await ControlsInterop.FocusElementPreventScroll(_element);
+        }
+        finally
+        {
+            _pointerFocusPending = false;
+        }
     }
 
     private async Task HandlePointerLeave(PointerEventArgs _)

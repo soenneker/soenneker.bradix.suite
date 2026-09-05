@@ -38,6 +38,30 @@ export function getTextContent(element) {
   return (element.textContent || "").trim();
 }
 
+const textObservers = new WeakMap();
+
+export function observeTextContent(element, receiver) {
+  unobserveTextContent(element);
+  let text = getTextContent(element);
+  if (!element) return text;
+
+  const observer = new MutationObserver(() => {
+    const nextText = getTextContent(element);
+    if (nextText === text) return;
+    text = nextText;
+    // The element or circuit may be disposed while a notification is in flight.
+    receiver.invokeMethodAsync("OnTextContentChanged", text).catch(() => {});
+  });
+  observer.observe(element, { childList: true, subtree: true, characterData: true });
+  textObservers.set(element, observer);
+  return text;
+}
+
+export function unobserveTextContent(element) {
+  textObservers.get(element)?.disconnect();
+  textObservers.delete(element);
+}
+
 export function getTextContentExcluding(element, excludeSelector) {
   if (!element) {
     return "";

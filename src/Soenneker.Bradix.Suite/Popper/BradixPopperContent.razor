@@ -118,8 +118,8 @@
 
         if ((!hasElementAnchor && !hasAnchorSelector && Popper is null) || (!hasElementAnchor && !hasAnchorSelector && !hasVirtualAnchor))
         {
-            if (!_registered)
-                await InvokeAsync(StateHasChanged);
+            // Anchor registration or new parameters will schedule the next render.
+            // Rendering here spins indefinitely when an anchor never arrives.
             return;
         }
 

@@ -409,7 +409,6 @@
         string? previousValue = CurrentFocusedItemValue;
         CurrentFocusedItemValue = value;
         _ = RefreshFocusedItems(previousValue, value);
-        _ = InvokeAsync(StateHasChanged);
     }
 
     internal bool IsFocusedItem(IBradixSelectCollectionItem item)
@@ -513,7 +512,6 @@
         string? previousValue = CurrentFocusedItemValue;
         CurrentFocusedItemValue = item.Value;
         await RefreshFocusedItems(previousValue, item.Value);
-        await InvokeAsync(StateHasChanged);
     }
 
     internal Task NotifyItemTextChanged()
@@ -552,7 +550,7 @@
 
         string? resolvedText = GetItemText(CurrentValue);
 
-        if (!string.IsNullOrWhiteSpace(resolvedText))
+        if (resolvedText is not null)
             _currentText = resolvedText;
     }
 
@@ -561,7 +559,6 @@
         string? previousValue = CurrentFocusedItemValue;
         CurrentFocusedItemValue = item.Value;
         await RefreshFocusedItems(previousValue, item.Value);
-        await InvokeAsync(StateHasChanged);
         await Task.Yield();
         await item.ScrollIntoView();
         await item.Focus();
@@ -569,16 +566,14 @@
 
     private async Task RefreshFocusedItems(string? previousValue, string? nextValue)
     {
-        foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
-        {
-            bool wasFocused = string.Equals(entry.Value.Value, previousValue, StringComparison.Ordinal);
-            bool isFocused = string.Equals(entry.Value.Value, nextValue, StringComparison.Ordinal);
+        if (string.Equals(previousValue, nextValue, StringComparison.Ordinal))
+            return;
 
-            if (!wasFocused && !isFocused)
-                continue;
+        if (previousValue is not null && _items.TryGet(previousValue, out var previous))
+            await previous.Refresh();
 
-            await entry.Value.Refresh();
-        }
+        if (nextValue is not null && _items.TryGet(nextValue, out var next))
+            await next.Refresh();
     }
 
     internal IBradixSelectCollectionItem? GetSelectedOrFirstEnabledItem()
@@ -671,13 +666,7 @@
         if (string.IsNullOrWhiteSpace(value))
             return null;
 
-        foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
-        {
-            if (!entry.Value.Disabled && string.Equals(entry.Value.Value, value, StringComparison.Ordinal))
-                return entry.Value;
-        }
-
-        return null;
+        return _items.TryGet(value, out var item) && !item.Disabled ? item : null;
     }
 
     private int CountEnabledItems(string? preferredValue, string? fallbackValue, out int currentIndex)

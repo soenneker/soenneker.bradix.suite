@@ -9,14 +9,26 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixPopperRenderTests : BunitContext
 {
+    private readonly BunitJSModuleInterop _module;
+
     public BradixPopperRenderTests()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
-        module.SetupVoid("registerPopperContent", _ => true);
-        module.SetupVoid("updatePopperContent", _ => true);
-        module.SetupVoid("unregisterPopperContent", _ => true);
+        _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.SetupVoid("registerPopperContent", _ => true);
+        _module.SetupVoid("updatePopperContent", _ => true);
+        _module.SetupVoid("unregisterPopperContent", _ => true);
 
         Services.AddBradixTestInterops();
+    }
+
+    [Test]
+    public async Task Missing_anchor_waits_without_scheduling_more_renders()
+    {
+        var cut = Render<BradixPopperContent>(p => p.AddChildContent("Waiting for anchor"));
+        await cut.InvokeAsync(() => Task.CompletedTask);
+        await Assert.That(cut.RenderCount).IsEqualTo(1);
+        cut.Render(p => p.Add(c => c.UseAnchor, true).Add(c => c.Anchor, new ElementReference("late-anchor")));
+        await Assert.That(_module.Invocations.Any(i => i.Identifier == "registerPopperContent")).IsTrue();
     }
 
     [Test]

@@ -61,10 +61,74 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.SetupVoid("unregisterSelectBubbleInput", _ => true).SetVoidResult();
         _module.Setup<bool>("isFormControl", _ => true).SetResult(true);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Fruit");
+        _module.Setup<string>("observeTextContent", _ => true).SetResult("Fruit");
+        _module.SetupVoid("unobserveTextContent", _ => true).SetVoidResult();
         _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
 
         Services.AddBradixTestInterops();
+    }
+
+    [Test]
+    public async Task Focus_changes_do_not_render_select_or_unrelated_items()
+    {
+        var cut = Render<FocusCountingSelect>(p => p.AddChildContent(builder =>
+        {
+            RenderItem(builder, 0, "orange", "Orange");
+            RenderItem(builder, 10, "apple", "Apple");
+            RenderItem(builder, 20, "banana", "Banana");
+        }));
+        await cut.InvokeAsync(async () => { await Task.Yield(); });
+        var select = cut;
+        var items = cut.FindComponents<BradixSelectItem>();
+        var next = items[1];
+        int selectRenders = select.Instance.CompletedRenders;
+        int otherRenders = items[2].RenderCount;
+
+        await next.Find("[role=option]").FocusAsync(new FocusEventArgs());
+
+        await Assert.That(select.Instance.CompletedRenders).IsEqualTo(selectRenders);
+        await Assert.That(items[2].RenderCount).IsEqualTo(otherRenders);
+        await Assert.That(next.Find("[role=option]").HasAttribute("data-highlighted")).IsTrue();
+        int focusCalls = _module.Invocations.Count(i => i.Identifier == "focusElementPreventScroll");
+        int itemRenders = next.RenderCount;
+        await next.Find("[role=option]").PointerMoveAsync(new PointerEventArgs { PointerType = "mouse" });
+        await next.Find("[role=option]").PointerMoveAsync(new PointerEventArgs { PointerType = "mouse" });
+        await Assert.That(_module.Invocations.Count(i => i.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCalls);
+        await Assert.That(next.RenderCount).IsEqualTo(itemRenders);
+    }
+
+    [Test]
+    public async Task Text_observer_updates_selected_text_without_rereading_on_render_and_disconnects()
+    {
+        var cut = Render<BradixSelect>(p => p.Add(c => c.DefaultValue, "fruit").AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixSelectItem>(0);
+            builder.AddAttribute(1, nameof(BradixSelectItem.Value), "fruit");
+            builder.AddAttribute(2, nameof(BradixSelectItem.ChildContent), (RenderFragment)(child =>
+            {
+                child.OpenComponent<BradixSelectItemText>(0);
+                child.AddAttribute(1, nameof(BradixSelectItemText.ChildContent), (RenderFragment)(text => text.AddContent(0, "Fruit")));
+                child.CloseComponent();
+            }));
+            builder.CloseComponent();
+            builder.OpenComponent<BradixSelectValue>(3);
+            builder.CloseComponent();
+        }));
+        var invocation = _module.Invocations.Single(i => i.Identifier == "observeTextContent");
+        object reference = invocation.Arguments[1]!;
+        object observer = reference.GetType().GetProperty("Value")!.GetValue(reference)!;
+        await cut.InvokeAsync(() => (Task)observer.GetType().GetMethod("OnTextContentChanged")!.Invoke(observer, ["Updated fruit"])!);
+        await Assert.That(cut.Find("option[value=fruit]").TextContent).IsEqualTo("Updated fruit");
+        var selectedText = cut.FindComponent<BradixSelectValue>();
+        await Assert.That(selectedText.Find("span").TextContent).IsEqualTo("Updated fruit");
+        await cut.InvokeAsync(() => (Task)observer.GetType().GetMethod("OnTextContentChanged")!.Invoke(observer, [string.Empty])!);
+        await Assert.That(selectedText.Find("span").TextContent).IsEqualTo(string.Empty);
+        cut.Render();
+        await Assert.That(_module.Invocations.Count(i => i.Identifier == "observeTextContent")).IsEqualTo(1);
+        await Assert.That(_module.Invocations.Count(i => i.Identifier == "getTextContent")).IsEqualTo(0);
+        cut.Render(p => p.Add(c => c.ChildContent, (RenderFragment?)null));
+        await Assert.That(_module.Invocations.Count(i => i.Identifier == "unobserveTextContent")).IsEqualTo(1);
     }
 
     [Test]
@@ -585,5 +649,16 @@ public sealed class BradixSelectRenderTests : BunitContext
             item.CloseComponent();
         }));
         builder.CloseComponent();
+    }
+}
+
+
+public sealed class FocusCountingSelect : BradixSelect
+{
+    public int CompletedRenders { get; private set; }
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        CompletedRenders++;
+        return base.OnAfterRenderAsync(firstRender);
     }
 }

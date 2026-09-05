@@ -11,6 +11,19 @@ namespace Soenneker.Bradix;
 /// </summary>
 public interface IDomInterop : IAsyncDisposable
 {
+    /// <summary>Observes descendant text changes and returns the initial trimmed text.</summary>
+    /// <param name="element">The element whose text should be observed.</param>
+    /// <param name="receiver">A .NET reference exposing OnTextContentChanged(string).</param>
+    /// <param name="cancellationToken">Token used to cancel registration.</param>
+    /// <returns>The initial text content.</returns>
+    ValueTask<string> ObserveTextContent(ElementReference element, object receiver, CancellationToken cancellationToken = default);
+
+    /// <summary>Disconnects the text observer registered for an element.</summary>
+    /// <param name="element">The observed element.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task representing observer cleanup.</returns>
+    ValueTask UnobserveTextContent(ElementReference element, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Initializes the Dom so it is ready for use.
     /// </summary>

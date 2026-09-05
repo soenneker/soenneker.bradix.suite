@@ -18,5 +18,5 @@ export * from "./bradix/scrollArea.js";
 export * from "./bradix/select.js";
 export * from "./bradix/toast.js";
 export * from "./bradix/tooltip.js";
-export { getTextContent } from "./bradix/core/dom.js";
+export { getTextContent, observeTextContent, unobserveTextContent } from "./bradix/core/dom.js";
 export { isKeyboardInteractionMode } from "./bradix/core/keyboardMode.js";

@@ -3,6 +3,7 @@
 @inherits BradixIdentifiableContentElement
 
 @implements IBradixSelectItemText
+@implements IAsyncDisposable
 
 @inject IDomInterop DomInterop
 <span @ref="_element"
@@ -12,13 +13,15 @@
 
 @code {
     private ElementReference _element;
-    private string? _lastResolvedText;
+    private BradixTextObserver? _textObserver;
 
     [CascadingParameter]
     private BradixSelectItem? Item { get; set; }
 
     private Dictionary<string, object> ItemTextAttributes => BuildAttributes(
         ("id", Item?.TextId));
+
+    protected override void OnInitialized() => Item?.RegisterTextContent();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -28,14 +31,23 @@
         Item.RegisterTextElement(_element);
 
         if (Item.TextValue is not null)
+        {
+            if (_textObserver is not null)
+            {
+                await _textObserver.DisposeAsync();
+                _textObserver = null;
+            }
             return;
+        }
 
-        string text = await DomInterop.GetTextContent(_element);
+        _textObserver ??= new BradixTextObserver(DomInterop, text => InvokeAsync(() => Item?.NotifyResolvedText(text) ?? Task.CompletedTask));
+        await _textObserver.Observe(_element);
+    }
 
-        if (string.Equals(_lastResolvedText, text, StringComparison.Ordinal))
-            return;
-
-        _lastResolvedText = text;
-        await Item.NotifyResolvedText(text);
+    public async ValueTask DisposeAsync()
+    {
+        Item?.UnregisterTextContent();
+        if (_textObserver is not null)
+            await _textObserver.DisposeAsync();
     }
 }
