@@ -149,6 +149,13 @@ function getRovingFocusTarget(element, key) {
     return null;
   }
 
+  const orientation = element.getAttribute("data-bradix-roving-orientation");
+  const dir = element.getAttribute("data-bradix-roving-dir") === "rtl" ? "rtl" : "ltr";
+  const intent = getRovingFocusIntent(key, orientation, dir);
+
+  if (!intent) {
+    return null;
+  }
   const candidates = document.querySelectorAll(
     `[data-bradix-roving-group="${cssEscape(groupId)}"][data-bradix-roving-item]`
   );
@@ -173,14 +180,7 @@ function getRovingFocusTarget(element, key) {
     return null;
   }
 
-  const orientation = element.getAttribute("data-bradix-roving-orientation");
-  const dir = element.getAttribute("data-bradix-roving-dir") === "rtl" ? "rtl" : "ltr";
   const loop = readBooleanDataAttribute(element, "bradixRovingLoop");
-  const intent = getRovingFocusIntent(key, orientation, dir);
-
-  if (!intent) {
-    return null;
-  }
 
   if (intent === "first") {
     return items[0];

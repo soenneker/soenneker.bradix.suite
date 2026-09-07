@@ -408,6 +408,9 @@
         if (fieldNames.Length < 2)
             return fieldNames;
 
+        if (fieldNames.Length > 32)
+            return GetDistinctLargeFieldNames(fieldNames);
+
         for (int i = 0; i < fieldNames.Length; i++)
         {
             string fieldName = fieldNames[i];
@@ -422,6 +425,28 @@
         }
 
         return fieldNames;
+    }
+
+    private static IReadOnlyList<string> GetDistinctLargeFieldNames(string[] fieldNames)
+    {
+        HashSet<string> seen = new(fieldNames.Length, StringComparer.Ordinal);
+        List<string>? distinct = null;
+        for (int i = 0; i < fieldNames.Length; i++)
+        {
+            string fieldName = fieldNames[i];
+            if (seen.Add(fieldName))
+            {
+                distinct?.Add(fieldName);
+            }
+            else if (distinct is null)
+            {
+                distinct = new List<string>(fieldNames.Length);
+                for (int j = 0; j < i; j++)
+                    distinct.Add(fieldNames[j]);
+            }
+        }
+
+        return distinct is null ? fieldNames : distinct;
     }
 
     private static IReadOnlyList<string> CopyDistinctFieldNames(string[] fieldNames, int duplicateIndex)

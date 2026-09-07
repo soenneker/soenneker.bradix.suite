@@ -212,7 +212,12 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
         if (string.IsNullOrWhiteSpace(value))
             return null;
 
-        return value.Trim().TrimEnd(';') + ";";
+        ReadOnlySpan<char> trimmed = value.AsSpan().Trim();
+        ReadOnlySpan<char> content = trimmed.TrimEnd(';');
+        if (trimmed.Length == value.Length && trimmed.Length == content.Length + 1)
+            return value;
+
+        return string.Concat(content, ";".AsSpan());
     }
 
     private void AddAttribute(RenderTreeBuilder builder, int sequence, string key, object value)

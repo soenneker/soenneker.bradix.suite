@@ -1,5 +1,4 @@
 import {
-  arrayRemove,
   getTabbableCandidates,
   getTabbableEdges,
   focusElement,
@@ -28,16 +27,18 @@ function addFocusScopeToStack(scope) {
     active.paused = true;
   }
 
-  const next = arrayRemove(focusScopeStack, scope);
-  next.unshift(scope);
-  focusScopeStack.length = 0;
-  focusScopeStack.push(...next);
+  const index = focusScopeStack.indexOf(scope);
+  if (index >= 0) {
+    focusScopeStack.splice(index, 1);
+  }
+  focusScopeStack.unshift(scope);
 }
 
 function removeFocusScopeFromStack(scope) {
-  const next = arrayRemove(focusScopeStack, scope);
-  focusScopeStack.length = 0;
-  focusScopeStack.push(...next);
+  const index = focusScopeStack.indexOf(scope);
+  if (index >= 0) {
+    focusScopeStack.splice(index, 1);
+  }
   if (focusScopeStack[0]) {
     focusScopeStack[0].paused = false;
   }
