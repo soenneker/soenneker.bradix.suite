@@ -143,12 +143,16 @@
 
     internal async Task HandleTriggerKeyDown(BradixAccordionTrigger trigger, KeyboardEventArgs args)
     {
-        List<BradixAccordionTrigger> enabledTriggers = GetEnabledTriggers();
-
-        if (enabledTriggers.Count == 0)
-            return;
-
-        int currentIndex = enabledTriggers.IndexOf(trigger);
+        int enabledCount = 0;
+        int currentIndex = -1;
+        foreach (BradixAccordionTrigger candidate in _triggers)
+        {
+            if (candidate.IsDisabled)
+                continue;
+            if (ReferenceEquals(candidate, trigger))
+                currentIndex = enabledCount;
+            enabledCount++;
+        }
 
         if (currentIndex < 0)
             return;
@@ -161,29 +165,38 @@
                 nextIndex = 0;
                 break;
             case "End":
-                nextIndex = enabledTriggers.Count - 1;
+                nextIndex = enabledCount - 1;
                 break;
             case "ArrowDown" when Orientation.Value == Orientation.VerticalValue:
-                nextIndex = (currentIndex + 1) % enabledTriggers.Count;
+                nextIndex = (currentIndex + 1) % enabledCount;
                 break;
             case "ArrowUp" when Orientation.Value == Orientation.VerticalValue:
-                nextIndex = (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;
+                nextIndex = (currentIndex - 1 + enabledCount) % enabledCount;
                 break;
             case "ArrowRight" when Orientation.Value == Orientation.HorizontalValue:
                 nextIndex = ResolvedDirection == "rtl"
-                    ? (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count
-                    : (currentIndex + 1) % enabledTriggers.Count;
+                    ? (currentIndex - 1 + enabledCount) % enabledCount
+                    : (currentIndex + 1) % enabledCount;
                 break;
             case "ArrowLeft" when Orientation.Value == Orientation.HorizontalValue:
                 nextIndex = ResolvedDirection == "rtl"
-                    ? (currentIndex + 1) % enabledTriggers.Count
-                    : (currentIndex - 1 + enabledTriggers.Count) % enabledTriggers.Count;
+                    ? (currentIndex + 1) % enabledCount
+                    : (currentIndex - 1 + enabledCount) % enabledCount;
                 break;
             default:
                 return;
         }
 
-        await enabledTriggers[nextIndex].Focus();
+        foreach (BradixAccordionTrigger candidate in _triggers)
+        {
+            if (candidate.IsDisabled)
+                continue;
+            if (nextIndex-- == 0)
+            {
+                await candidate.Focus();
+                return;
+            }
+        }
     }
 
     private async Task SetSingleValue(string? value)
@@ -215,19 +228,6 @@
             await OnValuesChange.InvokeAsync(next);
 
         await InvokeAsync(StateHasChanged);
-    }
-
-    private List<BradixAccordionTrigger> GetEnabledTriggers()
-    {
-        List<BradixAccordionTrigger> enabledTriggers = [];
-
-        foreach (BradixAccordionTrigger trigger in _triggers)
-        {
-            if (!trigger.IsDisabled)
-                enabledTriggers.Add(trigger);
-        }
-
-        return enabledTriggers;
     }
 
     private static List<string> CopyValues(IEnumerable<string>? values)

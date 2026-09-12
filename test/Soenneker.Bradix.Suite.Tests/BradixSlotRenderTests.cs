@@ -12,6 +12,31 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixSlotRenderTests : BunitContext
 {
     [Test]
+    public async Task Slot_attribute_count_changes_preserve_child_component_identity()
+    {
+        RenderFragment child = builder =>
+        {
+            builder.OpenComponent<SlotStateProbe>(0);
+            builder.CloseComponent();
+        };
+        var cut = Render<BradixSlot>(p => p
+            .Add(c => c.ElementName, "div")
+            .Add(c => c.ChildContent, child));
+        var original = cut.FindComponent<SlotStateProbe>().Instance;
+
+        cut.Render(p => p.Add(c => c.ChildAttributes, new Dictionary<string, object>
+        {
+            ["data-first"] = "one",
+            ["data-second"] = "two"
+        }));
+        await Assert.That(ReferenceEquals(original, cut.FindComponent<SlotStateProbe>().Instance)).IsTrue();
+
+        cut.Render(p => p.Add(c => c.ChildAttributes, (IReadOnlyDictionary<string, object>?)null));
+        await Assert.That(ReferenceEquals(original, cut.FindComponent<SlotStateProbe>().Instance)).IsTrue();
+        await Assert.That(cut.Find("div").HasAttribute("data-first")).IsFalse();
+    }
+
+    [Test]
     public async Task Slot_merges_class_style_and_child_attribute_precedence()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
@@ -154,5 +179,13 @@ public sealed class BradixSlotRenderTests : BunitContext
     private sealed class CustomEventArgs : EventArgs
     {
         public int Value { get; init; }
+    }
+}
+
+public sealed class SlotStateProbe : ComponentBase
+{
+    protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        builder.AddContent(0, "Preserved child");
     }
 }

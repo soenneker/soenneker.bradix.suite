@@ -17,12 +17,27 @@ export function registerTooltipTrigger(element, dotNetRef) {
 
   unregisterTooltipTrigger(element);
 
-  const pointerUp = () => {
+  let activePointerId = null;
+  const clearPointer = () => {
+    activePointerId = null;
+    document.removeEventListener("pointerup", pointerUp);
+    document.removeEventListener("pointercancel", pointerUp);
+  };
+  const pointerUp = event => {
+    if (event.pointerId !== activePointerId) {
+      return;
+    }
+    clearPointer();
     dotNetRef.invokeMethodAsync("HandleDocumentPointerUp").catch(() => {});
   };
+  const pointerDown = event => {
+    activePointerId = event.pointerId;
+    document.addEventListener("pointerup", pointerUp);
+    document.addEventListener("pointercancel", pointerUp);
+  };
 
-  document.addEventListener("pointerup", pointerUp);
-  tooltipTriggerHandlers.set(element, { pointerUp });
+  element.addEventListener("pointerdown", pointerDown);
+  tooltipTriggerHandlers.set(element, { pointerDown, clearPointer });
 }
 
 export function unregisterTooltipTrigger(element) {
@@ -32,7 +47,8 @@ export function unregisterTooltipTrigger(element) {
     return;
   }
 
-  document.removeEventListener("pointerup", handlers.pointerUp);
+  element.removeEventListener("pointerdown", handlers.pointerDown);
+  handlers.clearPointer();
   tooltipTriggerHandlers.delete(element);
 }
 

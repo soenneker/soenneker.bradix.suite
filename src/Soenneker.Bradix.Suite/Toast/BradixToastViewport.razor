@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -30,6 +31,7 @@
 </div>
 
 @code {
+    private ValueAtomicBool _disposed;
     private static readonly IReadOnlyList<string> _defaultHotkey = ["F8"];
 
     private ElementReference _wrapperElement;
@@ -93,6 +95,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
+
         if (firstRender)
             Provider?.RegisterViewport(ResolvedViewportId);
 
@@ -108,6 +113,12 @@
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await ToastInterop.RegisterToastViewport(_wrapperElement, _viewportElement, _headFocusProxy, _tailFocusProxy, Hotkey, _dotNetReference);
+        if (_disposed.Read())
+        {
+            await ToastInterop.UnregisterToastViewport(_viewportElement);
+            return;
+        }
+
         _registered = true;
         _lastRegisteredHasToasts = hasToasts;
         _lastRegisteredHotkeySignature = _hotkeySignature;
@@ -115,12 +126,19 @@
 
     public async ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return;
         Provider?.UnregisterViewport();
-
-        if (_registered)
-            await ToastInterop.UnregisterToastViewport(_viewportElement);
-
-        _dotNetReference?.Dispose();
+        try
+        {
+            if (_registered)
+                await ToastInterop.UnregisterToastViewport(_viewportElement);
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     [JSInvokable]

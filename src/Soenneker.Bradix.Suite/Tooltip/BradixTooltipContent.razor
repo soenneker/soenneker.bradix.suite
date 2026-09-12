@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 @using Microsoft.JSInterop
 
@@ -52,6 +53,7 @@
 }
 
 @code {
+    private ValueAtomicBool _disposed;
     private static readonly IReadOnlyDictionary<string, object> _accessibleTooltipAttributes = new Dictionary<string, object>
     {
         ["role"] = "tooltip"
@@ -166,6 +168,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
+
         if (!IsPresent || Tooltip is null)
         {
             if (_contentRegistered)
@@ -193,6 +198,12 @@
         {
             await TooltipInterop.RegisterTooltipContent(_contentElement, Tooltip.TriggerElement, _dotNetReference, Tooltip.ContentId,
                 hoverableContent);
+            if (_disposed.Read())
+            {
+                await TooltipInterop.UnregisterTooltipContent(_contentElement);
+                return;
+            }
+
             _contentRegistered = true;
             _lastHoverableContent = hoverableContent;
             _lastTriggerId = triggerId;
@@ -202,7 +213,7 @@
         {
             string textContent = await DomInterop.GetTextContentExcluding(_contentElement, "[role=\"tooltip\"]");
 
-            if (!string.Equals(_accessibleLabel, textContent, StringComparison.Ordinal))
+            if (!_disposed.Read() && !string.Equals(_accessibleLabel, textContent, StringComparison.Ordinal))
             {
                 _accessibleLabel = textContent;
                 await InvokeAsync(StateHasChanged);
@@ -212,10 +223,18 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_contentRegistered)
-            await TooltipInterop.UnregisterTooltipContent(_contentElement);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue())
+            return;
+        try
+        {
+            if (_contentRegistered)
+                await TooltipInterop.UnregisterTooltipContent(_contentElement);
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs args)

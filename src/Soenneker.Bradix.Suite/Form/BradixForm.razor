@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -27,6 +28,8 @@
     private readonly Dictionary<string, ElementReference> _controlsByField = new(StringComparer.Ordinal);
     private ElementReference _formElement;
     private bool _registered;
+    private ValueAtomicBool _disposed;
+    private long _nextValidationVersion;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [Parameter]
@@ -45,20 +48,36 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (_disposed.Read() || !firstRender)
             return;
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await FormInterop.RegisterFormRoot(_formElement, _dotNetReference);
+        if (_disposed.Read())
+        {
+            await FormInterop.UnregisterFormRoot(_formElement);
+            return;
+        }
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_registered)
-            await FormInterop.UnregisterFormRoot(_formElement);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue())
+            return;
+        try
+        {
+            if (_registered)
+            {
+                _registered = false;
+                await FormInterop.UnregisterFormRoot(_formElement);
+            }
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     internal BradixFormValiditySnapshot? GetFieldValidity(string fieldName)
@@ -342,17 +361,14 @@
 
     private long NextValidationVersion(string fieldName)
     {
-        long next = _validationVersions.TryGetValue(fieldName, out long current)
-            ? current + 1
-            : 1;
-
+        long next = ++_nextValidationVersion;
         _validationVersions[fieldName] = next;
         return next;
     }
 
     private bool IsLatestValidation(string fieldName, long version)
     {
-        return _validationVersions.TryGetValue(fieldName, out long current) && current == version;
+        return !_disposed.Read() && _validationVersions.TryGetValue(fieldName, out long current) && current == version;
     }
 
     private void SetFieldCustomErrors(string fieldName, Dictionary<string, bool>? errors)

@@ -95,7 +95,7 @@
         {
             if (_registration is null)
             {
-                _registration = new TriggerRegistration(Item.ResolvedValue, Item.TriggerId, Disabled, _button);
+                _registration = new TriggerRegistration(Item.ResolvedValue, Item.TriggerId, this);
                 NavigationMenu.RegisterTrigger(_registration);
             }
 
@@ -106,6 +106,11 @@
                 try
                 {
                     await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_button, _dotNetReference);
+                    if (_disposed.Read())
+                    {
+                        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_button);
+                        return;
+                    }
                     _rovingFocusRegistered = true;
                 }
                 catch (Exception ex) when (ShouldIgnoreInteropException(ex))
@@ -119,6 +124,11 @@
                 try
                 {
                     await NavigationMenuInterop.RegisterNavigationMenuTriggerInteraction(_button, _dotNetReference);
+                    if (_disposed.Read())
+                    {
+                        await NavigationMenuInterop.UnregisterNavigationMenuTriggerInteraction(_button);
+                        return;
+                    }
                     _triggerInteractionRegistered = true;
                 }
                 catch (Exception ex) when (ShouldIgnoreInteropException(ex))
@@ -149,38 +159,38 @@
         if (!_disposed.TrySetTrue())
             return;
 
-        if (_rovingFocusRegistered)
-        {
-            try
-            {
-                await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_button);
-            }
-            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
-            {
-            }
-        }
-
-        if (_triggerInteractionRegistered)
-        {
-            try
-            {
-                await NavigationMenuInterop.UnregisterNavigationMenuTriggerInteraction(_button);
-            }
-            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
-            {
-            }
-        }
-
-        _dotNetReference?.Dispose();
-        _dotNetReference = null;
-
         NavigationMenu?.RecordTriggerDisposed(Item?.ResolvedValue);
-
         if (_focusProxyRegistered && Item is not null)
             NavigationMenu?.UnregisterFocusProxy(Item.ResolvedValue);
-
         if (_registration is not null)
             NavigationMenu?.UnregisterTrigger(_registration);
+        try
+        {
+            try
+            {
+                if (_rovingFocusRegistered)
+                    await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_button);
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+            }
+        }
+        finally
+        {
+            try
+            {
+                if (_triggerInteractionRegistered)
+                    await NavigationMenuInterop.UnregisterNavigationMenuTriggerInteraction(_button);
+            }
+            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+            {
+            }
+            finally
+            {
+                _dotNetReference?.Dispose();
+                _dotNetReference = null;
+            }
+        }
     }
 
     private async Task HandlePointerEnter(PointerEventArgs args)
@@ -402,12 +412,12 @@
         return ex is ObjectDisposedException or JSDisconnectedException;
     }
 
-    private sealed class TriggerRegistration(string value, string triggerId, bool disabled, ElementReference triggerElement) : IBradixNavigationMenuRegisteredTrigger
+    private sealed class TriggerRegistration(string value, string triggerId, BradixNavigationMenuTrigger owner) : IBradixNavigationMenuRegisteredTrigger
     {
         public string Value { get; } = value;
         public string TriggerId { get; } = triggerId;
-        public bool Disabled { get; } = disabled;
-        public ElementReference TriggerElement { get; } = triggerElement;
+        public bool Disabled => owner.Disabled;
+        public ElementReference TriggerElement => owner._button;
 
         public ValueTask Focus()
         {

@@ -9,11 +9,17 @@ function updateCollapsibleSize(element) {
   const width = element.scrollWidth;
 
   if (height > 0) {
-    element.style.setProperty("--radix-collapsible-content-height", `${height}px`);
+    const value = `${height}px`;
+    if (element.style.getPropertyValue("--radix-collapsible-content-height") !== value) {
+      element.style.setProperty("--radix-collapsible-content-height", value);
+    }
   }
 
   if (width > 0) {
-    element.style.setProperty("--radix-collapsible-content-width", `${width}px`);
+    const value = `${width}px`;
+    if (element.style.getPropertyValue("--radix-collapsible-content-width") !== value) {
+      element.style.setProperty("--radix-collapsible-content-width", value);
+    }
   }
 }
 
@@ -25,32 +31,38 @@ export function observeCollapsibleContent(element) {
   unobserveCollapsibleContent(element);
   updateCollapsibleSize(element);
 
-  const resizeObserver = new ResizeObserver(() => updateCollapsibleSize(element));
+  let frame = 0;
+  let disposed = false;
+  const update = () => {
+    frame = 0;
+    if (!disposed) updateCollapsibleSize(element);
+  };
+  const scheduleFrame = () => {
+    if (!disposed && !frame) frame = requestAnimationFrame(update);
+  };
+
+  const resizeObserver = new ResizeObserver(scheduleFrame);
   resizeObserver.observe(element);
 
-  const mutationObserver = new MutationObserver(() => updateCollapsibleSize(element));
+  const mutationObserver = new MutationObserver(scheduleFrame);
   mutationObserver.observe(element, {
     childList: true,
     subtree: true,
     characterData: true,
   });
 
-  const rafIds = [];
-  const scheduleFrame = () => {
-    const id = requestAnimationFrame(() => updateCollapsibleSize(element));
-    rafIds.push(id);
-  };
-
-  scheduleFrame();
   scheduleFrame();
 
-  const timeoutId = setTimeout(() => updateCollapsibleSize(element), 50);
+  const timeoutId = setTimeout(scheduleFrame, 50);
 
   collapsibleObservers.set(element, {
-    mutationObserver,
-    rafIds,
-    resizeObserver,
-    timeoutId,
+    dispose() {
+      disposed = true;
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+      clearTimeout(timeoutId);
+    },
   });
 }
 
@@ -61,13 +73,6 @@ export function unobserveCollapsibleContent(element) {
     return;
   }
 
-  observer.resizeObserver?.disconnect();
-  observer.mutationObserver?.disconnect();
-  observer.rafIds?.forEach((id) => cancelAnimationFrame(id));
-
-  if (observer.timeoutId) {
-    clearTimeout(observer.timeoutId);
-  }
-
+  observer.dispose();
   collapsibleObservers.delete(element);
 }

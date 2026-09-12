@@ -360,6 +360,25 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Reset_does_not_make_an_old_pending_validation_current_again()
+    {
+        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var cut = RenderCustomMessageForm((Func<string?, BradixFormDataSnapshot, Task<bool>>)((_, _) => completion.Task));
+        var control = cut.FindComponent<BradixFormControl>();
+        Task oldValidation = control.Instance.HandleControlStateChanged(CreateValidControlSnapshot());
+        await cut.Find("form").TriggerEventAsync("onreset", EventArgs.Empty);
+        await control.Instance.HandleControlStateChanged(CreateControlSnapshot("newer", new BradixFormValiditySnapshot
+        {
+            Valid = false,
+            ValueMissing = true
+        }, new Dictionary<string, string[]>()));
+        int writes = _module.Invocations.Count(invocation => invocation.Identifier == "setFormControlCustomValidity");
+        completion.SetResult(true);
+        await oldValidation;
+        await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "setFormControlCustomValidity")).IsEqualTo(writes);
+    }
+
+    [Test]
     public async Task Later_async_matcher_is_observed_when_sibling_faults()
     {
         var faultedSource = new TrackingValueTaskSource();

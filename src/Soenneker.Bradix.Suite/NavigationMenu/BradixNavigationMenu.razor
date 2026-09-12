@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Threading
@@ -6,6 +7,7 @@
 @inherits BradixIdentifiableContentElement
 
 @implements IBradixNavigationMenu
+@implements IDisposable
 
 @inject INavigationMenuInterop NavigationMenuInterop
 
@@ -41,6 +43,7 @@
     private ElementReference _rootElement;
     private ElementReference _indicatorTrackElement;
     private bool _initialized;
+    private ValueAtomicBool _disposed;
     private bool _hasViewport;
     private bool _hasIndicatorTrack;
     private string? _uncontrolledValue;
@@ -415,13 +418,15 @@
         if (!IsRootMenu || _viewportContents.Count == 0)
             return [];
 
-        List<BradixNavigationMenuViewportRegistration> ordered = [];
+        List<BradixNavigationMenuViewportRegistration> ordered = new(_viewportContents.Count);
 
-        foreach (string value in GetOrderedTriggerValues())
+        foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
         {
-            if (_viewportContents.TryGetValue(value, out BradixNavigationMenuViewportRegistration? registration))
+            if (_viewportContents.TryGetValue(trigger.Value, out BradixNavigationMenuViewportRegistration? registration))
                 ordered.Add(registration);
         }
+        if (ResolvedDirection == "rtl")
+            ordered.Reverse();
 
         foreach (BradixNavigationMenuViewportRegistration registration in _viewportContents.Values)
         {
@@ -642,6 +647,8 @@
 
     private async Task SetValue(string? value)
     {
+        if (_disposed.Read())
+            return;
         string nextValue = value ?? string.Empty;
         bool isControlled = ValueChanged.HasDelegate;
 
@@ -677,22 +684,20 @@
 
     private void EnsureCurrentTabStopValue()
     {
-        List<IBradixNavigationMenuRegisteredTrigger> focusableTriggers = GetFocusableTriggers();
-
-        if (focusableTriggers.Count == 0)
+        IBradixNavigationMenuRegisteredTrigger? first = null;
+        IBradixNavigationMenuRegisteredTrigger? active = null;
+        foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
         {
-            CurrentTabStopValue = string.Empty;
-            return;
+            if (trigger.Disabled)
+                continue;
+            first ??= trigger;
+            if (!string.IsNullOrWhiteSpace(CurrentTabStopValue) &&
+                string.Equals(trigger.Value, CurrentTabStopValue, StringComparison.Ordinal))
+                return;
+            if (string.Equals(trigger.Value, CurrentValue, StringComparison.Ordinal))
+                active = trigger;
         }
-
-        if (!string.IsNullOrWhiteSpace(CurrentTabStopValue) &&
-            FindTriggerIndex(focusableTriggers, CurrentTabStopValue) >= 0)
-        {
-            return;
-        }
-
-        IBradixNavigationMenuRegisteredTrigger? activeTrigger = FindTrigger(focusableTriggers, CurrentValue);
-        CurrentTabStopValue = activeTrigger?.Value ?? focusableTriggers[0].Value;
+        CurrentTabStopValue = active?.Value ?? first?.Value ?? string.Empty;
     }
 
     private List<IBradixNavigationMenuRegisteredTrigger> GetFocusableTriggers()
@@ -710,24 +715,12 @@
 
     private IBradixNavigationMenuRegisteredTrigger? FindTrigger(string value)
     {
-        foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
-        {
-            if (string.Equals(trigger.Value, value, StringComparison.Ordinal))
-                return trigger;
-        }
-
-        return null;
+        return _triggers.TryGet(value, out var trigger) ? trigger : null;
     }
 
     private IBradixNavigationMenuRegisteredTrigger? FindFocusableTrigger(string value)
     {
-        foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
-        {
-            if (!trigger.Disabled && string.Equals(trigger.Value, value, StringComparison.Ordinal))
-                return trigger;
-        }
-
-        return null;
+        return _triggers.TryGet(value, out var trigger) && !trigger.Disabled ? trigger : null;
     }
 
     private static IBradixNavigationMenuRegisteredTrigger? FindTrigger(IEnumerable<IBradixNavigationMenuRegisteredTrigger> triggers, string value)
@@ -794,6 +787,15 @@
         catch (TaskCanceledException)
         {
         }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed.TrySetTrue())
+            return;
+        CancelOpenDelay();
+        CancelCloseDelay();
+        CancelSkipDelay();
     }
 
     private void CancelOpenDelay()

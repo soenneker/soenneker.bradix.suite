@@ -31,14 +31,12 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
             throw new InvalidOperationException("BradixSlot requires a non-empty ElementName.");
 
         builder.OpenElement(0, ElementName);
-        var sequence = 1;
-
         foreach ((string key, object value) in BuildMergedAttributes())
         {
-            AddAttribute(builder, sequence++, key, value);
+            AddAttribute(builder, 1, key, value);
         }
 
-        builder.AddContent(sequence, ChildContent);
+        builder.AddContent(2, ChildContent);
         builder.CloseElement();
     }
 

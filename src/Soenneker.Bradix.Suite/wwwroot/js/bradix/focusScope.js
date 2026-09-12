@@ -60,6 +60,8 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     preventUnmountAutoFocus: !!preventUnmountAutoFocus,
     paused: false,
     awaitingMountAutoFocus: false,
+    mountRetryFrame: 0,
+    mountRetryTimeouts: null,
     lastFocusedElement: null,
     previouslyFocusedElement: document.activeElement instanceof HTMLElement ? document.activeElement : null
   };
@@ -70,6 +72,7 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     const activeElement = document.activeElement;
     if (activeElement && scope.element.contains(activeElement) && activeElement !== scope.element) {
       scope.awaitingMountAutoFocus = false;
+      cancelMountAutoFocusRetries(scope);
       return true;
     }
 
@@ -90,6 +93,7 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
 
     focusElement(target, true);
     queueMicrotask(() => {
+      if (scope.paused) return;
       restore();
       requestAnimationFrame(restore);
     });
@@ -211,6 +215,10 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
         focusElement(scope.element, false);
       }
 
+      if (completeMountAutoFocusIfFocused()) {
+        return;
+      }
+
       const retryMountAutoFocus = () => {
         if (focusScopeHandlers.get(element) !== handlers || scope.paused) {
           return;
@@ -227,13 +235,26 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
         completeMountAutoFocusIfFocused();
       };
 
-      requestAnimationFrame(retryMountAutoFocus);
-      setTimeout(retryMountAutoFocus, 0);
-      setTimeout(retryMountAutoFocus, 50);
-      setTimeout(retryMountAutoFocus, 100);
-      setTimeout(retryMountAutoFocus, 250);
-      setTimeout(retryMountAutoFocus, 500);
+      scope.mountRetryFrame = requestAnimationFrame(retryMountAutoFocus);
+      scope.mountRetryTimeouts = [
+        setTimeout(retryMountAutoFocus, 0),
+        setTimeout(retryMountAutoFocus, 50),
+        setTimeout(retryMountAutoFocus, 100),
+        setTimeout(retryMountAutoFocus, 250),
+        setTimeout(retryMountAutoFocus, 500)
+      ];
     }
+  }
+}
+
+function cancelMountAutoFocusRetries(scope) {
+  if (scope.mountRetryFrame) {
+    cancelAnimationFrame(scope.mountRetryFrame);
+    scope.mountRetryFrame = 0;
+  }
+  if (scope.mountRetryTimeouts) {
+    for (const timeout of scope.mountRetryTimeouts) clearTimeout(timeout);
+    scope.mountRetryTimeouts = null;
   }
 }
 
@@ -262,6 +283,8 @@ export async function unregisterFocusScope(element, unmountAutoFocusPrevented = 
   element.removeEventListener("keydown", handlers.keydown);
   handlers.mutationObserver.disconnect();
   const { scope } = handlers;
+  scope.paused = true;
+  cancelMountAutoFocusRetries(scope);
   focusScopeHandlers.delete(element);
 
   setTimeout(() => {

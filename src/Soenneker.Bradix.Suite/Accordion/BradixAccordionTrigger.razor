@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -18,6 +19,8 @@
 
 @code {
     private BradixCollapsibleTrigger? _trigger;
+    private ValueAtomicBool _disposed;
+    private ValueAtomicBool _asyncDisposed;
 
     [CascadingParameter]
     internal BradixAccordion Accordion { get; set; } = null!;
@@ -55,7 +58,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (!firstRender || _disposed.Read())
             return;
 
         Accordion.RegisterTrigger(this);
@@ -63,16 +66,24 @@
         if (_trigger is not null)
         {
             await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_trigger.Element);
+            if (_disposed.Read())
+                await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_trigger.Element);
         }
     }
 
     public void Dispose()
     {
+        if (!_disposed.TrySetTrue())
+            return;
         Accordion.UnregisterTrigger(this);
     }
 
     public async ValueTask DisposeAsync()
     {
+        if (!_asyncDisposed.TrySetTrue())
+            return;
+
+        Dispose();
         if (_trigger is not null)
             await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_trigger.Element);
     }

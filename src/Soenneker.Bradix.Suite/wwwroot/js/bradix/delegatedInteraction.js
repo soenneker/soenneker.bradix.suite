@@ -2,6 +2,8 @@ import { createDelegatedEventSnapshot } from "./core/eventSnapshots.js";
 
 const delegatedInteractionHandlers = new WeakMap();
 let delegatedInteractionListenersRegistered = false;
+let delegatedInteractionRegistrationCount = 0;
+let delegatedInteractionListeners = null;
 
 export function registerDelegatedInteraction(element, dotNetRef, options) {
   if (!element || !dotNetRef) {
@@ -9,6 +11,9 @@ export function registerDelegatedInteraction(element, dotNetRef, options) {
   }
 
   const resolvedOptions = options || {};
+  if (!delegatedInteractionHandlers.has(element)) {
+    delegatedInteractionRegistrationCount++;
+  }
   delegatedInteractionHandlers.set(element, { dotNetRef, options: resolvedOptions });
   ensureDelegatedInteractionListeners();
 
@@ -22,7 +27,17 @@ export function unregisterDelegatedInteraction(element) {
     return;
   }
 
-  delegatedInteractionHandlers.delete(element);
+  if (!delegatedInteractionHandlers.delete(element)) {
+    return;
+  }
+
+  delegatedInteractionRegistrationCount--;
+  if (delegatedInteractionRegistrationCount === 0 && delegatedInteractionListenersRegistered) {
+    for (const listener of delegatedInteractionListeners) {
+      document.removeEventListener(listener.type, listener.handler, listener.capture);
+    }
+    delegatedInteractionListenersRegistered = false;
+  }
 }
 
 function ensureDelegatedInteractionListeners() {
@@ -31,16 +46,17 @@ function ensureDelegatedInteractionListeners() {
   }
 
   delegatedInteractionListenersRegistered = true;
-  document.addEventListener("click", (event) => dispatchDelegatedInteraction("click", event), true);
-  document.addEventListener("mousedown", (event) => dispatchDelegatedInteraction("mousedown", event));
-  document.addEventListener("pointerdown", (event) => dispatchDelegatedInteraction("pointerdown", event));
-  document.addEventListener("mouseover", (event) => dispatchDelegatedInteraction("mouseover", event));
-  document.addEventListener("mouseenter", (event) => dispatchDelegatedInteraction("mouseenter", event), true);
-  document.addEventListener("pointermove", (event) => dispatchDelegatedInteraction("pointermove", event));
-  document.addEventListener("pointerover", (event) => dispatchDelegatedInteraction("pointerover", event));
-  document.addEventListener("keydown", (event) => dispatchDelegatedInteraction("keydown", event), true);
-  document.addEventListener("focusin", (event) => dispatchDelegatedInteraction("focusin", event));
-  document.addEventListener("focusout", (event) => dispatchDelegatedInteraction("focusout", event));
+  delegatedInteractionListeners ??= [
+    "click", "mousedown", "pointerdown", "mouseover", "mouseenter",
+    "pointermove", "pointerover", "keydown", "focusin", "focusout"
+  ].map(type => ({
+    type,
+    capture: type === "click" || type === "mouseenter" || type === "keydown",
+    handler: event => dispatchDelegatedInteraction(type, event)
+  }));
+  for (const listener of delegatedInteractionListeners) {
+    document.addEventListener(listener.type, listener.handler, listener.capture);
+  }
 }
 
 function dispatchDelegatedInteraction(type, event) {

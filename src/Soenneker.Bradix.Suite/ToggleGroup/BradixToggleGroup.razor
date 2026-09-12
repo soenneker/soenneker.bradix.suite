@@ -174,9 +174,7 @@
         if (!RovingFocus || args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<BradixToggleGroupItem> focusableItems = GetFocusableItems();
-
-        int currentIndex = focusableItems.IndexOf(item);
+        int focusableCount = CountFocusableItems(item, out int currentIndex);
 
         if (currentIndex < 0)
             return;
@@ -186,14 +184,14 @@
                 NormalizedOrientation,
                 ResolvedDirection,
                 currentIndex,
-                focusableItems.Count,
+                focusableCount,
                 Loop,
                 out int targetIndex))
         {
             return;
         }
 
-        BradixToggleGroupItem target = focusableItems[targetIndex];
+        BradixToggleGroupItem target = GetFocusableItemAt(targetIndex)!;
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -216,37 +214,31 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<BradixToggleGroupItem> focusableItems = GetFocusableItems();
-
-        if (focusableItems.Count == 0)
-        {
-            CurrentTabStopId = null;
+        if (CurrentTabStopId is null)
             return;
+        foreach (BradixToggleGroupItem item in _items)
+        {
+            if (item.IsFocusable && string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
+                return;
         }
-
-        if (CurrentTabStopId is not null && FindTabStopItem(focusableItems, CurrentTabStopId) is null)
-            CurrentTabStopId = null;
+        CurrentTabStopId = null;
     }
 
     private BradixToggleGroupItem? GetPreferredTabStopItem()
     {
-        List<BradixToggleGroupItem> focusableItems = GetFocusableItems();
-
-        if (focusableItems.Count == 0)
-            return null;
-
-        BradixToggleGroupItem? pressedItem = FindPressedItem(focusableItems);
-        if (pressedItem is not null)
-            return pressedItem;
-
-        if (CurrentTabStopId is not null)
+        BradixToggleGroupItem? first = null;
+        BradixToggleGroupItem? current = null;
+        foreach (BradixToggleGroupItem item in _items)
         {
-            BradixToggleGroupItem? tabStopItem = FindTabStopItem(focusableItems, CurrentTabStopId);
-            if (tabStopItem is not null)
-                return tabStopItem;
+            if (!item.IsFocusable)
+                continue;
+            first ??= item;
+            if (item.IsPressed)
+                return item;
+            if (CurrentTabStopId is not null && string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
+                current = item;
         }
-
-        return focusableItems[0];
+        return current ?? first;
     }
 
     private async Task SetSingleValue(string? value)
@@ -289,17 +281,30 @@
         return value ?? string.Empty;
     }
 
-    private List<BradixToggleGroupItem> GetFocusableItems()
+    private int CountFocusableItems(BradixToggleGroupItem current, out int currentIndex)
     {
-        List<BradixToggleGroupItem> focusableItems = [];
-
+        currentIndex = -1;
+        int count = 0;
         foreach (BradixToggleGroupItem item in _items)
         {
-            if (item.IsFocusable)
-                focusableItems.Add(item);
+            if (!item.IsFocusable)
+                continue;
+            if (ReferenceEquals(item, current))
+                currentIndex = count;
+            count++;
         }
+        return count;
+    }
 
-        return focusableItems;
+    private BradixToggleGroupItem? GetFocusableItemAt(int targetIndex)
+    {
+        int index = 0;
+        foreach (BradixToggleGroupItem item in _items)
+        {
+            if (item.IsFocusable && index++ == targetIndex)
+                return item;
+        }
+        return null;
     }
 
     private static BradixToggleGroupItem? FindPressedItem(IEnumerable<BradixToggleGroupItem> items)

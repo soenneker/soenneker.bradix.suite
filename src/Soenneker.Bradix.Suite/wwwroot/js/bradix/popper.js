@@ -134,12 +134,46 @@ function transformOriginMiddleware(arrowWidth, arrowHeight) {
   };
 }
 
-async function updateRegisteredPopperContent(content) {
-  const handlers = popperContentHandlers.get(content);
-  if (!handlers?.reference || !handlers.content) {
+function schedulePopperUpdate(content, handlers) {
+  if (popperContentHandlers.get(content) !== handlers) {
     return;
   }
 
+  handlers.pending = true;
+  if (handlers.frame || handlers.running) {
+    return;
+  }
+
+  handlers.frame = requestAnimationFrame(handlers.runUpdate);
+}
+
+function initializeUpdates(content, handlers) {
+  handlers.update = () => schedulePopperUpdate(content, handlers);
+  handlers.runUpdate = async () => {
+    handlers.frame = 0;
+    if (popperContentHandlers.get(content) !== handlers) {
+      return;
+    }
+
+    handlers.pending = false;
+    handlers.running = true;
+    try {
+      await updateRegisteredPopperContent(content, handlers);
+    } catch (error) {
+      if (popperContentHandlers.get(content) === handlers) {
+        console.error(error);
+      }
+    } finally {
+      handlers.running = false;
+      if (handlers.pending) {
+        schedulePopperUpdate(content, handlers);
+      }
+    }
+  };
+}
+
+async function updateRegisteredPopperContent(content, handlers) {
+  const revision = handlers.revision;
   const floating = getFloatingUi();
   const contentSurface = handlers.content.firstElementChild || handlers.content;
   const contentZIndex = globalThis.getComputedStyle?.(contentSurface)?.zIndex;
@@ -224,6 +258,11 @@ async function updateRegisteredPopperContent(content) {
     placement: getPlacement(options),
     middleware
   });
+
+  // Options may change or the component may be replaced while Floating UI awaits layout.
+  if (popperContentHandlers.get(content) !== handlers || handlers.revision !== revision) {
+    return;
+  }
 
   const [placedSide, placedAlign] = getSideAndAlign(position.placement);
   const arrowData = position.middlewareData.arrow;
@@ -351,6 +390,7 @@ function reconnect(content) {
   }
 
   handlers.cleanup?.();
+  handlers.revision++;
   handlers.lastPosition = null;
   observeAutoUpdate(handlers);
 }
@@ -362,10 +402,9 @@ export function registerPopperContent(anchor, content, arrow, dotNetRef, options
 
   unregisterPopperContent(content);
 
-  const update = () => updateRegisteredPopperContent(content);
   const resolvedArrow = arrow instanceof Element ? arrow : null;
 
-  popperContentHandlers.set(content, {
+  const handlers = {
     anchor,
     reference: createAnchorReference(anchor),
     content,
@@ -373,9 +412,14 @@ export function registerPopperContent(anchor, content, arrow, dotNetRef, options
     dotNetRef,
     options: options || {},
     cleanup: null,
-    update,
+    frame: 0,
+    running: false,
+    pending: false,
+    revision: 0,
     lastPosition: null
-  });
+  };
+  initializeUpdates(content, handlers);
+  popperContentHandlers.set(content, handlers);
 
   reconnect(content);
 }
@@ -401,10 +445,9 @@ export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, op
 
   unregisterPopperContent(content);
 
-  const update = () => updateRegisteredPopperContent(content);
   const resolvedArrow = arrow instanceof Element ? arrow : null;
 
-  popperContentHandlers.set(content, {
+  const handlers = {
     anchor: null,
     reference: createVirtualAnchor(x, y),
     content,
@@ -412,9 +455,14 @@ export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, op
     dotNetRef,
     options: options || {},
     cleanup: null,
-    update,
+    frame: 0,
+    running: false,
+    pending: false,
+    revision: 0,
     lastPosition: null
-  });
+  };
+  initializeUpdates(content, handlers);
+  popperContentHandlers.set(content, handlers);
 
   reconnect(content);
 }
@@ -449,5 +497,7 @@ export function unregisterPopperContent(content) {
   }
 
   handlers.cleanup?.();
+  cancelAnimationFrame(handlers.frame);
+  handlers.frame = 0;
   popperContentHandlers.delete(content);
 }

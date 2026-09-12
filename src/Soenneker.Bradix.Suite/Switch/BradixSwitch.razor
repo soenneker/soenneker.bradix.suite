@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -31,6 +32,8 @@
     private bool _delegatedInteractionReady;
     private bool _isFormControl = true;
     private bool _registered;
+    private bool _formRegistered;
+    private ValueAtomicBool _disposed;
     private bool _formControlStateResolved;
     private bool _hasSyncedBubbleInput;
     private bool _hasUserInteracted;
@@ -135,10 +138,18 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
         if (firstRender)
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await FormInterop.RegisterCheckboxRoot(_buttonElement, _dotNetReference, Form);
+            if (_disposed.Read())
+            {
+                await FormInterop.UnregisterCheckboxRoot(_buttonElement);
+                return;
+            }
+            _formRegistered = true;
             await DelegatedInteractionInterop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new
             {
                 readyMethod = nameof(HandleDelegatedInteractionReady),
@@ -155,6 +166,11 @@
                     preventDefault = true
                 }
             });
+            if (_disposed.Read())
+            {
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_buttonElement);
+                return;
+            }
             _registered = true;
         }
 
@@ -170,6 +186,8 @@
         if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
         {
             bool isFormControl = await FormInterop.IsFormControl(_buttonElement, Form);
+            if (_disposed.Read())
+                return;
             _formControlStateResolved = true;
             _lastResolvedForm = Form;
 
@@ -201,13 +219,32 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_registered)
+        if (!_disposed.TrySetTrue())
+            return;
+        try
         {
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_buttonElement);
-            await FormInterop.UnregisterCheckboxRoot(_buttonElement);
+            if (_registered)
+            {
+                _registered = false;
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_buttonElement);
+            }
         }
-
-        _dotNetReference?.Dispose();
+        finally
+        {
+            try
+            {
+                if (_formRegistered)
+                {
+                    _formRegistered = false;
+                    await FormInterop.UnregisterCheckboxRoot(_buttonElement);
+                }
+            }
+            finally
+            {
+                _dotNetReference?.Dispose();
+                _dotNetReference = null;
+            }
+        }
     }
 
     [JSInvokable]

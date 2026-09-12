@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -26,6 +27,7 @@
     private bool _hasThumb;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
+    private ValueAtomicBool _disposed;
     private bool _registrationDirty = true;
     private string? _registeredOrientation;
     private string? _registeredDirection;
@@ -57,6 +59,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
         string orientation = Orientation.Value;
         bool shouldRender = ScrollArea.ShouldRenderScrollbar(orientation, ForceMount);
 
@@ -78,6 +82,11 @@
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
 
         await ScrollAreaInterop.RegisterScrollAreaScrollbar(_scrollbar, _thumb, ScrollArea.ViewportElement, orientation, ScrollArea.ResolvedDirection, _dotNetReference);
+        if (_disposed.Read())
+        {
+            await ScrollAreaInterop.UnregisterScrollAreaScrollbar(_scrollbar);
+            return;
+        }
         _registered = true;
         _registrationDirty = false;
         _registeredOrientation = orientation;
@@ -86,20 +95,31 @@
 
     public async ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return;
         ScrollArea.UnregisterScrollbar(Orientation.Value);
 
-        if (_registered)
-            await ScrollAreaInterop.UnregisterScrollAreaScrollbar(_scrollbar);
-
-        _dotNetReference?.Dispose();
+        try
+        {
+            if (_registered)
+            {
+                _registered = false;
+                await ScrollAreaInterop.UnregisterScrollAreaScrollbar(_scrollbar);
+            }
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     internal void RegisterThumb(ElementReference thumb)
     {
-        _thumb = thumb;
-        if (_hasThumb)
+        if (_hasThumb && _thumb.Equals(thumb))
             return;
 
+        _thumb = thumb;
         _hasThumb = true;
         _registrationDirty = true;
         _ = InvokeAsync(StateHasChanged);

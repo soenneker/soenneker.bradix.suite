@@ -149,19 +149,37 @@ else
         if (!_disposed.TrySetTrue())
             return;
 
-        if (_initializationTask is not null)
-            await _initializationTask;
-
-        if (_delegatedInteractionRegistered)
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
-
-        if (_rovingFocusRegistered)
-            await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
-
         if (_registered)
+        {
+            _registered = false;
             Menu.UnregisterItem(this);
-
-        _dotNetReference?.Dispose();
+        }
+        try
+        {
+            if (_initializationTask is not null)
+                await _initializationTask;
+        }
+        finally
+        {
+            try
+            {
+                if (_delegatedInteractionRegistered)
+                    await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
+            }
+            finally
+            {
+                try
+                {
+                    if (_rovingFocusRegistered)
+                        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
+                }
+                finally
+                {
+                    _dotNetReference?.Dispose();
+                    _dotNetReference = null;
+                }
+            }
+        }
     }
 
     private async Task InitializeItemInterop()

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Threading
@@ -95,6 +96,7 @@ else
 }
 
 @code {
+    private ValueAtomicBool _disposed;
     private bool _wasPresent;
     private bool _isExiting;
     private bool _didFocusOpenItem;
@@ -219,6 +221,9 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
+
         if (Select?.CurrentOpen == true)
         {
             if (UseItemAlignedPosition)
@@ -289,36 +294,96 @@ else
 
     public async ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return;
         StopAutoScroll();
-
-        if (_itemAlignedRegistered)
-            await SelectInterop.UnregisterSelectItemAlignedPosition(_wrapperElement);
-
-        if (_viewportRegistered)
-            await SelectInterop.UnregisterSelectViewport(_viewportElement);
-
-        if (_pointerTrackerRegistered)
-            await SelectInterop.UnregisterSelectContentPointerTracker(_contentElement);
-
-        if (_keyboardRegistered)
-            await SelectInterop.UnregisterSelectContentKeyboard(_contentElement);
-
-        if (_windowDismissRegistered)
-            await SelectInterop.UnregisterSelectWindowDismiss(_contentElement);
-
-        if (_hideOthersRegistered)
-            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
-
-        _dotNetReference?.Dispose();
+        try
+        {
+            if (_itemAlignedRegistered)
+            {
+                _itemAlignedRegistered = false;
+                await SelectInterop.UnregisterSelectItemAlignedPosition(_wrapperElement);
+            }
+        }
+        finally
+        {
+            try
+            {
+                if (_viewportRegistered)
+                {
+                    _viewportRegistered = false;
+                    await SelectInterop.UnregisterSelectViewport(_viewportElement);
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (_pointerTrackerRegistered)
+                    {
+                        _pointerTrackerRegistered = false;
+                        await SelectInterop.UnregisterSelectContentPointerTracker(_contentElement);
+                    }
+                }
+                finally
+                {
+                    try
+                    {
+                        if (_keyboardRegistered)
+                        {
+                            _keyboardRegistered = false;
+                            await SelectInterop.UnregisterSelectContentKeyboard(_contentElement);
+                        }
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            if (_windowDismissRegistered)
+                            {
+                                _windowDismissRegistered = false;
+                                await SelectInterop.UnregisterSelectWindowDismiss(_contentElement);
+                            }
+                        }
+                        finally
+                        {
+                            try
+                            {
+                                if (_hideOthersRegistered)
+                                {
+                                    _hideOthersRegistered = false;
+                                    await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
+                                }
+                            }
+                            finally
+                            {
+                                _dotNetReference?.Dispose();
+                                _dotNetReference = null;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     internal async Task RegisterViewport(ElementReference element)
     {
+        if (_disposed.Read())
+            return;
+
         _viewportElement = element;
         _hasViewportElement = true;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await SelectInterop.RegisterSelectViewport(_viewportElement, _viewportContentElement, _wrapperElement, _dotNetReference);
+        ElementReference registeredElement = _viewportElement;
+        await SelectInterop.RegisterSelectViewport(registeredElement, _viewportContentElement, _wrapperElement, _dotNetReference);
+        if (_disposed.Read())
+        {
+            await SelectInterop.UnregisterSelectViewport(registeredElement);
+            return;
+        }
+
         _viewportRegistered = true;
 
         await CompleteOpenLayoutPass();
@@ -336,7 +401,7 @@ else
 
     internal void QueueOpenLayoutPass()
     {
-        if (!UseItemAlignedPosition || Select?.CurrentOpen != true || _openLayoutPassQueued)
+        if (_disposed.Read() || !UseItemAlignedPosition || Select?.CurrentOpen != true || _openLayoutPassQueued)
             return;
 
         _openLayoutPassQueued = true;
@@ -354,6 +419,9 @@ else
 
     internal Task StartAutoScroll(bool upward)
     {
+        if (_disposed.Read())
+            return Task.CompletedTask;
+
         StopAutoScroll();
         _autoScrollCts = new CancellationTokenSource();
         return RunAutoScroll(upward, _autoScrollCts.Token);
@@ -379,6 +447,9 @@ else
     [JSInvokable]
     public Task HandleViewportMetricsChanged(double scrollTop, double scrollHeight, double viewportHeight)
     {
+        if (_disposed.Read())
+            return Task.CompletedTask;
+
         bool couldScrollUp = CanScrollUp;
         bool couldScrollDown = CanScrollDown;
 
@@ -439,6 +510,9 @@ else
 
     private Task HandleContentElementCaptured(ElementReference element)
     {
+        if (_disposed.Read())
+            return Task.CompletedTask;
+
         _contentElement = element;
         _hasContentElement = true;
         return HandleContentElementCapturedInternal();
@@ -552,6 +626,9 @@ else
 
     private async Task UpdateItemAlignedPosition(bool force = false)
     {
+        if (_disposed.Read())
+            return;
+
         if (Select is null || !UseItemAlignedPosition || !_hasContentElement || !_hasViewportElement || !Select.HasTrigger || !Select.HasValueNode)
             return;
 
@@ -570,8 +647,15 @@ else
         }
         else
         {
-            await SelectInterop.RegisterSelectItemAlignedPosition(_wrapperElement, _contentElement, _viewportElement, Select.TriggerElement, Select.ValueNodeElement,
+            ElementReference registeredWrapper = _wrapperElement;
+            await SelectInterop.RegisterSelectItemAlignedPosition(registeredWrapper, _contentElement, _viewportElement, Select.TriggerElement, Select.ValueNodeElement,
                 selectedItem.ItemElement, selectedItem.ItemTextElement, Select.ResolvedDirection);
+            if (_disposed.Read())
+            {
+                await SelectInterop.UnregisterSelectItemAlignedPosition(registeredWrapper);
+                return;
+            }
+
             _itemAlignedRegistered = true;
 
             if (OnPlaced.HasDelegate)
@@ -606,40 +690,80 @@ else
 
     private async Task EnsurePointerTracker()
     {
+        if (_disposed.Read())
+            return;
+
         if (Select is null || !_hasContentElement || _pointerTrackerRegistered || !Select.HasTriggerPointerDownPosition)
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await SelectInterop.RegisterSelectContentPointerTracker(_contentElement, _dotNetReference, Select.TriggerPointerDownX, Select.TriggerPointerDownY);
+        ElementReference registeredElement = _contentElement;
+        await SelectInterop.RegisterSelectContentPointerTracker(registeredElement, _dotNetReference, Select.TriggerPointerDownX, Select.TriggerPointerDownY);
+        if (_disposed.Read())
+        {
+            await SelectInterop.UnregisterSelectContentPointerTracker(registeredElement);
+            return;
+        }
+
         _pointerTrackerRegistered = true;
     }
 
     private async Task EnsureKeyboard()
     {
+        if (_disposed.Read())
+            return;
+
         if (!_hasContentElement || _keyboardRegistered)
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await SelectInterop.RegisterSelectContentKeyboard(_contentElement, _dotNetReference);
+        ElementReference registeredElement = _contentElement;
+        await SelectInterop.RegisterSelectContentKeyboard(registeredElement, _dotNetReference);
+        if (_disposed.Read())
+        {
+            await SelectInterop.UnregisterSelectContentKeyboard(registeredElement);
+            return;
+        }
+
         _keyboardRegistered = true;
     }
 
     private async Task EnsureWindowDismiss()
     {
+        if (_disposed.Read())
+            return;
+
         if (!_hasContentElement || _windowDismissRegistered)
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await SelectInterop.RegisterSelectWindowDismiss(_contentElement, _dotNetReference);
+        ElementReference registeredElement = _contentElement;
+        await SelectInterop.RegisterSelectWindowDismiss(registeredElement, _dotNetReference);
+        if (_disposed.Read())
+        {
+            await SelectInterop.UnregisterSelectWindowDismiss(registeredElement);
+            return;
+        }
+
         _windowDismissRegistered = true;
     }
 
     private async Task EnsureHideOthers()
     {
+        if (_disposed.Read())
+            return;
+
         if (!_hasContentElement || _hideOthersRegistered)
             return;
 
-        await PresenceOverlayInterop.RegisterHideOthers(_contentElement);
+        ElementReference registeredElement = _contentElement;
+        await PresenceOverlayInterop.RegisterHideOthers(registeredElement);
+        if (_disposed.Read())
+        {
+            await PresenceOverlayInterop.UnregisterHideOthers(registeredElement);
+            return;
+        }
+
         _hideOthersRegistered = true;
     }
 
@@ -652,6 +776,9 @@ else
 
     private async Task CompleteOpenLayoutPass()
     {
+        if (_disposed.Read())
+            return;
+
         if (Select?.CurrentOpen != true)
             return;
 
@@ -671,6 +798,9 @@ else
 
     private async Task ApplyOpenAutoFocus()
     {
+        if (_disposed.Read())
+            return;
+
         if (_didFocusOpenItem || !_hasContentElement || Select is null)
             return;
 

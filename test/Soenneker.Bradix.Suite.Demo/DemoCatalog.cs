@@ -103,15 +103,23 @@ public static class DemoCatalog
     public static DemoPageLink? Previous(string? route)
     {
         string normalized = NormalizeRoute(route);
-        int index = AllPages.ToList().FindIndex(page => string.Equals(page.Route, normalized, StringComparison.OrdinalIgnoreCase));
+        int index = FindIndex(normalized);
         return index > 0 ? AllPages[index - 1] : null;
     }
 
     public static DemoPageLink? Next(string? route)
     {
         string normalized = NormalizeRoute(route);
-        int index = AllPages.ToList().FindIndex(page => string.Equals(page.Route, normalized, StringComparison.OrdinalIgnoreCase));
+        int index = FindIndex(normalized);
         return index >= 1 && index < AllPages.Count - 1 ? AllPages[index + 1] : null;
+    }
+
+    private static int FindIndex(string route)
+    {
+        for (var i = 0; i < AllPages.Count; i++)
+            if (string.Equals(AllPages[i].Route, route, StringComparison.OrdinalIgnoreCase))
+                return i;
+        return -1;
     }
 
     public static IReadOnlyList<DemoPageGroup> Filtered(string? query)
@@ -143,7 +151,8 @@ public static class DemoCatalog
         if (string.IsNullOrWhiteSpace(route))
             return "/";
 
-        string normalized = route.Split('?', '#')[0];
+        int suffix = route.AsSpan().IndexOfAny('?', '#');
+        string normalized = suffix < 0 ? route : route[..suffix];
 
         if (!normalized.StartsWith("/", StringComparison.Ordinal))
             normalized = "/" + normalized;

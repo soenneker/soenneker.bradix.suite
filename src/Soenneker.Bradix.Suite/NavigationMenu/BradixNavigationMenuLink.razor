@@ -82,6 +82,11 @@
         try
         {
             await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element);
+            if (_disposed.Read())
+            {
+                await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
+                return;
+            }
             _registered = true;
             _rovingFocusBridgeReady = true;
         }
@@ -95,6 +100,16 @@
         if (!_disposed.TrySetTrue())
             return;
 
+        if (_rootRegistration is not null)
+            NavigationMenu?.UnregisterTrigger(_rootRegistration);
+
+        if (_focusGroupRegistered &&
+            NavigationMenu is not null &&
+            !string.IsNullOrWhiteSpace(FocusGroupId))
+        {
+            NavigationMenu.UnregisterFocusGroupItem(FocusGroupId, this);
+        }
+
         if (_registered)
         {
             try
@@ -106,15 +121,6 @@
             }
         }
 
-        if (_rootRegistration is not null)
-            NavigationMenu?.UnregisterTrigger(_rootRegistration);
-
-        if (_focusGroupRegistered &&
-            NavigationMenu is not null &&
-            !string.IsNullOrWhiteSpace(FocusGroupId))
-        {
-            NavigationMenu.UnregisterFocusGroupItem(FocusGroupId, this);
-        }
     }
 
     private async Task HandleClick(MouseEventArgs args)

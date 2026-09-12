@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -23,9 +24,12 @@
     private CancellationTokenSource? _hoverHideTokenSource;
     private CancellationTokenSource? _scrollEndXTokenSource;
     private CancellationTokenSource? _scrollEndYTokenSource;
+    private long _scrollEndXDeadline;
+    private long _scrollEndYDeadline;
     private CancellationTokenSource? _hideXTokenSource;
     private CancellationTokenSource? _hideYTokenSource;
     private bool _registered;
+    private ValueAtomicBool _disposed;
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -80,31 +84,41 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (_disposed.Read() || !firstRender)
             return;
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await ScrollAreaInterop.RegisterScrollAreaRoot(_element, _dotNetReference);
+        if (_disposed.Read())
+        {
+            await ScrollAreaInterop.UnregisterScrollAreaRoot(_element);
+            return;
+        }
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
-        _hoverHideTokenSource?.Cancel();
-        _scrollEndXTokenSource?.Cancel();
-        _scrollEndYTokenSource?.Cancel();
-        _hideXTokenSource?.Cancel();
-        _hideYTokenSource?.Cancel();
-        _hoverHideTokenSource?.Dispose();
-        _scrollEndXTokenSource?.Dispose();
-        _scrollEndYTokenSource?.Dispose();
-        _hideXTokenSource?.Dispose();
-        _hideYTokenSource?.Dispose();
-
-        if (_registered)
-            await ScrollAreaInterop.UnregisterScrollAreaRoot(_element);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue())
+            return;
+        CancelToken(ref _hoverHideTokenSource);
+        CancelToken(ref _scrollEndXTokenSource);
+        CancelToken(ref _scrollEndYTokenSource);
+        CancelToken(ref _hideXTokenSource);
+        CancelToken(ref _hideYTokenSource);
+        try
+        {
+            if (_registered)
+            {
+                _registered = false;
+                await ScrollAreaInterop.UnregisterScrollAreaRoot(_element);
+            }
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     internal void RegisterViewport(ElementReference viewport, ElementReference content)
@@ -241,6 +255,8 @@
     [JSInvokable]
     public Task HandleHoverChanged(bool hovering)
     {
+        if (_disposed.Read())
+            return Task.CompletedTask;
         if (hovering)
         {
             _hoverHideTokenSource?.Cancel();
@@ -266,6 +282,8 @@
     [JSInvokable]
     public Task HandleViewportMetricsChanged(double scrollLeft, double scrollTop, double scrollWidth, double scrollHeight, double viewportWidth, double viewportHeight)
     {
+        if (_disposed.Read())
+            return Task.CompletedTask;
         bool xChanged = !AreClose(ScrollLeft, scrollLeft);
         bool yChanged = !AreClose(ScrollTop, scrollTop);
         bool widthChanged = !AreClose(ContentWidth, scrollWidth);
@@ -297,6 +315,8 @@
 
     public Task HandleScrollbarPointerChanged(string orientation, bool entering)
     {
+        if (_disposed.Read())
+            return Task.CompletedTask;
         bool horizontal = orientation == "horizontal";
 
         if (horizontal)
@@ -334,6 +354,8 @@
     [JSInvokable]
     public Task HandleScrollbarMetricsChanged(string orientation, double clientWidth, double clientHeight, double paddingStart, double paddingEnd)
     {
+        if (_disposed.Read())
+            return Task.CompletedTask;
         if (orientation == "horizontal")
         {
             if (AreClose(HorizontalScrollbarWidth, clientWidth) &&
@@ -443,21 +465,44 @@
         {
             CancelToken(ref _hideXTokenSource);
             IsScrollingX = true;
-            _ = CompleteScroll(true, ReplaceHideToken(ref _scrollEndXTokenSource).Token);
+            _scrollEndXDeadline = Environment.TickCount64 + ScrollEndDebounceMs;
+            if (_scrollEndXTokenSource is null)
+            {
+                _scrollEndXTokenSource = new CancellationTokenSource();
+                _ = CompleteScroll(true, _scrollEndXTokenSource);
+            }
         }
         else
         {
             CancelToken(ref _hideYTokenSource);
             IsScrollingY = true;
-            _ = CompleteScroll(false, ReplaceHideToken(ref _scrollEndYTokenSource).Token);
+            _scrollEndYDeadline = Environment.TickCount64 + ScrollEndDebounceMs;
+            if (_scrollEndYTokenSource is null)
+            {
+                _scrollEndYTokenSource = new CancellationTokenSource();
+                _ = CompleteScroll(false, _scrollEndYTokenSource);
+            }
         }
     }
 
-    private async Task CompleteScroll(bool horizontal, CancellationToken cancellationToken)
+    private async Task CompleteScroll(bool horizontal, CancellationTokenSource source)
     {
+        CancellationToken cancellationToken = source.Token;
         try
         {
-            await Task.Delay(ScrollEndDebounceMs, cancellationToken);
+            // Extend the current debounce instead of allocating/cancelling a delay and
+            // throwing TaskCanceledException on every scroll frame.
+            while (true)
+            {
+                long deadline = horizontal ? _scrollEndXDeadline : _scrollEndYDeadline;
+                long remaining = deadline - Environment.TickCount64;
+                if (remaining <= 0)
+                    break;
+
+                await Task.Delay((int)remaining, cancellationToken);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (horizontal)
             {
@@ -474,8 +519,16 @@
                 _ = HideAfterDelay(false, ReplaceHideToken(ref _hideYTokenSource).Token);
             }
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+        }
+        finally
+        {
+            if (horizontal)
+                _scrollEndXTokenSource = null;
+            else
+                _scrollEndYTokenSource = null;
+            source.Dispose();
         }
     }
 

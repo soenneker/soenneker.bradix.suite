@@ -156,9 +156,7 @@
         if (args.Key == "Enter")
             return;
 
-        List<BradixRadioGroupItem> focusableItems = GetFocusableItems();
-
-        int currentIndex = focusableItems.IndexOf(item);
+        int focusableCount = CountFocusableItems(item, out int currentIndex);
 
         if (currentIndex < 0)
             return;
@@ -168,14 +166,14 @@
                 Orientation?.Value,
                 ResolvedDirection,
                 currentIndex,
-                focusableItems.Count,
+                focusableCount,
                 Loop,
                 out int targetIndex))
         {
             return;
         }
 
-        BradixRadioGroupItem target = focusableItems[targetIndex];
+        BradixRadioGroupItem target = GetFocusableItemAt(targetIndex)!;
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -183,38 +181,48 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<BradixRadioGroupItem> focusableItems = GetFocusableItems();
-
-        if (focusableItems.Count == 0)
-        {
-            CurrentTabStopId = null;
-            return;
-        }
-
-        BradixRadioGroupItem? checkedItem = FindCheckedItem(focusableItems);
-        if (checkedItem is not null)
-        {
-            CurrentTabStopId = checkedItem.TabStopId;
-            return;
-        }
-
-        if (CurrentTabStopId is not null && ContainsTabStopId(focusableItems, CurrentTabStopId))
-            return;
-
-        CurrentTabStopId = focusableItems[0].TabStopId;
-    }
-
-    private List<BradixRadioGroupItem> GetFocusableItems()
-    {
-        List<BradixRadioGroupItem> focusableItems = [];
-
+        BradixRadioGroupItem? first = null;
+        bool hasCurrent = false;
         foreach (BradixRadioGroupItem item in _items)
         {
-            if (!item.IsDisabled)
-                focusableItems.Add(item);
+            if (item.IsDisabled)
+                continue;
+            first ??= item;
+            if (item.IsChecked)
+            {
+                CurrentTabStopId = item.TabStopId;
+                return;
+            }
+            hasCurrent |= CurrentTabStopId is not null && string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal);
         }
+        if (!hasCurrent)
+            CurrentTabStopId = first?.TabStopId;
+    }
 
-        return focusableItems;
+    private int CountFocusableItems(BradixRadioGroupItem current, out int currentIndex)
+    {
+        currentIndex = -1;
+        int count = 0;
+        foreach (BradixRadioGroupItem item in _items)
+        {
+            if (item.IsDisabled)
+                continue;
+            if (ReferenceEquals(item, current))
+                currentIndex = count;
+            count++;
+        }
+        return count;
+    }
+
+    private BradixRadioGroupItem? GetFocusableItemAt(int targetIndex)
+    {
+        int index = 0;
+        foreach (BradixRadioGroupItem item in _items)
+        {
+            if (!item.IsDisabled && index++ == targetIndex)
+                return item;
+        }
+        return null;
     }
 
     private static BradixRadioGroupItem? FindCheckedItem(IEnumerable<BradixRadioGroupItem> items)

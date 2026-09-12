@@ -180,7 +180,15 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     /// <returns>true if an entry was removed; otherwise, false.</returns>
     public bool DeleteAt(int index)
     {
-        return TryGetKeyAt(index, out TKey key) && Delete(key);
+        int safeIndex = NormalizeLookupIndex(index, _keys.Count);
+        if (safeIndex < 0)
+            return false;
+
+        if (!_map.Remove(_keys[safeIndex]))
+            return false;
+
+        _keys.RemoveAt(safeIndex);
+        return true;
     }
 
     /// <summary>

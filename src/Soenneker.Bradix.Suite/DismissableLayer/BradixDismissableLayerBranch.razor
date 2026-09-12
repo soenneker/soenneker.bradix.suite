@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -13,6 +14,7 @@
 @code {
     private ElementReference _element;
     private bool _registered;
+    private ValueAtomicBool _disposed;
 
     private Dictionary<string, object> BranchAttributes => BuildAttributes(
         ("data-bradix-dismissable-layer-branch", string.Empty),
@@ -20,16 +22,26 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (!firstRender || _disposed.Read())
             return;
 
         await DismissableLayerInterop.RegisterDismissableLayerBranch(_element);
+        if (_disposed.Read())
+        {
+            await DismissableLayerInterop.UnregisterDismissableLayerBranch(_element);
+            return;
+        }
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return;
         if (_registered)
+        {
+            _registered = false;
             await DismissableLayerInterop.UnregisterDismissableLayerBranch(_element);
+        }
     }
 }

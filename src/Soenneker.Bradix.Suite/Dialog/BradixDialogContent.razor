@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -26,6 +27,8 @@
     private bool _hasInteractedOutside;
     private bool _hasPointerDownOutside;
     private bool _hideOthersRegistered;
+    private ValueAtomicBool _disposed;
+    private RenderFragment? _contentTree;
     private ElementReference _contentElement;
 
     [CascadingParameter]
@@ -135,20 +138,29 @@
     }
     public async ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return;
         if (_hideOthersRegistered)
         {
-            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
             _hideOthersRegistered = false;
+            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
         }
     }
 
     private async Task HandleElementReferenceCaptured(ElementReference element)
     {
+        if (_disposed.Read())
+            return;
         _contentElement = element;
 
         if (Dialog?.Modal == true && !_hideOthersRegistered)
         {
             await PresenceOverlayInterop.RegisterHideOthers(_contentElement);
+            if (_disposed.Read())
+            {
+                await PresenceOverlayInterop.UnregisterHideOthers(element);
+                return;
+            }
             _hideOthersRegistered = true;
         }
 
@@ -290,7 +302,7 @@ ResetState:
         await InvokeAsync(StateHasChanged);
     }
 
-    private RenderFragment RenderContentTree() => @<BradixFocusGuards>
+    private RenderFragment RenderContentTree() => _contentTree ??= @<BradixFocusGuards>
         <BradixFocusScope Loop
                           Trapped="ShouldTrapFocus"
                           PreventMountAutoFocus="PreventMountAutoFocus"

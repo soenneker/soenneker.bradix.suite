@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -31,6 +32,7 @@
     private ElementReference _exitProxyElement;
     private bool _contentCaptured;
     private bool _focusBridgeRegistered;
+    private ValueAtomicBool _disposed;
 
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
@@ -85,6 +87,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
         if (!_contentCaptured)
         {
             NavigationMenu?.RegisterContent(Registration.Value, _contentElement);
@@ -94,6 +98,8 @@
         if (OnContentElementCaptured.HasDelegate)
             await OnContentElementCaptured.InvokeAsync(_contentElement);
 
+        if (_disposed.Read())
+            return;
         if (NavigationMenu is not null &&
             NavigationMenu.TryGetFocusProxy(Registration.Value, out ElementReference startProxy) &&
             NavigationMenu.TryGetTrigger(Registration.Value, out IBradixNavigationMenuRegisteredTrigger trigger))
@@ -105,6 +111,11 @@
             else
             {
                 await NavigationMenuInterop.RegisterNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
+                if (_disposed.Read())
+                {
+                    await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
+                    return;
+                }
                 _focusBridgeRegistered = true;
             }
         }
@@ -112,10 +123,14 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_focusBridgeRegistered)
-            await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
-
+        if (!_disposed.TrySetTrue())
+            return;
         NavigationMenu?.UnregisterContent(Registration.Value);
+        if (_focusBridgeRegistered)
+        {
+            _focusBridgeRegistered = false;
+            await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
+        }
     }
 
     private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs _)

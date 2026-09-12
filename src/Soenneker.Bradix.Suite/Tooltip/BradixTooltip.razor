@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Threading
@@ -15,6 +16,7 @@
 </BradixPopper>
 
 @code {
+    private ValueAtomicBool _disposed;
     private bool _initialized;
     private bool _uncontrolledOpen;
     private bool _openedWithDelay;
@@ -87,6 +89,8 @@
 
     public ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return ValueTask.CompletedTask;
         CancelOpenDelay();
         return ValueTask.CompletedTask;
     }
@@ -150,6 +154,9 @@
 
     private void StartOpenDelay()
     {
+        if (_disposed.Read())
+            return;
+
         CancelOpenDelay();
         _openDelayTokenSource = new CancellationTokenSource();
         _ = OpenAfterDelay(_openDelayTokenSource.Token);
@@ -175,7 +182,7 @@
 
     private async Task SetOpen(bool open, bool delayed, bool notifyProvider)
     {
-        if (CurrentOpen == open)
+        if (_disposed.Read() || CurrentOpen == open)
         {
             if (open)
                 _openedWithDelay = delayed;
@@ -185,6 +192,9 @@
 
         if (open && notifyProvider && Provider is not null)
             await Provider.NotifyOpen(this);
+
+        if (_disposed.Read())
+            return;
 
         if (Open is null)
             _uncontrolledOpen = open;

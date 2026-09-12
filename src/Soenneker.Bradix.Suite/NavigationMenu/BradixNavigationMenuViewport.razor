@@ -137,6 +137,11 @@
             else
             {
                 await NavigationMenuInterop.RegisterNavigationMenuViewport(_viewportElement, content, _dotNetReference);
+                if (_disposed.Read())
+                {
+                    await NavigationMenuInterop.UnregisterNavigationMenuViewport(_viewportElement);
+                    return;
+                }
                 _observedContentValue = contentValue;
             }
         }
@@ -150,22 +155,24 @@
         if (!_disposed.TrySetTrue())
             return;
 
-        if (!string.IsNullOrWhiteSpace(_observedContentValue))
-        {
-            try
-            {
-                await NavigationMenuInterop.UnregisterNavigationMenuViewport(_viewportElement);
-            }
-            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
-            {
-            }
-        }
-
-        _dotNetReference?.Dispose();
-        _dotNetReference = null;
-
         if (_viewportRegisteredWithRoot)
+        {
+            _viewportRegisteredWithRoot = false;
             NavigationMenu?.UnregisterViewport(ResolvedViewportId);
+        }
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(_observedContentValue))
+                await NavigationMenuInterop.UnregisterNavigationMenuViewport(_viewportElement);
+        }
+        catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+        {
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     [JSInvokable]

@@ -29,6 +29,47 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Replacing_a_character_preserves_the_remaining_code()
+    {
+        var cut = RenderOtpField();
+        var first = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
+        await cut.InvokeAsync(() => first.Instance.HandlePaste("1234"));
+        await cut.Find("input[data-index='1']").InputAsync("9");
+        await Assert.That(cut.Find("input[type='hidden']").GetAttribute("value")).IsEqualTo("1934");
+    }
+
+    [Test]
+    public async Task Refresh_tracks_inputs_added_and_removed_after_initial_interaction()
+    {
+        int count = 2;
+        RenderFragment inputs = builder =>
+        {
+            for (var i = 0; i < count; i++)
+            {
+                builder.OpenComponent<BradixOneTimePasswordFieldInput>(0);
+                builder.SetKey(i);
+                builder.AddAttribute(1, nameof(BradixOneTimePasswordFieldInput.Index), i);
+                builder.CloseComponent();
+            }
+        };
+        var cut = Render<BradixOneTimePasswordField>(parameters => parameters.AddChildContent(inputs));
+        await cut.Find("input[data-index='0']").InputAsync("1");
+
+        count = 4;
+        cut.Render(parameters => parameters.AddChildContent(inputs));
+        var first = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
+        await cut.InvokeAsync(() => first.Instance.HandlePaste("9876"));
+        await Assert.That(cut.Find("input[data-index='3']").GetAttribute("value")).IsEqualTo("6");
+
+        count = 2;
+        cut.Render(parameters => parameters.AddChildContent(inputs));
+        await cut.Find("input[data-index='1']").InputAsync("2");
+        await Assert.That(cut.FindAll("input[data-index]").Count).IsEqualTo(2);
+        await Assert.That(cut.Find("input[data-index='0']").GetAttribute("value")).IsEqualTo("9");
+        await Assert.That(cut.Find("input[data-index='1']").GetAttribute("value")).IsEqualTo("2");
+    }
+
+    [Test]
     public async Task Sequential_input_updates_hidden_value()
     {
         IRenderedComponent<ContainerFragment> cut = RenderOtpField();

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -20,7 +20,10 @@ internal static class BradixSliderMath
             normalized.Sort();
         }
 
-        return normalized.Count == 0 ? [min] : normalized;
+        if (normalized.Count == 0)
+            normalized.Add(min);
+
+        return normalized;
     }
 
     public static double Clamp(double value, double min, double max)

@@ -11,9 +11,11 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixAccordionRenderTests : BunitContext
 {
+    private readonly BunitJSModuleInterop _module;
+
     public BradixAccordionRenderTests()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        BunitJSModuleInterop module = _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("observeCollapsibleContent", _ => true).SetVoidResult();
         module.SetupVoid("unobserveCollapsibleContent", _ => true).SetVoidResult();
         module.SetupVoid("registerPresence", _ => true).SetVoidResult();
@@ -129,9 +131,50 @@ public sealed class BradixAccordionRenderTests : BunitContext
         await Assert.That(style).DoesNotContain("0px --radix-accordion-content-height");
     }
 
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
+    public async Task Trigger_async_cleanup_runs_once_even_after_sync_disposal(bool disposeSynchronouslyFirst)
+    {
+        var cut = Render(CreateSingleAccordion());
+        var trigger = cut.FindComponent<BradixAccordionTrigger>();
+        await trigger.InvokeAsync(async () =>
+        {
+            if (disposeSynchronouslyFirst)
+                trigger.Instance.Dispose();
+            await trigger.Instance.DisposeAsync();
+            await trigger.Instance.DisposeAsync();
+        });
+        await Assert.That(_module.Invocations["unregisterRovingFocusNavigationKeys"].Count).IsEqualTo(1);
+    }
+
     private static RenderFragment CreateSingleAccordion()
     {
         return CreateAccordion(SelectionMode.Single, collapsible: false);
+    }
+
+    [Test]
+    public async Task Keyboard_navigation_drops_removed_triggers()
+    {
+        var focus = JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true);
+        focus.SetVoidResult();
+        bool showFirst = true;
+        RenderFragment content = builder =>
+        {
+            if (showFirst)
+                RenderItem(builder, 0, "one", "One");
+            RenderItem(builder, 10, "two", "Two");
+        };
+        var cut = Render<BradixAccordion>(p => p.Add(c => c.ChildContent, content));
+        await cut.FindAll("button")[1].KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Home" });
+        var removedElement = (ElementReference)focus.Invocations["Blazor._internal.domWrapper.focus"][0].Arguments[0]!;
+        showFirst = false;
+        cut.Render();
+        await cut.Find("button").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Home" });
+        var remainingElement = (ElementReference)focus.Invocations["Blazor._internal.domWrapper.focus"][1].Arguments[0]!;
+        await Assert.That(remainingElement.Id).IsNotEqualTo(removedElement.Id);
+        await cut.Find("button").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowDown" });
+        await Assert.That(((ElementReference)focus.Invocations["Blazor._internal.domWrapper.focus"][2].Arguments[0]!).Id).IsEqualTo(remainingElement.Id);
     }
 
     private static RenderFragment CreateMultipleAccordion()

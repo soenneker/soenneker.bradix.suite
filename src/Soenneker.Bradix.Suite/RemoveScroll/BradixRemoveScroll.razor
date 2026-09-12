@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 @using Soenneker.Blazor.Utils.Ids
 
@@ -9,7 +10,7 @@
 @ChildContent
 @code {
     private readonly string _registrationId = BlazorIdGenerator.New("bradix-remove-scroll");
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
     private bool _registered;
 
     [Parameter]
@@ -23,13 +24,14 @@
         await PresenceOverlayInterop.RegisterRemoveScroll(_registrationId, AllowPinchZoom);
         _registered = true;
 
-        if (_disposed)
+        if (_disposed.Read())
             await Unregister();
     }
 
     public async ValueTask DisposeAsync()
     {
-        _disposed = true;
+        if (!_disposed.TrySetTrue())
+            return;
         await Unregister();
     }
 

@@ -109,17 +109,36 @@
         CancelOpenPointerMove();
         ClearPointerGraceState();
 
-        if (_initializationTask is not null)
-            await _initializationTask;
-
         if (_registered)
+        {
+            _registered = false;
             ParentMenu.UnregisterItem(this);
-
-        if (_delegatedInteractionRegistered)
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
-
-        await MenuInterop.CancelMenuSubmenuPointerGrace(_element);
-        _dotNetReference?.Dispose();
+        }
+        try
+        {
+            if (_initializationTask is not null)
+                await _initializationTask;
+        }
+        finally
+        {
+            try
+            {
+                if (_delegatedInteractionRegistered)
+                    await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
+            }
+            finally
+            {
+                try
+                {
+                    await MenuInterop.CancelMenuSubmenuPointerGrace(_element);
+                }
+                finally
+                {
+                    _dotNetReference?.Dispose();
+                    _dotNetReference = null;
+                }
+            }
+        }
     }
 
     private async Task InitializeTriggerInterop()
@@ -238,9 +257,8 @@
         await CancelPointerGrace();
         await ParentContent.HandlePointerMove(this, args.PointerType);
 
-        if (!SubMenu.CurrentOpen)
+        if (!SubMenu.CurrentOpen && _openPointerMoveCts is null)
         {
-            CancelOpenPointerMove();
             _openPointerMoveCts = new CancellationTokenSource();
             _ = OpenFromPointerMove(_openPointerMoveCts.Token);
         }

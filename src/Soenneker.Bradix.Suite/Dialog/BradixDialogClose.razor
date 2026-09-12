@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -36,6 +37,7 @@ else
     private BradixDialogCloseContext? _closeContext;
     private ElementReference _button;
     private bool _delegatedInteractionReady;
+    private ValueAtomicBool _disposed;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -115,11 +117,14 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (AsChild || !firstRender)
+        if (_disposed.Read() || AsChild || !firstRender)
             return;
 
         if (OnElementReferenceCaptured.HasDelegate)
             await OnElementReferenceCaptured.InvokeAsync(_button);
+
+        if (_disposed.Read())
+            return;
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
@@ -132,6 +137,8 @@ else
                 stopPropagation = true
             }
         });
+        if (_disposed.Read())
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
     }
 
     private async Task HandleClick()
@@ -160,11 +167,18 @@ else
 
     public async ValueTask DisposeAsync()
     {
-        if (AsChild)
+        if (!_disposed.TrySetTrue())
             return;
-
-        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
-        _dotNetReference?.Dispose();
+        try
+        {
+            if (_dotNetReference is not null)
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     [JSInvokable]

@@ -77,6 +77,11 @@
             try
             {
                 await DismissableLayerInterop.RegisterDismissableLayer(_element, _dotNetReference, DisableOutsidePointerEvents);
+                if (_disposed.Read())
+                {
+                    await DismissableLayerInterop.UnregisterDismissableLayer(_element);
+                    return;
+                }
                 _registered = true;
                 _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
                 await InvokeAsync(StateHasChanged);
@@ -112,19 +117,22 @@
         if (!_disposed.TrySetTrue())
             return;
 
-        if (_registered)
+        try
         {
-            try
+            if (_registered)
             {
+                _registered = false;
                 await DismissableLayerInterop.UnregisterDismissableLayer(_element);
             }
-            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
-            {
-            }
         }
-
-        _dotNetReference?.Dispose();
-        _dotNetReference = null;
+        catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+        {
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     [JSInvokable]

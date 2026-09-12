@@ -24,7 +24,10 @@ export function registerHoverCardSelectionContainment(content, dotNetRef) {
   const previousUserSelect = content.style.userSelect;
   const previousWebkitUserSelect = content.style.webkitUserSelect;
   let originalBodyUserSelect = "";
+  let originalBodyWebkitUserSelect = "";
   let active = false;
+  let disposed = false;
+  let releaseTimer = 0;
 
   const restoreSelection = () => {
     if (!active) {
@@ -32,10 +35,19 @@ export function registerHoverCardSelectionContainment(content, dotNetRef) {
     }
 
     active = false;
+    document.removeEventListener("pointerup", handlePointerUp);
+    document.removeEventListener("pointercancel", handlePointerUp);
     content.style.userSelect = previousUserSelect;
     content.style.webkitUserSelect = previousWebkitUserSelect;
     document.body.style.userSelect = originalBodyUserSelect;
-    document.body.style.webkitUserSelect = originalBodyUserSelect;
+    document.body.style.webkitUserSelect = originalBodyWebkitUserSelect;
+  };
+
+  const notifyReleased = () => {
+    releaseTimer = 0;
+    if (disposed || active) return;
+    const hasSelection = (document.getSelection()?.toString() || "") !== "";
+    dotNetRef.invokeMethodAsync("HandleDocumentPointerUp", hasSelection).catch(console.error);
   };
 
   const handlePointerUp = () => {
@@ -45,28 +57,33 @@ export function registerHoverCardSelectionContainment(content, dotNetRef) {
 
     restoreSelection();
 
-    setTimeout(() => {
-      const hasSelection = (document.getSelection()?.toString() || "") !== "";
-      dotNetRef.invokeMethodAsync("HandleDocumentPointerUp", hasSelection);
-    });
+    releaseTimer = setTimeout(notifyReleased);
   };
 
-  document.addEventListener("pointerup", handlePointerUp);
   hoverCardSelectionHandlers.set(content, {
-    handlePointerUp,
     begin() {
-      if (active) {
+      if (active || disposed) {
         return;
       }
 
-      originalBodyUserSelect = document.body.style.userSelect || document.body.style.webkitUserSelect;
+      if (releaseTimer) clearTimeout(releaseTimer);
+      releaseTimer = 0;
+      originalBodyUserSelect = document.body.style.userSelect;
+      originalBodyWebkitUserSelect = document.body.style.webkitUserSelect;
       document.body.style.userSelect = "none";
       document.body.style.webkitUserSelect = "none";
       content.style.userSelect = "text";
       content.style.webkitUserSelect = "text";
       active = true;
+      document.addEventListener("pointerup", handlePointerUp);
+      document.addEventListener("pointercancel", handlePointerUp);
     },
-    restoreSelection
+    dispose() {
+      disposed = true;
+      if (releaseTimer) clearTimeout(releaseTimer);
+      releaseTimer = 0;
+      restoreSelection();
+    }
   });
 }
 
@@ -85,8 +102,7 @@ export function unregisterHoverCardSelectionContainment(content) {
     return;
   }
 
-  document.removeEventListener("pointerup", handlers.handlePointerUp);
-  handlers.restoreSelection();
+  handlers.dispose();
   hoverCardSelectionHandlers.delete(content);
 }
 

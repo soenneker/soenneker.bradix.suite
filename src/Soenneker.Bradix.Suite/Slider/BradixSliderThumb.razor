@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -35,6 +36,7 @@
     private double? _lastSyncedBubbleValue;
     private string? _lastResolvedForm;
     private bool _registered;
+    private ValueAtomicBool _disposed;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -133,6 +135,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
+
         if (firstRender)
         {
             Slider.RegisterThumb(this);
@@ -146,12 +151,21 @@
                     preventDefaultKeys = PreventDefaultKeys
                 }
             });
+            if (_disposed.Read())
+            {
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
+                return;
+            }
+
             _lastRenderedValue = Value;
         }
 
         if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Slider.Form, StringComparison.Ordinal))
         {
             bool isFormControl = await FormInterop.IsFormControl(_element, Slider.Form);
+            if (_disposed.Read())
+                return;
+
             _formControlStateResolved = true;
             _lastResolvedForm = Slider.Form;
 
@@ -187,11 +201,20 @@
 
     public async ValueTask DisposeAsync()
     {
-        await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
-        _dotNetReference?.Dispose();
-
+        if (!_disposed.TrySetTrue())
+            return;
         if (_registered)
             Slider.UnregisterThumb(this);
+
+        try
+        {
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     internal ValueTask Focus() => _element.FocusAsync();

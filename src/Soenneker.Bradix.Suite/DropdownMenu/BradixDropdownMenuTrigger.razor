@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -24,6 +25,7 @@
 
     private ElementReference _button;
     private bool _delegatedInteractionRegistered;
+    private ValueAtomicBool _disposed;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -57,6 +59,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
         if (firstRender)
         {
             Menu?.RegisterTrigger(_button);
@@ -64,6 +68,9 @@
 
             if (OnElementReferenceCaptured.HasDelegate)
                 await OnElementReferenceCaptured.InvokeAsync(_button);
+
+            if (_disposed.Read())
+                return;
 
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
             await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
@@ -74,16 +81,30 @@
                     preventDefaultKeys = PreventDefaultKeys
                 }
             });
-            _delegatedInteractionRegistered = true;
+            if (_disposed.Read())
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
+            else
+                _delegatedInteractionRegistered = true;
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_delegatedInteractionRegistered)
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue())
+            return;
+        try
+        {
+            if (_delegatedInteractionRegistered)
+            {
+                _delegatedInteractionRegistered = false;
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
+            }
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     private async Task HandlePointerDown(PointerEventArgs args)

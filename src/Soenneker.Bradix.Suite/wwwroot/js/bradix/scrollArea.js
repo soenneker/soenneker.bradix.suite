@@ -46,7 +46,8 @@ export function registerScrollAreaViewport(viewport, content, dotNetRef) {
   unregisterScrollAreaViewport(viewport);
 
   const registration = {
-    animationFrameId: 0
+    animationFrameId: 0,
+    metrics: null
   };
 
   const notify = () => {
@@ -55,15 +56,35 @@ export function registerScrollAreaViewport(viewport, content, dotNetRef) {
     }
 
     const contentElement = content || viewport.firstElementChild;
+    const scrollLeft = viewport.scrollLeft;
+    const scrollTop = viewport.scrollTop;
+    const scrollWidth = contentElement ? contentElement.scrollWidth : viewport.scrollWidth;
+    const scrollHeight = contentElement ? contentElement.scrollHeight : viewport.scrollHeight;
+    const width = viewport.offsetWidth;
+    const height = viewport.offsetHeight;
+    const previous = registration.metrics;
+    if (previous && previous.scrollLeft === scrollLeft && previous.scrollTop === scrollTop &&
+        previous.scrollWidth === scrollWidth && previous.scrollHeight === scrollHeight &&
+        previous.width === width && previous.height === height) {
+      return;
+    }
+
+    const metrics = previous || (registration.metrics = {});
+    metrics.scrollLeft = scrollLeft;
+    metrics.scrollTop = scrollTop;
+    metrics.scrollWidth = scrollWidth;
+    metrics.scrollHeight = scrollHeight;
+    metrics.width = width;
+    metrics.height = height;
     invokeDotNetSafe(
       dotNetRef,
       "HandleViewportMetricsChanged",
-      viewport.scrollLeft,
-      viewport.scrollTop,
-      contentElement ? contentElement.scrollWidth : viewport.scrollWidth,
-      contentElement ? contentElement.scrollHeight : viewport.scrollHeight,
-      viewport.offsetWidth,
-      viewport.offsetHeight
+      scrollLeft,
+      scrollTop,
+      scrollWidth,
+      scrollHeight,
+      width,
+      height
     );
   };
 
@@ -126,6 +147,7 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
 
   unregisterScrollAreaScrollbar(scrollbar);
   const thumbElement = thumb instanceof HTMLElement ? thumb : null;
+  const registration = { animationFrameId: 0, metrics: null, pointerup: null };
 
   const getPaddingValue = (style, property) => {
     const raw = style ? style[property] : "0";
@@ -134,6 +156,10 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
   };
 
   const notify = () => {
+    if (scrollAreaScrollbarHandlers.get(scrollbar) !== registration) {
+      return;
+    }
+
     const style = getComputedStyle(scrollbar);
     const paddingStart = orientation === "horizontal"
       ? getPaddingValue(style, "paddingLeft")
@@ -142,15 +168,31 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
       ? getPaddingValue(style, "paddingRight")
       : getPaddingValue(style, "paddingBottom");
 
-    invokeDotNetSafe(
-      dotNetRef,
-      "HandleScrollbarMetricsChanged",
-      orientation,
-      scrollbar.clientWidth,
-      scrollbar.clientHeight,
-      paddingStart,
-      paddingEnd
-    );
+    const width = scrollbar.clientWidth;
+    const height = scrollbar.clientHeight;
+    const previous = registration.metrics;
+    if (previous && previous.width === width && previous.height === height &&
+        previous.paddingStart === paddingStart && previous.paddingEnd === paddingEnd) {
+      return;
+    }
+
+    const metrics = previous || (registration.metrics = {});
+    metrics.width = width;
+    metrics.height = height;
+    metrics.paddingStart = paddingStart;
+    metrics.paddingEnd = paddingEnd;
+    invokeDotNetSafe(dotNetRef, "HandleScrollbarMetricsChanged", orientation, width, height, paddingStart, paddingEnd);
+  };
+
+  const queueNotify = () => {
+    if (registration.animationFrameId) {
+      return;
+    }
+
+    registration.animationFrameId = requestAnimationFrame(() => {
+      registration.animationFrameId = 0;
+      notify();
+    });
   };
 
   const getThumbSize = () => {
@@ -207,6 +249,7 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
       return;
     }
 
+    registration.pointerup?.();
     event.preventDefault();
 
     const targetThumb = thumbElement &&
@@ -266,6 +309,7 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     const pointerup = () => {
       document.removeEventListener("pointermove", pointermove);
       document.removeEventListener("pointerup", pointerup);
+      document.removeEventListener("pointercancel", pointerup);
       document.body.style.webkitUserSelect = previousBodyWebkitUserSelect;
       viewport.style.scrollBehavior = previousViewportScrollBehavior;
 
@@ -281,10 +325,13 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
       }
 
       activePointerId = null;
+      registration.pointermove = null;
+      registration.pointerup = null;
     };
 
     document.addEventListener("pointermove", pointermove);
     document.addEventListener("pointerup", pointerup);
+    document.addEventListener("pointercancel", pointerup);
 
     const handlers = scrollAreaScrollbarHandlers.get(scrollbar);
     if (handlers) {
@@ -326,18 +373,17 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     }
   };
 
-  const resizeObserver = new ResizeObserver(() => {
-    requestAnimationFrame(notify);
-  });
+  const resizeObserver = new ResizeObserver(queueNotify);
   resizeObserver.observe(scrollbar);
   if (thumbElement) {
     resizeObserver.observe(thumbElement);
   }
 
-  requestAnimationFrame(notify);
   scrollbar.addEventListener("pointerdown", pointerdown);
-  document.addEventListener("wheel", wheel, { passive: false });
-  scrollAreaScrollbarHandlers.set(scrollbar, { pointerdown, pointermove: null, pointerup: null, wheel, resizeObserver });
+  scrollbar.addEventListener("wheel", wheel, { passive: false });
+  Object.assign(registration, { pointerdown, pointermove: null, wheel, resizeObserver });
+  scrollAreaScrollbarHandlers.set(scrollbar, registration);
+  queueNotify();
 }
 
 export function unregisterScrollAreaScrollbar(scrollbar) {
@@ -349,15 +395,13 @@ export function unregisterScrollAreaScrollbar(scrollbar) {
 
   scrollbar.removeEventListener("pointerdown", handlers.pointerdown);
   handlers.resizeObserver.disconnect();
-  document.removeEventListener("wheel", handlers.wheel, { passive: false });
-
-  if (handlers.pointermove) {
-    document.removeEventListener("pointermove", handlers.pointermove);
+  scrollbar.removeEventListener("wheel", handlers.wheel);
+  if (handlers.animationFrameId) {
+    cancelAnimationFrame(handlers.animationFrameId);
   }
 
-  if (handlers.pointerup) {
-    document.removeEventListener("pointerup", handlers.pointerup);
-  }
+  // Restore selection, scroll behavior and pointer capture on disposal during a drag.
+  handlers.pointerup?.();
 
   scrollAreaScrollbarHandlers.delete(scrollbar);
 }

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 @using Microsoft.JSInterop
 
@@ -19,6 +20,9 @@
 
     private readonly HashSet<string> _submenuPointerGraceItems = [];
     private bool _wasPresent;
+    private ValueAtomicBool _disposed;
+    private bool _keyboardFocusApplied;
+    private RenderFragment? _contentTree;
     private bool _isExiting;
     private bool _hasInteractedOutside;
     private ElementReference _contentElement;
@@ -160,24 +164,39 @@
             _isExiting = false;
 
         _wasPresent = present;
+        if (!present)
+            _keyboardFocusApplied = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (IsPresent && MenubarMenu?.WasKeyboardTriggerOpen == true && Menu is not null)
+        if (!_disposed.Read() && !_keyboardFocusApplied && IsPresent && MenubarMenu?.WasKeyboardTriggerOpen == true && Menu is not null)
         {
+            _keyboardFocusApplied = true;
             await Task.Delay(50);
-            await Menu.FocusFirstItem();
+            if (!_disposed.Read() && IsPresent && MenubarMenu?.WasKeyboardTriggerOpen == true)
+                await Menu.FocusFirstItem();
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_delegatedInteractionRegistered)
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
-
+        if (!_disposed.TrySetTrue())
+            return;
         _submenuPointerGraceItems.Clear();
-        _dotNetReference?.Dispose();
+        try
+        {
+            if (_delegatedInteractionRegistered)
+            {
+                _delegatedInteractionRegistered = false;
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
+            }
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
@@ -365,6 +384,8 @@
 
     private async Task HandleContentElementCaptured(ElementReference element)
     {
+        if (_disposed.Read())
+            return;
         _contentElement = element;
         _contentElementCaptured = true;
 
@@ -385,6 +406,11 @@
                     preventDefaultKeys = ContentPreventDefaultKeys
                 }
             });
+            if (_disposed.Read() || !_contentElementCaptured || !element.Equals(_contentElement))
+            {
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(element);
+                return;
+            }
             _delegatedInteractionRegistered = true;
         }
 
@@ -462,7 +488,7 @@
             _submenuPointerGraceItems.Remove(tabStopId);
     }
 
-    private RenderFragment RenderContentTree() => @<CascadingValue Value="this">
+    private RenderFragment RenderContentTree() => _contentTree ??= @<CascadingValue Value="this">
         <BradixFocusGuards>
             <BradixFocusScope Trapped="false"
                               PreventMountAutoFocus="true"

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Soenneker.Blazor.Utils.Ids
@@ -39,7 +40,7 @@
     private ElementReference _itemTextElement;
     private bool _hasItemTextElement;
     private bool _hasItemTextContent;
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
     private BradixTextObserver? _textObserver;
     private bool _pointerFocusPending;
 
@@ -98,7 +99,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed)
+        if (_disposed.Read())
             return;
 
         if (firstRender && Select is not null)
@@ -124,7 +125,8 @@
 
     public async ValueTask DisposeAsync()
     {
-        _disposed = true;
+        if (!_disposed.TrySetTrue())
+            return;
         if (_registered)
             Select?.UnregisterItem(this);
         if (_textObserver is not null)
@@ -139,7 +141,7 @@
 
     internal async Task NotifyResolvedText(string? text)
     {
-        if (_disposed || TextValue is not null || string.Equals(_resolvedTextValue, text, StringComparison.Ordinal))
+        if (_disposed.Read() || TextValue is not null || string.Equals(_resolvedTextValue, text, StringComparison.Ordinal))
             return;
 
         _resolvedTextValue = text;
@@ -154,7 +156,7 @@
         _hasItemTextContent = false;
         _hasItemTextElement = false;
         _itemTextElement = default;
-        if (!_disposed && _registered)
+        if (!_disposed.Read() && _registered)
             _ = InvokeAsync(StateHasChanged);
     }
 

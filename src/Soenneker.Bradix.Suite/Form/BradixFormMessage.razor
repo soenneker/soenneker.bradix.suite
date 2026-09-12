@@ -28,6 +28,7 @@
     };
 
     private bool _registered;
+    private RenderFragment? _defaultContent;
     private string? _registeredCustomMatcherFieldName;
     private string? _registeredMessageFieldName;
 
@@ -58,7 +59,7 @@
 
     private bool ShouldDisplay => ForceMatch || MatchesCurrentState();
 
-    private RenderFragment? ResolvedContent => ChildContent ?? (builder =>
+    private RenderFragment? ResolvedContent => ChildContent ?? (_defaultContent ??= builder =>
     {
         builder.AddContent(0, ResolveDefaultMessage());
     });

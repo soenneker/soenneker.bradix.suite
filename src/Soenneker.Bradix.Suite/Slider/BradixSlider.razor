@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Globalization
@@ -17,6 +18,7 @@
 
 @code {
     private readonly List<BradixSliderThumb> _thumbs = [];
+    private ValueAtomicBool _disposed;
     private bool _initialized;
     private bool _registered;
     private List<double> _valuesBeforeSlideStart = [];
@@ -100,26 +102,40 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (_disposed.Read() || !firstRender)
             return;
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await ControlsInterop.RegisterSliderPointerBridge(_element, _dotNetReference);
+        if (_disposed.Read())
+        {
+            await ControlsInterop.UnregisterSliderPointerBridge(_element);
+            return;
+        }
+
         _registered = true;
         await InvokeAsync(StateHasChanged);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_registered)
-            await ControlsInterop.UnregisterSliderPointerBridge(_element);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue())
+            return;
+        try
+        {
+            if (_registered)
+                await ControlsInterop.UnregisterSliderPointerBridge(_element);
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     internal void RegisterThumb(BradixSliderThumb thumb)
     {
-        if (_thumbs.Contains(thumb))
+        if (_disposed.Read() || _thumbs.Contains(thumb))
             return;
 
         _thumbs.Add(thumb);
@@ -128,8 +144,8 @@
 
     internal void UnregisterThumb(BradixSliderThumb thumb)
     {
-        _thumbs.Remove(thumb);
-        _ = InvokeAsync(StateHasChanged);
+        if (_thumbs.Remove(thumb) && !_disposed.Read())
+            _ = InvokeAsync(StateHasChanged);
     }
 
     internal int GetThumbIndex(BradixSliderThumb thumb)
@@ -190,7 +206,7 @@
 
     internal async Task HandleThumbKeyDown(int index, KeyboardEventArgs args)
     {
-        if (Disabled || index < 0)
+        if (_disposed.Read() || Disabled || index < 0 || index >= CurrentValues.Count)
             return;
 
         CurrentThumbIndex = index;
@@ -220,7 +236,7 @@
     [JSInvokable]
     public async Task HandlePointerStart(double xFraction, double yFraction, int thumbIndex)
     {
-        if (Disabled)
+        if (_disposed.Read() || Disabled)
             return;
 
         _valuesBeforeSlideStart = CopyValues(CurrentValues);
@@ -241,7 +257,7 @@
     [JSInvokable]
     public Task HandlePointerMove(double xFraction, double yFraction)
     {
-        if (Disabled)
+        if (_disposed.Read() || Disabled)
             return Task.CompletedTask;
 
         double nextValue = GetValueFromFractions(xFraction, yFraction);
@@ -251,7 +267,7 @@
     [JSInvokable]
     public async Task HandlePointerEnd()
     {
-        if (Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
+        if (_disposed.Read() || Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
             return;
 
         double previousValue = _valuesBeforeSlideStart.Count > CurrentThumbIndex ? _valuesBeforeSlideStart[CurrentThumbIndex] : CurrentValues[CurrentThumbIndex];
@@ -264,7 +280,7 @@
     [JSInvokable]
     public async Task HandlePointerCancel()
     {
-        if (Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
+        if (_disposed.Read() || Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
             return;
 
         if (ValuesEqual(_valuesBeforeSlideStart, CurrentValues))
@@ -309,16 +325,18 @@
         if (Values is null)
             _uncontrolledValues = nextValues;
 
-        IReadOnlyList<double> result = CopyValues(nextValues);
+        if (ValuesChanged.HasDelegate || OnValuesChange.HasDelegate || (commit && OnValueCommit.HasDelegate))
+        {
+            IReadOnlyList<double> result = CopyValues(nextValues);
+            if (ValuesChanged.HasDelegate)
+                await ValuesChanged.InvokeAsync(result);
 
-        if (ValuesChanged.HasDelegate)
-            await ValuesChanged.InvokeAsync(result);
+            if (OnValuesChange.HasDelegate)
+                await OnValuesChange.InvokeAsync(result);
 
-        if (OnValuesChange.HasDelegate)
-            await OnValuesChange.InvokeAsync(result);
-
-        if (commit && OnValueCommit.HasDelegate)
-            await OnValueCommit.InvokeAsync(result);
+            if (commit && OnValueCommit.HasDelegate)
+                await OnValueCommit.InvokeAsync(result);
+        }
 
         await InvokeAsync(StateHasChanged);
         await FocusThumb(CurrentThumbIndex);

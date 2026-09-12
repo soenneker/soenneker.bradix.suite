@@ -122,12 +122,19 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
                     await OnElementReferenceCaptured.InvokeAsync(_element);
             }
 
+            if (_disposed.Read())
+                return;
             if (!_registered)
             {
                 _dotNetReference ??= DotNetObjectReference.Create<object>(this);
                 try
                 {
                     await PresenceOverlayInterop.RegisterPresence(_element, _dotNetReference);
+                    if (_disposed.Read())
+                    {
+                        await PresenceOverlayInterop.UnregisterPresence(_element);
+                        return;
+                    }
                     _registered = true;
                 }
                 catch (Exception ex) when (ShouldIgnoreInteropException(ex))
@@ -208,28 +215,22 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
         if (!_disposed.TrySetTrue())
             return;
 
-        if (_registered)
+        try
         {
-            try
-            {
+            if (_registered)
                 await PresenceOverlayInterop.UnregisterPresence(_element);
-            }
-            catch (Exception ex) when (ShouldIgnoreInteropException(ex))
-            {
-            }
         }
-
-        _registered = false;
-        _dotNetReference?.Dispose();
-        _dotNetReference = null;
+        catch (Exception ex) when (ShouldIgnoreInteropException(ex))
+        {
+        }
+        finally
+        {
+            _registered = false;
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
-    /// <summary>
-    /// Handles the animation start callback.
-    /// </summary>
-    /// <param name="animationName">Name of the animation to target.</param>
-    /// <param name="currentAnimationName">Name of the current animation to target.</param>
-    /// <returns>A task that completes when the handle animation start operation is complete.</returns>
     [JSInvokable]
     public Task HandleAnimationStart(string animationName, string? currentAnimationName = null)
     {
@@ -268,14 +269,18 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
 
     private async Task CompleteUnmount()
     {
+        if (_disposed.Read() || Present)
+            return;
         _exitSuspended = false;
 
         if (_registered)
         {
-            await PresenceOverlayInterop.UnregisterPresence(_element);
             _registered = false;
+            await PresenceOverlayInterop.UnregisterPresence(_element);
         }
 
+        if (_disposed.Read() || Present)
+            return;
         _rendered = false;
 
         if (OnExitComplete.HasDelegate)

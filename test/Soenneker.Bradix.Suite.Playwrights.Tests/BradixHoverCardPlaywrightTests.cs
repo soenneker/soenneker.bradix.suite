@@ -11,6 +11,31 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
     {
     }
 
+    [Test]
+    public async ValueTask Hover_card_selection_restores_body_styles_after_release()
+    {
+        await using BrowserSession session = await CreateSession();
+        IPage page = session.Page;
+        await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hovercards"));
+        await page.GetByAltText("Radix UI").HoverAsync();
+        var cardText = page.GetByText("@radix_ui", new() { Exact = true });
+        await Assertions.Expect(cardText).ToBeVisibleAsync();
+        string originalStyle = await page.EvaluateAsync<string>("() => document.body.style.userSelect");
+        await cardText.HoverAsync();
+        await page.Mouse.DownAsync();
+        try
+        {
+            await page.WaitForFunctionAsync("() => document.body.style.userSelect === 'none'");
+        }
+        finally
+        {
+            await page.Mouse.UpAsync();
+        }
+        await page.WaitForFunctionAsync("expected => document.body.style.userSelect === expected", originalStyle);
+        await page.GetByRole(AriaRole.Button, new() { Name = "Open hover card dialog", Exact = true }).HoverAsync();
+        await Assertions.Expect(cardText).Not.ToBeVisibleAsync();
+    }
+
 [Test]
     public async ValueTask Hover_card_demo_supports_nested_hover_card_inside_modal_dialog()
     {

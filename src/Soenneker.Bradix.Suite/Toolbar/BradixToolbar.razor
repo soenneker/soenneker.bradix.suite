@@ -83,9 +83,7 @@
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
             return;
 
-        List<IBradixToolbarRovingItem> focusableItems = GetFocusableItems();
-
-        int currentIndex = focusableItems.IndexOf(item);
+        int focusableCount = CountFocusableItems(item, out int currentIndex);
 
         if (currentIndex < 0)
             return;
@@ -95,14 +93,14 @@
                 Orientation.Value,
                 ResolvedDirection,
                 currentIndex,
-                focusableItems.Count,
+                focusableCount,
                 Loop,
                 out int targetIndex))
         {
             return;
         }
 
-        IBradixToolbarRovingItem target = focusableItems[targetIndex];
+        IBradixToolbarRovingItem target = GetFocusableItemAt(targetIndex)!;
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
@@ -110,31 +108,42 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixToolbarRovingItem> focusableItems = GetFocusableItems();
-
-        if (focusableItems.Count == 0)
-        {
-            CurrentTabStopId = null;
-            return;
-        }
-
-        if (CurrentTabStopId is not null && ContainsTabStopId(focusableItems, CurrentTabStopId))
-            return;
-
-        CurrentTabStopId = focusableItems[0].TabStopId;
-    }
-
-    private List<IBradixToolbarRovingItem> GetFocusableItems()
-    {
-        List<IBradixToolbarRovingItem> focusableItems = [];
-
+        IBradixToolbarRovingItem? first = null;
         foreach (IBradixToolbarRovingItem item in _items)
         {
-            if (!item.IsDisabled)
-                focusableItems.Add(item);
+            if (item.IsDisabled)
+                continue;
+            first ??= item;
+            if (CurrentTabStopId is not null && string.Equals(item.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
+                return;
         }
+        CurrentTabStopId = first?.TabStopId;
+    }
 
-        return focusableItems;
+    private int CountFocusableItems(IBradixToolbarRovingItem current, out int currentIndex)
+    {
+        currentIndex = -1;
+        int count = 0;
+        foreach (IBradixToolbarRovingItem item in _items)
+        {
+            if (item.IsDisabled)
+                continue;
+            if (ReferenceEquals(item, current))
+                currentIndex = count;
+            count++;
+        }
+        return count;
+    }
+
+    private IBradixToolbarRovingItem? GetFocusableItemAt(int targetIndex)
+    {
+        int index = 0;
+        foreach (IBradixToolbarRovingItem item in _items)
+        {
+            if (!item.IsDisabled && index++ == targetIndex)
+                return item;
+        }
+        return null;
     }
 
     private static bool ContainsTabStopId(IEnumerable<IBradixToolbarRovingItem> items, string tabStopId)

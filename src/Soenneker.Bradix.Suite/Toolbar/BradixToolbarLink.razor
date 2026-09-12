@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -22,6 +23,7 @@
 @code {
     private ElementReference _element;
     private bool _registered;
+    private ValueAtomicBool _disposed;
     private bool _rovingFocusBridgeReady;
 
     [CascadingParameter]
@@ -63,20 +65,30 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (!firstRender || _disposed.Read())
             return;
 
         Toolbar.RegisterItem(this);
         _registered = true;
         await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element);
+        if (_disposed.Read())
+        {
+            await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
+            return;
+        }
         _rovingFocusBridgeReady = true;
     }
 
     public async ValueTask DisposeAsync()
     {
-        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
+        if (!_disposed.TrySetTrue())
+            return;
         if (_registered)
+        {
+            _registered = false;
             Toolbar.UnregisterItem(this);
+        }
+        await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
     }
 
     public ValueTask Focus() => _element.FocusAsync();

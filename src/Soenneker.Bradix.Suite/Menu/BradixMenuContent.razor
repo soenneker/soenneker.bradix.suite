@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 @using Microsoft.JSInterop
 
@@ -28,6 +29,7 @@
 
     private readonly HashSet<string> _submenuPointerGraceItems = [];
     private bool _wasPresent;
+    private ValueAtomicBool _disposed;
     private bool _isExiting;
     private bool _hasInteractedOutside;
     private bool _hasPointerDownOutside;
@@ -214,15 +216,29 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_delegatedInteractionRegistered)
+        if (!_disposed.TrySetTrue())
+            return;
+        Menu?.ClearContent(_contentElement);
+        try
         {
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
-            _delegatedInteractionRegistered = false;
+            if (_delegatedInteractionRegistered)
+            {
+                _delegatedInteractionRegistered = false;
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
+            }
         }
-
-        await ReleaseHideOthers();
-
-        _dotNetReference?.Dispose();
+        finally
+        {
+            try
+            {
+                await ReleaseHideOthers();
+            }
+            finally
+            {
+                _dotNetReference?.Dispose();
+                _dotNetReference = null;
+            }
+        }
     }
 
     internal Task HandleItemKeyDown(IBradixMenuRovingItem item, KeyboardEventArgs args)
@@ -514,10 +530,16 @@
 
     private async Task RegisterHideOthersIfNeeded()
     {
-        if (Menu?.Modal != true || _hideOthersRegistered)
+        if (_disposed.Read() || Menu?.Modal != true || _hideOthersRegistered)
             return;
 
-        await PresenceOverlayInterop.RegisterHideOthers(_layerElement);
+        var element = _layerElement;
+        await PresenceOverlayInterop.RegisterHideOthers(element);
+        if (_disposed.Read() || Menu?.CurrentOpen != true || !element.Equals(_layerElement))
+        {
+            await PresenceOverlayInterop.UnregisterHideOthers(element);
+            return;
+        }
         _hideOthersRegistered = true;
     }
 
@@ -526,13 +548,13 @@
         if (!_hideOthersRegistered)
             return;
 
-        await PresenceOverlayInterop.UnregisterHideOthers(_layerElement);
         _hideOthersRegistered = false;
+        await PresenceOverlayInterop.UnregisterHideOthers(_layerElement);
     }
 
     private async Task ApplyOpenAutoFocus()
     {
-        if (Menu is null)
+        if (_disposed.Read() || Menu is null)
             return;
 
         _pendingOpenAutoFocus = false;
@@ -558,6 +580,8 @@
 
     private async Task HandleContentElementCapturedInternal(ElementReference element)
     {
+        if (_disposed.Read())
+            return;
         _contentElement = element;
         _contentElementCaptured = true;
         Menu?.RegisterContent(element);
@@ -579,6 +603,11 @@
                     preventDefaultKeys = ContentPreventDefaultKeys
                 }
             });
+            if (_disposed.Read() || !_contentElementCaptured || !element.Equals(_contentElement))
+            {
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(element);
+                return;
+            }
             _delegatedInteractionRegistered = true;
         }
 

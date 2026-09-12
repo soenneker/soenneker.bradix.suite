@@ -1,4 +1,7 @@
+@using Soenneker.Atomics.ValueBools
 @inject HttpClient Http
+@using System.Threading
+@implements IDisposable
 
 @if (!string.IsNullOrWhiteSpace(_source))
 {
@@ -24,27 +27,53 @@
     private string? _source;
     private string? _fileName;
     private string? _loadedRoute;
+    private CancellationTokenSource? _loadCancellation;
+    private ValueAtomicBool _disposed;
 
     protected override async Task OnParametersSetAsync()
     {
         string normalizedRoute = DemoCatalog.NormalizeRoute(Route);
 
-        if (normalizedRoute == "/" || string.Equals(_loadedRoute, normalizedRoute, StringComparison.Ordinal))
+        if (_disposed.Read() || string.Equals(_loadedRoute, normalizedRoute, StringComparison.Ordinal))
             return;
 
         _loadedRoute = normalizedRoute;
+        _loadCancellation?.Cancel();
+        _loadCancellation = null;
         _source = null;
+        if (normalizedRoute == "/")
+            return;
         _fileName = GetFileName(normalizedRoute);
+        using var cancellation = new CancellationTokenSource();
+        _loadCancellation = cancellation;
 
         try
         {
-            string source = await Http.GetStringAsync($"_sources/{_fileName}.txt");
-            _source = NormalizeSource(source);
+            string source = await Http.GetStringAsync($"_sources/{_fileName}.txt", cancellation.Token);
+            if (!_disposed.Read() && ReferenceEquals(_loadCancellation, cancellation))
+                _source = NormalizeSource(source);
         }
         catch (HttpRequestException)
         {
-            _source = null;
+            if (ReferenceEquals(_loadCancellation, cancellation))
+                _source = null;
         }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            if (ReferenceEquals(_loadCancellation, cancellation))
+                _loadCancellation = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed.TrySetTrue())
+            return;
+        _loadCancellation?.Cancel();
+        _loadCancellation = null;
     }
 
     private static string GetFileName(string route)

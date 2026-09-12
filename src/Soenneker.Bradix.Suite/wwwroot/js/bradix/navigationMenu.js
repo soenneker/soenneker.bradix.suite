@@ -17,15 +17,21 @@ export function registerNavigationMenuIndicator(indicator, activeTrigger, track,
     const isHorizontal = orientation !== "vertical";
     const size = isHorizontal ? activeTrigger.offsetWidth : activeTrigger.offsetHeight;
     const offset = isHorizontal ? activeTrigger.offsetLeft : activeTrigger.offsetTop;
+    if (size === lastSize && offset === lastOffset) {
+      return;
+    }
+    lastSize = size;
+    lastOffset = offset;
     dotNetRef.invokeMethodAsync("HandleIndicatorPositionChanged", size, offset);
   };
 
+  let lastSize;
+  let lastOffset;
   const triggerResizeObserver = new ResizeObserver(notify);
-  const trackResizeObserver = new ResizeObserver(notify);
   const handleWindowResize = () => notify();
 
   triggerResizeObserver.observe(activeTrigger);
-  trackResizeObserver.observe(track);
+  triggerResizeObserver.observe(track);
   window.addEventListener("resize", handleWindowResize);
 
   notify();
@@ -33,7 +39,6 @@ export function registerNavigationMenuIndicator(indicator, activeTrigger, track,
   navigationMenuIndicatorHandlers.set(indicator, {
     notify,
     triggerResizeObserver,
-    trackResizeObserver,
     handleWindowResize,
     dotNetRef
   });
@@ -56,7 +61,6 @@ export function unregisterNavigationMenuIndicator(indicator) {
   }
 
   handlers.triggerResizeObserver.disconnect();
-  handlers.trackResizeObserver.disconnect();
   window.removeEventListener("resize", handlers.handleWindowResize);
   navigationMenuIndicatorHandlers.delete(indicator);
 }
@@ -237,20 +241,32 @@ export function registerNavigationMenuViewport(viewport, content, dotNetRef) {
 
   unregisterNavigationMenuViewport(viewport);
 
+  const handlers = {
+    content,
+    dotNetRef,
+    notify: null,
+    contentResizeObserver: null,
+    width: undefined,
+    height: undefined
+  };
   const notify = () => {
-    dotNetRef.invokeMethodAsync("HandleViewportSizeChanged", content.offsetWidth || 0, content.offsetHeight || 0);
+    const width = handlers.content.offsetWidth || 0;
+    const height = handlers.content.offsetHeight || 0;
+    if (handlers.width === width && handlers.height === height) {
+      return;
+    }
+    handlers.width = width;
+    handlers.height = height;
+    dotNetRef.invokeMethodAsync("HandleViewportSizeChanged", width, height);
   };
 
   const contentResizeObserver = new ResizeObserver(notify);
+  handlers.notify = notify;
+  handlers.contentResizeObserver = contentResizeObserver;
   contentResizeObserver.observe(content);
   notify();
 
-  navigationMenuViewportHandlers.set(viewport, {
-    content,
-    dotNetRef,
-    notify,
-    contentResizeObserver
-  });
+  navigationMenuViewportHandlers.set(viewport, handlers);
 }
 
 export function updateNavigationMenuViewport(viewport, content) {

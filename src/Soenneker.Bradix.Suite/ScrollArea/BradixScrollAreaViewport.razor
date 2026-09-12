@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -23,6 +24,7 @@
     private ElementReference _content;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
+    private ValueAtomicBool _disposed;
 
     [Parameter]
     public string? Nonce { get; set; }
@@ -32,6 +34,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
         ScrollArea.RegisterViewport(_viewport, _content);
 
         if (_registered)
@@ -41,15 +45,31 @@
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
 
         await ScrollAreaInterop.RegisterScrollAreaViewport(_viewport, _content, _dotNetReference);
+        if (_disposed.Read())
+        {
+            await ScrollAreaInterop.UnregisterScrollAreaViewport(_viewport);
+            return;
+        }
         _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_registered)
-            await ScrollAreaInterop.UnregisterScrollAreaViewport(_viewport);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue())
+            return;
+        try
+        {
+            if (_registered)
+            {
+                _registered = false;
+                await ScrollAreaInterop.UnregisterScrollAreaViewport(_viewport);
+            }
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     private Dictionary<string, object> ViewportAttributes => BuildAttributes(

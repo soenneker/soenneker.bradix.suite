@@ -1,3 +1,4 @@
+using Soenneker.Atomics.ValueBools;
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -10,11 +11,11 @@ internal sealed class BradixTextObserver(IDomInterop interop, Func<string, Task>
     private DotNetObjectReference<BradixTextObserver>? _reference;
     private ElementReference _element;
     private Task? _registration;
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
 
     public Task Observe(ElementReference element)
     {
-        if (_disposed)
+        if (_disposed.Read())
             return Task.CompletedTask;
 
         return _registration ??= Register(element);
@@ -25,19 +26,17 @@ internal sealed class BradixTextObserver(IDomInterop interop, Func<string, Task>
         _element = element;
         _reference = DotNetObjectReference.Create(this);
         string text = await interop.ObserveTextContent(element, _reference);
-        if (!_disposed)
+        if (!_disposed.Read())
             await onChanged(text);
     }
 
     [JSInvokable]
-    public Task OnTextContentChanged(string text) => _disposed ? Task.CompletedTask : onChanged(text);
+    public Task OnTextContentChanged(string text) => _disposed.Read() ? Task.CompletedTask : onChanged(text);
 
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (!_disposed.TrySetTrue())
             return;
-
-        _disposed = true;
         try
         {
             if (_registration is not null)

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -27,6 +28,7 @@
 
     private ElementReference _button;
     private bool _registered;
+    private ValueAtomicBool _disposed;
     private bool _isFocused;
     private bool _delegatedInteractionRegistered;
     private DotNetObjectReference<BradixMenubarTrigger>? _dotNetReference;
@@ -70,15 +72,18 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || Menubar is null || MenubarMenu is null || Menu is null)
+        if (_disposed.Read() || !firstRender || Menubar is null || MenubarMenu is null || Menu is null)
             return;
 
         Menubar.RegisterTrigger(this);
+        _registered = true;
         Menu.RegisterTrigger(_button);
 
         if (OnElementReferenceCaptured.HasDelegate)
             await OnElementReferenceCaptured.InvokeAsync(_button);
 
+        if (_disposed.Read())
+            return;
         _dotNetReference ??= DotNetObjectReference.Create(this);
         await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
         {
@@ -88,19 +93,36 @@
                 preventDefaultKeys = PreventDefaultKeys
             }
         });
+        if (_disposed.Read())
+        {
+            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
+            return;
+        }
         _delegatedInteractionRegistered = true;
-        _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_delegatedInteractionRegistered)
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
-
-        if (_registered && Menubar is not null)
-            Menubar.UnregisterTrigger(this);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue())
+            return;
+        if (_registered)
+        {
+            _registered = false;
+            Menubar?.UnregisterTrigger(this);
+        }
+        try
+        {
+            if (_delegatedInteractionRegistered)
+            {
+                _delegatedInteractionRegistered = false;
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
+            }
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     ValueTask IBradixMenubarTriggerEntry.Focus() => _button.FocusAsync();

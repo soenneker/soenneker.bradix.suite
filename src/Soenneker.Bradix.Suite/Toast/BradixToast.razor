@@ -1,6 +1,8 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Threading
+@using System.Globalization
 @using Microsoft.JSInterop
 
 @inherits BradixContentElement
@@ -64,6 +66,7 @@
         ["aria-live"] = "polite"
     };
 
+    private ValueAtomicBool _disposed;
     private bool _initialized;
     private bool _uncontrolledOpen = true;
     private bool _registered;
@@ -162,13 +165,13 @@
         {
             var swipeStyles = "user-select:none;touch-action:none;";
             if (_swipeMoveX != 0)
-                swipeStyles += $"--radix-toast-swipe-move-x:{_swipeMoveX}px;";
+                swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-move-x:{_swipeMoveX}px;");
             if (_swipeMoveY != 0)
-                swipeStyles += $"--radix-toast-swipe-move-y:{_swipeMoveY}px;";
+                swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-move-y:{_swipeMoveY}px;");
             if (_swipeEndX != 0)
-                swipeStyles += $"--radix-toast-swipe-end-x:{_swipeEndX}px;";
+                swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-end-x:{_swipeEndX}px;");
             if (_swipeEndY != 0)
-                swipeStyles += $"--radix-toast-swipe-end-y:{_swipeEndY}px;";
+                swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-end-y:{_swipeEndY}px;");
 
             return MergeStyleValues(swipeStyles, Style)!;
         }
@@ -238,6 +241,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
+
         if (_registered)
             await SyncSwipeRegistration();
 
@@ -245,6 +251,9 @@
         {
             _announceRenderScheduled = true;
             await Task.Yield();
+            if (_disposed.Read())
+                return;
+
             _renderAnnounceText = true;
             _announceRenderScheduled = false;
             await InvokeAsync(StateHasChanged);
@@ -262,21 +271,38 @@
 
     public async ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return;
         CancelCloseTimer();
         CancelAnnouncement();
-
         if (_registered)
             Provider?.UnregisterToast(this);
 
-        if (_delegatedInteractionRegistered)
-            await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_toastElement);
-
-        await UnregisterSwipe();
-
-        if (_portalMounted)
-            await PortalInterop.UnmountPortal(_toastElement);
-
-        _dotNetReference?.Dispose();
+        try
+        {
+            if (_delegatedInteractionRegistered)
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_toastElement);
+        }
+        finally
+        {
+            try
+            {
+                await UnregisterSwipe();
+            }
+            finally
+            {
+                try
+                {
+                    if (_portalMounted)
+                        await PortalInterop.UnmountPortal(_toastElement);
+                }
+                finally
+                {
+                    _dotNetReference?.Dispose();
+                    _dotNetReference = null;
+                }
+            }
+        }
     }
 
     internal Task Pause()
@@ -309,6 +335,9 @@
 
     internal async Task Close()
     {
+        if (_disposed.Read())
+            return;
+
         bool wasFocused = await ToastInterop.IsToastFocused(_toastElement);
         await SetOpen(false);
 
@@ -320,12 +349,21 @@
 
     private async Task HandleElementReferenceCaptured(ElementReference element)
     {
+        if (_disposed.Read())
+            return;
+
         _toastElement = element;
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
 
         if (!PortalDisabled && !_portalMounted && Provider?.HasViewport == true)
         {
             await PortalInterop.MountPortal(_toastElement, $"#{Provider.ViewportId}");
+            if (_disposed.Read())
+            {
+                await PortalInterop.UnmountPortal(_toastElement);
+                return;
+            }
+
             _portalMounted = true;
         }
 
@@ -339,6 +377,12 @@
                     keys = EscapeKeys
                 }
             });
+            if (_disposed.Read())
+            {
+                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_toastElement);
+                return;
+            }
+
             _delegatedInteractionRegistered = true;
         }
 
@@ -383,7 +427,7 @@
 
     private async Task SetOpen(bool open)
     {
-        if (CurrentOpen == open)
+        if (_disposed.Read() || CurrentOpen == open)
             return;
 
         if (Open is null)
@@ -411,6 +455,9 @@
 
     private void StartCloseTimer()
     {
+        if (_disposed.Read())
+            return;
+
         CancelCloseTimer();
 
         if (!CurrentOpen || _timerPaused || ResolvedDuration <= 0)
@@ -708,6 +755,9 @@
 
     private async Task SyncSwipeRegistration()
     {
+        if (_disposed.Read())
+            return;
+
         if (Provider is null || _swipeRegistrationUnavailable)
             return;
 
@@ -724,8 +774,17 @@
         {
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
             IJSObjectReference module = await ToastInterop.Initialize();
+            if (_disposed.Read())
+                return;
+
             await module.InvokeVoidAsync("registerToastSwipe", _toastElement, direction, threshold,
                 hasStartCallback, hasMoveCallback, _dotNetReference);
+            if (_disposed.Read())
+            {
+                await module.InvokeVoidAsync("unregisterToastSwipe", _toastElement);
+                return;
+            }
+
             _registeredSwipeDirection = direction;
             _registeredSwipeThreshold = threshold;
             _registeredSwipeStartCallback = hasStartCallback;
@@ -762,12 +821,15 @@
 
     private async Task UpdateAnnounceText()
     {
+        if (_disposed.Read())
+            return;
+
         if (!CurrentOpen)
             return;
 
         string[] announceText = await ToastInterop.GetToastAnnounceText(_toastElement);
 
-        if (SegmentsEqual(_announceTextSegments, announceText))
+        if (_disposed.Read() || SegmentsEqual(_announceTextSegments, announceText))
             return;
 
         _announceTextSegments = announceText;
@@ -791,6 +853,9 @@
         try
         {
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+            if (_disposed.Read())
+                return;
+
             _announceVisible = false;
             _renderAnnounceText = false;
             _announceDismissScheduled = false;

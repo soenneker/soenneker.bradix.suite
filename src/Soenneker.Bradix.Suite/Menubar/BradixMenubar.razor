@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -21,6 +22,7 @@
     private DotNetObjectReference<BradixMenubar>? _dotNetReference;
     private bool _documentDismissRegistered;
     private bool _initialized;
+    private ValueAtomicBool _disposed;
     private string? _uncontrolledValue;
 
     [CascadingParameter(Name = "BradixDirection")]
@@ -67,20 +69,36 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (_disposed.Read() || !firstRender)
             return;
 
         _dotNetReference = DotNetObjectReference.Create(this);
         await MenubarInterop.RegisterMenubarDocumentDismiss(_element, _dotNetReference, MenubarId);
+        if (_disposed.Read())
+        {
+            await MenubarInterop.UnregisterMenubarDocumentDismiss(_element);
+            return;
+        }
         _documentDismissRegistered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_documentDismissRegistered)
-            await MenubarInterop.UnregisterMenubarDocumentDismiss(_element);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue())
+            return;
+        try
+        {
+            if (_documentDismissRegistered)
+            {
+                _documentDismissRegistered = false;
+                await MenubarInterop.UnregisterMenubarDocumentDismiss(_element);
+            }
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     protected override void OnParametersSet()
@@ -264,18 +282,16 @@
 
     private void EnsureCurrentTabStopId()
     {
-        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
-
-        if (focusableTriggers.Count == 0)
+        IBradixMenubarTriggerEntry? first = null;
+        foreach ((_, IBradixMenubarTriggerEntry trigger) in _triggers)
         {
-            CurrentTabStopId = null;
-            return;
+            if (trigger.Disabled)
+                continue;
+            first ??= trigger;
+            if (string.Equals(trigger.Value, CurrentTabStopId, StringComparison.Ordinal))
+                return;
         }
-
-        if (CurrentTabStopId is not null && FindTriggerIndex(focusableTriggers, CurrentTabStopId) >= 0)
-            return;
-
-        CurrentTabStopId = focusableTriggers[0].Value;
+        CurrentTabStopId = first?.Value;
     }
 
     private static int FindTriggerIndex(IReadOnlyList<IBradixMenubarTriggerEntry> triggers, string value)

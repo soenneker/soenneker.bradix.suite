@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 @inherits BradixIdentifiableContentElement
 
@@ -21,6 +22,8 @@
 
 @code {
     private bool _wasPresent;
+    private ValueAtomicBool _disposed;
+    private RenderFragment? _contentTree;
     private bool _isExiting;
     private bool _hasInteractedOutside;
     private bool _hasPointerDownOutside;
@@ -184,10 +187,12 @@
     }
     public async ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return;
         if (_hideOthersRegistered)
         {
-            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
             _hideOthersRegistered = false;
+            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
         }
     }
 
@@ -321,7 +326,7 @@ ResetState:
         return CleanupAfterExit();
     }
 
-    private RenderFragment RenderContentTree() => @<BradixFocusGuards>
+    private RenderFragment RenderContentTree() => _contentTree ??= @<BradixFocusGuards>
         <BradixFocusScope Loop
                           Trapped="ShouldTrapFocus"
                           PreventUnmountAutoFocus="true"
@@ -369,11 +374,18 @@ ResetState:
 
     private async Task HandleElementReferenceCaptured(ElementReference element)
     {
+        if (_disposed.Read())
+            return;
         _contentElement = element;
 
         if (Popover?.Modal == true && !_hideOthersRegistered)
         {
-            await PresenceOverlayInterop.RegisterHideOthers(_contentElement);
+            await PresenceOverlayInterop.RegisterHideOthers(element);
+            if (_disposed.Read() || !element.Equals(_contentElement))
+            {
+                await PresenceOverlayInterop.UnregisterHideOthers(element);
+                return;
+            }
             _hideOthersRegistered = true;
         }
     }
@@ -384,8 +396,8 @@ ResetState:
 
         if (_hideOthersRegistered)
         {
-            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
             _hideOthersRegistered = false;
+            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
         }
 
         await InvokeAsync(StateHasChanged);

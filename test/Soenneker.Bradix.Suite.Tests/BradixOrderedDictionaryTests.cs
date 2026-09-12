@@ -5,6 +5,25 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixOrderedDictionaryTests
 {
     [Test]
+    public async Task DeleteAt_preserves_order_and_supports_negative_indices()
+    {
+        var dictionary = new BradixOrderedDictionary<string, int>();
+        dictionary.Set("alpha", 1).Set("beta", 2).Set("gamma", 3).Set("delta", 4);
+
+        await Assert.That(dictionary.DeleteAt(1)).IsTrue();
+        await Assert.That(dictionary.ContainsKey("beta")).IsFalse();
+        await Assert.That(string.Join(",", dictionary.Keys)).IsEqualTo("alpha,gamma,delta");
+        await Assert.That(dictionary.DeleteAt(-1)).IsTrue();
+        await Assert.That(dictionary.DeleteAt(-2)).IsTrue();
+        await Assert.That(dictionary.Count).IsEqualTo(1);
+        await Assert.That(dictionary.At(0)).IsEqualTo(3);
+        await Assert.That(dictionary.DeleteAt(-2)).IsFalse();
+        await Assert.That(dictionary.DeleteAt(1)).IsFalse();
+        await Assert.That(dictionary.DeleteAt(0)).IsTrue();
+        await Assert.That(dictionary.DeleteAt(0)).IsFalse();
+    }
+
+    [Test]
     public async Task Set_preserves_existing_key_position()
     {
         var dictionary = new BradixOrderedDictionary<string, int>();

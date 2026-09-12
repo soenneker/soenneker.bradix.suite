@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -24,6 +25,8 @@
 @code {
     private BradixToggle? _toggle;
     private bool _registered;
+    private ValueAtomicBool _disposed;
+    private bool _rovingRegistered;
 
     [CascadingParameter]
     internal BradixToggleGroup Group { get; set; } = null!;
@@ -83,23 +86,36 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (!firstRender || _disposed.Read())
             return;
 
         Group.RegisterItem(this);
         _registered = true;
 
         if (Group.RovingFocus && _toggle is not null)
+        {
             await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_toggle.Element);
+            if (_disposed.Read())
+                await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
+            else
+                _rovingRegistered = true;
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (Group.RovingFocus && _toggle is not null)
-            await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
-
+        if (!_disposed.TrySetTrue())
+            return;
         if (_registered)
+        {
+            _registered = false;
             Group.UnregisterItem(this);
+        }
+        if (_rovingRegistered && _toggle is not null)
+        {
+            _rovingRegistered = false;
+            await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
+        }
     }
 
     internal ValueTask Focus()

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -65,7 +66,7 @@
     private string? _currentText;
     private DotNetObjectReference<object>? _dotNetReference;
     private Task? _bubbleSelectRegistrationTask;
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -207,14 +208,14 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed)
+        if (_disposed.Read())
             return;
 
         if (HasTrigger && (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal)))
         {
             bool isFormControl = await FormInterop.IsFormControl(TriggerElement, Form);
 
-            if (_disposed)
+            if (_disposed.Read())
                 return;
 
             _formControlStateResolved = true;
@@ -250,16 +251,21 @@
 
     public async ValueTask DisposeAsync()
     {
-        _disposed = true;
+        if (!_disposed.TrySetTrue())
+            return;
+        try
+        {
+            if (_bubbleSelectRegistrationTask is not null)
+                await _bubbleSelectRegistrationTask;
 
-        if (_bubbleSelectRegistrationTask is not null)
-            await _bubbleSelectRegistrationTask;
-
-        if (_bubbleSelectRegistered)
-            await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
-
-        _dotNetReference?.Dispose();
-        _dotNetReference = null;
+            if (_bubbleSelectRegistered)
+                await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     internal void RegisterItem(IBradixSelectCollectionItem item)
@@ -596,7 +602,7 @@
 
     private void QueueRefresh()
     {
-        if (_disposed)
+        if (_disposed.Read())
             return;
 
         if (_refreshQueued)
@@ -606,7 +612,7 @@
 
         _ = InvokeAsync(() =>
         {
-            if (_disposed)
+            if (_disposed.Read())
                 return;
 
             _refreshQueued = false;
@@ -616,21 +622,21 @@
 
     private void QueueOpenItemFocusIfNeeded()
     {
-        if (_disposed || !CurrentOpen || CurrentFocusedItemValue is not null || _focusOpenItemQueued)
+        if (_disposed.Read() || !CurrentOpen || CurrentFocusedItemValue is not null || _focusOpenItemQueued)
             return;
 
         _focusOpenItemQueued = true;
 
         _ = InvokeAsync(async () =>
         {
-            if (_disposed)
+            if (_disposed.Read())
                 return;
 
             await Task.Yield();
 
             _focusOpenItemQueued = false;
 
-            if (_disposed || !CurrentOpen || CurrentFocusedItemValue is not null)
+            if (_disposed.Read() || !CurrentOpen || CurrentFocusedItemValue is not null)
                 return;
 
             await FocusSelectedOrFirstItem();
@@ -778,7 +784,7 @@
 
     private async Task EnsureBubbleSelectRegistration()
     {
-        if (_disposed || !_hasBubbleSelectElement || _bubbleSelectRegistered)
+        if (_disposed.Read() || !_hasBubbleSelectElement || _bubbleSelectRegistered)
             return;
 
         if (_bubbleSelectRegistrationTask is not null)
@@ -809,7 +815,7 @@
 
     private async Task SyncBubbleSelectValue()
     {
-        if (_disposed || !_hasBubbleSelectElement)
+        if (_disposed.Read() || !_hasBubbleSelectElement)
             return;
 
         string? nextValue = CurrentValue;

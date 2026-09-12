@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -13,6 +14,7 @@
 @code {
     private ElementReference _element;
     private bool _mounted;
+    private ValueAtomicBool _disposed;
     private ElementReference _lastContainer;
     private bool _lastContainerCaptured;
     private string? _lastContainerSelector;
@@ -28,12 +30,19 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
         bool containerChanged = !_lastContainerCaptured || !EqualityComparer<ElementReference>.Default.Equals(_lastContainer, Container);
 
         if (_mounted && !firstRender && !containerChanged && string.Equals(_lastContainerSelector, ContainerSelector, StringComparison.Ordinal))
             return;
 
         await PortalInterop.MountPortal(_element, ContainerSelector, Container);
+        if (_disposed.Read())
+        {
+            await PortalInterop.UnmountPortal(_element);
+            return;
+        }
         _mounted = true;
         _lastContainer = Container;
         _lastContainerCaptured = true;
@@ -42,7 +51,12 @@
 
     public async ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue())
+            return;
         if (_mounted)
+        {
+            _mounted = false;
             await PortalInterop.UnmountPortal(_element);
+        }
     }
 }

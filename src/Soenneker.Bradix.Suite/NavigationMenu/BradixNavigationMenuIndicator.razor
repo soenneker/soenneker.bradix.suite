@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Globalization
@@ -25,6 +26,7 @@
     private ElementReference _element;
     private bool _hasElement;
     private bool _registered;
+    private ValueAtomicBool _disposed;
     private DotNetObjectReference<BradixNavigationMenuIndicator>? _dotNetReference;
     private double? _size;
     private double? _offset;
@@ -73,6 +75,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed.Read())
+            return;
         BradixNavigationMenu? navigationMenu = NavigationMenu;
 
         if (!_hasElement ||
@@ -100,16 +104,32 @@
         {
             await NavigationMenuInterop.RegisterNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, _dotNetReference,
                 navigationMenu.Orientation.Value);
+            if (_disposed.Read())
+            {
+                await NavigationMenuInterop.UnregisterNavigationMenuIndicator(_element);
+                return;
+            }
             _registered = true;
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_registered)
-            await NavigationMenuInterop.UnregisterNavigationMenuIndicator(_element);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue())
+            return;
+        try
+        {
+            if (_registered)
+            {
+                _registered = false;
+                await NavigationMenuInterop.UnregisterNavigationMenuIndicator(_element);
+            }
+        }
+        finally
+        {
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     private Task HandleElementCaptured(ElementReference element)
@@ -122,6 +142,8 @@
     [JSInvokable]
     public Task HandleIndicatorPositionChanged(double size, double offset)
     {
+        if (_disposed.Read())
+            return Task.CompletedTask;
         if (Math.Abs((_size ?? -1) - size) < 0.1 &&
             Math.Abs((_offset ?? -1) - offset) < 0.1)
         {

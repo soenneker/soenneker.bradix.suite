@@ -240,14 +240,13 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     });
   }
 
-  const getFractions = (event, rect = element.getBoundingClientRect()) => {
+  const getFractions = (event, rect = element.getBoundingClientRect(), result = {}) => {
     const x = rect.width <= 0 ? 0 : (event.clientX - rect.left) / rect.width;
     const y = rect.height <= 0 ? 0 : (event.clientY - rect.top) / rect.height;
 
-    return {
-      x: Math.min(1, Math.max(0, x)),
-      y: Math.min(1, Math.max(0, y))
-    };
+    result.x = Math.min(1, Math.max(0, x));
+    result.y = Math.min(1, Math.max(0, y));
+    return result;
   };
 
   const getThumbIndex = (event) => {
@@ -271,8 +270,9 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     return -1;
   };
 
-  const pointerdown = async (event) => {
-    if (event.button !== 0) {
+  const pointerdown = (event) => {
+    const handlers = sliderPointerHandlers.get(element);
+    if (event.button !== 0 || !handlers || handlers.cancelGesture) {
       return;
     }
 
@@ -289,88 +289,92 @@ export function registerSliderPointerBridge(element, dotNetRef) {
     const dragRect = element.getBoundingClientRect();
     const fractions = getFractions(event, dragRect);
 
-    await dotNetRef.invokeMethodAsync("HandlePointerStart", fractions.x, fractions.y, thumbIndex);
-
     let moveFrame = 0;
-    let pendingMove = null;
-    const flushMove = async () => {
-      if (!pendingMove) {
-        return;
-      }
-
-      const move = pendingMove;
-      pendingMove = null;
-      await dotNetRef.invokeMethodAsync("HandlePointerMove", move.x, move.y);
-    };
+    let moveTask = null;
+    let pending = false;
+    let ended = false;
+    let canceled = false;
+    const pendingMove = { x: 0, y: 0 };
+    const isCurrent = () => !canceled && sliderPointerHandlers.get(element) === handlers;
     const cancelPendingMove = () => {
       if (moveFrame) {
         cancelAnimationFrame(moveFrame);
         moveFrame = 0;
       }
-      pendingMove = null;
+      pending = false;
     };
-    const pointermove = (moveEvent) => {
-      pendingMove = getFractions(moveEvent, dragRect);
-      if (moveFrame) {
-        return;
-      }
-
+    const scheduleMove = () => {
+      if (moveFrame || moveTask || ended || !isCurrent()) return;
       moveFrame = requestAnimationFrame(() => {
         moveFrame = 0;
         flushMove().catch(console.error);
       });
     };
-
-    const pointerup = async (upEvent) => {
+    const detachPointer = () => {
       document.removeEventListener("pointermove", pointermove);
       document.removeEventListener("pointerup", pointerup);
       document.removeEventListener("pointercancel", pointercancel);
-      if (moveFrame) {
-        cancelAnimationFrame(moveFrame);
-        moveFrame = 0;
-      }
-      pendingMove = getFractions(upEvent, dragRect);
-      await flushMove();
-      if (typeof element.hasPointerCapture === "function" &&
-        typeof element.releasePointerCapture === "function") {
-        try {
-          if (element.hasPointerCapture(event.pointerId)) {
-            element.releasePointerCapture(event.pointerId);
-          }
-        } catch {
-        }
-      }
-      await dotNetRef.invokeMethodAsync("HandlePointerEnd");
+      releasePointer(element, event.pointerId);
     };
-
-    const pointercancel = async () => {
-      document.removeEventListener("pointermove", pointermove);
-      document.removeEventListener("pointerup", pointerup);
-      document.removeEventListener("pointercancel", pointercancel);
+    const cancelGesture = () => {
+      if (canceled) return;
+      canceled = true;
+      ended = true;
+      detachPointer();
       cancelPendingMove();
-      if (typeof element.hasPointerCapture === "function" &&
-        typeof element.releasePointerCapture === "function") {
-        try {
-          if (element.hasPointerCapture(event.pointerId)) {
-            element.releasePointerCapture(event.pointerId);
-          }
-        } catch {
-        }
-      }
-      await dotNetRef.invokeMethodAsync("HandlePointerCancel");
+      if (handlers.cancelGesture === cancelGesture) handlers.cancelGesture = null;
     };
+    const flushMove = () => {
+      if (moveTask) return moveTask;
+      moveTask = (async () => {
+        if (!await startTask || !isCurrent() || !pending) return;
+        pending = false;
+        await dotNetRef.invokeMethodAsync("HandlePointerMove", pendingMove.x, pendingMove.y);
+      })().finally(() => {
+        moveTask = null;
+        if (pending) scheduleMove();
+      });
+      return moveTask;
+    };
+    const pointermove = moveEvent => {
+      if (moveEvent.pointerId !== event.pointerId || ended) return;
+      getFractions(moveEvent, dragRect, pendingMove);
+      pending = true;
+      scheduleMove();
+    };
+    const finish = async (endEvent, cancel) => {
+      if (endEvent.pointerId !== event.pointerId || ended) return;
+      ended = true;
+      suppressClickUntil = window.performance.now() + 500;
+      detachPointer();
+      cancelPendingMove();
+      try {
+        if (!await startTask || !isCurrent()) return;
+        if (moveTask) await moveTask;
+        if (!isCurrent()) return;
+        if (!cancel) {
+          getFractions(endEvent, dragRect, pendingMove);
+          pending = true;
+          await flushMove();
+        }
+        if (isCurrent()) {
+          await dotNetRef.invokeMethodAsync(cancel ? "HandlePointerCancel" : "HandlePointerEnd");
+        }
+      } finally {
+        cancelGesture();
+      }
+    };
+    const pointerup = upEvent => finish(upEvent, false).catch(console.error);
+    const pointercancel = cancelEvent => finish(cancelEvent, true).catch(console.error);
 
+    // Observe release immediately, including while the server is still handling PointerStart.
     document.addEventListener("pointermove", pointermove);
     document.addEventListener("pointerup", pointerup);
     document.addEventListener("pointercancel", pointercancel);
-
-    const handlers = sliderPointerHandlers.get(element);
-    if (handlers) {
-      handlers.pointermove = pointermove;
-      handlers.pointerup = pointerup;
-      handlers.pointercancel = pointercancel;
-      handlers.cancelPendingMove = cancelPendingMove;
-    }
+    handlers.cancelGesture = cancelGesture;
+    const startTask = Promise.resolve()
+      .then(() => isCurrent() ? dotNetRef.invokeMethodAsync("HandlePointerStart", fractions.x, fractions.y, thumbIndex) : null)
+      .then(() => true, error => { cancelGesture(); console.error(error); return false; });
   };
 
   const click = async (event) => {
@@ -378,17 +382,19 @@ export function registerSliderPointerBridge(element, dotNetRef) {
       return;
     }
 
-    if (window.performance.now() < suppressClickUntil) {
+    const handlers = sliderPointerHandlers.get(element);
+    if (!handlers || handlers.cancelGesture || window.performance.now() < suppressClickUntil) {
       return;
     }
 
     const fractions = getFractions(event);
     const thumbIndex = getThumbIndex(event);
     await dotNetRef.invokeMethodAsync("HandlePointerStart", fractions.x, fractions.y, thumbIndex);
+    if (sliderPointerHandlers.get(element) !== handlers) return;
     await dotNetRef.invokeMethodAsync("HandlePointerEnd");
   };
 
-  sliderPointerHandlers.set(element, { pointerdown, click, pointermove: null, pointerup: null, pointercancel: null, cancelPendingMove: null, resizeObserver, mutationObserver });
+  sliderPointerHandlers.set(element, { pointerdown, click, cancelGesture: null, resizeObserver, mutationObserver });
   element.addEventListener("pointerdown", pointerdown);
   element.addEventListener("click", click);
 }
@@ -403,19 +409,7 @@ export function unregisterSliderPointerBridge(element) {
   element.removeEventListener("pointerdown", handlers.pointerdown);
   element.removeEventListener("click", handlers.click);
 
-  if (handlers.pointermove) {
-    document.removeEventListener("pointermove", handlers.pointermove);
-  }
-
-  handlers.cancelPendingMove?.();
-
-  if (handlers.pointerup) {
-    document.removeEventListener("pointerup", handlers.pointerup);
-  }
-
-  if (handlers.pointercancel) {
-    document.removeEventListener("pointercancel", handlers.pointercancel);
-  }
+  handlers.cancelGesture?.();
 
   if (handlers.resizeObserver) {
     handlers.resizeObserver.disconnect();
