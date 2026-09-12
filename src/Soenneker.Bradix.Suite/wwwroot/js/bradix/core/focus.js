@@ -12,7 +12,10 @@ export function getTabbableCandidates(container) {
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
     acceptNode: (node) => {
       const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
-      if (node.disabled || node.hidden || isHiddenInput || node.hasAttribute("data-radix-focus-guard")) {
+      if (node.closest("[inert], [hidden]")) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      if (node.matches(":disabled") || isHiddenInput || node.hasAttribute("data-radix-focus-guard")) {
         return NodeFilter.FILTER_SKIP;
       }
 

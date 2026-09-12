@@ -10,7 +10,7 @@
 @inject IDelegatedInteractionInterop DelegatedInteractionInterop
 @inject IFormInterop FormInterop
 @inject IControlsInterop ControlsInterop
-<span @attributes="WrapperAttributes">
+<span style="@WrapperStyle">
     <span @ref="_element"
           @onfocus="HandleFocus"
           @onkeydown="HandleKeyDown"
@@ -58,13 +58,13 @@
 
     private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Slider.Form);
 
-    private Dictionary<string, object> WrapperAttributes
+    private string WrapperStyle
     {
         get
         {
             if (Value is null)
             {
-                return BuildAttributes("style", "display: none;");
+                return "display: none;";
             }
 
             double percent = Slider.GetPercentForValue(Value.Value);
@@ -89,7 +89,7 @@
 
             var percentText = percent.ToString(System.Globalization.CultureInfo.InvariantCulture);
             var style = $"--bradix-slider-thumb-percent: {percentText}; --bradix-slider-thumb-direction: {direction}; position: absolute; {startEdge}: calc({percentText}% + var(--bradix-slider-thumb-in-bounds-offset, 0px)); transform: {transform};";
-            return BuildAttributes("style", style);
+            return style;
         }
     }
 
@@ -104,10 +104,14 @@
                 ("aria-valuenow", FormattedValue),
                 ("aria-valuemax", Slider.Max.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                 ("aria-orientation", Slider.Orientation.Value),
+                ("aria-disabled", Slider.Disabled ? "true" : null),
                 ("data-orientation", Slider.Orientation.Value),
                 ("data-disabled", Slider.Disabled ? string.Empty : null),
                 ("tabindex", Slider.Disabled ? null : 0),
                 ("style", Value is null ? "display: none;" : null));
+
+            if (Slider.Disabled)
+                attributes["tabindex"] = -1;
 
             return attributes;
         }

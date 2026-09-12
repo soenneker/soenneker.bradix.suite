@@ -48,6 +48,26 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Thumb_attributes_do_not_create_duplicate_ids_or_wrapper_tab_stops()
+    {
+        var cut = Render<BradixSlider>(p => p.Add(c => c.DefaultValues, new double[] { 20 }).AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixSliderThumb>(0);
+            builder.AddAttribute(1, "id", "volume");
+            builder.AddAttribute(2, "aria-label", "Volume");
+            builder.AddAttribute(3, "tabindex", 0);
+            builder.CloseComponent();
+        }));
+
+        await Assert.That(cut.FindAll("#volume").Count).IsEqualTo(1);
+        await Assert.That(cut.FindAll("[tabindex='0']").Count).IsEqualTo(1);
+        await Assert.That(cut.Find("#volume").GetAttribute("role")).IsEqualTo("slider");
+        cut.Render(p => p.Add(c => c.Disabled, true));
+        await Assert.That(cut.Find("[role='slider']").GetAttribute("aria-disabled")).IsEqualTo("true");
+        await Assert.That(cut.Find("[role='slider']").GetAttribute("tabindex")).IsEqualTo("-1");
+    }
+
+    [Test]
     public async Task Slider_arrow_key_updates_value()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20]));

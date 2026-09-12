@@ -172,7 +172,7 @@
         if (IsDisabled || Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
-        if (!Select.CurrentOpen && args.Key.Length == 1)
+        if (!Select.CurrentOpen && args.Key.Length == 1 && (args.Key != " " || Select.HasActiveTypeahead))
         {
             await Select.HandleTriggerTypeahead(args.Key);
             return;

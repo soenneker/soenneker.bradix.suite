@@ -143,12 +143,15 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Arrow_down_opens_content_and_links_ids()
+    [Arguments("ArrowDown")]
+    [Arguments(" ")]
+    [Arguments("Enter")]
+    public async Task Activation_key_opens_content_and_links_ids(string key)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
         IElement trigger = cut.Find("button[role='combobox']");
 
-        await trigger.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+        await trigger.KeyDownAsync(new KeyboardEventArgs { Key = key });
 
         await cut.WaitForAssertionAsync(async () =>
         {
