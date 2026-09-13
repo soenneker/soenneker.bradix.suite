@@ -401,7 +401,7 @@ input[type="radio"] {
 }
 
 .docs-shell--component .docs-nav__group-header h3 {
-    color: #71717a;
+    color: #a1a1aa;
 }
 
 .docs-shell--component .docs-shell__content {
@@ -530,7 +530,7 @@ input[type="radio"] {
 }
 
 .docs-nav__group-header h3 {
-    color: var(--text-muted);
+    color: var(--text-default);
     font-size: 0.82rem;
     font-weight: 700;
     letter-spacing: 0.08em;

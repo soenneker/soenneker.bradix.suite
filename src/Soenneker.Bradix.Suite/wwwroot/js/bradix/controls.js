@@ -1,6 +1,30 @@
 import { focusElement } from "./core/focus.js";
 
 const sliderPointerHandlers = new WeakMap();
+const contextMenuKeyboardHandlers = new WeakMap();
+
+export function registerContextMenuKeyboard(element) {
+  if (!element) return;
+  unregisterContextMenuKeyboard(element);
+  const handler = event => {
+    if (event.defaultPrevented || element.hasAttribute("data-disabled") || event.ctrlKey || event.altKey || event.metaKey) return;
+    if (event.key !== "ContextMenu" && !(event.key === "F10" && event.shiftKey)) return;
+    event.preventDefault();
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(new MouseEvent("contextmenu", {
+      bubbles: true, cancelable: true, button: 2,
+      clientX: rect.left, clientY: rect.bottom
+    }));
+  };
+  element.addEventListener("keydown", handler);
+  contextMenuKeyboardHandlers.set(element, handler);
+}
+
+export function unregisterContextMenuKeyboard(element) {
+  const handler = contextMenuKeyboardHandlers.get(element);
+  if (handler) element.removeEventListener("keydown", handler);
+  contextMenuKeyboardHandlers.delete(element);
+}
 const oneTimePasswordInputHandlers = new WeakMap();
 const selectBubbleInputHandlers = new WeakMap();
 const selectBubbleInputSyncing = new WeakSet();

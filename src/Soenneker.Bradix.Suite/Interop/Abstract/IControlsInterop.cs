@@ -39,6 +39,12 @@ public interface IControlsInterop : IAsyncDisposable
     /// <returns>A task that completes when the click element operation is complete.</returns>
     ValueTask ClickElement(ElementReference element, CancellationToken cancellationToken = default);
 
+    /// <summary>Registers Shift+F10 and ContextMenu key handling at the trigger's rendered position.</summary>
+    ValueTask RegisterContextMenuKeyboard(ElementReference element, CancellationToken cancellationToken = default);
+
+    /// <summary>Removes keyboard context-menu handling from the trigger.</summary>
+    ValueTask UnregisterContextMenuKeyboard(ElementReference element, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Focuses element Deferred.
     /// </summary>

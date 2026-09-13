@@ -18,6 +18,8 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     public BradixContextMenuRenderTests()
     {
         _module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
+        _module.SetupVoid("registerContextMenuKeyboard", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterContextMenuKeyboard", _ => true).SetVoidResult();
         _module.SetupVoid("registerDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("updateDismissableLayer", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDismissableLayer", _ => true).SetVoidResult();
@@ -65,7 +67,8 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         await Assert.That(closedControlsAttr).IsNotNull();
         string closedControls = closedControlsAttr!;
         await Assert.That(trigger.GetAttribute("aria-haspopup")).IsEqualTo("menu");
-        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("false");
+        await Assert.That(trigger.HasAttribute("aria-expanded")).IsFalse();
+        await Assert.That(trigger.GetAttribute("tabindex")).IsEqualTo("0");
 
         await trigger.TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
 
@@ -73,7 +76,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         {
             IElement updatedTrigger = cut.Find("[aria-haspopup='menu']");
             await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("open");
-            await Assert.That(updatedTrigger.GetAttribute("aria-expanded")).IsEqualTo("true");
+            await Assert.That(updatedTrigger.GetAttribute("data-state")).IsEqualTo("open");
             await Assert.That(updatedTrigger.GetAttribute("aria-controls")).IsEqualTo(closedControls);
         });
 
@@ -95,7 +98,8 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         await trigger.TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
 
         await Assert.That(cut.FindAll("[role='menu']")).IsEmpty();
-        await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("false");
+        await Assert.That(trigger.GetAttribute("data-state")).IsEqualTo("closed");
+        await Assert.That(trigger.GetAttribute("tabindex")).IsEqualTo("-1");
         await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerVirtualPopperContent")).IsFalse();
     }
 

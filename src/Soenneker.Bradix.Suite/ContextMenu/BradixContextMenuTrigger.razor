@@ -5,7 +5,8 @@
 @inherits BradixContentElement
 
 @implements IBradixContextMenuTrigger
-<span @oncontextmenu="HandleContextMenu"
+@inject IControlsInterop ControlsInterop
+<span @ref="_element" @oncontextmenu="HandleContextMenu"
       @oncontextmenu:preventDefault="@(!Disabled)"
       @onpointerdown="HandlePointerDown"
       @onpointermove="HandlePointerMove"
@@ -17,6 +18,8 @@
 
 @code {
     private const int _longPressDelayMs = 700;
+    private ElementReference _element;
+    private bool _disposed;
     private CancellationTokenSource? _longPressCancellationTokenSource;
 
     [CascadingParameter]
@@ -30,16 +33,31 @@
 
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
         ("aria-haspopup", "menu"),
-        ("aria-expanded", ContextMenu?.CurrentOpen == true ? "true" : "false"),
+        ("tabindex", Disabled ? -1 : 0),
         ("aria-controls", Menu?.ContentId),
         ("data-state", ContextMenu?.CurrentOpen == true ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
         ("style", BuildStyle()));
 
-    public ValueTask DisposeAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || _disposed)
+            return;
+
+        Menu?.RegisterTrigger(_element);
+        await ControlsInterop.RegisterContextMenuKeyboard(_element);
+        if (_disposed)
+            await ControlsInterop.UnregisterContextMenuKeyboard(_element);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
         ClearLongPress();
-        return ValueTask.CompletedTask;
+        await ControlsInterop.UnregisterContextMenuKeyboard(_element);
     }
 
     private Task HandleContextMenu(MouseEventArgs args)

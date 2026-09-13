@@ -56,7 +56,6 @@
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", "group"),
         ("dir", Toolbar.ResolvedDirection),
-        ("aria-orientation", Toolbar.Orientation.Value),
         ("data-orientation", Toolbar.Orientation.Value));
 
     protected override void OnParametersSet()

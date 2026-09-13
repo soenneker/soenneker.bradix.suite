@@ -73,6 +73,7 @@
     }
 
     private Dictionary<string, object> ViewportAttributes => BuildAttributes(
+        ("tabindex", 0),
         ("data-radix-scroll-area-viewport", string.Empty),
         ("class", Class),
         ("style", BuildViewportStyle()));

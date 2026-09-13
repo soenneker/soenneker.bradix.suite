@@ -9,7 +9,7 @@
                            OnOpenChange="HandleOpenChange">
             <div class="collapsible-demo__header-row">
                 <span class="collapsible-demo__text">@@peduarte starred 3 repositories</span>
-                <BradixCollapsibleTrigger Class="collapsible-demo__icon-button">
+                <BradixCollapsibleTrigger Class="collapsible-demo__icon-button" aria-label="Toggle starred repositories">
                     <span aria-hidden="true">@(_open ? "×" : "+")</span>
                 </BradixCollapsibleTrigger>
             </div>
@@ -36,7 +36,7 @@
                            Disabled="true">
             <div class="collapsible-demo__header-row">
                 <span class="collapsible-demo__text">Production deployment</span>
-                <BradixCollapsibleTrigger Class="collapsible-demo__icon-button">
+                <BradixCollapsibleTrigger Class="collapsible-demo__icon-button" aria-label="Toggle deployment details">
                     <span aria-hidden="true">Locked</span>
                 </BradixCollapsibleTrigger>
             </div>

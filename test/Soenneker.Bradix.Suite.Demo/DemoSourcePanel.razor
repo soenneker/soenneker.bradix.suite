@@ -5,15 +5,15 @@
 
 @if (!string.IsNullOrWhiteSpace(_source))
 {
-    <section class="demo-source" aria-labelledby="demo-source-heading">
+    <section class="demo-source" aria-label="Example source code">
         <header class="demo-source__header">
-            <div class="demo-source__tabs" role="tablist" aria-label="Example source files">
-                <span class="demo-source__tab" aria-selected="true" role="tab">@_fileName</span>
+            <div class="demo-source__tabs">
+                <span class="demo-source__tab">@_fileName</span>
             </div>
             <span class="demo-source__copy" aria-label="Copy source code">Copy</span>
         </header>
 
-        <pre class="demo-source__pre"><code>@_source</code></pre>
+        <pre class="demo-source__pre" tabindex="0" aria-label="Example source code"><code>@_source</code></pre>
         <div class="demo-source__expand" aria-hidden="true">
             <span>Expand code</span>
         </div>

@@ -56,7 +56,8 @@ public sealed class BradixToolbarRenderTests : BunitContext
 
         IReadOnlyList<IElement> radios = cut.FindAll("[role='radio']");
         await Assert.That(cut.Find(".toolbar-single-group").GetAttribute("role")).IsEqualTo("group");
-        await Assert.That(cut.Find(".toolbar-single-group").GetAttribute("aria-orientation")).IsEqualTo("horizontal");
+        await Assert.That(cut.Find(".toolbar-single-group").HasAttribute("aria-orientation")).IsFalse();
+        await Assert.That(cut.Find(".toolbar-single-group").GetAttribute("data-orientation")).IsEqualTo("horizontal");
         await radios[2].ClickAsync();
         radios = cut.FindAll("[role='radio']");
 
