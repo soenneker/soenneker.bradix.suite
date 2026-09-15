@@ -30,7 +30,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 10.0.401
 
       - name: Restore bUnit tests
         run: dotnet restore test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --verbosity minimal
