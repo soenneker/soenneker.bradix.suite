@@ -1,7 +1,7 @@
 [![](https://img.shields.io/nuget/v/soenneker.bradix.suite.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.bradix.suite/)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.bradix.suite/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.bradix.suite/actions/workflows/publish-package.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.bradix.suite.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.bradix.suite/)
-[![](https://img.shields.io/badge/Demo-Live-blueviolet?style=for-the-badge&logo=github)](https://soenneker.github.io/soenneker.bradix.suite)
+[![](https://img.shields.io/badge/Demo-Live-blueviolet?style=for-the-badge&logo=github)](https://bradix.soenneker.com)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.bradix.suite/codeql.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.bradix.suite/actions/workflows/codeql.yml)
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Bradix.Suite
@@ -183,7 +183,7 @@ button[data-state="open"] {
 }
 ```
 
-Depending on the primitive, useful attributes include `data-state`, `data-disabled`, `data-orientation`, `data-highlighted`, and standard ARIA attributes. Inspect the rendered element or the [live demo](https://soenneker.github.io/soenneker.bradix.suite) when defining a component's visual states.
+Depending on the primitive, useful attributes include `data-state`, `data-disabled`, `data-orientation`, `data-highlighted`, and standard ARIA attributes. Inspect the rendered element or the [live demo](https://bradix.soenneker.com) when defining a component's visual states.
 
 Portal-based content is rendered outside its original DOM location. Prefer stable classes or other direct selectors for overlay, menu, popover, and tooltip content rather than selectors that depend on the trigger's DOM ancestry.
 
@@ -199,7 +199,7 @@ Portal-based content is rendered outside its original DOM location. Prefer stabl
 
 Most user-facing components follow a root/part composition model. For example, a popover uses `BradixPopover`, `BradixPopoverTrigger`, `BradixPopoverPortal`, and `BradixPopoverContent`; a select adds parts such as value, icon, viewport, item, item text, and item indicator.
 
-Browse the [live component demos](https://soenneker.github.io/soenneker.bradix.suite) for complete markup and behavior for every primitive.
+Browse the [live component demos](https://bradix.soenneker.com) for complete markup and behavior for every primitive.
 
 ## Configuration
 
@@ -226,5 +226,18 @@ The packaged default is preferable when your application must avoid a runtime CD
 
 The demo application contains working examples for every shipped primitive and is also used by the browser test suite:
 
-- [Live demo](https://soenneker.github.io/soenneker.bradix.suite)
+- [Live demo](https://bradix.soenneker.com)
 - [Demo source](https://github.com/soenneker/soenneker.bradix.suite/tree/main/test/Soenneker.Bradix.Suite.Demo/Pages)
+
+### Deploying the demo
+
+The `deploy-demo` GitHub Actions workflow publishes the demo to the `soenneker-bradix-suite` Cloudflare Worker on pushes to `main` or manual dispatch. Configure the repository secrets `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`; the token needs Workers Scripts edit access for the deployment account and Workers Routes edit plus Zone read access for `soenneker.com`.
+
+To deploy locally with an authenticated Wrangler session:
+
+```sh
+dotnet publish test/Soenneker.Bradix.Suite.Demo/Soenneker.Bradix.Suite.Demo.csproj --configuration Release --output artifacts/cloudflare-workers -p:UseLocalProjects=false
+npx wrangler deploy --config wrangler.jsonc
+```
+
+`wrangler.jsonc` configures `bradix.soenneker.com`, single-page application routing, and disables workers.dev and preview URLs.

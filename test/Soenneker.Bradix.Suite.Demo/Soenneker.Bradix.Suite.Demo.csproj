@@ -6,7 +6,7 @@
         <NoWarn>$(NoWarn);1591</NoWarn>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
         <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>     
-        <RazorSitemapBaseUrl>https://soenneker.github.io/soenneker.bradix.suite/</RazorSitemapBaseUrl>
+        <RazorSitemapBaseUrl>https://bradix.soenneker.com/</RazorSitemapBaseUrl>
         <RazorSitemapOutputPath>wwwroot/sitemap.xml</RazorSitemapOutputPath>
         <RazorSitemapIncludeUnannotatedPages>true</RazorSitemapIncludeUnannotatedPages>
         <RazorSitemapEnabled>true</RazorSitemapEnabled>
