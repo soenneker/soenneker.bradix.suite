@@ -5,7 +5,6 @@ using Microsoft.JSInterop;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
-/// <inheritdoc cref="IPresenceOverlayInterop"/>
 public sealed class PresenceOverlayInterop : IPresenceOverlayInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
@@ -25,7 +24,7 @@ public sealed class PresenceOverlayInterop : IPresenceOverlayInterop
     public async ValueTask RegisterPresence(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerPresence", cancellationToken, element, dotNetReference);
+        await module.InvokeVoidAsync("registerPresence", cancellationToken, element, dotNetReference, element.Id);
     }
 
     public async ValueTask<BradixPresenceSnapshot> GetPresenceState(ElementReference element, CancellationToken cancellationToken = default)
@@ -38,7 +37,13 @@ public sealed class PresenceOverlayInterop : IPresenceOverlayInterop
     public async ValueTask UnregisterPresence(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterPresence", cancellationToken, element);
+        await module.InvokeVoidAsync("unregisterPresence", cancellationToken, element, element.Id);
+    }
+
+    public async ValueTask WaitForPresenceCallbacks(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidAsync("waitForPresenceCallbacks", cancellationToken, dotNetReference);
     }
 
     public async ValueTask RegisterFocusGuards(CancellationToken cancellationToken = default)

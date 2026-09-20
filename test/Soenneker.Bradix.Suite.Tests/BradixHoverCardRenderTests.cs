@@ -27,6 +27,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         _module.SetupVoid("unregisterPopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        _module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         _module.SetupVoid("mountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("disableHoverCardContentTabNavigation", _ => true).SetVoidResult();

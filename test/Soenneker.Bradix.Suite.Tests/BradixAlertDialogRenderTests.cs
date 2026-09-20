@@ -28,6 +28,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         _module.SetupVoid("unregisterFocusGuards", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        _module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         _module.SetupVoid("registerHideOthers", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterHideOthers", _ => true).SetVoidResult();
         _module.SetupVoid("registerRemoveScroll", _ => true).SetVoidResult();

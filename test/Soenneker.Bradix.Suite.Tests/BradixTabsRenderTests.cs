@@ -19,6 +19,7 @@ public sealed class BradixTabsRenderTests : BunitContext
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
         Services.AddBradixTestInterops();

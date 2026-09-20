@@ -20,6 +20,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
         module.SetupVoid("unobserveCollapsibleContent", _ => true).SetVoidResult();
         module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)

@@ -30,6 +30,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         _module.SetupVoid("unregisterPopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        _module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         _module.SetupVoid("registerFocusGuards", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterFocusGuards", _ => true).SetVoidResult();
         _module.SetupVoid("registerHideOthers", _ => true).SetVoidResult();

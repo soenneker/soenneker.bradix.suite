@@ -1,4 +1,6 @@
 const presenceHandlers = new WeakMap();
+const presenceElements = new Map();
+const pendingPresenceInvocations = new Map();
 let focusGuardsCount = 0;
 const hideOthersState = new WeakMap();
 const removeScrollRegistrations = new Map();
@@ -9,21 +11,31 @@ let originalBodyPaddingRight = "";
 let originalDocumentTouchAction = "";
 
 function invokeDotNetSafely(dotNetRef, methodName, ...args) {
+  const id = dotNetRef?._id;
   try {
-    const invocation = dotNetRef?.invokeMethodAsync?.(methodName, ...args);
-    if (invocation && typeof invocation.catch === "function") {
-      invocation.catch(() => {});
-    }
+    const invocation = Promise.resolve(dotNetRef?.invokeMethodAsync?.(methodName, ...args)).catch(() => {});
+    let pending = pendingPresenceInvocations.get(id);
+    if (!pending) pendingPresenceInvocations.set(id, pending = new Set());
+    pending.add(invocation);
+    invocation.then(() => {
+      pending.delete(invocation);
+      if (pending.size === 0) pendingPresenceInvocations.delete(id);
+    });
   } catch {
   }
 }
 
-export function registerPresence(element, dotNetRef) {
+export function waitForPresenceCallbacks(dotNetRef) {
+  return Promise.all(pendingPresenceInvocations.get(dotNetRef?._id) || []).then(() => undefined);
+}
+
+export function registerPresence(element, dotNetRef, registrationId) {
   if (!element) {
     return;
   }
 
-  unregisterPresence(element);
+  unregisterPresence(element, registrationId);
+  if (registrationId) presenceElements.set(registrationId, element);
 
   let fillModeForced = false;
   let previousAnimationFillMode = "";
@@ -90,7 +102,9 @@ export function getPresenceState(element) {
   };
 }
 
-export function unregisterPresence(element) {
+export function unregisterPresence(element, registrationId) {
+  element = presenceElements.get(registrationId) || element;
+  if (registrationId) presenceElements.delete(registrationId);
   const handlers = presenceHandlers.get(element);
   if (!handlers) {
     return;

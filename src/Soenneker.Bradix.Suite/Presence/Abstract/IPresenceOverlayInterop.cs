@@ -43,6 +43,12 @@ public interface IPresenceOverlayInterop : IAsyncDisposable
     /// <returns>A task that completes when the presence registration has been removed.</returns>
     ValueTask UnregisterPresence(ElementReference element, CancellationToken cancellationToken = default);
 
+    /// <summary>Waits for callbacks already sent to a presence component before its .NET reference is disposed. Unregister its elements first; do not call this from an animation callback.</summary>
+    /// <param name="dotNetReference">The reference whose pending callbacks must finish.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when no pending callbacks remain.</returns>
+    ValueTask WaitForPresenceCallbacks(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Registers focus Guards for the Presence Overlay.
     /// </summary>

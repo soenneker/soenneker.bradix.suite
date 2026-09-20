@@ -14,6 +14,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
         BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
             .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-in", Display = "block" });
 

@@ -43,6 +43,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.SetupVoid("unregisterHideOthers", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        _module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         _module.SetupVoid("mountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("registerFocusGuards", _ => true).SetVoidResult();

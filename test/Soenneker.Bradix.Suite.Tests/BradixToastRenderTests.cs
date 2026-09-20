@@ -28,6 +28,7 @@ public sealed class BradixToastRenderTests : BunitContext
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        _module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementById", _ => true).SetVoidResult();
         _module.Setup<bool>("isToastFocused", _ => true).SetResult(false);
         _module.Setup<string[]>("getToastAnnounceText", _ => true)

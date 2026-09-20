@@ -42,7 +42,7 @@ public interface IDismissableLayerInterop : IAsyncDisposable
     /// </summary>
     /// <param name="element">DOM element to inspect or update.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task that completes when the dismissable layer registration has been removed.</returns>
+    /// <returns>A task that completes when the registration is removed and pending callbacks have finished, so the .NET reference can be disposed.</returns>
     ValueTask UnregisterDismissableLayer(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>

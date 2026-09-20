@@ -130,6 +130,8 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
         public ValueTask<BradixPresenceSnapshot> GetPresenceState(ElementReference element, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
+        public ValueTask WaitForPresenceCallbacks(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
         public ValueTask UnregisterPresence(ElementReference element, CancellationToken cancellationToken = default) => throw new NotSupportedException();
 
         public ValueTask RegisterFocusGuards(CancellationToken cancellationToken = default) => throw new NotSupportedException();

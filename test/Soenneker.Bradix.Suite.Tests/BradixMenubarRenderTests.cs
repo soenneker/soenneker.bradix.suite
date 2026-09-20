@@ -28,6 +28,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         _module.SetupVoid("unregisterPopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
+        _module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         _module.SetupVoid("mountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("unmountPortal", _ => true).SetVoidResult();
         _module.SetupVoid("registerFocusScope", _ => true).SetVoidResult();

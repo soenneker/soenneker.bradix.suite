@@ -6,7 +6,6 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
 
-/// <inheritdoc cref="IDismissableLayerInterop"/>
 public sealed class DismissableLayerInterop : IDismissableLayerInterop
 {
     private readonly IModuleImportUtil _moduleImportUtil;
@@ -21,7 +20,7 @@ public sealed class DismissableLayerInterop : IDismissableLayerInterop
     public async ValueTask RegisterDismissableLayer(ElementReference element, object dotNetReference, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerDismissableLayer", cancellationToken, element, dotNetReference, disableOutsidePointerEvents);
+        await module.InvokeVoidAsync("registerDismissableLayer", cancellationToken, element, dotNetReference, disableOutsidePointerEvents, element.Id);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -38,7 +37,7 @@ public sealed class DismissableLayerInterop : IDismissableLayerInterop
     public async ValueTask UnregisterDismissableLayer(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterDismissableLayer", cancellationToken, element);
+        await module.InvokeVoidAsync("unregisterDismissableLayer", cancellationToken, element, element.Id);
     }
 
     public async ValueTask RegisterDismissableLayerBranch(ElementReference element, CancellationToken cancellationToken = default)

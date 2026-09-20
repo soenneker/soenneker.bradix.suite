@@ -6,21 +6,28 @@ import {
 
 const dismissableBranches = new Set();
 const dismissableLayers = [];
+const dismissableLayerUnregistrations = new Map();
 let dismissableLayerListenersRegistered = false;
 let dismissableLayerPointerDownListenerRegistered = false;
 let originalDismissableBodyPointerEvents = "";
 let hasStoredDismissableBodyPointerEvents = false;
 
-function invokeDotNetSafely(dotNetRef, methodName, ...args) {
+function invokeDotNetSafely(layer, methodName, ...args) {
+  if (!isRegisteredLayer(layer)) {
+    return Promise.resolve(undefined);
+  }
+
+  let invocation;
   try {
-    const invocation = dotNetRef?.invokeMethodAsync?.(methodName, ...args);
-    if (invocation && typeof invocation.catch === "function") {
-      return invocation.catch(() => undefined);
-    }
-    return Promise.resolve(invocation);
+    invocation = Promise.resolve(layer.dotNetRef?.invokeMethodAsync?.(methodName, ...args))
+      .catch(() => undefined);
   } catch {
     return Promise.resolve(undefined);
   }
+
+  layer.pendingInvocations.add(invocation);
+  invocation.then(() => layer.pendingInvocations.delete(invocation));
+  return invocation;
 }
 
 function isRegisteredLayer(layer) {
@@ -92,7 +99,7 @@ function ensureDismissableLayerListeners() {
 
       const snapshot = createDismissablePointerSnapshot(event);
       snapshot.activeElementInsideLayer = !!(document.activeElement && topLayer.element.contains(document.activeElement));
-      invokeDotNetSafely(topLayer.dotNetRef, "HandlePointerDownOutside", snapshot);
+      invokeDotNetSafely(topLayer, "HandlePointerDownOutside", snapshot);
     };
 
     const handlePointerDownLikeEvent = (event) => {
@@ -144,7 +151,7 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
-    invokeDotNetSafely(topLayer.dotNetRef, "HandleFocusOutside", createDismissableFocusSnapshot(event));
+    invokeDotNetSafely(topLayer, "HandleFocusOutside", createDismissableFocusSnapshot(event));
   });
 
   document.addEventListener("keydown", (event) => {
@@ -157,7 +164,7 @@ function ensureDismissableLayerListeners() {
       return;
     }
 
-    invokeDotNetSafely(topLayer.dotNetRef, "HandleEscapeKeyDown", createDismissableKeyboardSnapshot(event)).then((shouldPreventDefault) => {
+    invokeDotNetSafely(topLayer, "HandleEscapeKeyDown", createDismissableKeyboardSnapshot(event)).then((shouldPreventDefault) => {
       if (shouldPreventDefault) {
         event.preventDefault();
       }
@@ -167,12 +174,12 @@ function ensureDismissableLayerListeners() {
   dismissableLayerListenersRegistered = true;
 }
 
-export function registerDismissableLayer(element, dotNetRef, disableOutsidePointerEvents) {
+export function registerDismissableLayer(element, dotNetRef, disableOutsidePointerEvents, registrationId) {
   if (!element) {
     return;
   }
 
-  unregisterDismissableLayer(element);
+  const previousUnregistration = unregisterDismissableLayer(element, registrationId);
   ensureDismissableLayerListeners();
 
   const handlePointerDownCapture = () => {
@@ -200,7 +207,9 @@ export function registerDismissableLayer(element, dotNetRef, disableOutsidePoint
 
   dismissableLayers.push({
     element,
+    registrationId,
     dotNetRef,
+    pendingInvocations: new Set(previousUnregistration ? [previousUnregistration] : []),
     disableOutsidePointerEvents: !!disableOutsidePointerEvents,
     isPointerInside: false,
     isFocusInside: false,
@@ -224,14 +233,16 @@ export function updateDismissableLayer(element, disableOutsidePointerEvents) {
   updateDismissableLayerPointerEvents();
 }
 
-export function unregisterDismissableLayer(element) {
-  const index = dismissableLayers.findIndex((item) => item.element === element);
+export function unregisterDismissableLayer(element, registrationId) {
+  const key = registrationId || element;
+  const index = dismissableLayers.findIndex((item) => registrationId ? item.registrationId === registrationId : item.element === element);
 
   if (index < 0) {
-    return;
+    return dismissableLayerUnregistrations.get(key);
   }
 
   const [layer] = dismissableLayers.splice(index, 1);
+  element = layer.element;
 
   if (element) {
     element.removeEventListener("pointerdown", layer.handlePointerDownCapture, true);
@@ -241,6 +252,16 @@ export function unregisterDismissableLayer(element) {
   }
 
   updateDismissableLayerPointerEvents();
+
+  // The component awaits unregister before disposing its DotNetObjectReference.
+  // Stop new events immediately, then let already-dispatched callbacks finish.
+  const completion = Promise.all(layer.pendingInvocations).then(() => {
+    if (dismissableLayerUnregistrations.get(key) === completion) {
+      dismissableLayerUnregistrations.delete(key);
+    }
+  });
+  dismissableLayerUnregistrations.set(key, completion);
+  return completion;
 }
 
 export function registerDismissableLayerBranch(element) {

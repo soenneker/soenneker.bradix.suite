@@ -17,6 +17,7 @@
     private ElementReference _element;
     private DotNetObjectReference<BradixDismissableLayer>? _dotNetReference;
     private bool _registered;
+    private Task? _registrationTask;
     private bool? _lastDisableOutsidePointerEvents;
     private ValueAtomicBool _disposed;
 
@@ -76,12 +77,10 @@
 
             try
             {
-                await DismissableLayerInterop.RegisterDismissableLayer(_element, _dotNetReference, DisableOutsidePointerEvents);
+                _registrationTask = DismissableLayerInterop.RegisterDismissableLayer(_element, _dotNetReference, DisableOutsidePointerEvents).AsTask();
+                await _registrationTask;
                 if (_disposed.Read())
-                {
-                    await DismissableLayerInterop.UnregisterDismissableLayer(_element);
                     return;
-                }
                 _registered = true;
                 _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
                 await InvokeAsync(StateHasChanged);
@@ -119,8 +118,9 @@
 
         try
         {
-            if (_registered)
+            if (_registrationTask is not null)
             {
+                await _registrationTask;
                 _registered = false;
                 await DismissableLayerInterop.UnregisterDismissableLayer(_element);
             }
@@ -138,6 +138,9 @@
     [JSInvokable]
     public async Task<bool> HandleEscapeKeyDown(BradixDelegatedKeyboardEvent? originalEvent = null)
     {
+        if (_disposed.Read())
+            return false;
+
         var args = new BradixEscapeKeyDownEventArgs(originalEvent ?? new BradixDelegatedKeyboardEvent());
 
         if (OnEscapeKeyDown.HasDelegate)
@@ -157,6 +160,9 @@
     [JSInvokable]
     public async Task HandlePointerDownOutside(BradixDelegatedMouseEvent? originalEvent = null)
     {
+        if (_disposed.Read())
+            return;
+
         var pointerArgs = new BradixPointerDownOutsideEventArgs(originalEvent ?? new BradixDelegatedMouseEvent());
 
         if (OnPointerDownOutside.HasDelegate)
@@ -183,6 +189,9 @@
     [JSInvokable]
     public async Task HandleFocusOutside(BradixDelegatedFocusEvent? originalEvent = null)
     {
+        if (_disposed.Read())
+            return;
+
         var focusArgs = new BradixFocusOutsideEventArgs(originalEvent ?? new BradixDelegatedFocusEvent());
 
         if (OnFocusOutside.HasDelegate)

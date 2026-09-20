@@ -78,6 +78,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
+    private Task? _registrationTask;
     private bool _rendered;
     private bool _initialized;
     private bool _pendingExitEvaluation;
@@ -129,12 +130,10 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
                 _dotNetReference ??= DotNetObjectReference.Create<object>(this);
                 try
                 {
-                    await PresenceOverlayInterop.RegisterPresence(_element, _dotNetReference);
+                    _registrationTask = PresenceOverlayInterop.RegisterPresence(_element, _dotNetReference).AsTask();
+                    await _registrationTask;
                     if (_disposed.Read())
-                    {
-                        await PresenceOverlayInterop.UnregisterPresence(_element);
                         return;
-                    }
                     _registered = true;
                 }
                 catch (Exception ex) when (ShouldIgnoreInteropException(ex))
@@ -217,8 +216,13 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
 
         try
         {
-            if (_registered)
+            if (_registrationTask is not null)
+            {
+                await _registrationTask;
                 await PresenceOverlayInterop.UnregisterPresence(_element);
+            }
+            if (_dotNetReference is not null)
+                await PresenceOverlayInterop.WaitForPresenceCallbacks(_dotNetReference);
         }
         catch (Exception ex) when (ShouldIgnoreInteropException(ex))
         {
@@ -234,6 +238,9 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
     [JSInvokable]
     public Task HandleAnimationStart(string animationName, string? currentAnimationName = null)
     {
+        if (_disposed.Read())
+            return Task.CompletedTask;
+
         _previousAnimationName = NormalizeAnimationName(currentAnimationName, animationName);
         return Task.CompletedTask;
     }
@@ -247,6 +254,9 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
     [JSInvokable]
     public async Task HandleAnimationEnd(string animationName, string? currentAnimationName = null)
     {
+        if (_disposed.Read())
+            return;
+
         string normalizedEventAnimation = NormalizeAnimationName(animationName);
         string activeAnimationName = NormalizeAnimationName(currentAnimationName);
 
