@@ -4,6 +4,7 @@
 
 <section class="website-demo-page">
     <div class="website-demo-row">
+        <DemoExample File="Menus.razor" Index="0" Title="Modal menu">
         <article class="card website-demo-card stack">
             <BradixMenu Open="@_modalOpen" OpenChanged="HandleModalOpenChanged">
                 <BradixMenuAnchor>
@@ -81,7 +82,9 @@
             </p>
             <p><strong>Sort:</strong> @_sortValue</p>
         </article>
+        </DemoExample>
 
+        <DemoExample File="Menus.razor" Index="1" Title="Non-modal menu">
         <article class="card website-demo-card stack">
             <BradixMenu Open="@_nonModalOpen" OpenChanged="HandleNonModalOpenChanged" Modal="false">
                 <BradixMenuAnchor>
@@ -98,6 +101,7 @@
                 </BradixMenuPortal>
             </BradixMenu>
         </article>
+        </DemoExample>
     </div>
 </section>
 

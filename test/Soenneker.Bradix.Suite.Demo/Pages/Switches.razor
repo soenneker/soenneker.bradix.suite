@@ -3,6 +3,7 @@
 <PageTitle>Bradix Switch</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Switches.razor" Index="0" Title="Default">
     <section class="card website-demo-card">
         <h2>Default</h2>
         <form>
@@ -14,7 +15,9 @@
             </div>
         </form>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Switches.razor" Index="1" Title="Controlled">
     <section class="card website-demo-card">
         <h2>Controlled</h2>
         <div class="website-demo-row">
@@ -32,7 +35,9 @@
         </div>
         <p><strong>State:</strong> @(_syncEnabled ? "checked" : "unchecked")</p>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Switches.razor" Index="2" Title="Form reset">
     <section class="card website-demo-card">
         <h2>Form reset</h2>
         <form>
@@ -58,6 +63,7 @@
             <button type="reset">Reset form</button>
         </form>
     </section>
+    </DemoExample>
 </section>
 
 @code {

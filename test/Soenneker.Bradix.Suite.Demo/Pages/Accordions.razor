@@ -3,6 +3,7 @@
 <PageTitle>Bradix Accordion</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Accordions.razor" Index="0" Title="Single accordion">
     <section class="card website-demo-card" aria-label="Single accordion demo">
         <BradixAccordion Class="accordion-demo__root"
                          Type="@SelectionMode.Single"
@@ -51,7 +52,9 @@
             </BradixAccordionItem>
         </BradixAccordion>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Accordions.razor" Index="1" Title="Multiple accordion">
     <section class="card website-demo-card" aria-label="Multiple accordion demo">
         <BradixAccordion Class="accordion-demo__root"
                          Type="@SelectionMode.Multiple"
@@ -96,7 +99,9 @@
             </BradixAccordionItem>
         </BradixAccordion>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Accordions.razor" Index="2" Title="Disabled accordion">
     <section class="card website-demo-card" aria-label="Disabled accordion demo">
         <BradixAccordion Class="accordion-demo__root"
                          Type="@SelectionMode.Single"
@@ -141,7 +146,9 @@
             </BradixAccordionItem>
         </BradixAccordion>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Accordions.razor" Index="3" Title="Horizontal RTL accordion">
     <section class="card website-demo-card" aria-label="Horizontal RTL accordion demo">
         <BradixAccordion Class="accordion-demo__root"
                          Type="@SelectionMode.Single"
@@ -188,7 +195,9 @@
             </BradixAccordionItem>
         </BradixAccordion>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Accordions.razor" Index="4" Title="Force mounted accordion">
     <section class="card website-demo-card" aria-label="Force mounted accordion demo">
         <BradixAccordion Class="accordion-demo__root"
                          Type="@SelectionMode.Single"
@@ -208,6 +217,7 @@
             </BradixAccordionItem>
         </BradixAccordion>
     </section>
+    </DemoExample>
 </section>
 
 @code {

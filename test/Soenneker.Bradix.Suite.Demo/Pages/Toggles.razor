@@ -3,13 +3,16 @@
 <PageTitle>Bradix Toggle</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Toggles.razor" Index="0" Title="Uncontrolled toggle">
     <section class="card website-demo-card">
         <h1>Uncontrolled toggle</h1>
         <BradixToggle Class="toggle-demo__button" aria-label="Toggle italic">
             <span class="toggle-demo__icon" aria-hidden="true">I</span>
         </BradixToggle>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Toggles.razor" Index="1" Title="Controlled toggle">
     <section class="card website-demo-card">
         <h1>Controlled toggle</h1>
         <div class="stack-sm">
@@ -27,13 +30,16 @@
             <p id="toggle-controlled-state">Pressed: @_controlledPressed.ToString().ToLowerInvariant()</p>
         </div>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Toggles.razor" Index="2" Title="Disabled toggle">
     <section class="card website-demo-card">
         <h1>Disabled toggle</h1>
         <BradixToggle id="toggle-disabled" Class="toggle-demo__button" aria-label="Toggle disabled italic" Disabled="true">
             <span class="toggle-demo__icon" aria-hidden="true">D</span>
         </BradixToggle>
     </section>
+    </DemoExample>
 </section>
 
 @code {

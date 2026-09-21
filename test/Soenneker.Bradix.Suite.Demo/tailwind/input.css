@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@import "./quark-theme.generated.css";
+
+@source "./quark-suite-tailwind-manifest.txt";
+@source "./quark-tailwind-manifest.txt";
+
+/* Scan project sources from the consumer project root */
+@source "../**/*.{razor,cshtml,html,cs}";
+
+/* Exclude junk */
+@source not "../**/{bin,obj,node_modules,.git}/**";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

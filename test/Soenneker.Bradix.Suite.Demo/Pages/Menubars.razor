@@ -3,6 +3,7 @@
 <PageTitle>Menubar</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Menubars.razor" Index="0" Title="Basic usage">
     <section class="card website-demo-card" data-testid="bradix-menubar-demo">
         <BradixMenubar Class="menubar-demo__root" Value="@_currentMenu" ValueChanged="HandleCurrentMenuChanged">
                 <BradixMenubarMenu Value="file">
@@ -115,7 +116,9 @@
                 </BradixMenubarMenu>
             </BradixMenubar>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Menubars.razor" Index="1" Title="Example 2">
     <section class="card website-demo-card" data-testid="bradix-menubar-rtl-demo">
         <BradixMenubar Dir="rtl" Class="menubar-demo__root">
             <BradixMenubarMenu Value="file-rtl">
@@ -137,6 +140,7 @@
             </BradixMenubarMenu>
         </BradixMenubar>
     </section>
+    </DemoExample>
 
 </section>
 

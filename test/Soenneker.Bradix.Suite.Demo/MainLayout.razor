@@ -1,99 +1,90 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 @inject NavigationManager Navigation
+@inject IThemeInterop Theme
 
-<div class="@BuildShellClass()">
-    <header class="docs-shell__header">
-        <NavLink href="@DemoCatalog.Overview.Href" Match="NavLinkMatch.All" class="docs-shell__brand-link">
-            <span class="eyebrow">Bradix</span>
-            <span class="docs-shell__brand-title">Blazor primitives</span>
-        </NavLink>
+<HeadContent>
+    <meta name="title" content="@($"{_currentPage?.Title ?? "Overview"} | Bradix")" />
+    <meta name="description" content="@(_currentPage?.Description ?? DemoCatalog.Overview.Description)" />
+    <meta property="og:title" content="@($"{_currentPage?.Title ?? "Overview"} | Bradix")" />
+    <meta property="og:description" content="@(_currentPage?.Description ?? DemoCatalog.Overview.Description)" />
+</HeadContent>
+
+<Div Class="@(_showTests ? "bradix-docs show-test-scenarios" : "bradix-docs")">
+    <Anchor Href="#main-content" Class="skip-link">Skip to content</Anchor>
+    <header class="bradix-header">
+        <Anchor Href="/" Class="bradix-brand"><Span Class="bradix-mark" aria-hidden="true">b.</Span> Bradix <Span Class="brand-caption">/ primitives</Span></Anchor>
+        <Div Class="bradix-header-actions">
+            <HeaderSearch />
+            <Anchor Href="https://github.com/soenneker/soenneker.bradix.suite" Class="header-link">GitHub ↗</Anchor>
+            <Button Variant="ButtonVariant.Ghost" OnClick="ToggleTheme" aria-label="Toggle theme">@(_isDark ? "Light" : "Dark")</Button>
+            <Button Variant="ButtonVariant.Outline" Class="mobile-menu" OnClick="ToggleMenu" aria-expanded="@(_menuOpen ? "true" : "false")" aria-controls="component-navigation">Components</Button>
+        </Div>
     </header>
-
-    <div class="docs-shell__frame">
-        <aside class="docs-shell__sidebar" aria-label="Component navigation">
-            <nav class="docs-nav" aria-label="Bradix primitives">
-                <NavLink href="@DemoCatalog.Overview.Href" Match="NavLinkMatch.All" class="docs-nav__overview">Overview</NavLink>
-
-                @foreach (DemoPageGroup group in FilteredGroups)
+    <Div Class="bradix-frame">
+        <aside id="component-navigation" class="@(_menuOpen ? "bradix-sidebar is-open" : "bradix-sidebar")" aria-label="Component navigation">
+            <nav aria-label="Bradix primitives">
+                <NavLink href="/" Match="NavLinkMatch.All" class="bradix-nav-link">Overview</NavLink>
+                @foreach (DemoPageGroup group in DemoCatalog.Groups)
                 {
-                    <section class="docs-nav__group">
-                        <header class="docs-nav__group-header">
-                            <h3>@group.Title</h3>
-                        </header>
-
-                        <div class="docs-nav__group-links">
-                            @foreach (DemoPageLink demoPage in group.Pages)
-                            {
-                                <NavLink href="@demoPage.Href" class="docs-nav__link">@demoPage.Title</NavLink>
-                            }
-                        </div>
-                    </section>
+                    <Div Class="bradix-nav-group">
+                        <H3>@group.Title</H3>
+                        @foreach (DemoPageLink demoPage in group.Pages)
+                        {
+                            <NavLink href="@demoPage.Href" class="bradix-nav-link">@demoPage.Title</NavLink>
+                        }
+                    </Div>
                 }
             </nav>
+            <Paragraph Class="sidebar-note">Built with <Anchor Href="https://quark.soenneker.com">Quark Suite ↗</Anchor></Paragraph>
         </aside>
-
-        <main class="docs-shell__main">
-            <div class="@(CurrentPage is not null ? "docs-shell__content docs-shell__content--component" : "docs-shell__content")">
-                @if (CurrentPage is not null && CurrentPage.Route != "/")
-                {
-                    <header class="component-docs-header">
-                        <h1>@CurrentPage.Title</h1>
-                        <p>@CurrentPage.Description</p>
-                    </header>
-
-                    <section class="component-example" aria-label="@($"{CurrentPage.Title} example")">
-                        <div class="component-example__preview">
-                            @Body
-                        </div>
-
-                        <DemoSourcePanel Route="@CurrentPage.Route" />
-                    </section>
-                }
-                else
-                {
-                    @Body
-                }
-            </div>
+        <main id="main-content" class="bradix-main" tabindex="-1">
+            @if (_currentPage is not null && _currentPage.Route != "/")
+            {
+                <Div Class="bradix-page-heading">
+                    <Span Class="docs-kicker">COMPONENTS</Span>
+                    <H1>@_currentPage.Title</H1>
+                    <Paragraph>@_currentPage.Description</Paragraph>
+                </Div>
+            }
+            @Body
+            <footer class="bradix-footer">Bradix · Blazor primitives based on <Anchor Href="https://www.radix-ui.com/primitives">Radix UI</Anchor>.</footer>
         </main>
-    </div>
-</div>
+    </Div>
+</Div>
 
 @code {
-    private DemoPageLink? CurrentPage;
-    private bool ShowTestScenarios;
-
-    private IReadOnlyList<DemoPageGroup> FilteredGroups => DemoCatalog.Groups;
+    private DemoPageLink? _currentPage;
+    private bool _menuOpen;
+    private bool _isDark;
+    private bool _showTests;
 
     protected override void OnInitialized()
     {
-        Navigation.LocationChanged += HandleLocationChanged;
-        UpdateCurrentPage();
+        Navigation.LocationChanged += LocationChanged;
+        UpdatePage();
     }
 
-    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        UpdateCurrentPage();
+        if (!firstRender) return;
+        _isDark = await Theme.Initialize();
+        StateHasChanged();
+    }
+
+    private async Task ToggleTheme() { _isDark = await Theme.Toggle(); }
+    private void ToggleMenu() => _menuOpen = !_menuOpen;
+    private void LocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        _menuOpen = false;
+        UpdatePage();
         InvokeAsync(StateHasChanged);
     }
-
-    private void UpdateCurrentPage()
+    private void UpdatePage()
     {
-        string relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
-        string route = DemoCatalog.NormalizeRoute(relativePath);
-        CurrentPage = DemoCatalog.Find(route);
-        ShowTestScenarios = relativePath.Contains("testScenarios=true", StringComparison.OrdinalIgnoreCase);
+        string path = Navigation.ToBaseRelativePath(Navigation.Uri);
+        _currentPage = DemoCatalog.Find(DemoCatalog.NormalizeRoute(path));
+        _showTests = path.Contains("testScenarios=true", StringComparison.OrdinalIgnoreCase);
     }
-
-    private string BuildShellClass()
-    {
-        string shellClass = CurrentPage is not null ? "docs-shell docs-shell--component" : "docs-shell";
-
-        return ShowTestScenarios ? $"{shellClass} docs-shell--test-scenarios" : shellClass;
-    }
-
-    public void Dispose()
-    {
-        Navigation.LocationChanged -= HandleLocationChanged;
-    }
+    public void Dispose() => Navigation.LocationChanged -= LocationChanged;
 }

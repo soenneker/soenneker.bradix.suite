@@ -3,6 +3,7 @@
 <PageTitle>Bradix ScrollArea</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="ScrollAreas.razor" Index="0" Title="Basic usage">
     <section class="card website-demo-card">
         <BradixScrollArea Class="scroll-area-root" Type="@ScrollAreaType.Always" Style="width: 18rem; height: 14rem;">
             <BradixScrollAreaViewport Class="scroll-area-viewport">
@@ -23,7 +24,9 @@
             <BradixScrollAreaCorner Class="scroll-area-corner" />
         </BradixScrollArea>
     </section>
+    </DemoExample>
 
+    <DemoExample File="ScrollAreas.razor" Index="1" Title="Horizontal releases">
     <section class="card website-demo-card">
         <div class="stack stack--compact">
             <h2>Horizontal releases</h2>
@@ -47,7 +50,9 @@
             </BradixScrollAreaScrollbar>
         </BradixScrollArea>
     </section>
+    </DemoExample>
 
+    <DemoExample File="ScrollAreas.razor" Index="2" Title="RTL notes">
     <section class="card website-demo-card">
         <div class="stack stack--compact">
             <h2>RTL notes</h2>
@@ -73,6 +78,7 @@
             </BradixScrollArea>
         </BradixDirectionProvider>
     </section>
+    </DemoExample>
 </section>
 
 @code {

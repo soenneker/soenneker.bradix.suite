@@ -3,6 +3,7 @@
 <PageTitle>Bradix Slider</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Sliders.razor" Index="0" Title="Default">
     <section class="card website-demo-card">
         <h2>Default</h2>
         <form>
@@ -18,7 +19,9 @@
             </BradixSlider>
         </form>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Sliders.razor" Index="1" Title="Controlled">
     <section class="card website-demo-card">
         <h2>Controlled</h2>
         <BradixSlider Class="slider-root"
@@ -39,7 +42,9 @@
 
         <p><strong>Value:</strong> @_controlledValues[0]</p>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Sliders.razor" Index="2" Title="Minimum spacing">
     <section class="card website-demo-card">
         <h2>Minimum spacing</h2>
         <BradixSlider Class="slider-root"
@@ -58,7 +63,9 @@
 
         <p><strong>Values:</strong> @string.Join(", ", _spacingValues)</p>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Sliders.razor" Index="3" Title="Vertical">
     <section class="card website-demo-card">
         <h2>Vertical</h2>
         <div style="display:flex;align-items:center;gap:2rem;min-height:14rem;">
@@ -77,7 +84,9 @@
 
         <p><strong>Value:</strong> @_verticalValues[0]</p>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Sliders.razor" Index="4" Title="RTL">
     <section class="card website-demo-card">
         <h2>RTL</h2>
         <BradixDirectionProvider Dir="rtl">
@@ -95,6 +104,7 @@
 
         <p><strong>Value:</strong> @_rtlValues[0]</p>
     </section>
+    </DemoExample>
 </section>
 
 @code {

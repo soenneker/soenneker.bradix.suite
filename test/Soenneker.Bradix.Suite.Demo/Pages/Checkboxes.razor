@@ -3,6 +3,7 @@
 <PageTitle>Bradix Checkbox</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Checkboxes.razor" Index="0" Title="Default">
     <section class="card website-demo-card">
         <h2>Default</h2>
         <form>
@@ -21,7 +22,9 @@
             </div>
         </form>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Checkboxes.razor" Index="1" Title="Indeterminate">
     <section class="card website-demo-card">
         <h2>Indeterminate</h2>
         <div class="website-demo-row">
@@ -39,7 +42,9 @@
         </div>
         <p><strong>State:</strong> @_ownershipState.Value</p>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Checkboxes.razor" Index="2" Title="Form reset">
     <section class="card website-demo-card">
         <h2>Form reset</h2>
         <form>
@@ -74,6 +79,7 @@
             <button type="reset">Reset form</button>
         </form>
     </section>
+    </DemoExample>
 </section>
 
 @code {

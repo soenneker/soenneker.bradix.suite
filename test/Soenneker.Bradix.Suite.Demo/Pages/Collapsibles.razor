@@ -3,6 +3,7 @@
 <PageTitle>Bradix Collapsible</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Collapsibles.razor" Index="0" Title="Basic usage">
     <section class="card website-demo-card">
         <BradixCollapsible Class="collapsible-demo__root"
                            Open="@_open"
@@ -28,7 +29,9 @@
             </BradixCollapsibleContent>
         </BradixCollapsible>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Collapsibles.razor" Index="1" Title="Disabled">
     <section class="card website-demo-card">
         <h2 class="website-demo-card__title">Disabled</h2>
         <BradixCollapsible Class="collapsible-demo__root"
@@ -48,7 +51,9 @@
             </BradixCollapsibleContent>
         </BradixCollapsible>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Collapsibles.razor" Index="2" Title="Force mount">
     <section class="card website-demo-card">
         <h2 class="website-demo-card__title">Force mount</h2>
         <BradixCollapsible Class="collapsible-demo__root">
@@ -66,6 +71,7 @@
             </BradixCollapsibleContent>
         </BradixCollapsible>
     </section>
+    </DemoExample>
 </section>
 
 @code {

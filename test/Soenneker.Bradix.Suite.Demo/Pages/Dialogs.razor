@@ -3,6 +3,7 @@
 <PageTitle>Bradix Dialog</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Dialogs.razor" Index="0" Title="Edit profile">
     <section class="card website-demo-card">
         <BradixDialog Open="@_open"
                       OpenChanged="HandleOpenChanged">
@@ -49,9 +50,11 @@
             </BradixDialogPortal>
         </BradixDialog>
     </section>
+    </DemoExample>
 </section>
 
 <section class="website-demo-page">
+    <DemoExample File="Dialogs.razor" Index="1" Title="Nested overlays">
     <section class="card website-demo-card">
         <BradixDialog>
             <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
@@ -90,6 +93,7 @@
             </BradixDialogPortal>
         </BradixDialog>
     </section>
+    </DemoExample>
 </section>
 
 @code {

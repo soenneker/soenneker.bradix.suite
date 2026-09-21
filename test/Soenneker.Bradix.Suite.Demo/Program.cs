@@ -1,3 +1,5 @@
+using Soenneker.Quark;
+using Soenneker.Quark.Gen.Lucide.Generated;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -31,7 +33,10 @@ public sealed class Program
                 BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
             });
 
-            builder.Services.AddBradixSuiteAsScoped();
+            builder.Services.AddQuarkSuiteAsScoped();
+            builder.Services.AddLucideIconsAsScoped();
+            builder.Services.AddQuarkCloudflareAiSearchAsScoped();
+            builder.Services.AddScoped<DemoSourceService>();
 
             WebAssemblyHost host = builder.Build();
 

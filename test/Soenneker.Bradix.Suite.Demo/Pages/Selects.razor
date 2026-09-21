@@ -4,6 +4,7 @@
 <PageTitle>Select</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Selects.razor" Index="0" Title="Basic usage">
     <section class="card website-demo-card">
         <BradixSelect Value="@_selectedValue"
                       ValueChanged="HandleSelectedValueChanged">
@@ -91,12 +92,14 @@
             </BradixSelectPortal>
         </BradixSelect>
     </section>
+    </DemoExample>
 </section>
 
 @if (ShowTestScenarios)
 {
     <section class="website-demo-page">
-        <section class="card website-demo-card stack stack--compact" data-testid="select-scroll-boundary">
+        <DemoExample File="Selects.razor" Index="1" Title="Example 2">
+    <section class="card website-demo-card stack stack--compact" data-testid="select-scroll-boundary">
             <BradixSelect>
                 <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit select-demo__trigger"
                                      aria-label="Open scroll boundary select">
@@ -125,10 +128,12 @@
                 </BradixSelectPortal>
             </BradixSelect>
         </section>
+    </DemoExample>
     </section>
 }
 
 <section class="website-demo-page">
+    <DemoExample File="Selects.razor" Index="2" Title="Native form">
     <section class="card website-demo-card stack stack--compact">
         <h2>Native form</h2>
         <p>Verify the hidden select participates in native required validation and form submission.</p>
@@ -175,9 +180,11 @@
             </div>
         </form>
     </section>
+    </DemoExample>
 </section>
 
 <section class="website-demo-page">
+    <DemoExample File="Selects.razor" Index="3" Title="Example 4">
     <section class="card website-demo-card">
         <BradixDialog>
             <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">
@@ -229,6 +236,7 @@
             </BradixDialogPortal>
         </BradixDialog>
     </section>
+    </DemoExample>
 </section>
 
 @code {

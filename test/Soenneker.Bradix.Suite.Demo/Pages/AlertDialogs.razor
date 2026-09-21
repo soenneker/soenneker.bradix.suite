@@ -3,6 +3,7 @@
 <PageTitle>Bradix AlertDialog</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="AlertDialogs.razor" Index="0" Title="Basic usage">
     <section class="card website-demo-card">
         <BradixAlertDialog Open="@_open"
                            OpenChanged="HandleOpenChanged">
@@ -33,7 +34,9 @@
             </BradixAlertDialogPortal>
         </BradixAlertDialog>
     </section>
+    </DemoExample>
 
+    <DemoExample File="AlertDialogs.razor" Index="1" Title="Example 2">
     <section class="card website-demo-card">
         <BradixAlertDialog Open="@_guardEscapeOpen"
                            OpenChanged="HandleGuardEscapeOpenChanged">
@@ -59,6 +62,7 @@
             </BradixAlertDialogPortal>
         </BradixAlertDialog>
     </section>
+    </DemoExample>
 </section>
 
 @code {

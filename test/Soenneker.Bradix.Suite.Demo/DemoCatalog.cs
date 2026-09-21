@@ -10,7 +10,7 @@ public static class DemoCatalog
     public static readonly DemoPageLink Overview = new("/",
         "Overview",
         "Overview",
-        "Introduction to Bradix primitives.");
+        "Accessible, unstyled Blazor primitives based on Radix UI, with composable parts and full control over styling.");
 
     public static readonly IReadOnlyList<DemoPageGroup> Groups = new ReadOnlyCollection<DemoPageGroup>(new[]
     {

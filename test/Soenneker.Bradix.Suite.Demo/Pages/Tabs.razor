@@ -3,6 +3,7 @@
 <PageTitle>Bradix Tabs</PageTitle>
 
 <section class="website-demo-page">
+    <DemoExample File="Tabs.razor" Index="0" Title="Basic usage">
     <section class="card website-demo-card">
         <BradixTabs Class="tabs-root tabs-root--hero" DefaultValue="account">
             <BradixTabsList Class="tabs-list" aria-label="Manage your account">
@@ -43,7 +44,9 @@
             </BradixTabsContent>
         </BradixTabs>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Tabs.razor" Index="1" Title="Disabled tabs">
     <section class="card website-demo-card">
         <h2>Disabled tabs</h2>
         <p>Disabled triggers should not become selected, and enabled siblings should still activate normally.</p>
@@ -64,7 +67,9 @@
             </BradixTabsContent>
         </BradixTabs>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Tabs.razor" Index="2" Title="Controlled tabs">
     <section class="card website-demo-card">
         <h2>Controlled tabs</h2>
         <p>External controls should keep the selected trigger and visible panel in sync.</p>
@@ -93,7 +98,9 @@
             </div>
         </div>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Tabs.razor" Index="3" Title="Manual activation">
     <section class="card website-demo-card">
         <h2>Manual activation</h2>
         <p>Arrow keys should move focus without changing selection until Space or Enter activates the focused tab.</p>
@@ -112,7 +119,9 @@
             </BradixTabsContent>
         </BradixTabs>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Tabs.razor" Index="4" Title="Vertical tabs">
     <section class="card website-demo-card" data-testid="bradix-tabs-vertical-demo">
         <h2>Vertical tabs</h2>
         <p>Vertical tabs should use up and down arrows to move focus and selection.</p>
@@ -135,7 +144,9 @@
             </BradixTabsContent>
         </BradixTabs>
     </section>
+    </DemoExample>
 
+    <DemoExample File="Tabs.razor" Index="5" Title="RTL tabs">
     <section class="card website-demo-card" data-testid="bradix-tabs-rtl-demo">
         <h2>RTL tabs</h2>
         <p>Horizontal tabs should reverse left and right arrow behavior in RTL.</p>
@@ -156,6 +167,7 @@
             </BradixTabs>
         </BradixDirectionProvider>
     </section>
+    </DemoExample>
 </section>
 
 @code {

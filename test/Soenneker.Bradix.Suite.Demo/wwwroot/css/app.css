@@ -1,3 +1,5 @@
+/* Keep primitive demo styles below Quark component utilities. */
+@layer base {
 :root {
     color-scheme: light;
     --page-bg: var(--gray-1, #fcfcfd);
@@ -44,7 +46,7 @@
     --space-12: 3rem;
 }
 
-body.radix-themes.dark {
+html.dark {
     --gray-1: #111111;
     --gray-2: #191919;
     --gray-3: #222222;
@@ -3521,4 +3523,6 @@ button.switch-root {
         position: static;
         max-height: 220px;
     }
+}
+
 }

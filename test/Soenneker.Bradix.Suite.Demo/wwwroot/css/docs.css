@@ -1,0 +1,83 @@
+/* Documentation shell uses Quark tokens; primitive preview styles stay in app.css. */
+:root {
+    --page-bg: var(--background); --surface-bg: var(--background); --surface-bg-strong: var(--background);
+    --surface-muted: var(--muted); --text-strong: var(--foreground); --text-default: var(--foreground);
+    --text-muted: var(--muted-foreground); --border-color: var(--border); --brand: var(--foreground); --brand-strong: var(--foreground);
+    --gray-12: var(--foreground); --gray-11: var(--muted-foreground); --color-panel-solid: var(--background);
+}
+html, body { background: var(--background); color: var(--foreground); font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+body { line-height: 1.6; }
+a:hover { color: inherit; }
+.bradix-docs { min-height: 100vh; }
+.bradix-header { height: 72px; padding: 0 36px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; background: var(--background); }
+.bradix-brand { display: flex; align-items: center; gap: 10px; color: var(--foreground); font-weight: 700; font-size: 20px; text-decoration: none; white-space: nowrap; }
+.bradix-mark { display: grid; place-items: center; width: 30px; height: 30px; background: var(--foreground); color: var(--background); border-radius: 8px; font-size: 24px; line-height: 1; padding-bottom: 4px; }
+.brand-caption { font-size: 13px; font-weight: 400; color: var(--muted-foreground); margin-left: 5px; }
+.bradix-header button { width: auto; min-height: 32px; height: 32px; flex: none; }
+.bradix-header-actions { display: flex; align-items: center; gap: 20px; }
+.bradix-search { width: 300px; max-width: 100%; }
+.header-link { font-size: 13px; color: var(--muted-foreground); white-space: nowrap; }
+.bradix-frame { display: grid; grid-template-columns: 240px minmax(0, 1fr); max-width: 1440px; margin: 0 auto; }
+.bradix-sidebar { position: sticky; top: 72px; height: calc(100vh - 72px); overflow-y: auto; padding: 28px 22px 30px 30px; border-right: 1px solid var(--border); scrollbar-width: thin; }
+.bradix-nav-group { margin-top: 25px; }
+.bradix-nav-group h3 { font-size: 12px; line-height: 1.5; letter-spacing: .025em; margin: 0 10px 8px; font-weight: 650; }
+.bradix-nav-link { display: block; color: var(--muted-foreground); font-size: 13px; padding: 6px 10px; border-radius: 6px; line-height: 1.5; }
+.bradix-nav-link:hover, .bradix-nav-link.active { background: var(--muted); color: var(--foreground); }
+.bradix-nav-link.active { font-weight: 600; }
+.sidebar-note { font-size: 11px; color: var(--muted-foreground); margin: 30px 10px 0; }
+.bradix-main { width: 100%; min-width: 0; max-width: 1050px; padding: 56px 64px 24px; margin: 0 auto; }
+.bradix-page-heading { margin-bottom: 40px; }
+.docs-kicker { display: block; color: var(--muted-foreground); font-size: 10px; letter-spacing: .12em; font-weight: 600; margin-bottom: 18px; }
+.bradix-page-heading h1 { font-size: 38px; font-weight: 650; letter-spacing: -.04em; margin-bottom: 15px; }
+.bradix-page-heading p { color: var(--muted-foreground); font-size: 16px; max-width: 650px; }
+.bradix-main .website-demo-page { display: flex; align-items: stretch; gap: 24px; width: 100%; }
+.bradix-preview { min-height: 280px; display: flex; align-items: center; justify-content: center; padding: 40px 28px; background: var(--background); }
+.bradix-preview-inner { width: 100%; min-width: 0; display: flex; justify-content: center; }
+.bradix-preview .website-demo-card { padding: 0; border: 0; background: transparent; box-shadow: none; display: flex; flex-direction: column; gap: 16px; }
+.bradix-docs:not(.show-test-scenarios) .demo-test-only, .bradix-docs:not(.show-test-scenarios) .avatar-demo__case--test-only { display: none; }
+.bradix-main [data-slot="component-preview"] { border-color: var(--border); }
+.bradix-main [data-slot="code"] pre code { padding: 0; background: none; font-size: inherit; }
+.bradix-hero { padding: 14px 0 50px; }
+.bradix-hero h1 { font-size: clamp(36px, 4.5vw, 60px); font-weight: 650; letter-spacing: -.055em; line-height: 1.08; margin-bottom: 25px; }
+.bradix-hero > p { color: var(--muted-foreground); max-width: 540px; font-size: 18px; line-height: 1.7; }
+.hero-actions { display: flex; gap: 12px; margin-top: 28px; }
+.primary-link, .secondary-link { display: inline-flex; align-items: center; justify-content: center; gap: 18px; padding: 10px 16px; border-radius: 7px; font-size: 13px; font-weight: 550; border: 1px solid var(--border); }
+.primary-link { color: var(--background); background: var(--foreground); }
+.primary-link:hover { color: var(--background); opacity: .88; }
+.secondary-link { color: var(--foreground); }
+.feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; padding: 30px 0 38px; border-block: 1px solid var(--border); }
+.feature-number { color: var(--muted-foreground); font-family: monospace; font-size: 11px; }
+.feature-grid h3 { font-size: 14px; font-weight: 600; margin: 14px 0 10px; }
+.feature-grid p { font-size: 13px; line-height: 1.8; color: var(--muted-foreground); }
+.getting-started { display: flex; flex-direction: column; gap: 15px; margin: 46px 0; scroll-margin-top: 95px; }
+.getting-started h2, .directory-heading h2 { font-size: 24px; font-weight: 600; letter-spacing: -.03em; }
+.getting-started > p, .directory-heading p { font-size: 14px; color: var(--muted-foreground); }
+.directory-heading { margin: 52px 0 30px; }
+.component-directory > h3 { font-size: 14px; margin: 30px 0 13px; font-weight: 600; }
+.component-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.component-card { padding: 18px; border: 1px solid var(--border); border-radius: 8px; color: var(--foreground); text-decoration: none; }
+.component-card:hover { background: var(--muted); }
+.component-card strong { font-size: 14px; display: flex; justify-content: space-between; }
+.component-card p { color: var(--muted-foreground); font-size: 12px; margin-top: 8px; line-height: 1.6; }
+.bradix-footer { border-top: 1px solid var(--border); margin-top: 64px; padding: 22px 0; font-size: 11px; color: var(--muted-foreground); }
+.mobile-menu { display: none; }
+.skip-link { position: fixed; left: 12px; top: -100px; z-index: 100; padding: 10px 16px; background: var(--background); border: 1px solid var(--border); }
+.skip-link:focus { top: 12px; }
+@media(max-width: 1100px) { .bradix-main { padding: 40px 32px 24px; } .brand-caption { display: none; } }
+@media(max-width: 760px) {
+    .bradix-header { padding: 0 16px; gap: 12px; height: 64px; }
+    .bradix-header-actions { gap: 8px; min-width: 0; }
+    .bradix-search { width: 180px; }
+    .bradix-brand { font-size: 16px; gap: 6px; }
+    .header-link, .bradix-mark { display: none; }
+    .mobile-menu { display: inline-flex; font-size: 11px; padding: 6px 8px; }
+    .bradix-frame { display: block; }
+    .bradix-sidebar { display: none; position: fixed; top: 64px; left: 0; bottom: 0; width: min(300px, 85vw); height: auto; background: var(--background); z-index: 40; box-shadow: 16px 0 50px #0002; }
+    .bradix-sidebar.is-open { display: block; }
+    .bradix-main { padding: 32px 20px 20px; }
+    .feature-grid { grid-template-columns: 1fr; gap: 26px; }
+    .component-grid { grid-template-columns: 1fr; }
+    .bradix-preview { padding: 28px 16px; min-height: 230px; overflow-x: auto; }
+    .bradix-page-heading h1 { font-size: 32px; }
+}
+@media(max-width: 420px) { .bradix-search { width: 135px; min-width: 100px; } .bradix-header-actions { gap: 4px; } }

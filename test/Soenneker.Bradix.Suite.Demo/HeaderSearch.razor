@@ -1,0 +1,27 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@if (_configuration is not null)
+{
+    <Div Class="bradix-search">
+        <CloudflareAiSearch Configuration="_configuration" />
+    </Div>
+}
+
+@code {
+    private CloudflareAiSearchBarConfiguration? _configuration;
+
+    protected override void OnInitialized()
+    {
+        string? apiUrl = Configuration["CloudflareAiSearch:ApiUrl"];
+        if (string.IsNullOrWhiteSpace(apiUrl)) return;
+        _configuration = new()
+        {
+            ApiUrl = apiUrl,
+            Placeholder = "Search Bradix…",
+            MaxResults = 50,
+            MaxRenderResults = 10,
+            DebounceMilliseconds = 250,
+            ShowUrl = true
+        };
+    }
+}

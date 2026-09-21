@@ -1,81 +1,47 @@
 @page "/"
-@using Soenneker.Bradix.Suite.Demo
 
-<PageTitle>Bradix Component Library</PageTitle>
-
-<section class="overview-page">
-    <header class="overview-hero">
-        <div class="overview-hero__content">
-            <p class="eyebrow">Overview</p>
-            <h1>Bradix primitives</h1>
-            <p class="overview-hero__lede">A low-level Blazor component library for building accessible design systems and web apps.</p>
-            <p>Bradix primitives focus on behavior, accessibility, composition, and predictable Razor APIs. Use them as the base layer of a design system, or adopt a primitive one at a time.</p>
-        </div>
-    </header>
-
-    <section class="overview-section">
-        <header class="overview-section__header">
-            <h2>Vision</h2>
-            <p>Common UI patterns like dialogs, menus, tabs, selects, sliders, and tooltips need consistent keyboard behavior, focus management, roles, and state. Bradix provides those primitives without prescribing your design system.</p>
-        </header>
-    </section>
-
-    <section class="overview-section">
-        <header class="overview-section__header">
-            <h2>Key features</h2>
-        </header>
-
-        <div class="overview-feature-list">
-            <article>
-                <h3>Accessible</h3>
-                <p>Components handle roles, aria attributes, focus management, dismissal, and keyboard navigation where the pattern requires it.</p>
-            </article>
-            <article>
-                <h3>Unstyled</h3>
-                <p>Primitives ship with behavior, not a visual system. Bring your own classes, tokens, layout, and component wrappers.</p>
-            </article>
-            <article>
-                <h3>Composable</h3>
-                <p>Parts expose normal Razor parameters and event callbacks so you can assemble primitives around your app structure.</p>
-            </article>
-            <article>
-                <h3>Controlled or uncontrolled</h3>
-                <p>Use internal state for simple cases, or pass explicit state and callbacks when application logic needs control.</p>
-            </article>
-            <article>
-                <h3>Incremental</h3>
-                <p>Adopt one primitive at a time. The suite is organized so behavior can be reused without forcing broad UI rewrites.</p>
-            </article>
-        </div>
-    </section>
-
-    <section class="overview-section">
-        <header class="overview-section__header">
-            <h2>Install</h2>
-        </header>
-
-        <pre class="overview-code"><code>dotnet add package Soenneker.Bradix.Suite</code></pre>
-        <pre class="overview-code"><code>@@using Soenneker.Bradix</code></pre>
-    </section>
-
-    <section class="overview-section">
-        <header class="overview-section__header">
-            <h2>Components</h2>
-        </header>
-
-        <div class="overview-component-list">
-            @foreach (DemoPageGroup group in DemoCatalog.Groups)
+<PageTitle>Bradix — Accessible Blazor primitives</PageTitle>
+<Div Class="bradix-hero">
+    <Span Class="docs-kicker">THE FOUNDATION FOR YOUR DESIGN SYSTEM</Span>
+    <H1>Great interfaces.<br />Start with the primitives.</H1>
+    <Paragraph>Accessible, unstyled components for Blazor, based on Radix UI primitives. Bring your own design. Bradix takes care of the behavior.</Paragraph>
+    <Div Class="hero-actions">
+        <Anchor Href="/accordions" Class="primary-link">Explore components <Span aria-hidden="true">→</Span></Anchor>
+        <Anchor Href="#installation" Class="secondary-link">Get started</Anchor>
+    </Div>
+</Div>
+<Div Class="feature-grid">
+    <Div><Span Class="feature-number">01</Span><H3>Accessible by design</H3><Paragraph>Keyboard navigation, focus management, and ARIA semantics built into the patterns that need them.</Paragraph></Div>
+    <Div><Span Class="feature-number">02</Span><H3>Unstyled. On purpose.</H3><Paragraph>Your classes, your tokens, your visual language. A flexible foundation for a design system that feels like you.</Paragraph></Div>
+    <Div><Span Class="feature-number">03</Span><H3>Compose with Razor</H3><Paragraph>Small, predictable parts with controlled and uncontrolled state. Adopt one primitive or build with the whole suite.</Paragraph></Div>
+</Div>
+<Section Class="getting-started">
+    <H2>Based on Radix UI. Made for Blazor.</H2>
+    <Paragraph>Bradix adapts the component patterns and behavior of <Anchor Href="https://www.radix-ui.com/primitives">Radix UI Primitives</Anchor> to Blazor: composable parts, keyboard navigation, focus management, and controlled or uncontrolled state. You work with Razor components and C# callbacks while keeping full control over styling.</Paragraph>
+    <Paragraph>Bradix is an independent project, not an official Radix UI port.</Paragraph>
+</Section>
+<Section Id="installation" Class="getting-started">
+    <H2>Up and running</H2>
+    <Paragraph>Install the package, register the suite, and import the components.</Paragraph>
+    <CodeViewer Text="@InstallCode" Language="shell" MinLines="1" MaxLines="3" />
+    <CodeViewer Text="@SetupCode" Language="csharp" MinLines="2" MaxLines="5" />
+    <CodeViewer Text="@ImportCode" Language="razor" MinLines="1" MaxLines="3" />
+</Section>
+<Section Class="component-directory">
+    <Div Class="directory-heading"><H2>Find your building blocks</H2><Paragraph>Live examples. Real Razor. Ready to make your own.</Paragraph></Div>
+    @foreach (DemoPageGroup group in DemoCatalog.Groups)
+    {
+        <H3>@group.Title</H3>
+        <Div Class="component-grid">
+            @foreach (DemoPageLink demoPage in group.Pages)
             {
-                <section>
-                    <h3>@group.Title</h3>
-                    <div>
-                        @foreach (DemoPageLink demoPage in group.Pages)
-                        {
-                            <NavLink href="@demoPage.Href">@demoPage.Title</NavLink>
-                        }
-                    </div>
-                </section>
+                <Anchor Href="@demoPage.Href" Class="component-card"><Strong>@demoPage.Title <Span aria-hidden="true">↗</Span></Strong><Paragraph>@demoPage.Description</Paragraph></Anchor>
             }
-        </div>
-    </section>
-</section>
+        </Div>
+    }
+</Section>
+@code {
+    private const string InstallCode = "dotnet add package Soenneker.Bradix.Suite";
+    private const string SetupCode = "builder.Services.AddBradixSuiteAsScoped();";
+    private const string ImportCode = "@using Soenneker.Bradix";
+}

@@ -16,23 +16,17 @@
     <title>Bradix Component Library</title>
     <base href="/" />
     <link rel="icon" href="data:," />
-    <link href="https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.2.1/styles.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/black-alpha.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/gray-dark.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/mauve-dark.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/violet-dark.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/green-dark.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/red-dark.css" rel="stylesheet" />
-    <link href="css/app.css?v=radix-layout-17" rel="stylesheet" />
+    <link href="css/quark-tailwind.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="css/docs.css" rel="stylesheet" />
+    <script type="module">
+        import { initialize } from "./_content/Soenneker.Quark.Suite/js/themeinterop.js";
+        initialize();
+    </script>
     <script type="importmap"></script>
 </head>
 
-<body class="radix-themes dark"
-      data-accent-color="blue"
-      data-gray-color="slate"
-      data-radius="medium"
-      data-scaling="100%"
-      data-panel-background="translucent">
+<body>
     <div id="app">
         Loading...
     </div>

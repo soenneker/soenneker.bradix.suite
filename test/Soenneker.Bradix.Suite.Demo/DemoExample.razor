@@ -1,0 +1,27 @@
+@inject DemoSourceService Sources
+
+<Soenneker.Quark.Components.DemoSection Title="@Title" Code="@_source" CodeLanguage="razor"
+                            PreviewClass="bradix-preview" PreviewInnerClass="bradix-preview-inner">
+    @ChildContent
+</Soenneker.Quark.Components.DemoSection>
+@if (_failed)
+{
+    <Paragraph role="status">Example source could not be loaded. <Anchor Href="@($"_sources/{File}.txt")">Open source file</Anchor></Paragraph>
+}
+
+@code {
+    [Parameter, EditorRequired] public string File { get; set; } = "";
+    [Parameter] public int Index { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    private string? _source;
+    private bool _failed;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _failed = false;
+        _source = null;
+        try { _source = await Sources.GetExample(File, Index); }
+        catch (HttpRequestException) { _failed = true; }
+    }
+}
