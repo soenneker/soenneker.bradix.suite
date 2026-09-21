@@ -25,3 +25,9 @@ The Tailwind generators run during the demo build and use the manifest from the 
 After deploying the demo, run Sync in the Cloudflare instance or allow the scheduled crawl to pick up the new page metadata and examples. The old deployed pages do not provide title/description metadata, so existing search results may have missing titles until that crawl completes. Endpoint setting changes can take a few minutes to propagate.
 
 Cloudflare's [snippet documentation](https://developers.cloudflare.com/ai-search/configuration/retrieval/public-endpoint/embed-search-snippets/) describes the full local-origin format. CORS restrictions are browser controls, not authentication.
+
+## SEO title budget
+
+Use "Blazor" where it identifies the framework for a component or example; do not require it on every page. Branded guides and reference pages can lead with their topic.
+
+Keep the final rendered SEO title at or below 60 characters, including spaces, punctuation, and the brand suffix. Count decoded text (for example, `&amp;` counts as one character). Rewrite overlong titles; do not blindly truncate them or reject page rendering. Check dynamically composed titles too, including chart categories and blog article titles. This is an editorial budget: Google truncates title links to fit the available display width, not a fixed character count.
