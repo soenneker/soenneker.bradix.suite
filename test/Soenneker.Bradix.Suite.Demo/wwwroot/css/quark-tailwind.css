@@ -3119,9 +3119,6 @@
   .fade-in {
     --tw-enter-opacity: 0;
   }
-  .running {
-    animation-play-state: running;
-  }
   :is(.\*\:w-full > *) {
     width: 100%;
   }

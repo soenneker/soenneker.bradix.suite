@@ -1,10 +1,11 @@
 @page "/"
 
-<PageTitle>Bradix — Accessible Blazor primitives</PageTitle>
+<BradixSeoHead Title="Headless Blazor UI Components &amp; Radix UI Patterns | Bradix" Description="Build custom Blazor interfaces with Bradix, an open-source library of accessible, unstyled UI components based on Radix UI. Explore demos and Razor examples." CanonicalPath="/" />
+
 <Div Class="bradix-hero">
     <Span Class="docs-kicker">THE FOUNDATION FOR YOUR DESIGN SYSTEM</Span>
-    <H1>Great interfaces.<br />Start with the primitives.</H1>
-    <Paragraph>Accessible, unstyled components for Blazor, based on Radix UI primitives. Bring your own design. Bradix takes care of the behavior.</Paragraph>
+    <H1>Headless Blazor components.<br />Built for your design system.</H1>
+    <Paragraph>Build accessible Blazor interfaces with unstyled, composable components based on Radix UI. Use Razor and C# for dialogs, dropdown menus, forms, and navigation while keeping control of your CSS.</Paragraph>
     <Div Class="hero-actions">
         <Anchor Href="/accordions" Class="primary-link">Explore components <Span aria-hidden="true">→</Span></Anchor>
         <Anchor Href="#installation" Class="secondary-link">Get started</Anchor>
@@ -21,14 +22,14 @@
     <Paragraph>Bradix is an independent project, not an official Radix UI port.</Paragraph>
 </Section>
 <Section Id="installation" Class="getting-started">
-    <H2>Up and running</H2>
+    <H2>Install Bradix in your Blazor app</H2>
     <Paragraph>Install the package, register the suite, and import the components.</Paragraph>
     <CodeViewer Text="@InstallCode" Language="shell" MinLines="1" MaxLines="3" />
     <CodeViewer Text="@SetupCode" Language="csharp" MinLines="2" MaxLines="5" />
     <CodeViewer Text="@ImportCode" Language="razor" MinLines="1" MaxLines="3" />
 </Section>
 <Section Class="component-directory">
-    <Div Class="directory-heading"><H2>Find your building blocks</H2><Paragraph>Live examples. Real Razor. Ready to make your own.</Paragraph></Div>
+    <Div Class="directory-heading"><H2>Explore Blazor components and Razor examples</H2><Paragraph>Live examples. Real Razor. Ready to make your own.</Paragraph></Div>
     @foreach (DemoPageGroup group in DemoCatalog.Groups)
     {
         <H3>@group.Title</H3>

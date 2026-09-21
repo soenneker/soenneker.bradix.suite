@@ -1,9 +1,10 @@
 @page "/menubars"
 
-<PageTitle>Menubar</PageTitle>
+
+<BradixSeoHead Title="Blazor Menubar: Desktop-Style Menus &amp; Submenus | Bradix" Description="Build desktop-style menus in Blazor with Bradix Menubar. Try controlled menu state, submenus, disabled actions, and RTL navigation with live Razor examples." CanonicalPath="/menubars" />
 
 <section class="website-demo-page">
-    <DemoExample File="Menubars.razor" Index="0" Title="Basic usage">
+    <DemoExample File="Menubars.razor" Index="0" Title="Application menubar and submenus">
     <section class="card website-demo-card" data-testid="bradix-menubar-demo">
         <BradixMenubar Class="menubar-demo__root" Value="@_currentMenu" ValueChanged="HandleCurrentMenuChanged">
                 <BradixMenubarMenu Value="file">
@@ -118,7 +119,7 @@
     </section>
     </DemoExample>
 
-    <DemoExample File="Menubars.razor" Index="1" Title="Example 2">
+    <DemoExample File="Menubars.razor" Index="1" Title="Right-to-left application menubar">
     <section class="card website-demo-card" data-testid="bradix-menubar-rtl-demo">
         <BradixMenubar Dir="rtl" Class="menubar-demo__root">
             <BradixMenubarMenu Value="file-rtl">

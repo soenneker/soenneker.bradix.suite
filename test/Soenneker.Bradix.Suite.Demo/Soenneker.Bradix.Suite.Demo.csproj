@@ -5,10 +5,13 @@
         <Platforms>AnyCPU</Platforms>
         <NoWarn>$(NoWarn);1591</NoWarn>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-        <QuarkSuiteVersion>4.0.1423</QuarkSuiteVersion>
+        <QuarkSuiteVersion>4.0.1425</QuarkSuiteVersion>
+        <UseLocalQuarkProject Condition="'$(UseLocalQuarkProject)' == ''">false</UseLocalQuarkProject>
+        <LocalQuarkProject Condition="'$(LocalQuarkProject)' == ''">$(MSBuildThisFileDirectory)..\..\..\..\Quark\soenneker.quark.suite\src\Soenneker.Quark.Suite\Soenneker.Quark.Suite.csproj</LocalQuarkProject>
         <TailwindGeneratorBuildEnabled>true</TailwindGeneratorBuildEnabled>
-        <TailwindManifestPath>$(NuGetPackageRoot)soenneker.quark.suite/$(QuarkSuiteVersion)/tailwind/quark-suite-tailwind-manifest.txt</TailwindManifestPath>
-        <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>     
+        <TailwindManifestPath Condition="'$(UseLocalQuarkProject)' != 'true'">$(NuGetPackageRoot)soenneker.quark.suite/$(QuarkSuiteVersion)/tailwind/quark-suite-tailwind-manifest.txt</TailwindManifestPath>
+        <TailwindManifestPath Condition="'$(UseLocalQuarkProject)' == 'true'">$([System.IO.Path]::GetDirectoryName('$(LocalQuarkProject)'))\tailwind\quark-suite-tailwind-manifest.txt</TailwindManifestPath>
+        <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
         <RazorSitemapBaseUrl>https://bradix.soenneker.com/</RazorSitemapBaseUrl>
         <RazorSitemapOutputPath>wwwroot/sitemap.xml</RazorSitemapOutputPath>
         <RazorSitemapIncludeUnannotatedPages>true</RazorSitemapIncludeUnannotatedPages>
@@ -27,12 +30,13 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.12" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Gen.Razor.Sitemaps" Version="4.0.125">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Soenneker.Serilog.Sinks.Browser.Blazor" Version="4.0.408" />
         <PackageReference Include="Soenneker.Quark.Gen.Lucide" Version="4.0.255" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Suite" Version="4.0.1425" />
+        <PackageReference Include="Soenneker.Quark.Suite" Version="4.0.1429" Condition="'$(UseLocalQuarkProject)' != 'true'" />
+        <ProjectReference Include="$(LocalQuarkProject)" Condition="'$(UseLocalQuarkProject)' == 'true'" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="4.0.259" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="4.0.247" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="4.0.250" PrivateAssets="all" />

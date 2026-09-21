@@ -1,9 +1,10 @@
 @page "/alertdialogs"
 
-<PageTitle>Bradix AlertDialog</PageTitle>
+
+<BradixSeoHead Title="Blazor Alert Dialog &amp; Delete Confirmation Modal | Bradix" Description="Create Blazor confirmation dialogs with action and cancel buttons. Explore delete confirmation and preventing Escape dismissal with Bradix Razor examples." CanonicalPath="/alertdialogs" />
 
 <section class="website-demo-page">
-    <DemoExample File="AlertDialogs.razor" Index="0" Title="Basic usage">
+    <DemoExample File="AlertDialogs.razor" Index="0" Title="Delete confirmation dialog">
     <section class="card website-demo-card">
         <BradixAlertDialog Open="@_open"
                            OpenChanged="HandleOpenChanged">
@@ -36,7 +37,7 @@
     </section>
     </DemoExample>
 
-    <DemoExample File="AlertDialogs.razor" Index="1" Title="Example 2">
+    <DemoExample File="AlertDialogs.razor" Index="1" Title="Prevent Escape key dismissal">
     <section class="card website-demo-card">
         <BradixAlertDialog Open="@_guardEscapeOpen"
                            OpenChanged="HandleGuardEscapeOpenChanged">

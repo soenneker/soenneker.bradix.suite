@@ -1,9 +1,10 @@
 @page "/progresses"
 
-<PageTitle>Bradix Progress</PageTitle>
+
+<BradixSeoHead Title="Blazor Progress Bar: Determinate &amp; Indeterminate | Bradix" Description="Show loading progress in Blazor with Bradix Progress. Compare a changing progress value, a completed bar, and an indeterminate state with Razor examples." CanonicalPath="/progresses" />
 
 <section class="website-demo-page">
-    <DemoExample File="Progresses.razor" Index="0" Title="Basic usage">
+    <DemoExample File="Progresses.razor" Index="0" Title="Determinate loading progress">
     <section class="card website-demo-card">
         <BradixProgress aria-label="Loading progress" Id="progress-loading" Class="progress-demo__root" Value="@_progress">
             <BradixProgressIndicator Class="progress-demo__indicator"
@@ -12,7 +13,7 @@
     </section>
     </DemoExample>
 
-    <DemoExample File="Progresses.razor" Index="1" Title="Example 2">
+    <DemoExample File="Progresses.razor" Index="1" Title="Completed progress bar">
     <section class="card website-demo-card">
         <BradixProgress aria-label="Loading progress" Id="progress-complete" Class="progress-demo__root" Value="100">
             <BradixProgressIndicator Class="progress-demo__indicator"
@@ -21,7 +22,7 @@
     </section>
     </DemoExample>
 
-    <DemoExample File="Progresses.razor" Index="2" Title="Example 3">
+    <DemoExample File="Progresses.razor" Index="2" Title="Indeterminate loading state">
     <section class="card website-demo-card">
         <BradixProgress aria-label="Loading progress" Id="progress-indeterminate" Class="progress-demo__root">
             <BradixProgressIndicator Class="progress-demo__indicator" />

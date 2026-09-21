@@ -1,10 +1,11 @@
 @page "/selects"
+<BradixSeoHead Title="Blazor Select Dropdown with Groups &amp; Form Validation | Bradix" Description="Build accessible Blazor select dropdowns with grouped options and placeholders. Try scroll boundaries, required form validation, and selects inside dialogs." CanonicalPath="/selects" />
+
 @inject NavigationManager Navigation
 
-<PageTitle>Select</PageTitle>
 
 <section class="website-demo-page">
-    <DemoExample File="Selects.razor" Index="0" Title="Basic usage">
+    <DemoExample File="Selects.razor" Index="0" Title="Grouped dropdown options">
     <section class="card website-demo-card">
         <BradixSelect Value="@_selectedValue"
                       ValueChanged="HandleSelectedValueChanged">
@@ -98,7 +99,7 @@
 @if (ShowTestScenarios)
 {
     <section class="website-demo-page">
-        <DemoExample File="Selects.razor" Index="1" Title="Example 2">
+        <DemoExample File="Selects.razor" Index="1" Title="Dropdown scroll boundaries">
     <section class="card website-demo-card stack stack--compact" data-testid="select-scroll-boundary">
             <BradixSelect>
                 <BradixSelectTrigger Class="primitive__trigger primitive__trigger--fit select-demo__trigger"
@@ -184,7 +185,7 @@
 </section>
 
 <section class="website-demo-page">
-    <DemoExample File="Selects.razor" Index="3" Title="Example 4">
+    <DemoExample File="Selects.razor" Index="3" Title="Select dropdown inside a dialog">
     <section class="card website-demo-card">
         <BradixDialog>
             <BradixDialogTrigger Class="dialog-demo__button dialog-demo__button--violet">

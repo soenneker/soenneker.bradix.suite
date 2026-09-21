@@ -3,13 +3,6 @@
 @inject NavigationManager Navigation
 @inject IThemeInterop Theme
 
-<HeadContent>
-    <meta name="title" content="@($"{_currentPage?.Title ?? "Overview"} | Bradix")" />
-    <meta name="description" content="@(_currentPage?.Description ?? DemoCatalog.Overview.Description)" />
-    <meta property="og:title" content="@($"{_currentPage?.Title ?? "Overview"} | Bradix")" />
-    <meta property="og:description" content="@(_currentPage?.Description ?? DemoCatalog.Overview.Description)" />
-</HeadContent>
-
 <Div Class="@(_showTests ? "bradix-docs show-test-scenarios" : "bradix-docs")">
     <Anchor Href="#main-content" Class="skip-link">Skip to content</Anchor>
     <header class="bradix-header">
@@ -43,7 +36,7 @@
             {
                 <Div Class="bradix-page-heading">
                     <Span Class="docs-kicker">COMPONENTS</Span>
-                    <H1>@_currentPage.Title</H1>
+                    <H1>Blazor @_currentPage.Title</H1>
                     <Paragraph>@_currentPage.Description</Paragraph>
                 </Div>
             }

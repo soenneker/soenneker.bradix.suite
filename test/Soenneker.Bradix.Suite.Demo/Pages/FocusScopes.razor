@@ -1,6 +1,7 @@
 @page "/focusscopes"
 
-<PageTitle>Bradix FocusScope</PageTitle>
+
+<BradixSeoHead Title="Blazor Focus Trap &amp; Keyboard Focus Loop | Bradix" Description="Manage keyboard focus in Blazor with Bradix FocusScope. Compare looping Tab navigation with trapped focus for dialogs and other contained interactions." CanonicalPath="/focusscopes" />
 
 <section class="website-demo-page">
     <div class="toolbars">
@@ -11,7 +12,7 @@
     <div class="website-demo-row">
         @if (!_showTrap)
         {
-            <DemoExample File="FocusScopes.razor" Index="0" Title="Basic usage">
+            <DemoExample File="FocusScopes.razor" Index="0" Title="Loop keyboard focus">
     <section class="card website-demo-card stack stack--compact">
                 <BradixFocusScope Class="portal-surface" Loop>
                     <button class="primitive__trigger" type="button">First</button>
@@ -23,7 +24,7 @@
         }
         else
         {
-            <DemoExample File="FocusScopes.razor" Index="1" Title="Example 2">
+            <DemoExample File="FocusScopes.razor" Index="1" Title="Trap and loop keyboard focus">
     <section class="card website-demo-card stack stack--compact">
                 <button id="focus-scope-before-trap" class="primitive__trigger" type="button">Before trap</button>
                 <BradixFocusScope Class="portal-surface" Trapped Loop>

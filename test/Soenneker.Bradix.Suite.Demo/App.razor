@@ -4,8 +4,9 @@
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
-        <PageTitle>Not found</PageTitle>
+
         <LayoutView Layout="@typeof(MainLayout)">
+            <BradixSeoHead Title="Page not found | Bradix" Description="This page could not be found. Browse the Bradix Blazor primitive documentation." NoIndex="true" />
             <section class="stack">
                 <div class="card stack stack--compact" role="alert">
                     <p class="eyebrow">Not found</p>
