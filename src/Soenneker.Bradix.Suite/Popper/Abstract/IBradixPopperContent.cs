@@ -80,8 +80,9 @@ public interface IBradixPopperContent : IAsyncDisposable {
     /// <param name="shouldHideArrow">Whether should hide arrow.</param>
     /// <param name="hidden">Whether hidden.</param>
     /// <param name="transformOriginX">Transform Origin X for the handle position changed operation.</param>
+    /// <param name="zIndex">Computed content stacking order retained by the positioning wrapper.</param>
     /// <param name="transformOriginY">Transform Origin Y for the handle position changed operation.</param>
     /// <returns>A task that completes when the handle position changed operation is complete.</returns>
     Task HandlePositionChanged(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth,
-        double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY);
+        double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY, string? zIndex = null);
 }

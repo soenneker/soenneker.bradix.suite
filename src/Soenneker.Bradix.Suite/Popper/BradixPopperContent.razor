@@ -35,6 +35,7 @@
     private bool _isPositioned;
     private string _transformOriginX = "50%";
     private string _transformOriginY = "50%";
+    private string? _zIndex;
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir)? _lastOptions;
     private bool _lastHadArrow;
     private bool _lastHadElementAnchor;
@@ -248,12 +249,12 @@
     }
 
     [JSInvokable]
-    public async Task HandlePositionChanged(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth, double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY)
+    public async Task HandlePositionChanged(string side, string align, double left, double top, double availableWidth, double availableHeight, double anchorWidth, double anchorHeight, double? arrowX, double? arrowY, bool shouldHideArrow, bool hidden, string transformOriginX, string transformOriginY, string? zIndex = null)
     {
         if (_disposed.Read())
             return;
 
-        bool unchanged = _left == left && _top == top && _placedSide == side && _placedAlign == align && _availableWidth == availableWidth && _availableHeight == availableHeight && _anchorWidth == anchorWidth && _anchorHeight == anchorHeight && _arrowX == arrowX && _arrowY == arrowY && _hideArrow == shouldHideArrow && _hidden == hidden && _transformOriginX == transformOriginX && _transformOriginY == transformOriginY;
+        bool unchanged = _left == left && _top == top && _placedSide == side && _placedAlign == align && _availableWidth == availableWidth && _availableHeight == availableHeight && _anchorWidth == anchorWidth && _anchorHeight == anchorHeight && _arrowX == arrowX && _arrowY == arrowY && _hideArrow == shouldHideArrow && _hidden == hidden && _transformOriginX == transformOriginX && _transformOriginY == transformOriginY && _zIndex == zIndex;
 
         if (unchanged)
             return;
@@ -275,6 +276,7 @@
         _isPositioned = true;
         _transformOriginX = transformOriginX;
         _transformOriginY = transformOriginY;
+        _zIndex = zIndex;
 
         await InvokeAsync(StateHasChanged);
 
@@ -291,6 +293,9 @@
     private string BuildContentStyle()
     {
         string baseStyle = _isPositioned ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"position: fixed; left: {_left}px; top: {_top}px; min-width: max-content; --radix-popper-available-width: {_availableWidth}px; --radix-popper-available-height: {_availableHeight}px; --radix-popper-anchor-width: {_anchorWidth}px; --radix-popper-anchor-height: {_anchorHeight}px; --radix-popper-transform-origin: {_transformOriginX} {_transformOriginY};") : "position: fixed; left: 0px; top: 0px; min-width: max-content; transform: translate(0, -200%); animation: none; visibility: hidden; pointer-events: none; --radix-popper-available-width: 100vw; --radix-popper-available-height: 100vh; --radix-popper-anchor-width: 0px; --radix-popper-anchor-height: 0px; --radix-popper-transform-origin: 50% 0px;";
+
+        if (!string.IsNullOrEmpty(_zIndex))
+            baseStyle += $" z-index: {_zIndex};";
 
         if (_hidden)
             baseStyle += " visibility: hidden; pointer-events: none;";

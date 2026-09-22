@@ -129,3 +129,21 @@ test('unchanged positions do not cross the JS interop boundary again', async t =
   await second;
   assert.equal(env.notifications.length, 1);
 });
+
+
+test('position notifications retain the surface stacking order and report layer-only changes', async t => {
+  const env = fixture(t);
+  globalThis.getComputedStyle = () => ({ zIndex: '50' });
+  const first = env.runFrame();
+  env.result(0);
+  await first;
+  assert.equal(env.notifications[0].at(-1), '50');
+
+  globalThis.getComputedStyle = () => ({ zIndex: 'auto' });
+  env.observers[0].callback();
+  const second = env.runFrame();
+  env.result(1);
+  await second;
+  assert.equal(env.notifications.length, 2);
+  assert.equal(env.notifications[1].at(-1), null);
+});

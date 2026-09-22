@@ -178,12 +178,6 @@ async function updateRegisteredPopperContent(content, handlers) {
   const contentSurface = handlers.content.firstElementChild || handlers.content;
   const contentZIndex = globalThis.getComputedStyle?.(contentSurface)?.zIndex;
 
-  if (contentZIndex && contentZIndex !== "auto") {
-    handlers.content.style.zIndex = contentZIndex;
-  } else {
-    handlers.content.style.removeProperty("z-index");
-  }
-
   const options = handlers.options || {};
   const arrowRect = handlers.arrow?.getBoundingClientRect?.() || null;
   const arrowWidth = arrowRect?.width || 0;
@@ -270,6 +264,7 @@ async function updateRegisteredPopperContent(content, handlers) {
   const nextPosition = {
     placedSide,
     placedAlign,
+    zIndex: contentZIndex && contentZIndex !== "auto" ? contentZIndex : null,
     left: position.x,
     top: position.y,
     availableWidth,
@@ -304,12 +299,14 @@ async function updateRegisteredPopperContent(content, handlers) {
     nextPosition.shouldHideArrow,
     nextPosition.hidden,
     nextPosition.transformOriginX,
-    nextPosition.transformOriginY
+    nextPosition.transformOriginY,
+    nextPosition.zIndex
   );
 }
 
 function isSamePosition(previous, next) {
   return previous &&
+    previous.zIndex === next.zIndex &&
     previous.placedSide === next.placedSide &&
     previous.placedAlign === next.placedAlign &&
     previous.left === next.left &&
