@@ -5,6 +5,7 @@
 @inherits BradixIdentifiableContentElement
 
 @implements IBradixMenuContentController
+@implements IHandleEvent
 
 @inject IDelegatedInteractionInterop DelegatedInteractionInterop
 @inject IPresenceOverlayInterop PresenceOverlayInterop
@@ -25,6 +26,10 @@
 }
 
 @code {
+    // Focus, registration and outside-interaction callbacks do not change the
+    // content tree. Opening is driven by Menu; only placement and exit render here.
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
+
     private static readonly string[] ContentPreventDefaultKeys = ["Tab", "Home", "End", "PageUp", "PageDown"];
 
     private readonly HashSet<string> _submenuPointerGraceItems = [];
@@ -443,13 +448,14 @@
         return Menu?.SetOpen(false) ?? Task.CompletedTask;
     }
 
-    private Task HandleExitComplete()
+    private async Task HandleExitComplete()
     {
         _isExiting = false;
-        return CleanupAfterExit();
+        await CleanupAfterExit();
+        if (!_disposed.Read()) await InvokeAsync(StateHasChanged);
     }
 
-    private RenderFragment RenderContentTree() => @<CascadingValue Value="this">
+    private RenderFragment RenderContentTree() => @<CascadingValue Value="this" IsFixed="true">
         <BradixFocusGuards>
             <BradixFocusScope Trapped="ShouldTrapFocus"
                               PreventMountAutoFocus="true"
@@ -617,9 +623,10 @@
 
     private Task HandlePlacementChanged(BradixPopperPlacementEventArgs args)
     {
+        if (_placedSide == args.Side && _placedAlign == args.Align) return Task.CompletedTask;
         _placedSide = args.Side;
         _placedAlign = args.Align;
-        return Task.CompletedTask;
+        return InvokeAsync(StateHasChanged);
     }
 
     private bool IsWithinContent(string? targetId, IReadOnlyList<string>? ancestorIds)

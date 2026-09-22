@@ -8,13 +8,13 @@
 
 @inject IKeyboardModeInterop KeyboardModeInterop
 @inject IControlsInterop ControlsInterop
-<BradixPopper @ref="_popper">
-    <CascadingValue Name="BradixMenuRoot" Value="RootMenu">
-        <CascadingValue Value="this">
+<CascadingValue Name="BradixMenuRoot" Value="RootMenu" IsFixed="true">
+    <CascadingValue Value="this">
+        <BradixPopper @ref="_popper">
             @ChildContent
-        </CascadingValue>
+        </BradixPopper>
     </CascadingValue>
-</BradixPopper>
+</CascadingValue>
 
 @code {
     private readonly BradixCollectionRegistry<IBradixMenuRovingItem> _items = new();
@@ -122,20 +122,20 @@
 
     internal void RegisterItem(IBradixMenuRovingItem item)
     {
+        // Registration and the navigation cursor do not change root markup.
+        // Items render their own focus state; broadcasting here rebuilds every
+        // item while the menu is mounting or the pointer moves between items.
         _items.Register(item.TabStopId, item);
         EnsureCurrentTabStopId();
 
         if (CurrentOpen && _focusFirstItemOnOpen)
             _ = InvokeAsync(FocusFirstItem);
-        else
-            _ = InvokeAsync(StateHasChanged);
     }
 
     internal void UnregisterItem(IBradixMenuRovingItem item)
     {
         _items.Unregister(item.TabStopId);
         EnsureCurrentTabStopId();
-        _ = InvokeAsync(StateHasChanged);
     }
 
     internal void SetCurrentTabStop(string? tabStopId)
@@ -144,7 +144,6 @@
             return;
 
         CurrentTabStopId = tabStopId;
-        _ = InvokeAsync(StateHasChanged);
     }
 
     internal void ClearCurrentTabStop()
@@ -167,7 +166,6 @@
 
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
-        await InvokeAsync(StateHasChanged);
         return true;
     }
 
@@ -181,7 +179,6 @@
 
         CurrentTabStopId = nextItem.TabStopId;
         await nextItem.Focus();
-        await InvokeAsync(StateHasChanged);
     }
 
     internal void ResetTypeahead()
@@ -225,7 +222,6 @@
         CurrentTabStopId = first.TabStopId;
         _focusFirstItemOnOpen = false;
         await FocusItem(first);
-        await InvokeAsync(StateHasChanged);
     }
 
     internal async Task FocusLastItem()
@@ -237,7 +233,6 @@
         CurrentTabStopId = last.TabStopId;
         _focusFirstItemOnOpen = false;
         await FocusItem(last);
-        await InvokeAsync(StateHasChanged);
     }
 
     public void RegisterTrigger(ElementReference element)

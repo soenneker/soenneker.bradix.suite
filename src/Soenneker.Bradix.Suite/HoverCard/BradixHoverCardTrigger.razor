@@ -17,7 +17,12 @@
     </button>
 </BradixPopperAnchor>
 
+@implements IHandleEvent
+
 @code {
+    // State changes render through the owning context or the explicit focus handlers.
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
+
     private bool _hasMouseMoveOpened;
     private ElementReference _triggerElement;
 

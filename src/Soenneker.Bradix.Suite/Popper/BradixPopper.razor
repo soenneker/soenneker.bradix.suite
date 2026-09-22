@@ -16,6 +16,9 @@
 
     internal void RegisterAnchor(ElementReference element)
     {
+        if (HasAnchor && !HasVirtualAnchor && AnchorElement.Equals(element))
+            return;
+
         AnchorElement = element;
         HasAnchor = true;
         HasVirtualAnchor = false;
@@ -24,6 +27,9 @@
 
     internal void RegisterVirtualAnchor(double x, double y)
     {
+        if (HasVirtualAnchor && !HasAnchor && VirtualAnchorX == x && VirtualAnchorY == y)
+            return;
+
         VirtualAnchorX = x;
         VirtualAnchorY = y;
         HasVirtualAnchor = true;

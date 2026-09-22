@@ -26,6 +26,23 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Trigger_registration_and_ignored_keys_do_not_rerender_the_tabs_tree()
+    {
+        var cut = Render(CreateTabs(defaultValue: "tab1"));
+        var tabs = cut.FindComponent<BradixTabs>();
+        var trigger = cut.FindComponent<BradixTabsTrigger>();
+        int tabRenders = tabs.RenderCount;
+        int renders = trigger.RenderCount;
+        for (int i = 0; i < 20; i++)
+            await trigger.Find("button").KeyDownAsync(new KeyboardEventArgs { Key = "Shift", ShiftKey = true });
+        await Assert.That(trigger.RenderCount).IsEqualTo(renders);
+        await Assert.That(tabs.RenderCount).IsEqualTo(tabRenders);
+        await cut.FindAll("button")[2].MouseDownAsync(new MouseEventArgs { Button = 0 });
+        await Assert.That(cut.FindAll("button")[2].GetAttribute("aria-selected")).IsEqualTo("true");
+        await Assert.That(cut.Find("[role='tabpanel'][data-state='active']").TextContent).Contains("Content 3");
+    }
+
+    [Test]
     public async Task Tabs_render_active_trigger_and_panel_relationships()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1"));

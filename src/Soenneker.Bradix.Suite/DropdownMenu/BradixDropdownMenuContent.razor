@@ -3,6 +3,7 @@
 @inherits BradixIdentifiableContentElement
 
 @implements IBradixDropdownMenuContent
+@implements IHandleEvent
 
 <BradixMenuContent Id="@ResolvedContentId"
                    ForceMount="@ForceMount"
@@ -39,6 +40,9 @@
 </BradixMenuContent>
 
 @code {
+    // Forwarding focus/outside callbacks does not change this wrapper's markup.
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
+
     [CascadingParameter]
     private BradixDropdownMenu? DropdownMenu { get; set; }
 

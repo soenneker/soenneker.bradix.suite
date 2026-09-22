@@ -10,7 +10,12 @@
     </div>
 </CascadingValue>
 
+@implements IHandleEvent
+
 @code {
+    // State changes render through the owning context or the explicit focus handlers.
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
+
     [CascadingParameter]
     internal BradixTabs Tabs { get; set; } = null!;
 

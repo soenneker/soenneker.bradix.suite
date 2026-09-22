@@ -86,15 +86,13 @@
             return;
 
         _triggers.Add(trigger);
-        EnsureCurrentTabStopId();
-        _ = InvokeAsync(StateHasChanged);
+        RefreshTabStopIfChanged();
     }
 
     internal void UnregisterTrigger(BradixTabsTrigger trigger)
     {
-        _triggers.Remove(trigger);
-        EnsureCurrentTabStopId();
-        _ = InvokeAsync(StateHasChanged);
+        if (_triggers.Remove(trigger))
+            RefreshTabStopIfChanged();
     }
 
     internal bool IsCurrentTabStop(BradixTabsTrigger trigger)
@@ -193,6 +191,14 @@
 
         EnsureCurrentTabStopId();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private void RefreshTabStopIfChanged()
+    {
+        string? previous = CurrentTabStopId;
+        EnsureCurrentTabStopId();
+        if (!string.Equals(previous, CurrentTabStopId, StringComparison.Ordinal))
+            _ = InvokeAsync(StateHasChanged);
     }
 
     private void EnsureCurrentTabStopId()

@@ -99,15 +99,13 @@
             return;
 
         _items.Add(item);
-        EnsureCurrentTabStopId();
-        _ = InvokeAsync(StateHasChanged);
+        RefreshTabStopIfChanged();
     }
 
     internal void UnregisterItem(BradixRadioGroupItem item)
     {
-        _items.Remove(item);
-        EnsureCurrentTabStopId();
-        _ = InvokeAsync(StateHasChanged);
+        if (_items.Remove(item))
+            RefreshTabStopIfChanged();
     }
 
     internal void SetCurrentTabStop(string? tabStopId)
@@ -177,6 +175,14 @@
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private void RefreshTabStopIfChanged()
+    {
+        string? previous = CurrentTabStopId;
+        EnsureCurrentTabStopId();
+        if (!string.Equals(previous, CurrentTabStopId, StringComparison.Ordinal))
+            _ = InvokeAsync(StateHasChanged);
     }
 
     private void EnsureCurrentTabStopId()

@@ -25,7 +25,12 @@
     @ChildContent
 </div>
 
+@implements IHandleEvent
+
 @code {
+    // State changes render through the owning context or the explicit focus handlers.
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
+
     private static readonly string[] PreventDefaultKeys = ["ArrowLeft", "ArrowRight", "Enter", " ", "Spacebar"];
 
     private ElementReference _element;
@@ -200,6 +205,9 @@
 
     private Task HandleBlur(FocusEventArgs _)
     {
+        if (!_isFocused)
+            return Task.CompletedTask;
+
         _isFocused = false;
         return InvokeAsync(StateHasChanged);
     }
@@ -207,6 +215,9 @@
     private Task HandleFocus(FocusEventArgs _)
     {
         if (Disabled)
+            return Task.CompletedTask;
+
+        if (_isFocused)
             return Task.CompletedTask;
 
         _isFocused = true;

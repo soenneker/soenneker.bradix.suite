@@ -6,8 +6,10 @@
 @inherits BradixIdentifiableContentElement
 
 @implements IBradixDropdownMenuTrigger
+@implements IHandleEvent
 
 @inject IDelegatedInteractionInterop DelegatedInteractionInterop
+@inject IPopperInterop PopperInterop
 <BradixDismissableLayerBranch>
     <BradixMenuAnchor>
         <button @ref="_button"
@@ -21,6 +23,9 @@
 </BradixDismissableLayerBranch>
 
 @code {
+    // The root owns open state and notifies the trigger through its cascade.
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
+
     private static readonly string[] PreventDefaultKeys = ["Enter", " ", "Spacebar", "ArrowDown"];
 
     private ElementReference _button;
@@ -85,6 +90,10 @@
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
             else
                 _delegatedInteractionRegistered = true;
+
+            // Load the positioning dependency while the trigger is available,
+            // rather than making the first open wait for its scripts.
+            if (!_disposed.Read()) await PopperInterop.Initialize();
         }
     }
 

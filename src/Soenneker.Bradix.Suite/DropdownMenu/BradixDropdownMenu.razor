@@ -4,17 +4,20 @@
 
 @using Soenneker.Blazor.Utils.Ids
 @implements IBradixDropdownMenu
+@implements IHandleEvent
 
+<CascadingValue Value="this">
 <BradixMenu Open="@CurrentOpen"
             OpenChanged="HandleMenuOpenChanged"
             Dir="@Dir"
             Modal="@Modal">
-    <CascadingValue Value="this">
         @ChildContent
-    </CascadingValue>
 </BradixMenu>
+</CascadingValue>
 
 @code {
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
+
     private bool _initialized;
     private bool _uncontrolledOpen;
 

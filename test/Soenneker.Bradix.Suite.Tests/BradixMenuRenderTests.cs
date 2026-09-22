@@ -58,6 +58,43 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Pointer_bookkeeping_does_not_render_items_and_focus_renders_once()
+    {
+        var cut = Render(CreateMenu());
+        var item = cut.FindComponent<BradixMenuItem>();
+        int renders = item.RenderCount;
+        for (int i = 0; i < 20; i++)
+            await item.Find("[role='menuitem']").PointerMoveAsync(new PointerEventArgs { PointerType = "touch" });
+        await item.Find("[role='menuitem']").PointerDownAsync(new PointerEventArgs { Button = 0 });
+        await Assert.That(item.RenderCount).IsEqualTo(renders);
+
+        await item.Find("[role='menuitem']").FocusAsync();
+        await Assert.That(item.RenderCount).IsEqualTo(renders + 1);
+        await Assert.That(item.Find("[role='menuitem']").HasAttribute("data-highlighted")).IsTrue();
+        await item.Find("[role='menuitem']").FocusAsync();
+        await Assert.That(item.RenderCount).IsEqualTo(renders + 1);
+        await item.Find("[role='menuitem']").BlurAsync();
+        await Assert.That(item.Find("[role='menuitem']").HasAttribute("data-highlighted")).IsFalse();
+    }
+
+    [Test]
+    public async Task Focus_callbacks_do_not_rebuild_the_menu_content()
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
+        var content = cut.FindComponent<BradixMenuContent>();
+        var menu = cut.FindComponent<BradixMenu>();
+        int contentRenders = content.RenderCount;
+        int menuRenders = menu.RenderCount;
+        int focusCalls = _module.Invocations.Count(call => call.Identifier == "focusElementPreventScroll");
+
+        await cut.InvokeAsync(() => cut.FindComponent<BradixFocusScope>().Instance.HandleMountAutoFocus());
+
+        await Assert.That(content.RenderCount).IsEqualTo(contentRenders);
+        await Assert.That(menu.RenderCount).IsEqualTo(menuRenders);
+        await Assert.That(_module.Invocations.Count(call => call.Identifier == "focusElementPreventScroll")).IsGreaterThan(focusCalls);
+    }
+
+    [Test]
     public async Task Default_open_menu_renders_content_and_arrow()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(includeArrow: true));

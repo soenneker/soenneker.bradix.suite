@@ -13,8 +13,8 @@ namespace Soenneker.Bradix;
 /// </summary>
 public abstract class BradixElement : LeptonElement
 {
-    private readonly Dictionary<string, object> _attributesA = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, object> _attributesB = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, object>? _attributesA;
+    private Dictionary<string, object>? _attributesB;
     private BradixAttributeDictionary? _additionalAttributeDictionaries;
     private bool _useAttributesA;
 
@@ -182,7 +182,8 @@ public abstract class BradixElement : LeptonElement
     private Dictionary<string, object> BeginAttributes()
     {
         _useAttributesA = !_useAttributesA;
-        Dictionary<string, object> attributes = _useAttributesA ? _attributesA : _attributesB;
+        ref Dictionary<string, object>? buffer = ref (_useAttributesA ? ref _attributesA : ref _attributesB);
+        Dictionary<string, object> attributes = buffer ??= new(StringComparer.OrdinalIgnoreCase);
         attributes.Clear();
         MergeClassAttribute(attributes, Class);
         MergeStyleAttribute(attributes, Style);

@@ -186,6 +186,9 @@
         if (Disabled || Select is null)
             return Task.CompletedTask;
 
+        if (_isFocused)
+            return Task.CompletedTask;
+
         _isFocused = true;
         Select.SetFocusedItem(Value);
         return InvokeAsync(StateHasChanged);
@@ -193,6 +196,9 @@
 
     private Task HandleBlur(FocusEventArgs _)
     {
+        if (!_isFocused)
+            return Task.CompletedTask;
+
         _isFocused = false;
         return InvokeAsync(StateHasChanged);
     }

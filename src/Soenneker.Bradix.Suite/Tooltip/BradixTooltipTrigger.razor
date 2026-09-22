@@ -21,7 +21,12 @@
     @ChildContent
 </button>
 
+@implements IHandleEvent
+
 @code {
+    // State changes render through the owning context or the explicit focus handlers.
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
+
     private bool _hasPointerMoveOpened;
     private bool _pointerDown;
     private ElementReference _triggerElement;
