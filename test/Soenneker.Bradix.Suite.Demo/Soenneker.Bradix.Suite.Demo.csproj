@@ -35,7 +35,7 @@
         </PackageReference>
         <PackageReference Include="Soenneker.Serilog.Sinks.Browser.Blazor" Version="4.0.408" />
         <PackageReference Include="Soenneker.Quark.Gen.Lucide" Version="4.0.255" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Suite" Version="4.0.1432" Condition="'$(UseLocalQuarkProject)' != 'true'" />
+        <PackageReference Include="Soenneker.Quark.Suite" Version="4.0.1442" Condition="'$(UseLocalQuarkProject)' != 'true'" />
         <ProjectReference Include="$(LocalQuarkProject)" Condition="'$(UseLocalQuarkProject)' == 'true'" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="4.0.259" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="4.0.247" PrivateAssets="all" />
