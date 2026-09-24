@@ -142,8 +142,8 @@ public sealed class BradixSlotRenderTests : BunitContext
     public async Task Slot_composes_wrapped_custom_event_callbacks_without_reflection()
     {
         List<string> calls = [];
-        BradixEventCallback slotCallback = BradixEventCallback.Create<CustomEventArgs>(args => calls.Add($"slot:{args.Value}"));
-        BradixEventCallback childCallback = BradixEventCallback.Create<CustomEventArgs>(args => calls.Add($"child:{args.Value}"));
+        var slotCallback = BradixEventCallback.Create<CustomEventArgs>(args => calls.Add($"slot:{args.Value}"));
+        var childCallback = BradixEventCallback.Create<CustomEventArgs>(args => calls.Add($"child:{args.Value}"));
 
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

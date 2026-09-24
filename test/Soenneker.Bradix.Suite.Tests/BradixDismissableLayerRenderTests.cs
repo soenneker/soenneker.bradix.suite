@@ -31,45 +31,53 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     [Test]
     public async Task Pointer_down_outside_triggers_dismiss()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => _dismissed = true)));
+        var dismissed = false;
+
+        IRenderedComponent<ContainerFragment> cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => dismissed = true)));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await layer.Instance.HandlePointerDownOutside();
 
-        await Assert.That(_dismissed).IsTrue();
+        await Assert.That(dismissed).IsTrue();
     }
 
     [Test]
     public async Task Escape_can_be_ignored_when_dismiss_disabled()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => _dismissed = true), dismissOnEscapeKeyDown: false));
+        var dismissed = false;
+
+        IRenderedComponent<ContainerFragment> cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => dismissed = true), dismissOnEscapeKeyDown: false));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await layer.Instance.HandleEscapeKeyDown();
 
-        await Assert.That(_dismissed).IsFalse();
+        await Assert.That(dismissed).IsFalse();
     }
 
     [Test]
     public async Task Escape_reports_prevent_default_when_it_dismisses()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => _dismissed = true)));
+        var dismissed = false;
+
+        IRenderedComponent<ContainerFragment> cut = Render(CreateLayer(EventCallback.Factory.Create(this, () => dismissed = true)));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         bool shouldPreventDefault = await layer.Instance.HandleEscapeKeyDown();
 
-        await Assert.That(_dismissed).IsTrue();
+        await Assert.That(dismissed).IsTrue();
         await Assert.That(shouldPreventDefault).IsTrue();
     }
 
     [Test]
     public async Task Escape_does_not_report_prevent_default_when_handler_prevents_dismiss()
     {
+        var dismissed = false;
+
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDismissableLayer>(0);
             builder.AddAttribute(1, nameof(BradixDismissableLayer.OnEscapeKeyDownDetailed), EventCallback.Factory.Create<BradixEscapeKeyDownEventArgs>(this, args => args.PreventDefault()));
-            builder.AddAttribute(2, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => _dismissed = true));
+            builder.AddAttribute(2, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => dismissed = true));
             builder.AddAttribute(3, nameof(BradixDismissableLayer.ChildContent), (RenderFragment)(contentBuilder =>
             {
                 contentBuilder.AddContent(0, "Layer content");
@@ -80,22 +88,24 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
         bool shouldPreventDefault = await layer.Instance.HandleEscapeKeyDown();
 
-        await Assert.That(_dismissed).IsFalse();
+        await Assert.That(dismissed).IsFalse();
         await Assert.That(shouldPreventDefault).IsFalse();
     }
 
     [Test]
     public async Task Focus_outside_triggers_interact_and_dismiss_callbacks()
     {
-        bool focusOutside = false;
-        bool interactOutside = false;
+        var dismissed = false;
+
+        var focusOutside = false;
+        var interactOutside = false;
 
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
             builder.OpenComponent<BradixDismissableLayer>(0);
             builder.AddAttribute(1, nameof(BradixDismissableLayer.OnFocusOutside), EventCallback.Factory.Create(this, () => focusOutside = true));
             builder.AddAttribute(2, nameof(BradixDismissableLayer.OnInteractOutside), EventCallback.Factory.Create(this, () => interactOutside = true));
-            builder.AddAttribute(3, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => _dismissed = true));
+            builder.AddAttribute(3, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => dismissed = true));
             builder.AddAttribute(4, nameof(BradixDismissableLayer.ChildContent), (RenderFragment)(contentBuilder =>
             {
                 contentBuilder.AddContent(0, "Layer content");
@@ -108,13 +118,15 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
 
         await Assert.That(focusOutside).IsTrue();
         await Assert.That(interactOutside).IsTrue();
-        await Assert.That(_dismissed).IsTrue();
+        await Assert.That(dismissed).IsTrue();
     }
 
     [Test]
     public async Task Pointer_down_outside_prevent_default_prevents_dismiss()
     {
-        bool interactOutside = false;
+        var dismissed = false;
+
+        var interactOutside = false;
 
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -122,7 +134,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
             builder.AddAttribute(1, nameof(BradixDismissableLayer.OnPointerDownOutsideDetailed),
                 EventCallback.Factory.Create<BradixPointerDownOutsideEventArgs>(this, args => args.PreventDefault()));
             builder.AddAttribute(2, nameof(BradixDismissableLayer.OnInteractOutside), EventCallback.Factory.Create(this, () => interactOutside = true));
-            builder.AddAttribute(3, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => _dismissed = true));
+            builder.AddAttribute(3, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => dismissed = true));
             builder.AddAttribute(4, nameof(BradixDismissableLayer.ChildContent), (RenderFragment)(contentBuilder =>
             {
                 contentBuilder.AddContent(0, "Layer content");
@@ -134,13 +146,15 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
         await layer.Instance.HandlePointerDownOutside();
 
         await Assert.That(interactOutside).IsTrue();
-        await Assert.That(_dismissed).IsFalse();
+        await Assert.That(dismissed).IsFalse();
     }
 
     [Test]
     public async Task Interact_outside_prevent_default_prevents_focus_dismiss()
     {
-        bool focusOutside = false;
+        var dismissed = false;
+
+        var focusOutside = false;
 
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -148,7 +162,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
             builder.AddAttribute(1, nameof(BradixDismissableLayer.OnFocusOutside), EventCallback.Factory.Create(this, () => focusOutside = true));
             builder.AddAttribute(2, nameof(BradixDismissableLayer.OnInteractOutsideDetailed),
                 EventCallback.Factory.Create<BradixInteractOutsideEventArgs>(this, args => args.PreventDefault()));
-            builder.AddAttribute(3, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => _dismissed = true));
+            builder.AddAttribute(3, nameof(BradixDismissableLayer.OnDismiss), EventCallback.Factory.Create(this, () => dismissed = true));
             builder.AddAttribute(4, nameof(BradixDismissableLayer.ChildContent), (RenderFragment)(contentBuilder =>
             {
                 contentBuilder.AddContent(0, "Layer content");
@@ -160,7 +174,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
         await layer.Instance.HandleFocusOutside();
 
         await Assert.That(focusOutside).IsTrue();
-        await Assert.That(_dismissed).IsFalse();
+        await Assert.That(dismissed).IsFalse();
     }
 
     [Test]
@@ -178,8 +192,6 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
 
         await Assert.That(cut.Markup).Contains("Branch");
     }
-
-    private bool _dismissed;
 
     private static RenderFragment CreateLayer(EventCallback onDismiss = default, bool dismissOnEscapeKeyDown = true)
     {

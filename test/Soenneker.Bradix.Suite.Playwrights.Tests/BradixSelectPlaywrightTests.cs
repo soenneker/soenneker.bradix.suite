@@ -82,7 +82,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(listBox)
                         .ToHaveAttributeAsync("data-state", "open");
 
-        bool renderedOutsideMain = await page.EvaluateAsync<bool>(
+        var renderedOutsideMain = await page.EvaluateAsync<bool>(
             "() => {" +
             "const listbox = document.querySelector('[role=\"listbox\"][data-state=\"open\"]');" +
             "const main = document.querySelector('main');" +
@@ -274,7 +274,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(selectedPork).ToHaveAttributeAsync("data-state", "checked");
         await Assertions.Expect(selectedPork).ToBeVisibleAsync();
 
-        bool contentPositionedWithinViewport = await page.EvaluateAsync<bool>(
+        var contentPositionedWithinViewport = await page.EvaluateAsync<bool>(
             """
             () => {
               const listbox = document.querySelector('[role="listbox"][data-position="item-aligned"][data-state="open"]');
@@ -396,7 +396,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(result).ToContainTextAsync("No submission yet.");
         await Assertions.Expect(hiddenSelect).ToHaveAttributeAsync("required", string.Empty);
-        bool isInitiallyValid = await hiddenSelect.EvaluateAsync<bool>("element => element.checkValidity()");
+        var isInitiallyValid = await hiddenSelect.EvaluateAsync<bool>("element => element.checkValidity()");
         await Assert.That(isInitiallyValid).IsFalse();
         ILocator trigger = form.GetByRole(AriaRole.Combobox, new LocatorGetByRoleOptions { Name = "Select framework", Exact = true });
         await trigger.ClickAsync();
@@ -409,7 +409,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(trigger).ToContainTextAsync("Astro");
         await Assertions.Expect(hiddenSelect).ToHaveValueAsync("astro");
-        bool isValidAfterSelection = await hiddenSelect.EvaluateAsync<bool>("element => element.checkValidity()");
+        var isValidAfterSelection = await hiddenSelect.EvaluateAsync<bool>("element => element.checkValidity()");
         await Assert.That(isValidAfterSelection).IsTrue();
 
         await form.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Submit native form", Exact = true }).ClickAsync();

@@ -111,7 +111,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
 
         await trigger.ClickAsync();
 
-        await Assert.That(requestedOpen).IsEqualTo(false);
+        await Assert.That(requestedOpen).IsFalse();
         await Assert.That(trigger.GetAttribute("aria-expanded")).IsEqualTo("true");
         await Assert.That(content.HasAttribute("hidden")).IsFalse();
         await Assert.That(cut.Markup).Contains("Content");

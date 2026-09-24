@@ -678,8 +678,8 @@
     private int CountEnabledItems(string? preferredValue, string? fallbackValue, out int currentIndex)
     {
         currentIndex = -1;
-        int count = 0;
-        bool matchedPreferred = false;
+        var count = 0;
+        var matchedPreferred = false;
         bool hasPreferred = !string.IsNullOrWhiteSpace(preferredValue);
         bool hasFallback = !string.IsNullOrWhiteSpace(fallbackValue);
 
@@ -706,7 +706,7 @@
 
     private IBradixSelectCollectionItem? GetEnabledItemAt(int targetIndex)
     {
-        int index = 0;
+        var index = 0;
 
         foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
         {
@@ -740,7 +740,7 @@
     private int CountEnabledItems(IBradixSelectCollectionItem? current, out int currentIndex)
     {
         currentIndex = -1;
-        int count = 0;
+        var count = 0;
 
         foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
         {
@@ -759,7 +759,7 @@
     private IBradixSelectCollectionItem? FindNextTypeaheadItemInRange(string normalizedSearch, IBradixSelectCollectionItem? currentItem, bool excludeCurrentItem,
         int startIndex, int endIndex)
     {
-        int index = 0;
+        var index = 0;
 
         foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
         {

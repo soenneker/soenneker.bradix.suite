@@ -383,7 +383,7 @@
     private int CountEnabledItems(IBradixMenuRovingItem? current, out int currentIndex)
     {
         currentIndex = -1;
-        int count = 0;
+        var count = 0;
 
         foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
         {
@@ -401,7 +401,7 @@
 
     private IBradixMenuRovingItem? GetEnabledItemAt(int targetIndex)
     {
-        int index = 0;
+        var index = 0;
 
         foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
         {
@@ -435,7 +435,7 @@
     private IBradixMenuRovingItem? FindNextTypeaheadItemInRange(string normalizedSearch, IBradixMenuRovingItem? currentItem, bool excludeCurrentItem, int startIndex,
         int endIndex)
     {
-        int index = 0;
+        var index = 0;
 
         foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
         {

@@ -296,7 +296,7 @@
 
     private static int FindTriggerIndex(IReadOnlyList<IBradixMenubarTriggerEntry> triggers, string value)
     {
-        for (int i = 0; i < triggers.Count; i++)
+        for (var i = 0; i < triggers.Count; i++)
         {
             if (string.Equals(triggers[i].Value, value, StringComparison.Ordinal))
                 return i;

@@ -452,12 +452,13 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         await Assert.That(cut.Markup).Contains("Buttons");
 
         IElement viewport = cut.Find("[id$='-viewport']");
-        await Assert.That(string.IsNullOrWhiteSpace(viewport.Id)).IsFalse();
+        var viewportId = await Assert.That(viewport.Id).IsNotNull();
+        await Assert.That(string.IsNullOrWhiteSpace(viewportId)).IsFalse();
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {
-            AncestorIds = [viewport.Id]
+            AncestorIds = [viewportId]
         }));
 
         await Assert.That(cut.Markup).Contains("Buttons");
@@ -472,12 +473,13 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         await Assert.That(cut.Markup).Contains("Buttons");
 
         IElement root = cut.Find("nav");
-        await Assert.That(string.IsNullOrWhiteSpace(root.Id)).IsFalse();
+        var rootId = await Assert.That(root.Id).IsNotNull();
+        await Assert.That(string.IsNullOrWhiteSpace(rootId)).IsFalse();
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
 
         await cut.InvokeAsync(() => layer.Instance.HandleFocusOutside(new BradixDelegatedFocusEvent
         {
-            AncestorIds = [root.Id]
+            AncestorIds = [rootId]
         }));
 
         await Assert.That(cut.Markup).Contains("Buttons");

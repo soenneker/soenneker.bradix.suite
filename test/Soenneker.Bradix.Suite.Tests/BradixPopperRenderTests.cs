@@ -43,7 +43,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     [Test]
     public async Task Position_updates_are_reflected_in_attributes_and_callbacks()
     {
-        int placedCount = 0;
+        var placedCount = 0;
 
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -140,7 +140,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     [Test]
     public async Task Duplicate_position_updates_do_not_trigger_additional_rerenders()
     {
-        int placedCount = 0;
+        var placedCount = 0;
 
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

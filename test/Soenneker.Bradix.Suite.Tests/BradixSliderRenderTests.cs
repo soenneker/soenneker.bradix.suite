@@ -160,7 +160,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     [Test]
     public async Task Slider_pointer_cancel_does_not_commit_value()
     {
-        int commitCount = 0;
+        var commitCount = 0;
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20], onValueCommit: () => commitCount++));
         IRenderedComponent<BradixSlider> slider = cut.FindComponent<BradixSlider>();
 

@@ -16,6 +16,8 @@
         <RazorSitemapOutputPath>wwwroot/sitemap.xml</RazorSitemapOutputPath>
         <RazorSitemapIncludeUnannotatedPages>true</RazorSitemapIncludeUnannotatedPages>
         <RazorSitemapEnabled>true</RazorSitemapEnabled>
+        <!-- All demo routes are unannotated; the optional sitemap attribute is unused. -->
+        <RazorSitemapDisableAttributeCompile>true</RazorSitemapDisableAttributeCompile>
         <Configurations>Debug;Release</Configurations>
     </PropertyGroup>
 
@@ -44,6 +46,10 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Soenneker.Bradix.Suite\Soenneker.Bradix.Suite.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="$(_RazorSitemapAttributeSource)" />
     </ItemGroup>
 
     <Target Name="CopyDemoRazorSources" BeforeTargets="ResolveProjectStaticWebAssets">

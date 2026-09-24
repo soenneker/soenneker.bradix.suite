@@ -129,7 +129,7 @@
     private int CountFocusableItems(IBradixToolbarRovingItem current, out int currentIndex)
     {
         currentIndex = -1;
-        int count = 0;
+        var count = 0;
         foreach (IBradixToolbarRovingItem item in _items)
         {
             if (item.IsDisabled)
@@ -143,7 +143,7 @@
 
     private IBradixToolbarRovingItem? GetFocusableItemAt(int targetIndex)
     {
-        int index = 0;
+        var index = 0;
         foreach (IBradixToolbarRovingItem item in _items)
         {
             if (!item.IsDisabled && index++ == targetIndex)

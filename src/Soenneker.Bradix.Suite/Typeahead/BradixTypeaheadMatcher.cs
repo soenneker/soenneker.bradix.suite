@@ -29,7 +29,7 @@ public static class BradixTypeaheadMatcher
         string? nextMatch = null;
         int valueIndex = startIndex;
 
-        for (int i = 0; i < values.Count; i++)
+        for (var i = 0; i < values.Count; i++)
         {
             string value = values[valueIndex];
 
@@ -82,7 +82,7 @@ public static class BradixTypeaheadMatcher
         TItem? nextItem = default;
         int itemIndex = startIndex;
 
-        for (int i = 0; i < items.Count; i++)
+        for (var i = 0; i < items.Count; i++)
         {
             TItem item = items[itemIndex];
 

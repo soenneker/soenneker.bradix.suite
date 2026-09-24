@@ -290,7 +290,7 @@
     private int CountFocusableItems(BradixToggleGroupItem current, out int currentIndex)
     {
         currentIndex = -1;
-        int count = 0;
+        var count = 0;
         foreach (BradixToggleGroupItem item in _items)
         {
             if (!item.IsFocusable)
@@ -304,7 +304,7 @@
 
     private BradixToggleGroupItem? GetFocusableItemAt(int targetIndex)
     {
-        int index = 0;
+        var index = 0;
         foreach (BradixToggleGroupItem item in _items)
         {
             if (item.IsFocusable && index++ == targetIndex)
@@ -378,7 +378,7 @@
     {
         var removed = false;
 
-        for (int i = 0; i < values.Count; i++)
+        for (var i = 0; i < values.Count; i++)
         {
             if (!string.Equals(values[i], value, StringComparison.Ordinal))
                 continue;

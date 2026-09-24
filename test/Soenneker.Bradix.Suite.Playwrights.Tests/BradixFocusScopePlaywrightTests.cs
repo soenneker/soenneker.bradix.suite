@@ -88,7 +88,7 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
         await Assertions.Expect(second).ToBeFocusedAsync();
 
         await page.EvaluateAsync("document.getElementById('focus-scope-before-trap').focus()");
-        string activeElementId = await page.EvaluateAsync<string>("document.activeElement.id");
+        var activeElementId = await page.EvaluateAsync<string>("document.activeElement.id");
         activeElementId.Should().BeOneOf("focus-scope-trap-first", "focus-scope-trap-second");
 
         await second.PressAsync("Tab");

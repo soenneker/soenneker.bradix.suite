@@ -50,7 +50,7 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/labels"));
 
         ILocator label = page.GetByText("First name", new PageGetByTextOptions { Exact = true });
-        bool dispatchResult = await label.EvaluateAsync<bool>(
+        var dispatchResult = await label.EvaluateAsync<bool>(
             "element => element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, detail: 2 }))");
 
         await Assert.That(dispatchResult).IsFalse();

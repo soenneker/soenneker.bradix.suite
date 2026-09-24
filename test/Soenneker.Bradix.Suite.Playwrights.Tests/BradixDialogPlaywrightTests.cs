@@ -139,9 +139,9 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialogs"));
 
-        string initialBodyOverflow = await page.EvaluateAsync<string>("() => document.body.style.overflow");
-        string initialBodyPaddingRight = await page.EvaluateAsync<string>("() => document.body.style.paddingRight");
-        string initialDocumentTouchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");
+        var initialBodyOverflow = await page.EvaluateAsync<string>("() => document.body.style.overflow");
+        var initialBodyPaddingRight = await page.EvaluateAsync<string>("() => document.body.style.paddingRight");
+        var initialDocumentTouchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
 

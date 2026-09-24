@@ -113,7 +113,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         await cut.InvokeAsync(() => layer.Instance.HandleFocusOutside());
 
         await Assert.That(cut.Markup).Contains("Hover card body");
-        await Assert.That(focusOutsideArgs?.DefaultPrevented).IsEqualTo(true);
+        await Assert.That(focusOutsideArgs?.DefaultPrevented).IsTrue();
     }
 
     [Test]
@@ -123,11 +123,11 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         IElement trigger = cut.Find("button");
 
         await trigger.TriggerEventAsync("onpointerenter", new Microsoft.AspNetCore.Components.Web.PointerEventArgs { PointerType = "mouse" });
-        await Task.Delay(20, global::TUnit.Core.TestContext.Current.Execution.CancellationToken);
+        await Task.Delay(20, global::TUnit.Core.TestContext.Current!.Execution.CancellationToken);
         await Assert.That(cut.Markup).Contains("Hover card body");
 
         await trigger.TriggerEventAsync("onpointerleave", new Microsoft.AspNetCore.Components.Web.PointerEventArgs { PointerType = "touch" });
-        await Task.Delay(350, global::TUnit.Core.TestContext.Current.Execution.CancellationToken);
+        await Task.Delay(350, global::TUnit.Core.TestContext.Current!.Execution.CancellationToken);
 
         await cut.WaitForAssertionAsync(async () =>
         {

@@ -81,7 +81,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
         await Assert.That(((string[])keys!).Contains("Enter")).IsTrue();
         await Assert.That(((string[])keys!).Contains(" ")).IsTrue();
         await Assert.That(((string[])keys!).Contains("Spacebar")).IsTrue();
-        await Assert.That(preventDefault).IsEqualTo(true);
+        await Assert.That(preventDefault is true).IsTrue();
     }
 
     [Test]

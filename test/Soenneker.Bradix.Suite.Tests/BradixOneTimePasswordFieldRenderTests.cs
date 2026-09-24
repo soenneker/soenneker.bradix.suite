@@ -41,7 +41,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     [Test]
     public async Task Refresh_tracks_inputs_added_and_removed_after_initial_interaction()
     {
-        int count = 2;
+        var count = 2;
         RenderFragment inputs = builder =>
         {
             for (var i = 0; i < count; i++)
@@ -121,7 +121,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     [Test]
     public async Task Completion_triggers_auto_submit_callback_and_form_request()
     {
-        string submitted = string.Empty;
+        var submitted = string.Empty;
         IRenderedComponent<ContainerFragment> cut = RenderOtpField(autoSubmit: true, onAutoSubmit: value => submitted = value);
         IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
 
@@ -215,7 +215,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
             builder.AddAttribute(4, nameof(BradixOneTimePasswordField.OnAutoSubmit), EventCallback.Factory.Create<string>(this, value => onAutoSubmit?.Invoke(value)));
             builder.AddAttribute(5, nameof(BradixOneTimePasswordField.ChildContent), (RenderFragment)(content =>
             {
-                for (int i = 0; i < 4; i++)
+                for (var i = 0; i < 4; i++)
                 {
                     content.OpenComponent<BradixOneTimePasswordFieldInput>(i);
                     content.AddAttribute(i + 10, nameof(BradixOneTimePasswordFieldInput.Index), i);

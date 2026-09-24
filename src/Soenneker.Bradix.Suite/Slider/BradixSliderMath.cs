@@ -74,7 +74,7 @@ internal static class BradixSliderMath
     {
         List<double> nextValues = new(previousValues.Count);
 
-        for (int i = 0; i < previousValues.Count; i++)
+        for (var i = 0; i < previousValues.Count; i++)
         {
             nextValues.Add(previousValues[i]);
         }

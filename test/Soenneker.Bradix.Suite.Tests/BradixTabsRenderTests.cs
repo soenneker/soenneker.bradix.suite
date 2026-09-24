@@ -33,7 +33,7 @@ public sealed class BradixTabsRenderTests : BunitContext
         var trigger = cut.FindComponent<BradixTabsTrigger>();
         int tabRenders = tabs.RenderCount;
         int renders = trigger.RenderCount;
-        for (int i = 0; i < 20; i++)
+        for (var i = 0; i < 20; i++)
             await trigger.Find("button").KeyDownAsync(new KeyboardEventArgs { Key = "Shift", ShiftKey = true });
         await Assert.That(trigger.RenderCount).IsEqualTo(renders);
         await Assert.That(tabs.RenderCount).IsEqualTo(tabRenders);

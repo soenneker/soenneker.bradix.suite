@@ -86,7 +86,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
         IElement trigger = cut.Find("button[aria-haspopup='dialog']");
-        string triggerId = await Assert.That(trigger.Id).IsTypeOf<string>();
+        var triggerId = await Assert.That(trigger.Id).IsNotNull();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {

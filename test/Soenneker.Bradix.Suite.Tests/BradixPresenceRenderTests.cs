@@ -24,7 +24,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     [Test]
     public async Task Present_presence_renders_content()
     {
-        bool present = true;
+        var present = true;
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => present));
 
         await Assert.That(cut.Markup).Contains("Content");
@@ -33,7 +33,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     [Test]
     public async Task Non_present_presence_does_not_render_initially()
     {
-        bool present = false;
+        var present = false;
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => present));
 
         await Assert.That(cut.Markup).DoesNotContain("Content");
@@ -60,7 +60,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     [Test]
     public async Task Exit_complete_callback_runs_after_animation_end()
     {
-        int exitCompleteCount = 0;
+        var exitCompleteCount = 0;
 
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

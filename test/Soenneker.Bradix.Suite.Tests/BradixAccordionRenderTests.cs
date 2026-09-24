@@ -159,7 +159,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
     {
         var focus = JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true);
         focus.SetVoidResult();
-        bool showFirst = true;
+        var showFirst = true;
         RenderFragment content = builder =>
         {
             if (showFirst)

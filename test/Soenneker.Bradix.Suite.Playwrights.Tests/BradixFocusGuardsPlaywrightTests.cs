@@ -22,7 +22,7 @@ public sealed class BradixFocusGuardsPlaywrightTests : BradixComponentPlaywright
         ILocator guards = page.Locator("[data-radix-focus-guard]");
         await Assertions.Expect(guards).ToHaveCountAsync(2);
 
-        bool guardsAreBodyEdges = await page.EvaluateAsync<bool>(
+        var guardsAreBodyEdges = await page.EvaluateAsync<bool>(
             """
             () => document.body.firstElementChild?.hasAttribute('data-radix-focus-guard') === true
                 && document.body.lastElementChild?.hasAttribute('data-radix-focus-guard') === true

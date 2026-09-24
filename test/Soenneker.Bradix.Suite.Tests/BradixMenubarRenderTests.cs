@@ -167,7 +167,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
 
         await triggers[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
         IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
-        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        var currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsNotNull();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -191,7 +191,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
         IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
-        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        var currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsNotNull();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -211,7 +211,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
         IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
-        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        var currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsNotNull();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -246,7 +246,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
         IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
-        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        var currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsNotNull();
         IHtmlCollection<IElement> items = cut.Find("[role='menu']").QuerySelectorAll("[role='menuitem']");
 
         await items[0].KeyDownAsync(new KeyboardEventArgs { Key = "s" });
@@ -283,7 +283,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
         });
 
         IRenderedComponent<BradixMenubarContent> content = FindOpenContent(cut);
-        string currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        var currentContentId = await Assert.That(cut.Find("[role='menu']").Id).IsNotNull();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {

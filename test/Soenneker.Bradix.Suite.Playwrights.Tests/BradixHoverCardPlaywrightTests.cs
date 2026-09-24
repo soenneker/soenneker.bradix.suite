@@ -20,7 +20,7 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
         await page.GetByAltText("Radix UI").HoverAsync();
         var cardText = page.GetByText("@radix_ui", new() { Exact = true });
         await Assertions.Expect(cardText).ToBeVisibleAsync();
-        string originalStyle = await page.EvaluateAsync<string>("() => document.body.style.userSelect");
+        var originalStyle = await page.EvaluateAsync<string>("() => document.body.style.userSelect");
         await cardText.HoverAsync();
         await page.Mouse.DownAsync();
         try

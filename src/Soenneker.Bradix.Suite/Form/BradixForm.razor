@@ -427,11 +427,11 @@
         if (fieldNames.Length > 32)
             return GetDistinctLargeFieldNames(fieldNames);
 
-        for (int i = 0; i < fieldNames.Length; i++)
+        for (var i = 0; i < fieldNames.Length; i++)
         {
             string fieldName = fieldNames[i];
 
-            for (int j = 0; j < i; j++)
+            for (var j = 0; j < i; j++)
             {
                 if (!string.Equals(fieldNames[j], fieldName, StringComparison.Ordinal))
                     continue;
@@ -447,7 +447,7 @@
     {
         HashSet<string> seen = new(fieldNames.Length, StringComparer.Ordinal);
         List<string>? distinct = null;
-        for (int i = 0; i < fieldNames.Length; i++)
+        for (var i = 0; i < fieldNames.Length; i++)
         {
             string fieldName = fieldNames[i];
             if (seen.Add(fieldName))
@@ -457,7 +457,7 @@
             else if (distinct is null)
             {
                 distinct = new List<string>(fieldNames.Length);
-                for (int j = 0; j < i; j++)
+                for (var j = 0; j < i; j++)
                     distinct.Add(fieldNames[j]);
             }
         }
@@ -469,7 +469,7 @@
     {
         List<string> distinctFieldNames = new(duplicateIndex);
 
-        for (int i = 0; i < duplicateIndex; i++)
+        for (var i = 0; i < duplicateIndex; i++)
             distinctFieldNames.Add(fieldNames[i]);
 
         for (int i = duplicateIndex + 1; i < fieldNames.Length; i++)

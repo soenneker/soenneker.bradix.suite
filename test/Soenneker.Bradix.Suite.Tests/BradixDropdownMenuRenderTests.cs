@@ -59,7 +59,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu());
         IElement trigger = cut.Find("button");
-        string closedControls = await Assert.That(trigger.GetAttribute("aria-controls")).IsTypeOf<string>();
+        var closedControls = await Assert.That(trigger.GetAttribute("aria-controls")).IsNotNull();
 
         await trigger.KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowDown" });
 
@@ -99,8 +99,8 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
 
         JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerFocusScope");
 
-        await Assert.That(invocation.Arguments[4]).IsEqualTo(true);
-        await Assert.That(invocation.Arguments[5]).IsEqualTo(true);
+        await Assert.That(invocation.Arguments[4] is true).IsTrue();
+        await Assert.That(invocation.Arguments[5] is true).IsTrue();
     }
 
     [Test]

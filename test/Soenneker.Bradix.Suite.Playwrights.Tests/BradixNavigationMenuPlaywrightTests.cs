@@ -269,7 +269,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
-        TriggerDiagnostics? diagnostics = await page.EvaluateAsync<TriggerDiagnostics>(
+        var diagnostics = await page.EvaluateAsync<TriggerDiagnostics>(
             @"() => {
                 const buttons = [...document.querySelectorAll('button')].map(button => {
                     const rect = button.getBoundingClientRect();
@@ -380,7 +380,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
 
         ILocator learnTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Learn", Exact = true });
 
-        TriggerIdentityDiagnostics? before = await page.EvaluateAsync<TriggerIdentityDiagnostics>(
+        var before = await page.EvaluateAsync<TriggerIdentityDiagnostics>(
             @"() => {
                 const overview = [...document.querySelectorAll('button')].find(button => button.textContent?.trim() === 'Overview') ?? null;
                 if (!overview) {
@@ -401,7 +401,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await ClickTrigger(page, learnTrigger);
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true");
 
-        TriggerIdentityAfterOpenDiagnostics? after = await page.EvaluateAsync<TriggerIdentityAfterOpenDiagnostics>(
+        var after = await page.EvaluateAsync<TriggerIdentityAfterOpenDiagnostics>(
             @"() => {
                 const overview = [...document.querySelectorAll('button')].find(button => button.textContent?.trim() === 'Overview') ?? null;
                 if (!overview) {

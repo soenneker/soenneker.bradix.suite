@@ -63,7 +63,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         var cut = Render(CreateMenu());
         var item = cut.FindComponent<BradixMenuItem>();
         int renders = item.RenderCount;
-        for (int i = 0; i < 20; i++)
+        for (var i = 0; i < 20; i++)
             await item.Find("[role='menuitem']").PointerMoveAsync(new PointerEventArgs { PointerType = "touch" });
         await item.Find("[role='menuitem']").PointerDownAsync(new PointerEventArgs { Button = 0 });
         await Assert.That(item.RenderCount).IsEqualTo(renders);
@@ -146,7 +146,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
         IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
-        string contentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        var contentId = await Assert.That(cut.Find("[role='menu']").Id).IsNotNull();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -182,7 +182,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(disableFirstItem: true));
         IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
-        string contentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        var contentId = await Assert.That(cut.Find("[role='menu']").Id).IsNotNull();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -234,7 +234,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
         IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
-        string contentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        var contentId = await Assert.That(cut.Find("[role='menu']").Id).IsNotNull();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -382,7 +382,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         await Assert.That(cut.FindAll("[role='menu']").Count).IsEqualTo(2);
 
         IRenderedComponent<BradixMenuContent> submenuContent = cut.FindComponents<BradixMenuContent>().Last();
-        string submenuContentId = await Assert.That(cut.FindAll("[role='menu']").Last().Id).IsTypeOf<string>();
+        var submenuContentId = await Assert.That(cut.FindAll("[role='menu']").Last().Id).IsNotNull();
 
         await cut.InvokeAsync(() => submenuContent.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -522,7 +522,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         await trigger.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "mouse" });
         await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("false");
 
-        await Task.Delay(150, global::TUnit.Core.TestContext.Current.Execution.CancellationToken);
+        await Task.Delay(150, global::TUnit.Core.TestContext.Current!.Execution.CancellationToken);
 
         await cut.WaitForAssertionAsync(async () =>
         {
@@ -535,7 +535,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
         IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
-        string contentId = await Assert.That(cut.Find("[role='menu']").Id).IsTypeOf<string>();
+        var contentId = await Assert.That(cut.Find("[role='menu']").Id).IsNotNull();
 
         await cut.InvokeAsync(() => content.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {
@@ -619,7 +619,7 @@ public sealed class BradixMenuRenderTests : BunitContext
         await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("true");
 
         IRenderedComponent<BradixMenuContent> submenuContent = cut.FindComponents<BradixMenuContent>().Last();
-        string targetId = await Assert.That(cut.FindAll("[role='menu']").Last().Id).IsTypeOf<string>();
+        var targetId = await Assert.That(cut.FindAll("[role='menu']").Last().Id).IsNotNull();
 
         await cut.InvokeAsync(() => submenuContent.Instance.HandleDelegatedContentKeyDown(new BradixDelegatedKeyboardEvent
         {

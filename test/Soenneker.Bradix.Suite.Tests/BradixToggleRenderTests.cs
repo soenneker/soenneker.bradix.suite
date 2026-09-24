@@ -63,7 +63,7 @@ public sealed class BradixToggleRenderTests : BunitContext
     [Test]
     public async Task Disabled_toggle_does_not_change_on_click()
     {
-        bool callbackInvoked = false;
+        var callbackInvoked = false;
         IRenderedComponent<ContainerFragment> cut = Render(CreateToggle(
             disabled: true,
             onPressedChange: EventCallback.Factory.Create<bool>(this, _ => callbackInvoked = true)));

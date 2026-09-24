@@ -34,39 +34,45 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     [Test]
     public async Task Focus_scope_mount_callback_can_be_invoked()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope(EventCallback.Factory.Create(this, () => _mounted = true)));
+        var mounted = false;
+
+        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope(EventCallback.Factory.Create(this, () => mounted = true)));
         IRenderedComponent<BradixFocusScope> scope = cut.FindComponent<BradixFocusScope>();
 
         await scope.Instance.HandleMountAutoFocus();
 
-        await Assert.That(_mounted).IsTrue();
+        await Assert.That(mounted).IsTrue();
     }
 
     [Test]
     public async Task Focus_scope_unmount_callback_can_be_invoked()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => _unmounted = true)));
+        var unmounted = false;
+
+        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => unmounted = true)));
         IRenderedComponent<BradixFocusScope> scope = cut.FindComponent<BradixFocusScope>();
 
         await scope.Instance.HandleUnmountAutoFocus();
 
-        await Assert.That(_unmounted).IsTrue();
+        await Assert.That(unmounted).IsTrue();
     }
 
     [Test]
     public async Task Focus_scope_disposal_invokes_unmount_callback_before_unregistering()
     {
-        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => _unmounted = true)));
+        var unmounted = false;
+
+        IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope(default, EventCallback.Factory.Create(this, () => unmounted = true)));
         IRenderedComponent<BradixFocusScope> scope = cut.FindComponent<BradixFocusScope>();
 
         await scope.Instance.DisposeAsync();
 
-        await Assert.That(_unmounted).IsTrue();
+        await Assert.That(unmounted).IsTrue();
 
         JSRuntimeInvocation invocation = _module.Invocations.Last(call => call.Identifier == "unregisterFocusScope");
 
         await Assert.That(invocation.Arguments.Count).IsEqualTo(2);
-        await Assert.That(invocation.Arguments[1]).IsEqualTo(false);
+        await Assert.That(invocation.Arguments[1] is false).IsTrue();
     }
 
     [Test]
@@ -88,9 +94,6 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
 
         await Assert.That(cut.Markup).Contains("Focusable");
     }
-
-    private bool _mounted;
-    private bool _unmounted;
 
     private static RenderFragment CreateFocusScope(EventCallback onMountAutoFocus = default, EventCallback onUnmountAutoFocus = default)
     {

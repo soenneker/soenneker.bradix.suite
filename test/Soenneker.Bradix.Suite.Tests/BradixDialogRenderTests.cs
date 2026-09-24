@@ -112,8 +112,8 @@ public sealed class BradixDialogRenderTests : BunitContext
         JSRuntimeInvocation focusScopeInvocation = _module.Invocations.Single(invocation => invocation.Identifier == "registerFocusScope");
         JSRuntimeInvocation dismissableLayerInvocation = _module.Invocations.Single(invocation => invocation.Identifier == "registerDismissableLayer");
 
-        await Assert.That(focusScopeInvocation.Arguments[3]).IsEqualTo(true);
-        await Assert.That(dismissableLayerInvocation.Arguments[2]).IsEqualTo(true);
+        await Assert.That(focusScopeInvocation.Arguments[3] is true).IsTrue();
+        await Assert.That(dismissableLayerInvocation.Arguments[2] is true).IsTrue();
     }
 
     [Test]
@@ -124,8 +124,8 @@ public sealed class BradixDialogRenderTests : BunitContext
         JSRuntimeInvocation focusScopeInvocation = _module.Invocations.Single(invocation => invocation.Identifier == "registerFocusScope");
         JSRuntimeInvocation dismissableLayerInvocation = _module.Invocations.Single(invocation => invocation.Identifier == "registerDismissableLayer");
 
-        await Assert.That(focusScopeInvocation.Arguments[3]).IsEqualTo(false);
-        await Assert.That(dismissableLayerInvocation.Arguments[2]).IsEqualTo(false);
+        await Assert.That(focusScopeInvocation.Arguments[3] is false).IsTrue();
+        await Assert.That(dismissableLayerInvocation.Arguments[2] is false).IsTrue();
     }
 
     [Test]
@@ -145,7 +145,7 @@ public sealed class BradixDialogRenderTests : BunitContext
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true, modal: false));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
         IElement trigger = cut.Find("button[aria-haspopup='dialog']");
-        string triggerId = await Assert.That(trigger.Id).IsTypeOf<string>();
+        var triggerId = await Assert.That(trigger.Id).IsNotNull();
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside(new BradixDelegatedMouseEvent
         {

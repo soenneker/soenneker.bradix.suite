@@ -73,7 +73,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
 
         await Assert.That(cut.Markup).DoesNotContain("JD");
 
-        await Task.Delay(250, global::TUnit.Core.TestContext.Current.Execution.CancellationToken);
+        await Task.Delay(250, global::TUnit.Core.TestContext.Current!.Execution.CancellationToken);
 
         await cut.WaitForAssertionAsync(async () =>
         {

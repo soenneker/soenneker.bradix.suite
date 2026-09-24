@@ -20,7 +20,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scrollareas"));
 
-        int scrollLeft = await page.EvaluateAsync<int>(
+        var scrollLeft = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('.scroll-area-demo__horizontal [data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollLeft = 200; return viewport.scrollLeft; }");
         await Assert.That(scrollLeft > 0).IsTrue();
     }
@@ -37,11 +37,11 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
             await Assertions.Expect(currentPage.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "RTL notes", Exact = true })).ToBeVisibleAsync();
         });
 
-        int verticalScrollTop = await page.EvaluateAsync<int>(
+        var verticalScrollTop = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('[data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollTop = 200; return viewport.scrollTop; }");
         await Assert.That(verticalScrollTop > 0).IsTrue();
 
-        int horizontalScrollLeft = await page.EvaluateAsync<int>(
+        var horizontalScrollLeft = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('.scroll-area-demo__horizontal [data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollLeft = 200; return viewport.scrollLeft; }");
         await Assert.That(horizontalScrollLeft > 0).IsTrue();
 
@@ -50,7 +50,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
                                .First;
         await Assertions.Expect(rtlRoot).ToHaveAttributeAsync("dir", "rtl");
 
-        int rtlScrollTop = await page.EvaluateAsync<int>(
+        var rtlScrollTop = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('[dir=\"rtl\"] [data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollTop = 160; return viewport.scrollTop; }");
         await Assert.That(rtlScrollTop > 0).IsTrue();
     }
@@ -63,7 +63,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scrollareas"));
 
-        int scrollTop = await page.EvaluateAsync<int>(
+        var scrollTop = await page.EvaluateAsync<int>(
             "() => { const viewport = document.querySelector('[data-radix-scroll-area-viewport]'); if (!viewport) return -1; viewport.scrollTop = 200; return viewport.scrollTop; }");
         await Assert.That(scrollTop > 0).IsTrue();
     }
@@ -86,7 +86,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
         await scrollbar.HoverAsync();
         await page.Mouse.WheelAsync(0, 220);
 
-        int scrollTop = await firstDemo.Locator("[data-radix-scroll-area-viewport]").EvaluateAsync<int>("element => element.scrollTop");
+        var scrollTop = await firstDemo.Locator("[data-radix-scroll-area-viewport]").EvaluateAsync<int>("element => element.scrollTop");
         await Assert.That(scrollTop > 0).IsTrue();
     }
 }

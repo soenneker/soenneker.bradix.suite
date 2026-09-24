@@ -158,16 +158,16 @@
         if (hotkey.Count == 0)
             return string.Empty;
 
-        int length = 0;
+        var length = 0;
 
-        for (int i = 0; i < hotkey.Count; i++)
+        for (var i = 0; i < hotkey.Count; i++)
             length += GetDisplayKeyLength(hotkey[i]) + (i == 0 ? 0 : 1);
 
         return string.Create(length, hotkey, static (span, keys) =>
         {
-            int position = 0;
+            var position = 0;
 
-            for (int i = 0; i < keys.Count; i++)
+            for (var i = 0; i < keys.Count; i++)
             {
                 if (i > 0)
                     span[position++] = '+';
@@ -192,9 +192,9 @@
 
         return string.Create(length, hotkey, static (span, keys) =>
         {
-            int position = 0;
+            var position = 0;
 
-            for (int i = 0; i < keys.Count; i++)
+            for (var i = 0; i < keys.Count; i++)
             {
                 if (i > 0)
                     span[position++] = '\u001F';

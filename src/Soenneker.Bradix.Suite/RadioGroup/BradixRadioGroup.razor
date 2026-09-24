@@ -188,7 +188,7 @@
     private void EnsureCurrentTabStopId()
     {
         BradixRadioGroupItem? first = null;
-        bool hasCurrent = false;
+        var hasCurrent = false;
         foreach (BradixRadioGroupItem item in _items)
         {
             if (item.IsDisabled)
@@ -208,7 +208,7 @@
     private int CountFocusableItems(BradixRadioGroupItem current, out int currentIndex)
     {
         currentIndex = -1;
-        int count = 0;
+        var count = 0;
         foreach (BradixRadioGroupItem item in _items)
         {
             if (item.IsDisabled)
@@ -222,7 +222,7 @@
 
     private BradixRadioGroupItem? GetFocusableItemAt(int targetIndex)
     {
-        int index = 0;
+        var index = 0;
         foreach (BradixRadioGroupItem item in _items)
         {
             if (!item.IsDisabled && index++ == targetIndex)

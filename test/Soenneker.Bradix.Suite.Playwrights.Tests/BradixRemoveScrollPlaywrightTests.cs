@@ -46,13 +46,13 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
         await Assertions.Expect(page.GetByRole(AriaRole.Textbox)).ToBeVisibleAsync();
         await Assertions.Expect(page.Locator("body")).ToHaveCSSAsync("overflow", "hidden");
 
-        string touchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");
+        var touchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");
         await Assert.That(touchAction).IsEqualTo(string.Empty);
 
         await toggle.ClickAsync();
         await Assertions.Expect(page.Locator("body")).Not.ToHaveCSSAsync("overflow", "hidden");
 
-        string restoredTouchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");
+        var restoredTouchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");
         await Assert.That(restoredTouchAction).IsEqualTo(string.Empty);
     }
 }

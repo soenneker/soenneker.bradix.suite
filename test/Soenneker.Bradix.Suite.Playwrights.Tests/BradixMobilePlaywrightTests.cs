@@ -48,7 +48,7 @@ public sealed class BradixMobilePlaywrightTests : BradixComponentPlaywrightTest
                 if (string.IsNullOrWhiteSpace(bodyText))
                     failures.Add($"{spec.Route}: empty page body");
 
-                bool hasVisibleBlazorError = await page.EvaluateAsync<bool>(
+                var hasVisibleBlazorError = await page.EvaluateAsync<bool>(
                     @"() => {
                         const errorUi = document.querySelector('#blazor-error-ui');
                         if (!errorUi) return false;
@@ -60,12 +60,12 @@ public sealed class BradixMobilePlaywrightTests : BradixComponentPlaywrightTest
                 if (hasVisibleBlazorError)
                     failures.Add($"{spec.Route}: visible Blazor error UI");
 
-                double overflow = await page.EvaluateAsync<double>(
+                var overflow = await page.EvaluateAsync<double>(
                     @"() => Math.max(0, document.documentElement.scrollWidth - window.innerWidth)");
 
                 if (overflow > 24)
                 {
-                    string offenders = await page.EvaluateAsync<string>(
+                    var offenders = await page.EvaluateAsync<string>(
                         @"() => Array.from(document.querySelectorAll('body *'))
                             .map(element => {
                                 const rect = element.getBoundingClientRect();

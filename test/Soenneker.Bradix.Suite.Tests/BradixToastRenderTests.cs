@@ -116,8 +116,8 @@ public sealed class BradixToastRenderTests : BunitContext
     [Test]
     public async Task Viewport_pause_and_resume_invoke_toast_callbacks()
     {
-        int pauseCount = 0;
-        int resumeCount = 0;
+        var pauseCount = 0;
+        var resumeCount = 0;
 
         IRenderedComponent<ContainerFragment> cut = RenderToast(onPause: () => pauseCount++, onResume: () => resumeCount++);
         IRenderedComponent<BradixToastViewport> viewport = cut.FindComponent<BradixToastViewport>();

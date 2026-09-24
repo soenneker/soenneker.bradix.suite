@@ -203,7 +203,7 @@ public sealed class BradixSelectRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             JSRuntimeInvocation invocation = _module.Invocations.Last(call => call.Identifier == "registerDismissableLayer");
-            await Assert.That(invocation.Arguments[2]).IsEqualTo(true);
+            await Assert.That(invocation.Arguments[2] is true).IsTrue();
         });
     }
 
