@@ -20,13 +20,15 @@
 
     <ItemGroup>
         <PackageReference Include="bunit" Version="2.11.3" />
-        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.330" />
-        <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="4.0.351" />
         <PackageReference Include="TUnit" Version="1.68.17" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Soenneker.Bradix.Suite\Soenneker.Bradix.Suite.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+        <PackageReference Include="Microsoft.JSInterop" Version="10.0.12" />
     </ItemGroup>
 </Project>
 
