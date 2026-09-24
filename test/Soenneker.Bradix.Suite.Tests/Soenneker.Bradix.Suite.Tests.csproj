@@ -30,5 +30,9 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
         <PackageReference Include="Microsoft.JSInterop" Version="10.0.12" />
     </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.330" />
+        <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="4.0.351" />
+    </ItemGroup>
 </Project>
 
