@@ -1,3 +1,6 @@
+using Soenneker.Utils.MemoryStream;
+using Microsoft.Extensions.Logging.Abstractions;
+using Soenneker.Utils.File.Abstract;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -12,6 +15,8 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixInfrastructureContractTests : BunitContext
 {
+    private static readonly IFileUtil _fileUtil = new Soenneker.Utils.File.FileUtil(NullLogger<Soenneker.Utils.File.FileUtil>.Instance, new MemoryStreamUtil());
+
     [Test]
     public async Task Shared_enum_tokens_match_radix_string_contracts()
     {
@@ -67,7 +72,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     [Test]
     public async Task Static_web_assets_include_required_bradix_modules()
     {
-        string root = Path.Combine(FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot");
+        string root = Path.Combine(await FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot");
 
         string[] requiredAssets =
         [
@@ -85,7 +90,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
         foreach (string asset in requiredAssets)
         {
             string path = Path.Combine(root, asset.Replace('/', Path.DirectorySeparatorChar));
-            await Assert.That(File.Exists(path)).IsTrue();
+            await Assert.That((await _fileUtil.Exists(path))).IsTrue();
             await Assert.That(new FileInfo(path).Length).IsGreaterThan(0);
         }
     }
@@ -93,8 +98,8 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     [Test]
     public async Task Form_invalid_capture_coalesces_dispatches_without_swallowing_callback_failures()
     {
-        string path = Path.Combine(FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot", "js", "bradix", "forms.js");
-        string source = await File.ReadAllTextAsync(path);
+        string path = Path.Combine(await FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot", "js", "bradix", "forms.js");
+        string source = await _fileUtil.Read(path);
 
         await Assert.That(source).Contains("invalidDispatchQueued");
         await Assert.That(source).Contains("queueMicrotask(dispatchInvalidControls)");
@@ -104,13 +109,13 @@ public sealed class BradixInfrastructureContractTests : BunitContext
         await Assert.That(source).DoesNotContain(".catch(() => {})");
     }
 
-    private static string FindRepositoryRoot()
+    private static async Task<string> FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
 
         while (directory is not null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "Soenneker.Bradix.Suite.slnx")))
+            if (await _fileUtil.Exists(Path.Combine(directory.FullName, "Soenneker.Bradix.Suite.slnx")))
                 return directory.FullName;
 
             directory = directory.Parent;
