@@ -41,7 +41,7 @@
         <ProjectReference Include="$(LocalQuarkProject)" Condition="'$(UseLocalQuarkProject)' == 'true'" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="4.0.264" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="4.0.251" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="4.0.255" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="4.0.256" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
