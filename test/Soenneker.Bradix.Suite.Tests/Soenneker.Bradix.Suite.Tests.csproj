@@ -20,7 +20,7 @@
 
     <ItemGroup>
         <PackageReference Include="bunit" Version="2.11.3" />
-        <PackageReference Include="TUnit" Version="1.69.0" />
+        <PackageReference Include="TUnit" Version="1.69.16" />
     </ItemGroup>
 
     <ItemGroup>
@@ -31,11 +31,11 @@
         <PackageReference Include="Microsoft.JSInterop" Version="10.0.12" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.330" />
+        <PackageReference Include="Soenneker.Utils.Test" Version="4.0.331" />
         <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="4.0.351" />
     </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Soenneker.Utils.File" Version="4.0.2281" />
+    <PackageReference Include="Soenneker.Utils.File" Version="4.0.2285" />
   </ItemGroup>
 </Project>
 
