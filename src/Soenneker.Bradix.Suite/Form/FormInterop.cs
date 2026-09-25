@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -45,16 +46,16 @@ public sealed class FormInterop : IFormInterop
     public async ValueTask<BradixFormValiditySnapshot> GetFormControlValidity(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var snapshot = await module.InvokeAsync<BradixFormValiditySnapshot>("getFormControlValidity", cancellationToken, element)
-            ;
+        var payload = await module.InvokeAsync<JsonElement?>("getFormControlValidity", cancellationToken, element);
+        var snapshot = BradixInteropJson.Deserialize(payload, BradixInteropJsonContext.Default.BradixFormValiditySnapshot);
         return snapshot ?? new BradixFormValiditySnapshot();
     }
 
     public async ValueTask<BradixFormControlSnapshot> GetFormControlState(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var snapshot = await module.InvokeAsync<BradixFormControlSnapshot>("getFormControlState", cancellationToken, element)
-            ;
+        var payload = await module.InvokeAsync<JsonElement?>("getFormControlState", cancellationToken, element);
+        var snapshot = BradixInteropJson.Deserialize(payload, BradixInteropJsonContext.Default.BradixFormControlSnapshot);
         return snapshot ?? new BradixFormControlSnapshot();
     }
 

@@ -1,3 +1,4 @@
+@using System.Text.Json
 @using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
@@ -127,14 +128,14 @@ else
             return;
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
-        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
-        {
-            readyMethod = nameof(HandleDelegatedInteractionReady),
-            click = new
+        await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new BradixDelegatedInteractionOptions
             {
-                method = nameof(HandleDelegatedClick),
-                currentTargetOnly = false,
-                stopPropagation = true
+            ReadyMethod = nameof(HandleDelegatedInteractionReady),
+            Click = new BradixDelegatedEventOptions
+            {
+                Method = nameof(HandleDelegatedClick),
+                CurrentTargetOnly = false,
+                StopPropagation = true
             }
         });
         if (_disposed.Read())
@@ -188,7 +189,10 @@ else
         return Task.CompletedTask;
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleDelegatedClick))]
+    public Task HandleDelegatedClickFromJson(JsonElement payload) =>
+        HandleDelegatedClick(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedMouseEvent)!);
+
     public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
     {
         if (!Disabled && Dialog is not null)

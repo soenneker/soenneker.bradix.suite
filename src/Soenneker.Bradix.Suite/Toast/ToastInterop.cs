@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ public sealed class ToastInterop : IToastInterop
         IReadOnlyList<string> hotkey, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerToastViewport", cancellationToken, wrapper, viewport, headProxy, tailProxy, hotkey, dotNetReference)
+        await module.InvokeVoidAsync("registerToastViewport", cancellationToken, wrapper, viewport, headProxy, tailProxy, JsonSerializer.SerializeToElement(hotkey, BradixInteropJsonContext.Default.IReadOnlyListString), dotNetReference)
             ;
     }
 
@@ -47,7 +48,8 @@ public sealed class ToastInterop : IToastInterop
     public async ValueTask<string[]> GetToastAnnounceText(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        string[]? textContent = await module.InvokeAsync<string[]>("getToastAnnounceText", cancellationToken, element);
+        var payload = await module.InvokeAsync<JsonElement?>("getToastAnnounceText", cancellationToken, element);
+        string[]? textContent = BradixInteropJson.Deserialize(payload, BradixInteropJsonContext.Default.StringArray);
         return textContent ?? [];
     }
 

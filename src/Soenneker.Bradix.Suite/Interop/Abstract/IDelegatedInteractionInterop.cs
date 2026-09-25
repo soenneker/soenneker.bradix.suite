@@ -26,7 +26,7 @@ public interface IDelegatedInteractionInterop : IAsyncDisposable
     /// <param name="options">Options to configure for the Delegated Interaction.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task that completes when the delegated interaction registration is complete.</returns>
-    ValueTask RegisterDelegatedInteraction(ElementReference element, object dotNetReference, object options,
+    ValueTask RegisterDelegatedInteraction(ElementReference element, object dotNetReference, BradixDelegatedInteractionOptions options,
         CancellationToken cancellationToken = default);
 
     /// <summary>

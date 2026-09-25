@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -220,8 +221,8 @@ public sealed class BradixSliderRenderTests : BunitContext
         _ = Render(CreateSlider(defaultValues: [20]));
 
         object? options = _module.Invocations.First(invocation => invocation.Identifier == "registerDelegatedInteraction").Arguments[2];
-        object? keydown = options?.GetType().GetProperty("keydown")?.GetValue(options);
-        object? preventDefaultKeys = keydown?.GetType().GetProperty("preventDefaultKeys")?.GetValue(keydown);
+        JsonElement keydown = ((JsonElement)options!).GetProperty("keydown");
+        object? preventDefaultKeys = keydown.GetProperty("preventDefaultKeys").EnumerateArray().Select(item => item.GetString()!).ToArray();
 
         await Assert.That(preventDefaultKeys).IsAssignableTo<string[]>();
         var keys = (string[])preventDefaultKeys!;

@@ -334,21 +334,21 @@
         return selectors.ToString();
     }
 
-    private static object CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options)
+    private static BradixPopperInteropOptions CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options)
     {
-        return new
+        return new BradixPopperInteropOptions
         {
-            side = options.Side,
-            sideOffset = options.SideOffset,
-            align = options.Align,
-            alignOffset = options.AlignOffset,
-            arrowPadding = options.ArrowPadding,
-            avoidCollisions = options.AvoidCollisions,
-            collisionPadding = options.CollisionPadding,
-            collisionBoundarySelectors = SplitBoundarySelectorKey(options.CollisionBoundarySelectors),
-            sticky = options.Sticky,
-            hideWhenDetached = options.HideWhenDetached,
-            dir = options.Dir
+            Side = options.Side,
+            SideOffset = options.SideOffset,
+            Align = options.Align,
+            AlignOffset = options.AlignOffset,
+            ArrowPadding = options.ArrowPadding,
+            AvoidCollisions = options.AvoidCollisions,
+            CollisionPadding = options.CollisionPadding,
+            CollisionBoundarySelectors = SplitBoundarySelectorKey(options.CollisionBoundarySelectors),
+            Sticky = options.Sticky,
+            HideWhenDetached = options.HideWhenDetached,
+            Dir = options.Dir
         };
     }
 

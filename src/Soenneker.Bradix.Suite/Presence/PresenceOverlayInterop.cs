@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -30,7 +31,8 @@ public sealed class PresenceOverlayInterop : IPresenceOverlayInterop
     public async ValueTask<BradixPresenceSnapshot> GetPresenceState(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var snapshot = await module.InvokeAsync<BradixPresenceSnapshot>("getPresenceState", cancellationToken, element);
+        var payload = await module.InvokeAsync<JsonElement?>("getPresenceState", cancellationToken, element);
+        var snapshot = BradixInteropJson.Deserialize(payload, BradixInteropJsonContext.Default.BradixPresenceSnapshot);
         return snapshot ?? new BradixPresenceSnapshot();
     }
 

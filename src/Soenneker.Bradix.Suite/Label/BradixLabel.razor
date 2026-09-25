@@ -1,3 +1,4 @@
+@using System.Text.Json
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -75,7 +76,10 @@
         _dotNetReference = null;
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleMouseDownFromJs))]
+    public Task HandleMouseDownFromJsFromJson(JsonElement payload) =>
+        HandleMouseDownFromJs(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedMouseEvent)!);
+
     public Task HandleMouseDownFromJs(BradixDelegatedMouseEvent args)
     {
         if (_disposed.Read())

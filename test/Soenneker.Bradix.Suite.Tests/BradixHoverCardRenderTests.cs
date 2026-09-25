@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,8 +35,8 @@ public sealed class BradixHoverCardRenderTests : BunitContext
         _module.SetupVoid("registerHoverCardSelectionContainment", _ => true).SetVoidResult();
         _module.SetupVoid("beginHoverCardSelectionContainment", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterHoverCardSelectionContainment", _ => true).SetVoidResult();
-        _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
+        _module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
         Services.AddBradixTestInterops();
     }
@@ -156,9 +157,9 @@ public sealed class BradixHoverCardRenderTests : BunitContext
 
         JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
         object? options = invocation.Arguments[4];
-        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
-        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
-        var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
+        var selectors = ((JsonElement)options!).GetProperty("collisionBoundarySelectors").EnumerateArray().Select(item => item.GetString()!).ToArray();
+        var sticky = ((JsonElement)options!).GetProperty("sticky").GetString();
+        var hideWhenDetached = ((JsonElement)options!).GetProperty("hideWhenDetached").GetBoolean();
 
         await Assert.That(selectors).IsEquivalentTo(["#hover-card-boundary-a", "#hover-card-boundary-b", "#hover-card-boundary-a"]);
         await Assert.That(sticky).IsEqualTo("always");

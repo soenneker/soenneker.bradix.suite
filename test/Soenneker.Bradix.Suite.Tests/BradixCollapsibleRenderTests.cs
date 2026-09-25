@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
@@ -17,8 +18,8 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
         module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
-        module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" });
+        module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
         Services.AddBradixTestInterops();
     }
 

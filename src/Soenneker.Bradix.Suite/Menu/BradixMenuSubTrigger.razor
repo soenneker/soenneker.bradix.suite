@@ -153,12 +153,12 @@
             if (_dotNetReference is null)
                 return;
 
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new BradixDelegatedInteractionOptions
             {
-                keydown = new
+                Keydown = new BradixDelegatedEventOptions
                 {
-                    currentTargetOnly = true,
-                    preventDefaultKeys = PreventDefaultKeys
+                    CurrentTargetOnly = true,
+                    PreventDefaultKeys = PreventDefaultKeys
                 }
             });
             _delegatedInteractionRegistered = true;

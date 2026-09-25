@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Linq;
 using System.Threading.Tasks;
 using Bunit;
@@ -207,7 +208,7 @@ public sealed class BradixPopperRenderTests : BunitContext
 
         JSRuntimeInvocation invocation = module.Invocations.Single(call => call.Identifier == "registerPopperContent");
         object? options = invocation.Arguments[4];
-        var dir = options?.GetType().GetProperty("dir")?.GetValue(options)?.ToString();
+        var dir = ((JsonElement)options!).GetProperty("dir").GetString();
 
         await Assert.That(dir).IsEqualTo("rtl");
     }
@@ -249,8 +250,8 @@ public sealed class BradixPopperRenderTests : BunitContext
 
         JSRuntimeInvocation invocation = module.Invocations.Single(call => call.Identifier == "registerPopperContent");
         object? options = invocation.Arguments[4];
-        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
-        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+        var selectors = ((JsonElement)options!).GetProperty("collisionBoundarySelectors").EnumerateArray().Select(item => item.GetString()!).ToArray();
+        var sticky = ((JsonElement)options!).GetProperty("sticky").GetString();
 
         await Assert.That(selectors).IsEquivalentTo(["#boundary-a", "#boundary-b", "#boundary-a"]);
         await Assert.That(sticky).IsEqualTo("always");

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,8 +40,8 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementByIdDeferred", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementPreventScroll", _ => true).SetVoidResult();
-        _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
+        _module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
         Services.AddBradixTestInterops();
     }

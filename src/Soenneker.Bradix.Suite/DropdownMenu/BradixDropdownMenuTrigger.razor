@@ -78,12 +78,12 @@
                 return;
 
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new BradixDelegatedInteractionOptions
             {
-                keydown = new
+                Keydown = new BradixDelegatedEventOptions
                 {
-                    currentTargetOnly = true,
-                    preventDefaultKeys = PreventDefaultKeys
+                    CurrentTargetOnly = true,
+                    PreventDefaultKeys = PreventDefaultKeys
                 }
             });
             if (_disposed.Read())

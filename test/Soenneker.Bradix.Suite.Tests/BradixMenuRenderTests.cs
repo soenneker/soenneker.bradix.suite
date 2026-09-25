@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,8 +52,8 @@ public sealed class BradixMenuRenderTests : BunitContext
         _module.SetupVoid("unregisterDismissableLayerBranch", _ => true).SetVoidResult();
         _module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
-        _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
+        _module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
         Services.AddBradixTestInterops();
     }
@@ -646,9 +647,9 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
         object? options = invocation.Arguments[4];
-        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
-        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
-        var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
+        var selectors = ((JsonElement)options!).GetProperty("collisionBoundarySelectors").EnumerateArray().Select(item => item.GetString()!).ToArray();
+        var sticky = ((JsonElement)options!).GetProperty("sticky").GetString();
+        var hideWhenDetached = ((JsonElement)options!).GetProperty("hideWhenDetached").GetBoolean();
 
         await Assert.That(selectors).IsEquivalentTo(["#menu-boundary-a", "#menu-boundary-b", "#menu-boundary-a"]);
         await Assert.That(sticky).IsEqualTo("always");
@@ -674,9 +675,9 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         JSRuntimeInvocation invocation = _module.Invocations.Last(call => call.Identifier == "registerPopperContent");
         object? options = invocation.Arguments[4];
-        var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
-        var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
-        var hideWhenDetached = (bool?)options?.GetType().GetProperty("hideWhenDetached")?.GetValue(options);
+        var selectors = ((JsonElement)options!).GetProperty("collisionBoundarySelectors").EnumerateArray().Select(item => item.GetString()!).ToArray();
+        var sticky = ((JsonElement)options!).GetProperty("sticky").GetString();
+        var hideWhenDetached = ((JsonElement)options!).GetProperty("hideWhenDetached").GetBoolean();
 
         await Assert.That(selectors).IsEquivalentTo(["#submenu-boundary-a", "#submenu-boundary-b", "#submenu-boundary-a"]);
         await Assert.That(sticky).IsEqualTo("always");

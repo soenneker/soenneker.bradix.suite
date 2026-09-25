@@ -200,12 +200,12 @@ else
             if (_disposed.Read())
                 return;
 
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_element, _dotNetReference, new BradixDelegatedInteractionOptions
             {
-                keydown = new
+                Keydown = new BradixDelegatedEventOptions
                 {
-                    currentTargetOnly = true,
-                    preventDefaultKeys = SelectKeys
+                    CurrentTargetOnly = true,
+                    PreventDefaultKeys = SelectKeys
                 }
             });
             _delegatedInteractionRegistered = true;

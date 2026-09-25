@@ -1,3 +1,4 @@
+@using System.Text.Json
 @using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
@@ -61,21 +62,21 @@
         {
             Select?.RegisterTrigger(_button);
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new BradixDelegatedInteractionOptions
             {
-                pointerdown = new
+                Pointerdown = new BradixDelegatedEventOptions
                 {
-                    currentTargetOnly = false,
-                    filter = "primaryMousePointerDown",
-                    preventDefault = true,
-                    retargetPointerUpToOption = true,
-                    pointerSelectMethod = nameof(HandleTriggerPointerSelect),
-                    method = nameof(HandleDelegatedPointerDown)
+                    CurrentTargetOnly = false,
+                    Filter = "primaryMousePointerDown",
+                    PreventDefault = true,
+                    RetargetPointerUpToOption = true,
+                    PointerSelectMethod = nameof(HandleTriggerPointerSelect),
+                    Method = nameof(HandleDelegatedPointerDown)
                 },
-                keydown = new
+                Keydown = new BradixDelegatedEventOptions
                 {
-                    currentTargetOnly = true,
-                    preventDefaultKeys = PreventDefaultKeys
+                    CurrentTargetOnly = true,
+                    PreventDefaultKeys = PreventDefaultKeys
                 }
             });
             if (_disposed.Read())
@@ -197,7 +198,10 @@
             await Select.OpenFromTrigger();
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleDelegatedPointerDown))]
+    public Task HandleDelegatedPointerDownFromJson(JsonElement payload) =>
+        HandleDelegatedPointerDown(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedMouseEvent)!);
+
     public Task HandleDelegatedPointerDown(BradixDelegatedMouseEvent args)
     {
         if (IsDisabled || Select is null)

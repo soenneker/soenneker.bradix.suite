@@ -1,3 +1,4 @@
+@using System.Text.Json
 @using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
@@ -401,7 +402,10 @@
             _controlsByField.Remove(fieldName);
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleInvalidControls))]
+    public Task HandleInvalidControlsFromJson(JsonElement payload) =>
+        HandleInvalidControls(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.StringArray)!);
+
     public async Task HandleInvalidControls(string[] fieldNames)
     {
         IReadOnlyList<string> distinctFieldNames = GetDistinctFieldNames(fieldNames);

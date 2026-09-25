@@ -1,3 +1,4 @@
+@using System.Text.Json
 @using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 @using Microsoft.JSInterop
@@ -349,7 +350,10 @@
         await Menu.FocusTrigger();
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleDelegatedContentKeyDown))]
+    public Task HandleDelegatedContentKeyDownFromJson(JsonElement payload) =>
+        HandleDelegatedContentKeyDown(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedKeyboardEvent)!);
+
     public async Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args)
     {
         if (OnContentKeyDown.HasDelegate)
@@ -387,7 +391,10 @@
         }
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleDelegatedContentFocusOut))]
+    public Task HandleDelegatedContentFocusOutFromJson(JsonElement payload) =>
+        HandleDelegatedContentFocusOut(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedFocusEvent)!);
+
     public Task HandleDelegatedContentFocusOut(BradixDelegatedFocusEvent args)
     {
         if (Menu is null || !IsWithinContent(args.TargetId, args.AncestorIds))
@@ -595,18 +602,18 @@
         if (!_delegatedInteractionRegistered)
         {
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new BradixDelegatedInteractionOptions
             {
-                focusout = new
+                Focusout = new BradixDelegatedEventOptions
                 {
-                    method = nameof(HandleDelegatedContentFocusOut),
-                    currentTargetOnly = false
+                    Method = nameof(HandleDelegatedContentFocusOut),
+                    CurrentTargetOnly = false
                 },
-                keydown = new
+                Keydown = new BradixDelegatedEventOptions
                 {
-                    method = nameof(HandleDelegatedContentKeyDown),
-                    currentTargetOnly = false,
-                    preventDefaultKeys = ContentPreventDefaultKeys
+                    Method = nameof(HandleDelegatedContentKeyDown),
+                    CurrentTargetOnly = false,
+                    PreventDefaultKeys = ContentPreventDefaultKeys
                 }
             });
             if (_disposed.Read() || !_contentElementCaptured || !element.Equals(_contentElement))

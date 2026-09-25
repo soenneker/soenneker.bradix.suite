@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,8 +65,8 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.Setup<string>("getTextContent", _ => true).SetResult("Fruit");
         _module.Setup<string>("observeTextContent", _ => true).SetResult("Fruit");
         _module.SetupVoid("unobserveTextContent", _ => true).SetVoidResult();
-        _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
+        _module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
         Services.AddBradixTestInterops();
     }
@@ -401,8 +402,8 @@ public sealed class BradixSelectRenderTests : BunitContext
         {
             JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
             object? options = invocation.Arguments[4];
-            var selectors = (string[]?)options?.GetType().GetProperty("collisionBoundarySelectors")?.GetValue(options);
-            var sticky = options?.GetType().GetProperty("sticky")?.GetValue(options)?.ToString();
+            var selectors = ((JsonElement)options!).GetProperty("collisionBoundarySelectors").EnumerateArray().Select(item => item.GetString()!).ToArray();
+            var sticky = ((JsonElement)options!).GetProperty("sticky").GetString();
 
             await Assert.That(selectors).IsEquivalentTo(["#select-boundary-a", "#select-boundary-b", "#select-boundary-a"]);
             await Assert.That(sticky).IsEqualTo("always");

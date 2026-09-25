@@ -28,7 +28,7 @@ public interface IPopperInterop : IAsyncDisposable
     /// <param name="options">Options to configure for the Popper.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task that completes when the popper content registration is complete.</returns>
-    ValueTask RegisterPopperContent(ElementReference anchor, ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, object options, CancellationToken cancellationToken = default);
+    ValueTask RegisterPopperContent(ElementReference anchor, ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, BradixPopperInteropOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Registers popper Content By Selector.
@@ -41,7 +41,7 @@ public interface IPopperInterop : IAsyncDisposable
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task that completes when the popper content by selector registration is complete.</returns>
     ValueTask RegisterPopperContentBySelector(string anchorSelector, ElementReference content, ElementReference arrow,
-        DotNetObjectReference<object> dotNetReference, object options, CancellationToken cancellationToken = default);
+        DotNetObjectReference<object> dotNetReference, BradixPopperInteropOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Registers virtual Popper Content.
@@ -54,7 +54,7 @@ public interface IPopperInterop : IAsyncDisposable
     /// <param name="options">Options to configure for the Popper.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task that completes when the virtual popper content registration is complete.</returns>
-    ValueTask RegisterVirtualPopperContent(ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, double x, double y, object options, CancellationToken cancellationToken = default);
+    ValueTask RegisterVirtualPopperContent(ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference, double x, double y, BradixPopperInteropOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates popper content.
@@ -64,7 +64,7 @@ public interface IPopperInterop : IAsyncDisposable
     /// <param name="options">Options to configure for the Popper.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task that completes when the popper content update is complete.</returns>
-    ValueTask UpdatePopperContent(ElementReference content, ElementReference arrow, object options, CancellationToken cancellationToken = default);
+    ValueTask UpdatePopperContent(ElementReference content, ElementReference arrow, BradixPopperInteropOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates virtual popper content.
@@ -76,7 +76,7 @@ public interface IPopperInterop : IAsyncDisposable
     /// <param name="options">Options to configure for the Popper.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task that completes when the virtual popper content update is complete.</returns>
-    ValueTask UpdateVirtualPopperContent(ElementReference content, ElementReference arrow, double x, double y, object options, CancellationToken cancellationToken = default);
+    ValueTask UpdateVirtualPopperContent(ElementReference content, ElementReference arrow, double x, double y, BradixPopperInteropOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Unregisters popper Content for the Popper.

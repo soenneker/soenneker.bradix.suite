@@ -1,3 +1,4 @@
+@using System.Text.Json
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -392,7 +393,10 @@
         return HandleFocus(new FocusEventArgs());
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleDirectKeyDown))]
+    public Task HandleDirectKeyDownFromJson(JsonElement payload) =>
+        HandleDirectKeyDown(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedKeyboardEvent)!);
+
     public Task HandleDirectKeyDown(BradixDelegatedKeyboardEvent args)
     {
         return ProcessKeyDown(new KeyboardEventArgs

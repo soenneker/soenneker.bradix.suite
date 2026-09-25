@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Linq;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
@@ -90,8 +91,8 @@ public sealed class BradixSwitchRenderTests : BunitContext
         _ = Render(CreateSwitch());
 
         object? options = _module.Invocations.First(invocation => invocation.Identifier == "registerDelegatedInteraction").Arguments[2];
-        object? click = options?.GetType().GetProperty("click")?.GetValue(options);
-        object? keydown = options?.GetType().GetProperty("keydown")?.GetValue(options);
+        JsonElement click = ((JsonElement)options!).GetProperty("click");
+        JsonElement keydown = ((JsonElement)options!).GetProperty("keydown");
 
         await Assert.That(click).IsNotNull();
         await Assert.That(keydown).IsNotNull();

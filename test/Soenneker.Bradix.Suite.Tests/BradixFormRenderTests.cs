@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,10 +29,10 @@ public sealed class BradixFormRenderTests : BunitContext
         _module.SetupVoid("setFormControlCustomValidity", _ => true).SetVoidResult();
         _module.SetupVoid("clearFormCustomValidity", _ => true).SetVoidResult();
         _module.Setup<bool>("focusServerInvalidFormControl", _ => true).SetResult(true);
-        _module.Setup<BradixFormValiditySnapshot>("getFormControlValidity", _ => true)
-            .SetResult(new BradixFormValiditySnapshot());
-        _module.Setup<BradixFormControlSnapshot>("getFormControlState", _ => true)
-            .SetResult(new BradixFormControlSnapshot());
+        _module.Setup<JsonElement?>("getFormControlValidity", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixFormValiditySnapshot(), BradixInteropJsonContext.Default.BradixFormValiditySnapshot));
+        _module.Setup<JsonElement?>("getFormControlState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixFormControlSnapshot(), BradixInteropJsonContext.Default.BradixFormControlSnapshot));
 
         Services.AddBradixTestInterops();
     }

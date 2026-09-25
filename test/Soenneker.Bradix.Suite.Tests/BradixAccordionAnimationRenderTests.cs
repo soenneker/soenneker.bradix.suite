@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
@@ -21,8 +22,8 @@ public sealed class BradixAccordionAnimationRenderTests : BunitContext
         module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         module.SetupVoid("registerRovingFocusNavigationKeys", _ => true).SetVoidResult();
         module.SetupVoid("unregisterRovingFocusNavigationKeys", _ => true).SetVoidResult();
-        module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "accordion-up", Display = "block" });
+        module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "accordion-up", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
         Services.AddBradixTestInterops();
     }
 

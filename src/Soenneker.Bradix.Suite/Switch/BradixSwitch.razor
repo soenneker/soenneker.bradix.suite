@@ -1,3 +1,4 @@
+@using System.Text.Json
 @using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
@@ -150,20 +151,20 @@
                 return;
             }
             _formRegistered = true;
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new BradixDelegatedInteractionOptions
             {
-                readyMethod = nameof(HandleDelegatedInteractionReady),
-                click = new
+                ReadyMethod = nameof(HandleDelegatedInteractionReady),
+                Click = new BradixDelegatedEventOptions
                 {
-                    method = nameof(HandleDelegatedClick),
-                    currentTargetOnly = false,
-                    stopPropagation = true
+                    Method = nameof(HandleDelegatedClick),
+                    CurrentTargetOnly = false,
+                    StopPropagation = true
                 },
-                keydown = new
+                Keydown = new BradixDelegatedEventOptions
                 {
-                    method = nameof(HandleDelegatedKeyDown),
-                    keys = ToggleKeys,
-                    preventDefault = true
+                    Method = nameof(HandleDelegatedKeyDown),
+                    Keys = ToggleKeys,
+                    PreventDefault = true
                 }
             });
             if (_disposed.Read())
@@ -278,13 +279,19 @@
         await SetChecked(!CurrentChecked);
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleDelegatedClick))]
+    public Task HandleDelegatedClickFromJson(JsonElement payload) =>
+        HandleDelegatedClick(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedMouseEvent)!);
+
     public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
     {
         return Disabled ? Task.CompletedTask : SetChecked(!CurrentChecked);
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleDelegatedKeyDown))]
+    public Task HandleDelegatedKeyDownFromJson(JsonElement payload) =>
+        HandleDelegatedKeyDown(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedKeyboardEvent)!);
+
     public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
     {
         if (Disabled || !IsSpaceKey(args.Key))

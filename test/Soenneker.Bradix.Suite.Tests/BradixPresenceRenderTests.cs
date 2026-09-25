@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bunit;
@@ -15,8 +16,8 @@ public sealed class BradixPresenceRenderTests : BunitContext
         module.SetupVoid("registerPresence", _ => true).SetVoidResult();
         module.SetupVoid("unregisterPresence", _ => true).SetVoidResult();
         module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
-        module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-in", Display = "block" });
+        module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-in", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
         Services.AddBradixTestInterops();
     }

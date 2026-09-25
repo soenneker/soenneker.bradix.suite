@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,10 +32,10 @@ public sealed class BradixToastRenderTests : BunitContext
         _module.SetupVoid("waitForPresenceCallbacks", _ => true).SetVoidResult();
         _module.SetupVoid("focusElementById", _ => true).SetVoidResult();
         _module.Setup<bool>("isToastFocused", _ => true).SetResult(false);
-        _module.Setup<string[]>("getToastAnnounceText", _ => true)
-            .SetResult(["Upload complete", "Your asset is ready.", "Open uploads"]);
-        _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "toast-out", Display = "block" });
+        _module.Setup<JsonElement?>("getToastAnnounceText", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(["Upload complete", "Your asset is ready.", "Open uploads"], BradixInteropJsonContext.Default.StringArray));
+        _module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "toast-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
         Services.AddBradixTestInterops();
     }

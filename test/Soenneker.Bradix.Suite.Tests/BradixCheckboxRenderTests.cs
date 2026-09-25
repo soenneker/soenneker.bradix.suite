@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Linq;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
@@ -71,10 +72,10 @@ public sealed class BradixCheckboxRenderTests : BunitContext
         _ = Render(CreateCheckbox());
 
         object? options = _module.Invocations.First(invocation => invocation.Identifier == "registerDelegatedInteraction").Arguments[2];
-        object? keydown = options?.GetType().GetProperty("keydown")?.GetValue(options);
-        object? method = keydown?.GetType().GetProperty("method")?.GetValue(keydown);
-        object? keys = keydown?.GetType().GetProperty("keys")?.GetValue(keydown);
-        object? preventDefault = keydown?.GetType().GetProperty("preventDefault")?.GetValue(keydown);
+        JsonElement keydown = ((JsonElement)options!).GetProperty("keydown");
+        object? method = keydown.GetProperty("method").GetString();
+        object? keys = keydown.GetProperty("keys").EnumerateArray().Select(item => item.GetString()!).ToArray();
+        object? preventDefault = keydown.GetProperty("preventDefault").GetBoolean();
 
         await Assert.That(method).IsEqualTo(nameof(BradixCheckbox.HandleDelegatedKeyDown));
         await Assert.That(keys).IsAssignableTo<string[]>();

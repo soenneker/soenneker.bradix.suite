@@ -1,3 +1,4 @@
+@using System.Text.Json
 @using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
@@ -599,7 +600,10 @@ else
             await Select.HandleContentTypeahead(args.Key);
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleDelegatedContentKeyDown))]
+    public Task HandleDelegatedContentKeyDownFromJson(JsonElement payload) =>
+        HandleDelegatedContentKeyDown(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedKeyboardEvent)!);
+
     public async Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args)
     {
         if (Select is null || args.CtrlKey || args.AltKey || args.MetaKey)

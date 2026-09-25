@@ -1,3 +1,4 @@
+@using System.Text.Json
 @using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
@@ -369,12 +370,12 @@
 
         if (!_delegatedInteractionRegistered)
         {
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_toastElement, _dotNetReference, new
+            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_toastElement, _dotNetReference, new BradixDelegatedInteractionOptions
             {
-                keydown = new
+                Keydown = new BradixDelegatedEventOptions
                 {
-                    method = nameof(HandleDelegatedKeyDown),
-                    keys = EscapeKeys
+                    Method = nameof(HandleDelegatedKeyDown),
+                    Keys = EscapeKeys
                 }
             });
             if (_disposed.Read())
@@ -498,7 +499,10 @@
         _closeTimerCts = null;
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleDelegatedKeyDown))]
+    public Task HandleDelegatedKeyDownFromJson(JsonElement payload) =>
+        HandleDelegatedKeyDown(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedKeyboardEvent)!);
+
     public async Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
     {
         if (!string.Equals(args.Key, "Escape", StringComparison.Ordinal))

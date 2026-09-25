@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,8 +45,8 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         _module.SetupVoid("registerNavigationMenuViewport", _ => true).SetVoidResult();
         _module.SetupVoid("updateNavigationMenuViewport", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterNavigationMenuViewport", _ => true).SetVoidResult();
-        _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
+        _module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
         Services.AddBradixTestInterops();
     }

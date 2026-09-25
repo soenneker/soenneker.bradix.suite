@@ -1,3 +1,4 @@
+@using System.Text.Json
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
@@ -135,7 +136,10 @@
         }
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleEscapeKeyDown))]
+    public Task<bool> HandleEscapeKeyDownFromJson(JsonElement payload = default) =>
+        HandleEscapeKeyDown(payload.ValueKind == JsonValueKind.Undefined ? null : JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedKeyboardEvent));
+
     public async Task<bool> HandleEscapeKeyDown(BradixDelegatedKeyboardEvent? originalEvent = null)
     {
         if (_disposed.Read())
@@ -157,7 +161,10 @@
         return shouldDismiss;
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandlePointerDownOutside))]
+    public Task HandlePointerDownOutsideFromJson(JsonElement payload = default) =>
+        HandlePointerDownOutside(payload.ValueKind == JsonValueKind.Undefined ? null : JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedMouseEvent));
+
     public async Task HandlePointerDownOutside(BradixDelegatedMouseEvent? originalEvent = null)
     {
         if (_disposed.Read())
@@ -186,7 +193,10 @@
             await OnDismiss.InvokeAsync();
     }
 
-    [JSInvokable]
+    [JSInvokable(nameof(HandleFocusOutside))]
+    public Task HandleFocusOutsideFromJson(JsonElement payload = default) =>
+        HandleFocusOutside(payload.ValueKind == JsonValueKind.Undefined ? null : JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedFocusEvent));
+
     public async Task HandleFocusOutside(BradixDelegatedFocusEvent? originalEvent = null)
     {
         if (_disposed.Read())

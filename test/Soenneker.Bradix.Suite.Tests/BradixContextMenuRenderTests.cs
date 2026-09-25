@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,8 +54,8 @@ public sealed class BradixContextMenuRenderTests : BunitContext
         _module.Setup<bool>("focusFirstMatchingDescendant", _ => true).SetResult(true);
         _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(false);
         _module.Setup<string>("getTextContent", _ => true).SetResult("Share");
-        _module.Setup<BradixPresenceSnapshot>("getPresenceState", _ => true)
-            .SetResult(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" });
+        _module.Setup<JsonElement?>("getPresenceState", _ => true)
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
         Services.AddBradixTestInterops();
     }
