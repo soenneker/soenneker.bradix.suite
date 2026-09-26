@@ -349,9 +349,8 @@ public sealed class BradixSelectRenderTests : BunitContext
             await Assert.That(items[0].HasAttribute("data-highlighted")).IsFalse();
             await Assert.That(items[1].HasAttribute("data-highlighted")).IsFalse();
             await Assert.That(items[2].HasAttribute("data-highlighted")).IsTrue();
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "scrollElementIntoViewNearest")).IsTrue();
         });
-
-        await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "scrollElementIntoViewNearest")).IsTrue();
     }
 
     [Test]
