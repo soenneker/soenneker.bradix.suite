@@ -12,6 +12,20 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixSlotRenderTests : BunitContext
 {
     [Test]
+    [Arguments(" color:red ", " display:block;; ", "color:red; display:block;")]
+    [Arguments("color:red;", "display:block;", "color:red; display:block;")]
+    [Arguments(";;;", " display:block ", "; display:block;")]
+    [Arguments("color:red", "  ", "color:red;")]
+    public async Task Slot_normalizes_styles_without_changing_declaration_order(string slotStyle, string childStyle, string expected)
+    {
+        var cut = Render<BradixSlot>(p => p
+            .Add(c => c.ElementName, "div")
+            .Add(c => c.Style, slotStyle)
+            .Add(c => c.ChildAttributes, new Dictionary<string, object> { ["style"] = childStyle }));
+        await Assert.That(cut.Find("div").GetAttribute("style")).IsEqualTo(expected);
+    }
+
+    [Test]
     public async Task Slot_attribute_count_changes_preserve_child_component_identity()
     {
         RenderFragment child = builder =>

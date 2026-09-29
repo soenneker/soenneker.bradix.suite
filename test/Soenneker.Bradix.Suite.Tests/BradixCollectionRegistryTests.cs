@@ -8,6 +8,28 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixCollectionRegistryTests
 {
     [Test]
+    public async Task Repeated_registration_reuses_snapshot_but_equal_replacements_do_not()
+    {
+        var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();
+        var item = new BradixCollectionRegistryDemoItem("Alpha");
+        registry.Register("alpha", item);
+        var first = registry.Snapshot();
+        registry.Register("alpha", item);
+        await Assert.That(ReferenceEquals(first, registry.Snapshot())).IsTrue();
+        var replacement = new BradixCollectionRegistryDemoItem("Alpha");
+        registry.Register("alpha", replacement);
+        await Assert.That(ReferenceEquals(first, registry.Snapshot())).IsFalse();
+        await Assert.That(ReferenceEquals(registry.Snapshot()[0].Item, replacement)).IsTrue();
+
+        var values = new BradixCollectionRegistry<int>();
+        values.Register("value", 1);
+        var oldValues = values.Snapshot();
+        values.Register("value", 2);
+        await Assert.That(values.Snapshot()[0].Item).IsEqualTo(2);
+        await Assert.That(oldValues[0].Item).IsEqualTo(1);
+    }
+
+    [Test]
     public async Task Snapshot_returns_keys_in_registration_order()
     {
         var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();

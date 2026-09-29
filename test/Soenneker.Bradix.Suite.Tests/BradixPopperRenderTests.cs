@@ -5,6 +5,8 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
+using System;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -20,6 +22,21 @@ public sealed class BradixPopperRenderTests : BunitContext
         _module.SetupVoid("unregisterPopperContent", _ => true);
 
         Services.AddBradixTestInterops();
+    }
+
+    [Test]
+    public async Task Popper_disposal_releases_callback_reference_without_a_retention_timer()
+    {
+        _module.SetupVoid("registerPopperContent", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterPopperContent", _ => true).SetVoidResult();
+        var cut = Render<BradixPopperContent>(p => p.Add(c => c.UseAnchor, true)
+            .Add(c => c.Anchor, new ElementReference("anchor")));
+        var registration = _module.Invocations.Last(i => i.Identifier == "registerPopperContent");
+        var reference = (DotNetObjectReference<object>)registration.Arguments[3]!;
+        await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
+        await Assert.That(() => { _ = reference.Value; }).Throws<ObjectDisposedException>();
+        await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
+        await Assert.That(_module.Invocations.Count(i => i.Identifier == "unregisterPopperContent")).IsEqualTo(1);
     }
 
     [Test]
