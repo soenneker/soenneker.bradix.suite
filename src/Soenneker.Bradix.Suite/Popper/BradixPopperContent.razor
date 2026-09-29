@@ -188,13 +188,14 @@
         catch (JSDisconnectedException)
         {
         }
-
-        _registered = false;
-
-        if (_dotNetReference is not null)
-            _ = DisposeReferenceLater(_dotNetReference);
-
-        _dotNetReference = null;
+        finally
+        {
+            _registered = false;
+            // Unregistration cancels scheduled JS work and invalidates in-flight
+            // updates. Their rejected callbacks are handled by the JS scheduler.
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     private async Task Register(bool hasExplicitAnchor, bool hasAnchorSelector, bool hasVirtualAnchor,
@@ -240,12 +241,6 @@
 
         _arrow = element;
         _ = InvokeAsync(StateHasChanged);
-    }
-
-    private static async Task DisposeReferenceLater(DotNetObjectReference<object> dotNetReference)
-    {
-        await Task.Delay(5000);
-        dotNetReference.Dispose();
     }
 
     [JSInvokable]

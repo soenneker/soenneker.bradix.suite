@@ -23,6 +23,12 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <param name="item">Receives the entry when the key is found.</param>
     public void Register(string key, TItem item)
     {
+        // Snapshots retain the item reference, so registering that same object again
+        // does not require recreating every entry. Value equality is insufficient:
+        // an equal replacement object still needs to appear in the next snapshot.
+        if (!typeof(TItem).IsValueType && _items.TryGetValue(key, out TItem? existing) && ReferenceEquals(existing, item))
+            return;
+
         _items.Set(key, item);
         _snapshot = null;
     }

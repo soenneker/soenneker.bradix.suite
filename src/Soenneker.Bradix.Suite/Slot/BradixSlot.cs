@@ -188,7 +188,18 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
 
     private static string MergeStyleValues(object slotValue, object childValue)
     {
-        return MergeNonEmptyValues(NormalizeStyle(slotValue?.ToString()), NormalizeStyle(childValue?.ToString()));
+        string? first = slotValue?.ToString();
+        string? second = childValue?.ToString();
+        if (string.IsNullOrWhiteSpace(first))
+            return NormalizeStyle(second) ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(second))
+            return NormalizeStyle(first) ?? string.Empty;
+
+        // Normalize directly into the final string instead of allocating two
+        // intermediate strings for declarations without trailing semicolons.
+        ReadOnlySpan<char> left = first.AsSpan().Trim().TrimEnd(';');
+        ReadOnlySpan<char> right = second.AsSpan().Trim().TrimEnd(';');
+        return string.Concat(left, "; ".AsSpan(), right, ";".AsSpan());
     }
 
     private static string MergeNonEmptyValues(string? first, string? second)
