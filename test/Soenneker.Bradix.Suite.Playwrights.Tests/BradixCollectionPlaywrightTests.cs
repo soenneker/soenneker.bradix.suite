@@ -13,7 +13,7 @@ public sealed class BradixCollectionPlaywrightTests : BradixComponentPlaywrightT
     }
 
     [Test]
-    public async Task Collection_demo_updates_active_match_and_respects_reordering()
+    public async ValueTask Collection_demo_updates_active_match_and_respects_reordering()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

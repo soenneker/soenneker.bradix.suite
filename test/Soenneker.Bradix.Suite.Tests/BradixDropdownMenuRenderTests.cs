@@ -56,7 +56,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Trigger_arrow_down_opens_content_and_links_ids()
+    public async ValueTask Trigger_arrow_down_opens_content_and_links_ids()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu());
         IElement trigger = cut.Find("button");
@@ -75,7 +75,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Trigger_pointer_down_opens_content()
+    public async ValueTask Trigger_pointer_down_opens_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu());
         IElement trigger = cut.Find("button");
@@ -94,7 +94,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Opening_dropdown_registers_focus_scope_with_manual_autofocus_flags()
+    public async ValueTask Opening_dropdown_registers_focus_scope_with_manual_autofocus_flags()
     {
         _ = Render(CreateDropdownMenu(defaultOpen: true));
 
@@ -105,7 +105,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Opening_dropdown_registers_popper_with_trigger_element_when_available()
+    public async ValueTask Opening_dropdown_registers_popper_with_trigger_element_when_available()
     {
         _ = Render(CreateDropdownMenu(defaultOpen: true));
 
@@ -114,7 +114,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Detailed_close_auto_focus_can_prevent_dropdown_trigger_refocus()
+    public async ValueTask Detailed_close_auto_focus_can_prevent_dropdown_trigger_refocus()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(
             defaultOpen: true,
@@ -130,7 +130,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Checkbox_and_radio_wrappers_render_checked_state()
+    public async ValueTask Checkbox_and_radio_wrappers_render_checked_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true));
 
@@ -145,7 +145,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Submenu_wrapper_opens_from_sub_trigger()
+    public async ValueTask Submenu_wrapper_opens_from_sub_trigger()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true));
         IElement subTrigger = cut.Find("[aria-haspopup='menu'][role='menuitem']");
@@ -160,7 +160,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Selecting_item_closes_dropdown_root()
+    public async ValueTask Selecting_item_closes_dropdown_root()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true));
 
@@ -173,7 +173,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Detailed_escape_keydown_can_prevent_dropdown_submenu_close()
+    public async ValueTask Detailed_escape_keydown_can_prevent_dropdown_submenu_close()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(
             defaultOpen: true,
@@ -190,7 +190,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Submenu_escape_closes_dropdown_root()
+    public async ValueTask Submenu_escape_closes_dropdown_root()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true));
 
@@ -207,7 +207,7 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Modal_right_click_outside_does_not_refocus_dropdown_trigger_on_close()
+    public async ValueTask Modal_right_click_outside_does_not_refocus_dropdown_trigger_on_close()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu(defaultOpen: true, modal: true));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();

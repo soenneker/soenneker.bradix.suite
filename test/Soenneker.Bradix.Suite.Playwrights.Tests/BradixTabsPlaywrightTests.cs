@@ -12,7 +12,7 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Tabs_demo_rtl_reverses_horizontal_arrow_navigation()
+    public async ValueTask Tabs_demo_rtl_reverses_horizontal_arrow_navigation()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -39,7 +39,7 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Tabs_demo_switches_visible_panel_content()
+    public async ValueTask Tabs_demo_switches_visible_panel_content()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -56,7 +56,7 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Tabs_demo_manual_activation_keeps_selection_until_space_commits_focused_tab()
+    public async ValueTask Tabs_demo_manual_activation_keeps_selection_until_space_commits_focused_tab()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -86,7 +86,7 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Tabs_demo_vertical_orientation_uses_down_arrow_to_move_selection()
+    public async ValueTask Tabs_demo_vertical_orientation_uses_down_arrow_to_move_selection()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -112,7 +112,7 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Tabs_demo_controlled_buttons_sync_selected_trigger_and_panel()
+    public async ValueTask Tabs_demo_controlled_buttons_sync_selected_trigger_and_panel()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -135,7 +135,7 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Tabs_demo_home_and_end_keys_move_focus_and_selection_to_edges()
+    public async ValueTask Tabs_demo_home_and_end_keys_move_focus_and_selection_to_edges()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -180,7 +180,7 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Tabs_demo_disabled_trigger_stays_inactive_while_enabled_sibling_can_activate()
+    public async ValueTask Tabs_demo_disabled_trigger_stays_inactive_while_enabled_sibling_can_activate()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

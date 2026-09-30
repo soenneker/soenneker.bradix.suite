@@ -21,7 +21,7 @@ public sealed class BradixFocusGuardsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_guards_render_child_content()
+    public async ValueTask Focus_guards_render_child_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -39,7 +39,7 @@ public sealed class BradixFocusGuardsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_guards_register_and_unregister_interop_on_lifecycle()
+    public async ValueTask Focus_guards_register_and_unregister_interop_on_lifecycle()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

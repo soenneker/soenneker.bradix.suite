@@ -12,7 +12,7 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Popper_demo_reports_initial_placement()
+    public async ValueTask Popper_demo_reports_initial_placement()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -23,7 +23,7 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async Task Popper_demo_positions_content_below_anchor_with_arrow_offset_and_no_console_errors()
+    public async ValueTask Popper_demo_positions_content_below_anchor_with_arrow_offset_and_no_console_errors()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -65,7 +65,7 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async Task Popper_demo_respects_explicit_collision_boundary_selectors()
+    public async ValueTask Popper_demo_respects_explicit_collision_boundary_selectors()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

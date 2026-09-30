@@ -28,7 +28,7 @@ public sealed class BradixAccordionAnimationRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Content_stays_mounted_in_closed_state_when_exit_animation_is_detected()
+    public async ValueTask Content_stays_mounted_in_closed_state_when_exit_animation_is_detected()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAccordion());
 

@@ -12,7 +12,7 @@ public sealed class BradixAccessibleIconPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async Task Accessible_icon_demo_exposes_accessible_name_and_toggles_state()
+    public async ValueTask Accessible_icon_demo_exposes_accessible_name_and_toggles_state()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

@@ -12,7 +12,7 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Label_demo_focuses_input_when_label_is_clicked()
+    public async ValueTask Label_demo_focuses_input_when_label_is_clicked()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -26,7 +26,7 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Label_demo_toggles_associated_checkbox_when_label_is_clicked()
+    public async ValueTask Label_demo_toggles_associated_checkbox_when_label_is_clicked()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -42,7 +42,7 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async Task Label_demo_prevents_double_click_text_selection_default_on_label_text()
+    public async ValueTask Label_demo_prevents_double_click_text_selection_default_on_label_text()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

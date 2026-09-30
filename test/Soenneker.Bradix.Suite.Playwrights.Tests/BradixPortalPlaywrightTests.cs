@@ -12,7 +12,7 @@ public sealed class BradixPortalPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Portal_demo_reparents_content_outside_docs_content()
+    public async ValueTask Portal_demo_reparents_content_outside_docs_content()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

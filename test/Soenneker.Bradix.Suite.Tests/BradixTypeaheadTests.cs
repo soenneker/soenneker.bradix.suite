@@ -6,7 +6,7 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixTypeaheadTests
 {
     [Test]
-    public async Task Buffer_expires_after_idle_timeout()
+    public async ValueTask Buffer_expires_after_idle_timeout()
     {
         var timeProvider = new BradixTypeaheadManualTimeProvider(new DateTimeOffset(2026, 4, 9, 12, 0, 0, TimeSpan.Zero));
         var buffer = new BradixTypeaheadBuffer(timeProvider);
@@ -22,7 +22,7 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
-    public async Task Single_character_search_skips_the_current_match()
+    public async ValueTask Single_character_search_skips_the_current_match()
     {
         string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "a", "Alpha");
 
@@ -30,7 +30,7 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
-    public async Task Repeated_character_search_normalizes_to_single_character_cycle()
+    public async ValueTask Repeated_character_search_normalizes_to_single_character_cycle()
     {
         string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "aaa", "Alpha");
 
@@ -38,7 +38,7 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
-    public async Task Repeated_supplementary_plane_search_matches_radix_string_iterator_behavior()
+    public async ValueTask Repeated_supplementary_plane_search_matches_radix_string_iterator_behavior()
     {
         string emoji = char.ConvertFromUtf32(0x1F600);
         string? next = BradixTypeaheadMatcher.FindNextMatch([$"{emoji} single", $"{emoji}{emoji} repeated"], $"{emoji}{emoji}");
@@ -47,7 +47,7 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
-    public async Task Single_supplementary_plane_search_does_not_exclude_current_match_like_radix()
+    public async ValueTask Single_supplementary_plane_search_does_not_exclude_current_match_like_radix()
     {
         string emoji = char.ConvertFromUtf32(0x1F600);
         string? next = BradixTypeaheadMatcher.FindNextMatch([$"{emoji} Alpha", $"{emoji} Beta"], emoji, $"{emoji} Alpha");
@@ -56,7 +56,7 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
-    public async Task Multi_character_search_can_leave_focus_on_current_match()
+    public async ValueTask Multi_character_search_can_leave_focus_on_current_match()
     {
         string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "al", "Alpha");
 
@@ -64,7 +64,7 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
-    public async Task Multi_character_search_returns_null_when_no_item_matches()
+    public async ValueTask Multi_character_search_returns_null_when_no_item_matches()
     {
         string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", "Amber", "Beta"], "zz", "Alpha");
 
@@ -72,7 +72,7 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
-    public async Task Whitespace_search_is_preserved_like_radix()
+    public async ValueTask Whitespace_search_is_preserved_like_radix()
     {
         string? next = BradixTypeaheadMatcher.FindNextMatch(["Alpha", " Alpha"], " ");
 
@@ -80,7 +80,7 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
-    public async Task Generic_matcher_returns_next_item_in_wrapped_order()
+    public async ValueTask Generic_matcher_returns_next_item_in_wrapped_order()
     {
         BradixTypeaheadDemoItem[] items =
         [
@@ -95,7 +95,7 @@ public sealed class BradixTypeaheadTests
     }
 
     [Test]
-    public async Task Generic_matcher_preserves_explicit_text_value_whitespace()
+    public async ValueTask Generic_matcher_preserves_explicit_text_value_whitespace()
     {
         BradixTypeaheadDemoItem[] items =
         [

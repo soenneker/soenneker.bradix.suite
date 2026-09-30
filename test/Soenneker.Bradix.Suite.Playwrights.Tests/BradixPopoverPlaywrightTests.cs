@@ -86,7 +86,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Popover_demo_positions_content_relative_to_the_trigger()
+    public async ValueTask Popover_demo_positions_content_relative_to_the_trigger()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

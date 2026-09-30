@@ -47,7 +47,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Trigger_click_opens_alertdialog_with_title_and_description()
+    public async ValueTask Trigger_click_opens_alertdialog_with_title_and_description()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog());
 
@@ -62,7 +62,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_outside_does_not_close_alertdialog()
+    public async ValueTask Pointer_down_outside_does_not_close_alertdialog()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -73,7 +73,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Cancel_and_action_buttons_render_and_modal_substrates_register()
+    public async ValueTask Cancel_and_action_buttons_render_and_modal_substrates_register()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true));
 
@@ -88,7 +88,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Cancel_button_closes_alertdialog()
+    public async ValueTask Cancel_button_closes_alertdialog()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true));
 
@@ -98,7 +98,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Disabled_action_and_cancel_do_not_close_alertdialog()
+    public async ValueTask Disabled_action_and_cancel_do_not_close_alertdialog()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true, controlsDisabled: true));
 
@@ -113,7 +113,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Detailed_open_auto_focus_can_prevent_alertdialog_cancel_focus()
+    public async ValueTask Detailed_open_auto_focus_can_prevent_alertdialog_cancel_focus()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -159,7 +159,7 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Open_auto_focus_prevents_default_for_cancel_focus_policy()
+    public async ValueTask Open_auto_focus_prevents_default_for_cancel_focus_policy()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog(defaultOpen: true));
         IRenderedComponent<BradixFocusScope> focusScope = cut.FindComponent<BradixFocusScope>();

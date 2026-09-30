@@ -14,7 +14,7 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
     }
 
     [Test]
-    public async Task Focus_scope_demo_loops_focus_back_to_first_item()
+    public async ValueTask Focus_scope_demo_loops_focus_back_to_first_item()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -54,7 +54,7 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
     }
 
     [Test]
-    public async Task Focus_scope_demo_traps_programmatic_and_tab_focus()
+    public async ValueTask Focus_scope_demo_traps_programmatic_and_tab_focus()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

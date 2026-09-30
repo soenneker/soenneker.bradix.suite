@@ -12,7 +12,7 @@ public sealed class BradixFocusGuardsPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async Task Focus_guards_demo_mounts_body_edge_sentinels_and_removes_them_on_unmount()
+    public async ValueTask Focus_guards_demo_mounts_body_edge_sentinels_and_removes_them_on_unmount()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

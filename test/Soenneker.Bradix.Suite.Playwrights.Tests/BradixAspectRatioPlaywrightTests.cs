@@ -12,7 +12,7 @@ public sealed class BradixAspectRatioPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async Task Aspect_ratio_demo_preserves_landscape_square_and_portrait_geometry()
+    public async ValueTask Aspect_ratio_demo_preserves_landscape_square_and_portrait_geometry()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

@@ -13,7 +13,7 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async Task Menu_demo_updates_selection_from_modal_submenu_item()
+    public async ValueTask Menu_demo_updates_selection_from_modal_submenu_item()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -38,7 +38,7 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async Task Menu_demo_supports_keyboard_entry_typeahead_and_escape_close()
+    public async ValueTask Menu_demo_supports_keyboard_entry_typeahead_and_escape_close()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -67,7 +67,7 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async Task Menu_demo_submenu_close_key_returns_focus_to_submenu_trigger()
+    public async ValueTask Menu_demo_submenu_close_key_returns_focus_to_submenu_trigger()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

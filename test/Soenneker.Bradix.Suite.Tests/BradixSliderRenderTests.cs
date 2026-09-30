@@ -33,7 +33,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_renders_track_range_and_thumb_semantics()
+    public async ValueTask Slider_renders_track_range_and_thumb_semantics()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20]));
 
@@ -49,7 +49,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Thumb_attributes_do_not_create_duplicate_ids_or_wrapper_tab_stops()
+    public async ValueTask Thumb_attributes_do_not_create_duplicate_ids_or_wrapper_tab_stops()
     {
         var cut = Render<BradixSlider>(p => p.Add(c => c.DefaultValues, new double[] { 20 }).AddChildContent(builder =>
         {
@@ -69,7 +69,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_arrow_key_updates_value()
+    public async ValueTask Slider_arrow_key_updates_value()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20]));
 
@@ -81,7 +81,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_scientific_notation_step_preserves_decimal_precision()
+    public async ValueTask Slider_scientific_notation_step_preserves_decimal_precision()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [0], step: 1e-7));
 
@@ -93,7 +93,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_subnormal_scientific_notation_step_remains_finite()
+    public async ValueTask Slider_subnormal_scientific_notation_step_remains_finite()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [0], step: 1e-309));
 
@@ -105,7 +105,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_ordinary_decimal_step_preserves_decimal_precision()
+    public async ValueTask Slider_ordinary_decimal_step_preserves_decimal_precision()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [0.25], step: 0.125));
 
@@ -117,7 +117,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Home_and_end_update_first_and_last_thumb_in_multi_thumb_slider()
+    public async ValueTask Home_and_end_update_first_and_last_thumb_in_multi_thumb_slider()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20, 80]));
         IReadOnlyList<IElement> thumbs = cut.FindAll("[role='slider']");
@@ -134,7 +134,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_respects_min_steps_between_thumbs()
+    public async ValueTask Slider_respects_min_steps_between_thumbs()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20, 30], minStepsBetweenThumbs: 5));
 
@@ -147,7 +147,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_pointer_bridge_updates_closest_thumb()
+    public async ValueTask Slider_pointer_bridge_updates_closest_thumb()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20, 80]));
         IRenderedComponent<BradixSlider> slider = cut.FindComponent<BradixSlider>();
@@ -159,7 +159,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_pointer_cancel_does_not_commit_value()
+    public async ValueTask Slider_pointer_cancel_does_not_commit_value()
     {
         var commitCount = 0;
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20], onValueCommit: () => commitCount++));
@@ -174,14 +174,14 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_with_name_outside_form_does_not_render_bubble_inputs()
+    public async ValueTask Slider_with_name_outside_form_does_not_render_bubble_inputs()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [10, 30], name: "price"));
         await Assert.That(cut.FindAll("input")).IsEmpty();
     }
 
     [Test]
-    public async Task Slider_with_explicit_form_renders_bubble_inputs_outside_form()
+    public async ValueTask Slider_with_explicit_form_renders_bubble_inputs_outside_form()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [10, 30], name: "price", form: "settings-form"));
 
@@ -195,7 +195,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Inherited_direction_flips_horizontal_back_key()
+    public async ValueTask Inherited_direction_flips_horizontal_back_key()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -216,7 +216,7 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_thumb_registers_keyboard_default_prevention()
+    public async ValueTask Slider_thumb_registers_keyboard_default_prevention()
     {
         _ = Render(CreateSlider(defaultValues: [20]));
 

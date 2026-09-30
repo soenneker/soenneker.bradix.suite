@@ -52,7 +52,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Trigger_click_toggles_associated_content_and_links_ids()
+    public async ValueTask Trigger_click_toggles_associated_content_and_links_ids()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -68,7 +68,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Force_mounted_closed_content_keeps_links_but_is_inert()
+    public async ValueTask Force_mounted_closed_content_keeps_links_but_is_inert()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -112,7 +112,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Root_navigation_menu_sets_default_label_and_positioning()
+    public async ValueTask Root_navigation_menu_sets_default_label_and_positioning()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -138,7 +138,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Root_navigation_menu_list_wraps_items_in_relative_indicator_track()
+    public async ValueTask Root_navigation_menu_list_wraps_items_in_relative_indicator_track()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeIndicator: true));
 
@@ -151,7 +151,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Arrow_right_moves_roving_tab_stop()
+    public async ValueTask Arrow_right_moves_roving_tab_stop()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         IReadOnlyList<IElement> triggers = cut.FindAll("button");
@@ -165,7 +165,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Triggers_register_roving_key_handlers()
+    public async ValueTask Triggers_register_roving_key_handlers()
     {
         Render(CreateNavigationMenu());
 
@@ -173,7 +173,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_move_opens_delayed_content_when_delay_is_zero()
+    public async ValueTask Pointer_move_opens_delayed_content_when_delay_is_zero()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         IElement trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
@@ -187,7 +187,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_move_does_not_reopen_immediately_after_click_close()
+    public async ValueTask Pointer_move_does_not_reopen_immediately_after_click_close()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         IElement trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
@@ -206,7 +206,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_opened_root_item_stays_open_on_first_click_then_closes_on_repeat_click()
+    public async ValueTask Pointer_opened_root_item_stays_open_on_first_click_then_closes_on_repeat_click()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         IElement productsTrigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
@@ -246,7 +246,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Controlled_root_menu_switches_between_triggers_on_click()
+    public async ValueTask Controlled_root_menu_switches_between_triggers_on_click()
     {
         string? value = null;
 
@@ -289,7 +289,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_move_does_not_reopen_immediately_after_escape_close()
+    public async ValueTask Pointer_move_does_not_reopen_immediately_after_escape_close()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         IElement trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
@@ -312,7 +312,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Link_click_closes_open_content_and_sets_active_state()
+    public async ValueTask Link_click_closes_open_content_and_sets_active_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         IElement trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Products"));
@@ -331,7 +331,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Indicator_updates_position_from_js_callback()
+    public async ValueTask Indicator_updates_position_from_js_callback()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeIndicator: true));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -348,7 +348,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_renders_active_content_and_updates_size_vars()
+    public async ValueTask Viewport_renders_active_content_and_updates_size_vars()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -368,7 +368,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Open_root_item_renders_focus_proxies_and_registers_focus_bridge()
+    public async ValueTask Open_root_item_renders_focus_proxies_and_registers_focus_bridge()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -380,7 +380,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Open_content_registers_link_roving_handlers()
+    public async ValueTask Open_content_registers_link_roving_handlers()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -393,7 +393,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Inline_content_does_not_emit_viewport_ownership_shim()
+    public async ValueTask Inline_content_does_not_emit_viewport_ownership_shim()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu());
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -405,7 +405,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_content_registers_focus_bridge_against_active_content()
+    public async ValueTask Viewport_content_registers_focus_bridge_against_active_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -418,7 +418,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_content_registers_link_roving_handlers()
+    public async ValueTask Viewport_content_registers_link_roving_handlers()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -431,7 +431,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_content_emits_trigger_ownership_shim()
+    public async ValueTask Viewport_content_emits_trigger_ownership_shim()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -445,7 +445,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_pointer_down_outside_does_not_dismiss_when_target_is_root_viewport()
+    public async ValueTask Viewport_pointer_down_outside_does_not_dismiss_when_target_is_root_viewport()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -466,7 +466,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_focus_outside_does_not_dismiss_when_target_stays_inside_root_menu()
+    public async ValueTask Viewport_focus_outside_does_not_dismiss_when_target_stays_inside_root_menu()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -487,7 +487,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_switch_keeps_previous_content_mounted_for_exit_motion()
+    public async ValueTask Viewport_switch_keeps_previous_content_mounted_for_exit_motion()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
@@ -504,7 +504,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Sub_uses_default_active_item_and_does_not_toggle_closed_on_repeat_click()
+    public async ValueTask Sub_uses_default_active_item_and_does_not_toggle_closed_on_repeat_click()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenuWithSub());
         await cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).ClickAsync();
@@ -517,7 +517,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Sub_link_click_does_not_dismiss_nested_content()
+    public async ValueTask Sub_link_click_does_not_dismiss_nested_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenuWithSub());
         await cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).ClickAsync();
@@ -530,7 +530,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Sub_pointer_move_switches_active_content_immediately()
+    public async ValueTask Sub_pointer_move_switches_active_content_immediately()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenuWithSub());
         await cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).ClickAsync();
@@ -544,7 +544,7 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Sub_inherits_parent_direction_for_rtl_navigation()
+    public async ValueTask Sub_inherits_parent_direction_for_rtl_navigation()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenuWithSub("rtl"));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Guides")).ClickAsync();

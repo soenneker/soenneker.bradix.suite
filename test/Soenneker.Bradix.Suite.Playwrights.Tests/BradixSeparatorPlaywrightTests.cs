@@ -13,7 +13,7 @@ public sealed class BradixSeparatorPlaywrightTests : BradixComponentPlaywrightTe
     }
 
     [Test]
-    public async Task Separator_demo_exposes_semantic_horizontal_and_decorative_vertical_metadata()
+    public async ValueTask Separator_demo_exposes_semantic_horizontal_and_decorative_vertical_metadata()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

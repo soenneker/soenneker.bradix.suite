@@ -29,7 +29,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Replacing_a_character_preserves_the_remaining_code()
+    public async ValueTask Replacing_a_character_preserves_the_remaining_code()
     {
         var cut = RenderOtpField();
         var first = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
@@ -39,7 +39,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Refresh_tracks_inputs_added_and_removed_after_initial_interaction()
+    public async ValueTask Refresh_tracks_inputs_added_and_removed_after_initial_interaction()
     {
         var count = 2;
         RenderFragment inputs = builder =>
@@ -70,7 +70,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Sequential_input_updates_hidden_value()
+    public async ValueTask Sequential_input_updates_hidden_value()
     {
         IRenderedComponent<ContainerFragment> cut = RenderOtpField();
 
@@ -81,7 +81,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Paste_distributes_value_across_inputs()
+    public async ValueTask Paste_distributes_value_across_inputs()
     {
         IRenderedComponent<ContainerFragment> cut = RenderOtpField();
         IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
@@ -93,7 +93,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Backspace_shifts_remaining_characters_left()
+    public async ValueTask Backspace_shifts_remaining_characters_left()
     {
         IRenderedComponent<ContainerFragment> cut = RenderOtpField();
         IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
@@ -107,7 +107,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Invalid_numeric_character_is_rejected()
+    public async ValueTask Invalid_numeric_character_is_rejected()
     {
         string? invalid = null;
         IRenderedComponent<ContainerFragment> cut = RenderOtpField(onInvalidChange: value => invalid = value);
@@ -119,7 +119,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Completion_triggers_auto_submit_callback_and_form_request()
+    public async ValueTask Completion_triggers_auto_submit_callback_and_form_request()
     {
         var submitted = string.Empty;
         IRenderedComponent<ContainerFragment> cut = RenderOtpField(autoSubmit: true, onAutoSubmit: value => submitted = value);
@@ -132,7 +132,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Form_reset_clears_uncontrolled_value()
+    public async ValueTask Form_reset_clears_uncontrolled_value()
     {
         IRenderedComponent<ContainerFragment> cut = RenderOtpField();
         IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
@@ -149,7 +149,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Inputs_render_radix_accessibility_and_password_manager_attributes()
+    public async ValueTask Inputs_render_radix_accessibility_and_password_manager_attributes()
     {
         IRenderedComponent<ContainerFragment> cut = RenderOtpField();
 
@@ -178,7 +178,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Inputs_use_single_roving_tab_stop()
+    public async ValueTask Inputs_use_single_roving_tab_stop()
     {
         IRenderedComponent<ContainerFragment> cut = RenderOtpField();
         IRenderedComponent<BradixOneTimePasswordFieldInput> input = cut.FindComponents<BradixOneTimePasswordFieldInput>().First();
@@ -197,7 +197,7 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Standalone_input_does_not_emit_invalid_character_count_label()
+    public async ValueTask Standalone_input_does_not_emit_invalid_character_count_label()
     {
         IRenderedComponent<BradixOneTimePasswordFieldInput> cut = Render<BradixOneTimePasswordFieldInput>();
 

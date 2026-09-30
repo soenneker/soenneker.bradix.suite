@@ -23,7 +23,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_scope_renders_with_negative_tabindex()
+    public async ValueTask Focus_scope_renders_with_negative_tabindex()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope());
 
@@ -32,7 +32,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_scope_mount_callback_can_be_invoked()
+    public async ValueTask Focus_scope_mount_callback_can_be_invoked()
     {
         var mounted = false;
 
@@ -45,7 +45,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_scope_unmount_callback_can_be_invoked()
+    public async ValueTask Focus_scope_unmount_callback_can_be_invoked()
     {
         var unmounted = false;
 
@@ -58,7 +58,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_scope_disposal_invokes_unmount_callback_before_unregistering()
+    public async ValueTask Focus_scope_disposal_invokes_unmount_callback_before_unregistering()
     {
         var unmounted = false;
 
@@ -76,7 +76,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_scope_accepts_loop_and_trapped_parameters()
+    public async ValueTask Focus_scope_accepts_loop_and_trapped_parameters()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

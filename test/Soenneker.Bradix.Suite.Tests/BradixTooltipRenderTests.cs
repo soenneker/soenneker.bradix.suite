@@ -46,7 +46,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_opens_tooltip_and_links_trigger_to_content()
+    public async ValueTask Focus_opens_tooltip_and_links_trigger_to_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip());
 
@@ -64,7 +64,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Provider_opening_second_tooltip_closes_first()
+    public async ValueTask Provider_opening_second_tooltip_closes_first()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -93,7 +93,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_outside_closes_tooltip()
+    public async ValueTask Pointer_down_outside_closes_tooltip()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(defaultOpen: true));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -108,7 +108,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_outside_can_be_prevented_by_detailed_callback()
+    public async ValueTask Pointer_down_outside_can_be_prevented_by_detailed_callback()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(defaultOpen: true, onPointerDownOutsideDetailed: args => args.PreventDefault()));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -123,7 +123,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Hoverable_content_pointer_leave_does_not_close_before_grace_area_exit()
+    public async ValueTask Hoverable_content_pointer_leave_does_not_close_before_grace_area_exit()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(defaultOpen: true));
 
@@ -140,7 +140,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Default_open_tooltip_renders_arrow()
+    public async ValueTask Default_open_tooltip_renders_arrow()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(defaultOpen: true, includeArrow: true));
 
@@ -148,7 +148,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Aria_label_is_rendered_in_hidden_tooltip_node()
+    public async ValueTask Aria_label_is_rendered_in_hidden_tooltip_node()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip(ariaLabel: "Accessible tooltip"));
 
@@ -163,7 +163,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Toggling_disable_hoverable_content_re_registers_tooltip_content_bridge()
+    public async ValueTask Toggling_disable_hoverable_content_re_registers_tooltip_content_bridge()
     {
         IRenderedComponent<TooltipHoverableToggleHost> cut = Render<TooltipHoverableToggleHost>();
 
@@ -183,7 +183,7 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Content_forwards_popper_collision_boundary_selectors_and_sticky()
+    public async ValueTask Content_forwards_popper_collision_boundary_selectors_and_sticky()
     {
         _ = Render(CreateTooltip(defaultOpen: true, configureContent: content =>
         {

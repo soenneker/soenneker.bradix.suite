@@ -8,7 +8,7 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixSeparatorRenderTests : BunitContext
 {
     [Test]
-    public async Task Separator_defaults_to_semantic_horizontal_without_aria_orientation()
+    public async ValueTask Separator_defaults_to_semantic_horizontal_without_aria_orientation()
     {
         IRenderedComponent<BradixSeparator> cut = Render<BradixSeparator>();
 
@@ -20,7 +20,7 @@ public sealed class BradixSeparatorRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Separator_vertical_sets_aria_orientation()
+    public async ValueTask Separator_vertical_sets_aria_orientation()
     {
         IRenderedComponent<BradixSeparator> cut = Render<BradixSeparator>(parameters => parameters
             .Add(separator => separator.Orientation, Orientation.Vertical));
@@ -33,7 +33,7 @@ public sealed class BradixSeparatorRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Separator_decorative_is_removed_from_separator_semantics()
+    public async ValueTask Separator_decorative_is_removed_from_separator_semantics()
     {
         IRenderedComponent<BradixSeparator> cut = Render<BradixSeparator>(parameters => parameters
             .Add(separator => separator.Decorative, true)
@@ -47,7 +47,7 @@ public sealed class BradixSeparatorRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Separator_as_child_applies_semantics_to_child_element()
+    public async ValueTask Separator_as_child_applies_semantics_to_child_element()
     {
         IRenderedComponent<BradixSeparator> cut = Render<BradixSeparator>(parameters => parameters
             .Add(separator => separator.AsChild, true)
@@ -64,7 +64,7 @@ public sealed class BradixSeparatorRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Separator_allows_consumer_attributes_to_override_default_semantics()
+    public async ValueTask Separator_allows_consumer_attributes_to_override_default_semantics()
     {
         IRenderedComponent<BradixSeparator> cut = Render<BradixSeparator>(parameters => parameters
             .AddUnmatched("role", "presentation")

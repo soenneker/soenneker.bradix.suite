@@ -12,7 +12,7 @@ public sealed class BradixAvatarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Avatar_demo_renders_loaded_image_and_keeps_fallback_hidden()
+    public async ValueTask Avatar_demo_renders_loaded_image_and_keeps_fallback_hidden()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -26,7 +26,7 @@ public sealed class BradixAvatarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Avatar_demo_delayed_and_broken_cases_render_fallbacks_when_expected()
+    public async ValueTask Avatar_demo_delayed_and_broken_cases_render_fallbacks_when_expected()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

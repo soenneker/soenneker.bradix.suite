@@ -9,7 +9,7 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixDirectionProviderRenderTests : BunitContext
 {
     [Test]
-    public async Task Direction_provider_cascades_rtl_value()
+    public async ValueTask Direction_provider_cascades_rtl_value()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -27,7 +27,7 @@ public sealed class BradixDirectionProviderRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Direction_provider_normalizes_invalid_values_to_ltr()
+    public async ValueTask Direction_provider_normalizes_invalid_values_to_ltr()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

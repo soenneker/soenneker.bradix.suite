@@ -9,7 +9,7 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixVisuallyHiddenRenderTests : BunitContext
 {
     [Test]
-    public async Task Visually_hidden_renders_radix_hidden_styles_on_span()
+    public async ValueTask Visually_hidden_renders_radix_hidden_styles_on_span()
     {
         IRenderedComponent<BradixVisuallyHidden> cut = Render<BradixVisuallyHidden>(parameters => parameters
             .Add(hidden => hidden.ChildContent, (RenderFragment)(builder =>
@@ -27,7 +27,7 @@ public sealed class BradixVisuallyHiddenRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Visually_hidden_appends_consumer_style_after_hidden_styles()
+    public async ValueTask Visually_hidden_appends_consumer_style_after_hidden_styles()
     {
         IRenderedComponent<BradixVisuallyHidden> cut = Render<BradixVisuallyHidden>(parameters => parameters
             .Add(hidden => hidden.Style, "width: 2px; color: red"));
@@ -39,7 +39,7 @@ public sealed class BradixVisuallyHiddenRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Visually_hidden_as_child_applies_hidden_styles_to_child_element()
+    public async ValueTask Visually_hidden_as_child_applies_hidden_styles_to_child_element()
     {
         IRenderedComponent<BradixVisuallyHidden> cut = Render<BradixVisuallyHidden>(parameters => parameters
             .Add(hidden => hidden.AsChild, true)

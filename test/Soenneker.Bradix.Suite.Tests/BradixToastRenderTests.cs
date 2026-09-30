@@ -41,7 +41,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_renders_region_label_and_open_toast_metadata()
+    public async ValueTask Viewport_renders_region_label_and_open_toast_metadata()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast();
 
@@ -56,7 +56,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Close_button_keeps_toast_mounted_until_exit_animation_finishes()
+    public async ValueTask Close_button_keeps_toast_mounted_until_exit_animation_finishes()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast();
 
@@ -71,7 +71,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_applies_attributes_to_ordered_list_and_custom_id_is_portal_target()
+    public async ValueTask Viewport_applies_attributes_to_ordered_list_and_custom_id_is_portal_target()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast(viewportId: "custom-toast-viewport", viewportClass: "toast-viewport");
 
@@ -85,7 +85,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Action_alt_text_is_only_used_for_announcement_not_button_name()
+    public async ValueTask Action_alt_text_is_only_used_for_announcement_not_button_name()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast();
 
@@ -96,7 +96,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Action_and_close_support_onclick_and_disabled_state()
+    public async ValueTask Action_and_close_support_onclick_and_disabled_state()
     {
         var actionClicked = 0;
         var closeClicked = 0;
@@ -115,7 +115,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_pause_and_resume_invoke_toast_callbacks()
+    public async ValueTask Viewport_pause_and_resume_invoke_toast_callbacks()
     {
         var pauseCount = 0;
         var resumeCount = 0;
@@ -131,7 +131,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_reregisters_after_toast_proxies_mount()
+    public async ValueTask Viewport_reregisters_after_toast_proxies_mount()
     {
         _ = RenderToast();
 
@@ -139,7 +139,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Toast_renders_hidden_announcement_with_alt_text_excluding_close_label()
+    public async ValueTask Toast_renders_hidden_announcement_with_alt_text_excluding_close_label()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast();
 
@@ -156,7 +156,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Action_requires_non_empty_alt_text()
+    public async ValueTask Action_requires_non_empty_alt_text()
     {
         await Assert.That(() =>
         {
@@ -186,7 +186,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Swipe_sets_end_state_before_close()
+    public async ValueTask Swipe_sets_end_state_before_close()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast(swipeThreshold: 10);
         IElement toast = cut.Find("li[data-radix-toast-root]");
@@ -206,7 +206,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Swipe_must_exceed_threshold_before_closing()
+    public async ValueTask Swipe_must_exceed_threshold_before_closing()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast(swipeThreshold: 10);
         IElement toast = cut.Find("li[data-radix-toast-root]");
@@ -226,7 +226,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_cancel_after_swipe_move_sets_cancel_state_without_closing()
+    public async ValueTask Pointer_cancel_after_swipe_move_sets_cancel_state_without_closing()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast(swipeThreshold: 10);
         IElement toast = cut.Find("li[data-radix-toast-root]");
@@ -246,7 +246,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Escape_closes_toast_through_delegated_keydown()
+    public async ValueTask Escape_closes_toast_through_delegated_keydown()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast();
         IRenderedComponent<BradixToast> toast = cut.FindComponent<BradixToast>();
@@ -263,7 +263,7 @@ public sealed class BradixToastRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Escape_can_be_prevented_by_detailed_callback()
+    public async ValueTask Escape_can_be_prevented_by_detailed_callback()
     {
         IRenderedComponent<ContainerFragment> cut = RenderToast(onEscapeKeyDownDetailed: args => args.PreventDefault());
         IRenderedComponent<BradixToast> toast = cut.FindComponent<BradixToast>();

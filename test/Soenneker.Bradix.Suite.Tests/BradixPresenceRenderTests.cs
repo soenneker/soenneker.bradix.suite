@@ -23,7 +23,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Present_presence_renders_content()
+    public async ValueTask Present_presence_renders_content()
     {
         var present = true;
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => present));
@@ -32,7 +32,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Non_present_presence_does_not_render_initially()
+    public async ValueTask Non_present_presence_does_not_render_initially()
     {
         var present = false;
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => present));
@@ -41,7 +41,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Exit_animation_keeps_content_mounted_until_animation_end()
+    public async ValueTask Exit_animation_keeps_content_mounted_until_animation_end()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => true));
         IRenderedComponent<BradixPresence> presence = cut.FindComponent<BradixPresence>();
@@ -59,7 +59,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Exit_complete_callback_runs_after_animation_end()
+    public async ValueTask Exit_complete_callback_runs_after_animation_end()
     {
         var exitCompleteCount = 0;
 
@@ -87,7 +87,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Exit_animation_ignores_non_current_animation_end_events()
+    public async ValueTask Exit_animation_ignores_non_current_animation_end_events()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => true));
         IRenderedComponent<BradixPresence> presence = cut.FindComponent<BradixPresence>();

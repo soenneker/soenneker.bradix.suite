@@ -65,7 +65,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Multiple_mode_allows_independent_item_state()
+    public async ValueTask Multiple_mode_allows_independent_item_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMultipleAccordion());
 
@@ -93,7 +93,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Multiple_mode_preserves_open_order_in_value_callback()
+    public async ValueTask Multiple_mode_preserves_open_order_in_value_callback()
     {
         IReadOnlyCollection<string>? requestedValues = null;
 
@@ -111,7 +111,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Content_style_merging_tolerates_missing_trailing_semicolon()
+    public async ValueTask Content_style_merging_tolerates_missing_trailing_semicolon()
     {
         IReadOnlyDictionary<string, object> contentAttributes = new Dictionary<string, object>
         {
@@ -136,7 +136,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
     [Test]
     [Arguments(false)]
     [Arguments(true)]
-    public async Task Trigger_async_cleanup_runs_once_even_after_sync_disposal(bool disposeSynchronouslyFirst)
+    public async ValueTask Trigger_async_cleanup_runs_once_even_after_sync_disposal(bool disposeSynchronouslyFirst)
     {
         var cut = Render(CreateSingleAccordion());
         var trigger = cut.FindComponent<BradixAccordionTrigger>();
@@ -156,7 +156,7 @@ public sealed class BradixAccordionRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Keyboard_navigation_drops_removed_triggers()
+    public async ValueTask Keyboard_navigation_drops_removed_triggers()
     {
         var focus = JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true);
         focus.SetVoidResult();

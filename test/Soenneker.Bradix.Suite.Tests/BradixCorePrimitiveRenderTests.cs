@@ -22,7 +22,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Label_renders_native_relationship_attributes()
+    public async ValueTask Label_renders_native_relationship_attributes()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -41,7 +41,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Label_forwards_js_mouse_down_to_consumer_callback()
+    public async ValueTask Label_forwards_js_mouse_down_to_consumer_callback()
     {
         MouseEventArgs? captured = null;
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
@@ -69,7 +69,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Separator_sets_semantic_and_decorative_roles_correctly()
+    public async ValueTask Separator_sets_semantic_and_decorative_roles_correctly()
     {
         IRenderedComponent<ContainerFragment> semantic = Render(builder =>
         {
@@ -93,7 +93,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Separator_as_child_renders_requested_native_element_and_preserves_semantics()
+    public async ValueTask Separator_as_child_renders_requested_native_element_and_preserves_semantics()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -115,7 +115,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Separator_as_child_requires_child_element_name()
+    public async ValueTask Separator_as_child_requires_child_element_name()
     {
         await Assert.That(() =>
         {
@@ -129,7 +129,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Aspect_ratio_uses_native_css_ratio_with_absolute_content_slot()
+    public async ValueTask Aspect_ratio_uses_native_css_ratio_with_absolute_content_slot()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -151,7 +151,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Visually_hidden_applies_screen_reader_only_styles()
+    public async ValueTask Visually_hidden_applies_screen_reader_only_styles()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -172,7 +172,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Visually_hidden_as_child_renders_requested_native_element_and_merges_attributes()
+    public async ValueTask Visually_hidden_as_child_renders_requested_native_element_and_merges_attributes()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -205,7 +205,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Visually_hidden_as_child_requires_child_element_name()
+    public async ValueTask Visually_hidden_as_child_requires_child_element_name()
     {
         await Assert.That(() => Render(builder =>
         {
@@ -216,7 +216,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Accessible_icon_hides_visual_glyph_and_renders_hidden_label()
+    public async ValueTask Accessible_icon_hides_visual_glyph_and_renders_hidden_label()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -242,7 +242,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Accessible_icon_requires_non_empty_label()
+    public async ValueTask Accessible_icon_requires_non_empty_label()
     {
         await Assert.That(() => Render(builder =>
         {

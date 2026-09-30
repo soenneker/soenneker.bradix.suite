@@ -13,7 +13,7 @@ public sealed class BradixVisuallyHiddenPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async Task Visually_hidden_demo_preserves_accessible_name_for_icon_button()
+    public async ValueTask Visually_hidden_demo_preserves_accessible_name_for_icon_button()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

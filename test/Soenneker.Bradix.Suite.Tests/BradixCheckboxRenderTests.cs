@@ -30,7 +30,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Checkbox_renders_unchecked_state_by_default()
+    public async ValueTask Checkbox_renders_unchecked_state_by_default()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox());
 
@@ -43,7 +43,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Checkbox_click_cycles_indeterminate_to_checked()
+    public async ValueTask Checkbox_click_cycles_indeterminate_to_checked()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Indeterminate));
 
@@ -56,7 +56,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Checkbox_can_render_mixed_state_when_controlled()
+    public async ValueTask Checkbox_can_render_mixed_state_when_controlled()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(checkedState: BradixCheckboxCheckedState.Indeterminate));
 
@@ -67,7 +67,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Keyboard_activation_is_registered_with_delegated_bridge()
+    public async ValueTask Keyboard_activation_is_registered_with_delegated_bridge()
     {
         _ = Render(CreateCheckbox());
 
@@ -86,7 +86,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Delegated_space_toggles_but_enter_does_not()
+    public async ValueTask Delegated_space_toggles_but_enter_does_not()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox());
         IRenderedComponent<BradixCheckbox> checkbox = cut.FindComponent<BradixCheckbox>();
@@ -99,7 +99,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Checkbox_indicator_force_mount_renders_when_unchecked()
+    public async ValueTask Checkbox_indicator_force_mount_renders_when_unchecked()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(forceMountIndicator: true));
 
@@ -110,14 +110,14 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Checkbox_with_name_outside_form_does_not_render_hidden_input()
+    public async ValueTask Checkbox_with_name_outside_form_does_not_render_hidden_input()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Checked, name: "terms"));
         await Assert.That(cut.FindAll("input[type='checkbox']")).IsEmpty();
     }
 
     [Test]
-    public async Task Checkbox_with_explicit_form_renders_hidden_input_outside_form()
+    public async ValueTask Checkbox_with_explicit_form_renders_hidden_input_outside_form()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Checked, name: "terms", form: "settings-form"));
 
@@ -130,7 +130,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Uncontrolled_checkbox_resets_to_initial_state()
+    public async ValueTask Uncontrolled_checkbox_resets_to_initial_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Indeterminate));
         IRenderedComponent<BradixCheckbox> checkbox = cut.FindComponent<BradixCheckbox>();

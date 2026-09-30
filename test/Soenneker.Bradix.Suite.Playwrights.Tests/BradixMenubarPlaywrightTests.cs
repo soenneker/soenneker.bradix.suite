@@ -13,7 +13,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async Task Menubar_demo_close_key_closes_submenu_before_parent_menu()
+    public async ValueTask Menubar_demo_close_key_closes_submenu_before_parent_menu()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -48,7 +48,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_demo_closes_from_single_outside_click()
+    public async ValueTask Menubar_demo_closes_from_single_outside_click()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -66,7 +66,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_demo_end_key_moves_focus_to_last_top_level_trigger()
+    public async ValueTask Menubar_demo_end_key_moves_focus_to_last_top_level_trigger()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -88,7 +88,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_demo_keeps_checkbox_menu_open_when_close_on_select_is_disabled()
+    public async ValueTask Menubar_demo_keeps_checkbox_menu_open_when_close_on_select_is_disabled()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -113,7 +113,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_demo_trigger_keeps_checkbox_menu_open_after_non_closing_selection()
+    public async ValueTask Menubar_demo_trigger_keeps_checkbox_menu_open_after_non_closing_selection()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -137,7 +137,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_rtl_demo_inverts_horizontal_roving_focus_between_top_level_triggers()
+    public async ValueTask Menubar_rtl_demo_inverts_horizontal_roving_focus_between_top_level_triggers()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -157,7 +157,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_demo_allows_radio_selection_changes()
+    public async ValueTask Menubar_demo_allows_radio_selection_changes()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -173,7 +173,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_demo_trigger_keeps_radio_menu_open_after_non_closing_selection()
+    public async ValueTask Menubar_demo_trigger_keeps_radio_menu_open_after_non_closing_selection()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -194,7 +194,7 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Menubar_demo_roves_focus_across_triggers_and_opens_adjacent_menu_with_arrow_keys()
+    public async ValueTask Menubar_demo_roves_focus_across_triggers_and_opens_adjacent_menu_with_arrow_keys()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

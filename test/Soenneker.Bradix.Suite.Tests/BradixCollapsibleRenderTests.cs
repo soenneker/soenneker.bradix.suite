@@ -24,7 +24,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Uncontrolled_toggle_updates_state_and_aria()
+    public async ValueTask Uncontrolled_toggle_updates_state_and_aria()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible());
 
@@ -48,7 +48,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Trigger_uses_root_id_prefix_for_controls_wiring()
+    public async ValueTask Trigger_uses_root_id_prefix_for_controls_wiring()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(rootId: "settings-collapse", open: true));
 
@@ -61,7 +61,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Content_allows_opt_in_region_labelling_for_accordion_composition()
+    public async ValueTask Content_allows_opt_in_region_labelling_for_accordion_composition()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(open: true, contentRole: "region", contentLabelledBy: "custom-trigger"));
 
@@ -71,7 +71,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Force_mounted_closed_content_remains_present_but_inert()
+    public async ValueTask Force_mounted_closed_content_remains_present_but_inert()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(forceMount: true));
         IElement trigger = cut.Find("button");
@@ -84,7 +84,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Disabled_trigger_does_not_toggle_uncontrolled_state()
+    public async ValueTask Disabled_trigger_does_not_toggle_uncontrolled_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(triggerDisabled: true));
 
@@ -98,7 +98,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Controlled_toggle_notifies_parent_without_closing_content()
+    public async ValueTask Controlled_toggle_notifies_parent_without_closing_content()
     {
         bool? requestedOpen = null;
 

@@ -21,7 +21,7 @@ public sealed class BradixLabelRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Label_renders_native_for_attribute_and_additional_attributes()
+    public async ValueTask Label_renders_native_for_attribute_and_additional_attributes()
     {
         IRenderedComponent<BradixLabel> cut = Render<BradixLabel>(parameters => parameters
             .Add(label => label.For, "firstName")
@@ -41,7 +41,7 @@ public sealed class BradixLabelRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Label_forwards_delegated_mouse_down_callback()
+    public async ValueTask Label_forwards_delegated_mouse_down_callback()
     {
         var count = 0;
 

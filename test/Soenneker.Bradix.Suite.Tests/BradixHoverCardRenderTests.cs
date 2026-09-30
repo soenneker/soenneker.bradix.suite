@@ -42,7 +42,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Default_open_hover_card_renders_content()
+    public async ValueTask Default_open_hover_card_renders_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
 
@@ -50,7 +50,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Trigger_uses_non_submitting_button_semantics()
+    public async ValueTask Trigger_uses_non_submitting_button_semantics()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard());
 
@@ -58,7 +58,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_outside_dismisses_hover_card()
+    public async ValueTask Pointer_down_outside_dismisses_hover_card()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -73,7 +73,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Interact_outside_can_prevent_pointer_outside_dismissal()
+    public async ValueTask Interact_outside_can_prevent_pointer_outside_dismissal()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true, onInteractOutsideDetailed: args => args.PreventDefault()));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -87,7 +87,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Document_pointerup_tracks_selection_state_and_preserves_content()
+    public async ValueTask Document_pointerup_tracks_selection_state_and_preserves_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
         BradixHoverCardContent content = cut.FindComponent<BradixHoverCardContent>().Instance;
@@ -104,7 +104,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_outside_does_not_dismiss_hover_card()
+    public async ValueTask Focus_outside_does_not_dismiss_hover_card()
     {
         BradixFocusOutsideEventArgs? focusOutsideArgs = null;
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true,
@@ -118,7 +118,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Touch_pointer_leave_does_not_schedule_hover_card_close()
+    public async ValueTask Touch_pointer_leave_does_not_schedule_hover_card_close()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(openDelay: 0));
         IElement trigger = cut.Find("button");
@@ -137,7 +137,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Default_open_hover_card_renders_arrow()
+    public async ValueTask Default_open_hover_card_renders_arrow()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true, includeArrow: true));
 
@@ -145,7 +145,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Content_forwards_popper_collision_boundary_selectors_and_sticky()
+    public async ValueTask Content_forwards_popper_collision_boundary_selectors_and_sticky()
     {
         _ = Render(CreateHoverCard(defaultOpen: true, configureContent: content =>
         {

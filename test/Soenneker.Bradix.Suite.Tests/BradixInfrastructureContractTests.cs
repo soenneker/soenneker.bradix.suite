@@ -18,7 +18,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     private static readonly IFileUtil _fileUtil = new Soenneker.Utils.File.FileUtil(NullLogger<Soenneker.Utils.File.FileUtil>.Instance, new MemoryStreamUtil());
 
     [Test]
-    public async Task Shared_enum_tokens_match_radix_string_contracts()
+    public async ValueTask Shared_enum_tokens_match_radix_string_contracts()
     {
         await Assert.That(Alignment.Start.Value).IsEqualTo("start");
         await Assert.That(Alignment.Center.Value).IsEqualTo("center");
@@ -48,7 +48,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     }
 
     [Test]
-    public async Task Registrar_adds_resource_loader_and_bradix_interop_once()
+    public async ValueTask Registrar_adds_resource_loader_and_bradix_interop_once()
     {
         Services.AddBradixSuiteAsScoped();
         Services.AddBradixSuiteAsScoped();
@@ -62,7 +62,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     }
 
     [Test]
-    public async Task Registrar_can_configure_bradix_suite_options()
+    public async ValueTask Registrar_can_configure_bradix_suite_options()
     {
         Services.AddBradixSuiteAsScoped(options => options.UseCdn = true);
 
@@ -70,7 +70,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     }
 
     [Test]
-    public async Task Static_web_assets_include_required_bradix_modules()
+    public async ValueTask Static_web_assets_include_required_bradix_modules()
     {
         string root = Path.Combine(await FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot");
 
@@ -96,7 +96,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     }
 
     [Test]
-    public async Task Form_invalid_capture_coalesces_dispatches_without_swallowing_callback_failures()
+    public async ValueTask Form_invalid_capture_coalesces_dispatches_without_swallowing_callback_failures()
     {
         string path = Path.Combine(await FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot", "js", "bradix", "forms.js");
         string source = await _fileUtil.Read(path);

@@ -8,7 +8,7 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class InteropJsonTests : BunitContext
 {
     [Test]
-    public async Task Delegated_options_preserve_explicit_false_and_omit_unconfigured_events()
+    public async ValueTask Delegated_options_preserve_explicit_false_and_omit_unconfigured_events()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
@@ -27,7 +27,7 @@ public sealed class InteropJsonTests : BunitContext
     }
 
     [Test]
-    public async Task Form_results_deserialize_nested_browser_payloads()
+    public async ValueTask Form_results_deserialize_nested_browser_payloads()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         using var json = JsonDocument.Parse("""{"value":"a","validity":{"valid":false,"valueMissing":true},"formData":{"values":{"roles":["admin","editor"]}}}""");
@@ -41,7 +41,7 @@ public sealed class InteropJsonTests : BunitContext
     }
 
     [Test]
-    public async Task Null_presence_result_preserves_default_snapshot()
+    public async ValueTask Null_presence_result_preserves_default_snapshot()
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.Setup<JsonElement?>("getPresenceState", _ => true).SetResult(null);
@@ -52,7 +52,7 @@ public sealed class InteropJsonTests : BunitContext
     }
 
     [Test]
-    public async Task Keyboard_callback_deserializes_browser_event_before_dispatch()
+    public async ValueTask Keyboard_callback_deserializes_browser_event_before_dispatch()
     {
         BradixDelegatedKeyboardEvent? received = null;
         var layer = new BradixDismissableLayer

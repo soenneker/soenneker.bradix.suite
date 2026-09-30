@@ -12,7 +12,7 @@ public sealed class BradixPresencePlaywrightTests : BradixComponentPlaywrightTes
     }
 
 [Test]
-    public async Task Presence_demo_runs_exit_completion_when_toggled_closed()
+    public async ValueTask Presence_demo_runs_exit_completion_when_toggled_closed()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

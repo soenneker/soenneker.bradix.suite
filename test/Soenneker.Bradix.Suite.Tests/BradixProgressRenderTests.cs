@@ -11,7 +11,7 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixProgressRenderTests : BunitContext
 {
     [Test]
-    public async Task Progress_renders_loading_state_and_aria_values()
+    public async ValueTask Progress_renders_loading_state_and_aria_values()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateProgress(30, 100));
 
@@ -25,7 +25,7 @@ public sealed class BradixProgressRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Progress_renders_indeterminate_when_value_is_invalid()
+    public async ValueTask Progress_renders_indeterminate_when_value_is_invalid()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateProgress(150, 100));
 
@@ -37,7 +37,7 @@ public sealed class BradixProgressRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Progress_renders_complete_when_value_reaches_max()
+    public async ValueTask Progress_renders_complete_when_value_reaches_max()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateProgress(100, 100));
 
@@ -49,7 +49,7 @@ public sealed class BradixProgressRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Progress_defaults_invalid_max_to_radix_default()
+    public async ValueTask Progress_defaults_invalid_max_to_radix_default()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateProgress(30, 0));
 
@@ -62,7 +62,7 @@ public sealed class BradixProgressRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Progress_uses_custom_value_label_when_provided()
+    public async ValueTask Progress_uses_custom_value_label_when_provided()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -84,7 +84,7 @@ public sealed class BradixProgressRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Progress_allows_consumer_attributes_to_override_semantics_like_radix()
+    public async ValueTask Progress_allows_consumer_attributes_to_override_semantics_like_radix()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

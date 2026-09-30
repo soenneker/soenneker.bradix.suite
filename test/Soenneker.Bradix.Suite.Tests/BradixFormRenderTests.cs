@@ -38,7 +38,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Field_label_and_control_share_generated_relationship_attributes()
+    public async ValueTask Field_label_and_control_share_generated_relationship_attributes()
     {
         IRenderedComponent<BradixForm> cut = RenderForm();
 
@@ -50,7 +50,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Form_label_forwards_id_and_mouse_down_to_label_primitive()
+    public async ValueTask Form_label_forwards_id_and_mouse_down_to_label_primitive()
     {
         var mouseDownCount = 0;
 
@@ -78,7 +78,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Invalid_control_registers_message_id_and_invalid_data_attributes()
+    public async ValueTask Invalid_control_registers_message_id_and_invalid_data_attributes()
     {
         IRenderedComponent<BradixForm> cut = RenderForm();
         IRenderedComponent<BradixFormControl> control = cut.FindComponent<BradixFormControl>();
@@ -104,7 +104,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Built_in_message_uses_default_copy_for_matching_validity_state()
+    public async ValueTask Built_in_message_uses_default_copy_for_matching_validity_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -142,7 +142,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Built_in_valid_message_matches_valid_state()
+    public async ValueTask Built_in_valid_message_matches_valid_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -182,7 +182,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Message_without_match_renders_and_registers_description_immediately()
+    public async ValueTask Message_without_match_renders_and_registers_description_immediately()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -219,7 +219,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Submit_renders_submit_button_type()
+    public async ValueTask Submit_renders_submit_button_type()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -237,7 +237,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Custom_sync_matcher_uses_form_data_and_registers_message_description()
+    public async ValueTask Custom_sync_matcher_uses_form_data_and_registers_message_description()
     {
         IRenderedComponent<BradixForm> cut = RenderCustomMessageForm(
             (Func<string?, BradixFormDataSnapshot, bool>)((value, formData) =>
@@ -263,7 +263,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Custom_async_matcher_displays_default_message_when_matcher_fails()
+    public async ValueTask Custom_async_matcher_displays_default_message_when_matcher_fails()
     {
         var invocationCount = 0;
         IRenderedComponent<BradixForm> cut = RenderCustomMessageForm((Func<string?, BradixFormDataSnapshot, Task<bool>>)(async (value, _) =>
@@ -289,7 +289,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pending_async_matcher_is_observed_when_sync_matcher_reports_an_error()
+    public async ValueTask Pending_async_matcher_is_observed_when_sync_matcher_reports_an_error()
     {
         var source = new TrackingValueTaskSource();
         var asyncInvocationCount = 0;
@@ -319,7 +319,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pending_async_matchers_are_observed_when_validation_becomes_stale()
+    public async ValueTask Pending_async_matchers_are_observed_when_validation_becomes_stale()
     {
         var firstSource = new TrackingValueTaskSource();
         var secondSource = new TrackingValueTaskSource();
@@ -361,7 +361,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Reset_does_not_make_an_old_pending_validation_current_again()
+    public async ValueTask Reset_does_not_make_an_old_pending_validation_current_again()
     {
         var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var cut = RenderCustomMessageForm((Func<string?, BradixFormDataSnapshot, Task<bool>>)((_, _) => completion.Task));
@@ -380,7 +380,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Later_async_matcher_is_observed_when_sibling_faults()
+    public async ValueTask Later_async_matcher_is_observed_when_sibling_faults()
     {
         var faultedSource = new TrackingValueTaskSource();
         var siblingSource = new TrackingValueTaskSource();
@@ -427,7 +427,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Reset_clears_custom_validity_through_root_interop()
+    public async ValueTask Reset_clears_custom_validity_through_root_interop()
     {
         IRenderedComponent<BradixForm> cut = RenderForm();
 
@@ -440,7 +440,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Submit_and_reset_compose_public_callbacks_with_server_error_clearing()
+    public async ValueTask Submit_and_reset_compose_public_callbacks_with_server_error_clearing()
     {
         List<string> events = [];
 
@@ -465,7 +465,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Invalid_controls_are_reported_through_public_callback_once_per_field()
+    public async ValueTask Invalid_controls_are_reported_through_public_callback_once_per_field()
     {
         IReadOnlyList<string>? invalidFields = null;
 
@@ -490,7 +490,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Server_invalid_control_requests_focus_bridge_on_render()
+    public async ValueTask Server_invalid_control_requests_focus_bridge_on_render()
     {
         Render<BradixForm>(parameters => parameters
             .Add(form => form.ChildContent, (RenderFragment)(contentBuilder =>
@@ -510,7 +510,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Input_event_clears_custom_validity_before_commit()
+    public async ValueTask Input_event_clears_custom_validity_before_commit()
     {
         IRenderedComponent<BradixForm> cut = RenderForm();
         IElement control = cut.Find("input");
@@ -535,7 +535,7 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Force_matched_message_retargets_aria_describedby_when_name_changes()
+    public async ValueTask Force_matched_message_retargets_aria_describedby_when_name_changes()
     {
         IRenderedComponent<TargetedMessageHost> cut = Render<TargetedMessageHost>();
         IReadOnlyList<IElement> inputs = cut.FindAll("input");

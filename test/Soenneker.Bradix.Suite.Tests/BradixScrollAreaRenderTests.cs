@@ -26,7 +26,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Always_scroll_area_renders_scrollbar_parts()
+    public async ValueTask Always_scroll_area_renders_scrollbar_parts()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Always, includeHorizontal: true));
 
@@ -35,7 +35,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Auto_scroll_area_mounts_scrollbar_when_overflow_detected()
+    public async ValueTask Auto_scroll_area_mounts_scrollbar_when_overflow_detected()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Auto));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
@@ -48,7 +48,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Auto_scroll_area_keeps_viewport_scrollable_when_scrollbar_part_is_mounted()
+    public async ValueTask Auto_scroll_area_keeps_viewport_scrollable_when_scrollbar_part_is_mounted()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Auto));
 
@@ -59,7 +59,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Hover_scroll_area_shows_scrollbar_on_hover()
+    public async ValueTask Hover_scroll_area_shows_scrollbar_on_hover()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Hover));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
@@ -72,7 +72,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Hover_scroll_area_hides_after_scroll_hide_delay_on_pointer_leave()
+    public async ValueTask Hover_scroll_area_hides_after_scroll_hide_delay_on_pointer_leave()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Hover, scrollHideDelay: 10));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
@@ -93,7 +93,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Scroll_type_hides_after_scroll_end_and_scroll_hide_delay()
+    public async ValueTask Scroll_type_hides_after_scroll_end_and_scroll_hide_delay()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Scroll, scrollHideDelay: 20));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
@@ -111,7 +111,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Scroll_type_keeps_scrollbar_visible_while_pointer_is_over_it()
+    public async ValueTask Scroll_type_keeps_scrollbar_visible_while_pointer_is_over_it()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Scroll, scrollHideDelay: 20));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
@@ -135,7 +135,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Corner_renders_when_both_scrollbars_visible()
+    public async ValueTask Corner_renders_when_both_scrollbars_visible()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Always, includeHorizontal: true, includeCorner: true));
         IRenderedComponent<BradixScrollArea> root = cut.FindComponent<BradixScrollArea>();
@@ -148,7 +148,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Inherited_direction_sets_root_dir()
+    public async ValueTask Inherited_direction_sets_root_dir()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -168,7 +168,7 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Viewport_forwards_nonce_to_injected_style_tag()
+    public async ValueTask Viewport_forwards_nonce_to_injected_style_tag()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

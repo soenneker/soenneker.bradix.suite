@@ -12,7 +12,7 @@ public sealed class BradixSlotPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Slot_demo_merges_child_attributes_into_target_element()
+    public async ValueTask Slot_demo_merges_child_attributes_into_target_element()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

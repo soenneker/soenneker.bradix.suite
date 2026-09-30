@@ -21,7 +21,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Dismissable_layer_renders_child_content()
+    public async ValueTask Dismissable_layer_renders_child_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateLayer());
 
@@ -29,7 +29,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_outside_triggers_dismiss()
+    public async ValueTask Pointer_down_outside_triggers_dismiss()
     {
         var dismissed = false;
 
@@ -42,7 +42,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Escape_can_be_ignored_when_dismiss_disabled()
+    public async ValueTask Escape_can_be_ignored_when_dismiss_disabled()
     {
         var dismissed = false;
 
@@ -55,7 +55,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Escape_reports_prevent_default_when_it_dismisses()
+    public async ValueTask Escape_reports_prevent_default_when_it_dismisses()
     {
         var dismissed = false;
 
@@ -69,7 +69,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Escape_does_not_report_prevent_default_when_handler_prevents_dismiss()
+    public async ValueTask Escape_does_not_report_prevent_default_when_handler_prevents_dismiss()
     {
         var dismissed = false;
 
@@ -93,7 +93,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Focus_outside_triggers_interact_and_dismiss_callbacks()
+    public async ValueTask Focus_outside_triggers_interact_and_dismiss_callbacks()
     {
         var dismissed = false;
 
@@ -122,7 +122,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_outside_prevent_default_prevents_dismiss()
+    public async ValueTask Pointer_down_outside_prevent_default_prevents_dismiss()
     {
         var dismissed = false;
 
@@ -150,7 +150,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Interact_outside_prevent_default_prevents_focus_dismiss()
+    public async ValueTask Interact_outside_prevent_default_prevents_focus_dismiss()
     {
         var dismissed = false;
 
@@ -178,7 +178,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Branch_renders_child_content()
+    public async ValueTask Branch_renders_child_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

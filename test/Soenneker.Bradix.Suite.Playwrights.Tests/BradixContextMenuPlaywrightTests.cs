@@ -13,7 +13,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async Task Context_menu_demo_supports_nested_menu_inside_modal_dialog()
+    public async ValueTask Context_menu_demo_supports_nested_menu_inside_modal_dialog()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -45,7 +45,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async Task Context_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled()
+    public async ValueTask Context_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -81,7 +81,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async Task Context_menu_demo_opens_from_right_click_and_reveals_submenu()
+    public async ValueTask Context_menu_demo_opens_from_right_click_and_reveals_submenu()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -99,7 +99,7 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async Task Context_menu_demo_closes_root_from_single_outside_click_with_submenu_open()
+    public async ValueTask Context_menu_demo_closes_root_from_single_outside_click_with_submenu_open()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

@@ -12,7 +12,7 @@ public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Toolbar_demo_roves_focus_across_groups_and_skips_disabled_items()
+    public async ValueTask Toolbar_demo_roves_focus_across_groups_and_skips_disabled_items()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -63,7 +63,7 @@ public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async Task Toolbar_demo_updates_pressed_states_for_toggle_groups()
+    public async ValueTask Toolbar_demo_updates_pressed_states_for_toggle_groups()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

@@ -21,7 +21,7 @@ public sealed class BradixPortalRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Portal_renders_child_content_inside_portal_host()
+    public async ValueTask Portal_renders_child_content_inside_portal_host()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePortal());
 
@@ -30,7 +30,7 @@ public sealed class BradixPortalRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Portal_supports_custom_container_selector_parameter()
+    public async ValueTask Portal_supports_custom_container_selector_parameter()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePortal("#custom-container"));
 
@@ -39,7 +39,7 @@ public sealed class BradixPortalRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Portal_does_not_remount_when_rerendered_without_container_change()
+    public async ValueTask Portal_does_not_remount_when_rerendered_without_container_change()
     {
         IRenderedComponent<PortalHost> cut = Render<PortalHost>();
 
@@ -57,7 +57,7 @@ public sealed class BradixPortalRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Portal_unmounts_when_disposed()
+    public async ValueTask Portal_unmounts_when_disposed()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePortal());
 

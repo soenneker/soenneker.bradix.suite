@@ -56,7 +56,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Arrow_down_on_trigger_opens_associated_menu()
+    public async ValueTask Arrow_down_on_trigger_opens_associated_menu()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
@@ -75,7 +75,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_on_trigger_opens_associated_menu()
+    public async ValueTask Pointer_down_on_trigger_opens_associated_menu()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
@@ -94,7 +94,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_on_open_trigger_keeps_associated_menu_open()
+    public async ValueTask Pointer_down_on_open_trigger_keeps_associated_menu_open()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         IElement trigger = cut.FindAll("button[role='menuitem']")[0];
@@ -114,7 +114,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Trigger_arrow_right_moves_roving_tab_stop()
+    public async ValueTask Trigger_arrow_right_moves_roving_tab_stop()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
@@ -128,7 +128,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Menubar_root_exposes_horizontal_orientation()
+    public async ValueTask Menubar_root_exposes_horizontal_orientation()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
 
@@ -136,7 +136,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Controlled_menubar_reports_value_change_without_mutating_internal_state()
+    public async ValueTask Controlled_menubar_reports_value_change_without_mutating_internal_state()
     {
         string? value = null;
 
@@ -161,7 +161,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Content_arrow_right_opens_adjacent_menu()
+    public async ValueTask Content_arrow_right_opens_adjacent_menu()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         IReadOnlyList<IElement> triggers = cut.FindAll("button[role='menuitem']");
@@ -187,7 +187,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Menubar_content_root_character_key_runs_typeahead()
+    public async ValueTask Menubar_content_root_character_key_runs_typeahead()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
@@ -207,7 +207,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Menubar_interactions_do_not_query_active_element_js()
+    public async ValueTask Menubar_interactions_do_not_query_active_element_js()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
@@ -224,7 +224,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Menubar_content_arrow_right_ignores_nested_subtrigger_navigation()
+    public async ValueTask Menubar_content_arrow_right_ignores_nested_subtrigger_navigation()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
@@ -242,7 +242,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Menubar_content_focus_outside_resets_typeahead_buffer()
+    public async ValueTask Menubar_content_focus_outside_resets_typeahead_buffer()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
@@ -273,7 +273,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Checkbox_and_radio_wrappers_render_checked_state()
+    public async ValueTask Checkbox_and_radio_wrappers_render_checked_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         await cut.FindAll("button[role='menuitem']")[1].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
@@ -301,7 +301,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Submenu_wrapper_opens_from_sub_trigger()
+    public async ValueTask Submenu_wrapper_opens_from_sub_trigger()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenubar());
         await cut.FindAll("button[role='menuitem']")[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
@@ -317,7 +317,7 @@ public sealed class BradixMenubarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Detailed_escape_keydown_can_prevent_menubar_content_dismiss()
+    public async ValueTask Detailed_escape_keydown_can_prevent_menubar_content_dismiss()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

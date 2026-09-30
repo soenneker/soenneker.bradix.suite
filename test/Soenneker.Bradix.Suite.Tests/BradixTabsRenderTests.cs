@@ -27,7 +27,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Trigger_registration_and_ignored_keys_do_not_rerender_the_tabs_tree()
+    public async ValueTask Trigger_registration_and_ignored_keys_do_not_rerender_the_tabs_tree()
     {
         var cut = Render(CreateTabs(defaultValue: "tab1"));
         var tabs = cut.FindComponent<BradixTabs>();
@@ -44,7 +44,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Tabs_render_active_trigger_and_panel_relationships()
+    public async ValueTask Tabs_render_active_trigger_and_panel_relationships()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1"));
 
@@ -62,7 +62,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Manual_activation_does_not_switch_on_focus_but_does_on_enter()
+    public async ValueTask Manual_activation_does_not_switch_on_focus_but_does_on_enter()
     {
         string? requestedValue = null;
 
@@ -83,7 +83,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Automatic_activation_switches_on_focus()
+    public async ValueTask Automatic_activation_switches_on_focus()
     {
         string? requestedValue = null;
 
@@ -98,7 +98,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Force_mount_keeps_inactive_panel_present_but_inert()
+    public async ValueTask Force_mount_keeps_inactive_panel_present_but_inert()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", forceMount: true));
 
@@ -112,7 +112,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Inherited_direction_flips_horizontal_roving_focus_intent()
+    public async ValueTask Inherited_direction_flips_horizontal_roving_focus_intent()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -134,7 +134,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Local_ltr_direction_overrides_inherited_rtl_direction()
+    public async ValueTask Local_ltr_direction_overrides_inherited_rtl_direction()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -157,7 +157,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Vertical_tabs_root_and_roving_focus_expose_vertical_orientation()
+    public async ValueTask Vertical_tabs_root_and_roving_focus_expose_vertical_orientation()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", orientation: Orientation.Vertical));
 

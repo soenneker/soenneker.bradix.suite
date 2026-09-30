@@ -13,7 +13,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async Task Scroll_area_demo_supports_horizontal_viewport_scrolling()
+    public async ValueTask Scroll_area_demo_supports_horizontal_viewport_scrolling()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -26,7 +26,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async Task Scroll_area_demo_supports_vertical_horizontal_and_rtl_viewport_scrolling()
+    public async ValueTask Scroll_area_demo_supports_vertical_horizontal_and_rtl_viewport_scrolling()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -56,7 +56,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async Task Scroll_area_demo_allows_viewport_scrolling()
+    public async ValueTask Scroll_area_demo_allows_viewport_scrolling()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -69,7 +69,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
     }
 
     [Test]
-    public async Task Scroll_area_demo_custom_vertical_scrollbar_wheel_scrolls_viewport()
+    public async ValueTask Scroll_area_demo_custom_vertical_scrollbar_wheel_scrolls_viewport()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

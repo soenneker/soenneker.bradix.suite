@@ -45,7 +45,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Trigger_click_opens_content_and_links_it_to_trigger()
+    public async ValueTask Trigger_click_opens_content_and_links_it_to_trigger()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover());
 
@@ -59,7 +59,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Modal_popover_registers_modal_infra_and_sets_aria_modal()
+    public async ValueTask Modal_popover_registers_modal_infra_and_sets_aria_modal()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true, modal: true));
 
@@ -70,7 +70,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_outside_closes_non_modal_popover()
+    public async ValueTask Pointer_down_outside_closes_non_modal_popover()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true));
 
@@ -82,7 +82,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Pointer_down_on_trigger_does_not_dismiss_non_modal_popover()
+    public async ValueTask Pointer_down_on_trigger_does_not_dismiss_non_modal_popover()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -98,7 +98,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Right_click_outside_does_not_dismiss_non_modal_popover()
+    public async ValueTask Right_click_outside_does_not_dismiss_non_modal_popover()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -112,7 +112,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Detailed_pointer_down_outside_can_prevent_popover_dismiss()
+    public async ValueTask Detailed_pointer_down_outside_can_prevent_popover_dismiss()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -139,7 +139,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Close_on_escape_can_be_disabled_from_popover_content()
+    public async ValueTask Close_on_escape_can_be_disabled_from_popover_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true, closeOnEscapeKeyDown: false));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -150,7 +150,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Close_button_keeps_content_mounted_until_exit_animation_finishes()
+    public async ValueTask Close_button_keeps_content_mounted_until_exit_animation_finishes()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true));
 
@@ -165,7 +165,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Disabled_close_button_does_not_close_popover()
+    public async ValueTask Disabled_close_button_does_not_close_popover()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true, closeDisabled: true));
 
@@ -178,7 +178,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Custom_anchor_keeps_single_trigger_and_opens_content()
+    public async ValueTask Custom_anchor_keeps_single_trigger_and_opens_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(customAnchor: true));
 
@@ -190,7 +190,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Content_forwards_popper_collision_boundary_selectors_and_sticky()
+    public async ValueTask Content_forwards_popper_collision_boundary_selectors_and_sticky()
     {
         _ = Render(CreatePopover(defaultOpen: true, configureContent: content =>
         {

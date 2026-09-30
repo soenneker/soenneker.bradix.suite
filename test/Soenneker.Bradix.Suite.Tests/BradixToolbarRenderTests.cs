@@ -25,7 +25,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Toolbar_renders_role_and_separator_orientation()
+    public async ValueTask Toolbar_renders_role_and_separator_orientation()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
@@ -38,7 +38,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Toolbar_roving_focus_skips_disabled_items()
+    public async ValueTask Toolbar_roving_focus_skips_disabled_items()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
@@ -50,7 +50,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Toolbar_toggle_group_updates_pressed_state()
+    public async ValueTask Toolbar_toggle_group_updates_pressed_state()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
@@ -66,7 +66,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Toolbar_items_register_radix_roving_mousedown_guards_and_click_callbacks()
+    public async ValueTask Toolbar_items_register_radix_roving_mousedown_guards_and_click_callbacks()
     {
         var buttonClicks = 0;
         var toggleClicks = 0;
@@ -109,7 +109,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Controlled_toolbar_toggle_group_with_null_value_does_not_mutate_internal_state()
+    public async ValueTask Controlled_toolbar_toggle_group_with_null_value_does_not_mutate_internal_state()
     {
         string? reported = null;
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
@@ -139,7 +139,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Inherited_direction_flips_horizontal_navigation()
+    public async ValueTask Inherited_direction_flips_horizontal_navigation()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -160,7 +160,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Toolbar_link_space_key_invokes_click_interop()
+    public async ValueTask Toolbar_link_space_key_invokes_click_interop()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 

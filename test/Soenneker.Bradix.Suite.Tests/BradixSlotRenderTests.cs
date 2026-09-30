@@ -16,7 +16,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     [Arguments("color:red;", "display:block;", "color:red; display:block;")]
     [Arguments(";;;", " display:block ", "; display:block;")]
     [Arguments("color:red", "  ", "color:red;")]
-    public async Task Slot_normalizes_styles_without_changing_declaration_order(string slotStyle, string childStyle, string expected)
+    public async ValueTask Slot_normalizes_styles_without_changing_declaration_order(string slotStyle, string childStyle, string expected)
     {
         var cut = Render<BradixSlot>(p => p
             .Add(c => c.ElementName, "div")
@@ -26,7 +26,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slot_attribute_count_changes_preserve_child_component_identity()
+    public async ValueTask Slot_attribute_count_changes_preserve_child_component_identity()
     {
         RenderFragment child = builder =>
         {
@@ -51,7 +51,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slot_merges_class_style_and_child_attribute_precedence()
+    public async ValueTask Slot_merges_class_style_and_child_attribute_precedence()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -86,7 +86,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slot_composes_child_and_slot_click_handlers_in_child_first_order()
+    public async ValueTask Slot_composes_child_and_slot_click_handlers_in_child_first_order()
     {
         List<string> calls = [];
 
@@ -122,7 +122,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slot_composes_typed_event_callbacks_in_child_first_order()
+    public async ValueTask Slot_composes_typed_event_callbacks_in_child_first_order()
     {
         List<string> calls = [];
         var receiver = new object();
@@ -153,7 +153,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slot_composes_wrapped_custom_event_callbacks_without_reflection()
+    public async ValueTask Slot_composes_wrapped_custom_event_callbacks_without_reflection()
     {
         List<string> calls = [];
         var slotCallback = BradixEventCallback.Create<CustomEventArgs>(args => calls.Add($"slot:{args.Value}"));
@@ -180,7 +180,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Slot_requires_non_empty_element_name()
+    public async ValueTask Slot_requires_non_empty_element_name()
     {
         await Assert.That(() => Render(builder =>
         {

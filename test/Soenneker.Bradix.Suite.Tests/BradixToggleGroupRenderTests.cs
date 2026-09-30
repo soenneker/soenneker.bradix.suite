@@ -21,7 +21,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Single_group_toggles_between_values_and_radio_semantics()
+    public async ValueTask Single_group_toggles_between_values_and_radio_semantics()
     {
         string? requestedValue = null;
 
@@ -48,7 +48,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Multiple_group_accumulates_values_and_removes_them_independently()
+    public async ValueTask Multiple_group_accumulates_values_and_removes_them_independently()
     {
         IReadOnlyCollection<string>? requestedValues = null;
 
@@ -69,7 +69,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Roving_focus_moves_current_tab_stop_with_arrow_keys()
+    public async ValueTask Roving_focus_moves_current_tab_stop_with_arrow_keys()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSingleGroup());
 
@@ -91,7 +91,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Direction_provider_flips_horizontal_navigation()
+    public async ValueTask Direction_provider_flips_horizontal_navigation()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

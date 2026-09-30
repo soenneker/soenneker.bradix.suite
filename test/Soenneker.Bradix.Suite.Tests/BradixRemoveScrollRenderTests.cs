@@ -26,7 +26,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Remove_scroll_renders_child_content()
+    public async ValueTask Remove_scroll_renders_child_content()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -45,7 +45,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Remove_scroll_forwards_allow_pinch_zoom_to_interop()
+    public async ValueTask Remove_scroll_forwards_allow_pinch_zoom_to_interop()
     {
         Render(builder =>
         {
@@ -64,7 +64,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Remove_scroll_unregisters_interop_on_dispose()
+    public async ValueTask Remove_scroll_unregisters_interop_on_dispose()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -86,7 +86,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Remove_scroll_unregisters_when_disposed_before_register_finishes()
+    public async ValueTask Remove_scroll_unregisters_when_disposed_before_register_finishes()
     {
         var interop = new DelayedPresenceOverlayInterop();
         Services.RemoveAll<IPresenceOverlayInterop>();

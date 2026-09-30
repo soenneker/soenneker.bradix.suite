@@ -15,7 +15,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Fallback_renders_while_image_is_not_loaded()
+    public async ValueTask Fallback_renders_while_image_is_not_loaded()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: null));
 
@@ -24,7 +24,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Loaded_status_renders_image_and_hides_fallback()
+    public async ValueTask Loaded_status_renders_image_and_hides_fallback()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: null));
         BradixAvatarImage image = cut.FindComponent<BradixAvatarImage>().Instance;
@@ -39,7 +39,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Loaded_image_without_alt_renders_empty_alt_attribute()
+    public async ValueTask Loaded_image_without_alt_renders_empty_alt_attribute()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -67,7 +67,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Delayed_fallback_waits_before_rendering()
+    public async ValueTask Delayed_fallback_waits_before_rendering()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: 150));
 
@@ -82,7 +82,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Error_status_keeps_fallback_visible()
+    public async ValueTask Error_status_keeps_fallback_visible()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: null));
         BradixAvatarImage image = cut.FindComponent<BradixAvatarImage>().Instance;
@@ -97,7 +97,7 @@ public sealed class BradixAvatarRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Image_loading_status_callback_fires_before_avatar_context_updates()
+    public async ValueTask Image_loading_status_callback_fires_before_avatar_context_updates()
     {
         var reported = new System.Collections.Generic.List<string>();
         IRenderedComponent<ContainerFragment> cut = Render(CreateAvatar(delayMs: null, status => reported.Add(status.Value)));

@@ -12,7 +12,7 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
     }
 
 [Test]
-    public async Task Remove_scroll_demo_mount_toggle_shows_and_hides_locked_surface()
+    public async ValueTask Remove_scroll_demo_mount_toggle_shows_and_hides_locked_surface()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -34,7 +34,7 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
     }
 
     [Test]
-    public async Task Remove_scroll_demo_locks_body_scroll_and_restores_styles_on_unmount()
+    public async ValueTask Remove_scroll_demo_locks_body_scroll_and_restores_styles_on_unmount()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;

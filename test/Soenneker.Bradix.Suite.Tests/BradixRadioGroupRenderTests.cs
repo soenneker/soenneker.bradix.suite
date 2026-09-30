@@ -31,7 +31,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Radio_group_renders_checked_state_without_hidden_input_outside_form()
+    public async ValueTask Radio_group_renders_checked_state_without_hidden_input_outside_form()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", required: true, orientation: Orientation.Horizontal));
 
@@ -47,7 +47,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Radio_item_with_explicit_form_renders_hidden_input_outside_form()
+    public async ValueTask Radio_item_with_explicit_form_renders_hidden_input_outside_form()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", itemForm: "settings-form"));
 
@@ -62,7 +62,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Clicking_item_updates_uncontrolled_selection()
+    public async ValueTask Clicking_item_updates_uncontrolled_selection()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one"));
 
@@ -75,7 +75,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Arrow_navigation_moves_focus_without_selecting_target()
+    public async ValueTask Arrow_navigation_moves_focus_without_selecting_target()
     {
         string? requestedValue = null;
 
@@ -97,7 +97,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Enter_does_not_change_selection()
+    public async ValueTask Enter_does_not_change_selection()
     {
         string? requestedValue = null;
 
@@ -113,7 +113,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Force_mount_renders_all_indicators()
+    public async ValueTask Force_mount_renders_all_indicators()
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(forceMountIndicator: true));
 
@@ -121,7 +121,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async Task Inherited_direction_flips_horizontal_navigation()
+    public async ValueTask Inherited_direction_flips_horizontal_navigation()
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

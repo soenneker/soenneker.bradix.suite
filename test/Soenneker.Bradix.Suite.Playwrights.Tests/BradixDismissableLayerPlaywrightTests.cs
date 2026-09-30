@@ -13,7 +13,7 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
     }
 
 [Test]
-    public async Task Dismissable_layer_demo_dismisses_on_outside_click()
+    public async ValueTask Dismissable_layer_demo_dismisses_on_outside_click()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
@@ -34,7 +34,7 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
     }
 
 [Test]
-    public async Task Dismissable_layer_demo_dismisses_on_escape()
+    public async ValueTask Dismissable_layer_demo_dismisses_on_escape()
     {
         await using BrowserSession session = await CreateSession();
         IPage page = session.Page;
