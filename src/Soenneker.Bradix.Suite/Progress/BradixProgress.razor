@@ -10,6 +10,14 @@
 </CascadingValue>
 
 @code {
+    private BradixDoubleAttribute _maxAttribute;
+    private BradixDoubleAttribute _valueAttribute;
+    private string? _valueLabel;
+    private long _valueLabelBits;
+    private System.Globalization.CultureInfo? _valueLabelCulture;
+    internal object MaxAttribute => _maxAttribute.Get(ResolvedMax);
+    internal object? ValueAttribute => ResolvedValue is double value ? _valueAttribute.Get(value) : null;
+
     private const int DefaultMax = 100;
 
     [Parameter]
@@ -31,19 +39,36 @@
             ? "complete"
             : "loading";
 
-    private string? ValueLabel => ResolvedValue is double value
-        ? (GetValueLabel?.Invoke(value, ResolvedMax) ?? $"{Math.Round((value / ResolvedMax) * 100)}%")
-        : null;
+    private string? ValueLabel
+    {
+        get
+        {
+            if (ResolvedValue is not double value) return null;
+            string? custom = GetValueLabel?.Invoke(value, ResolvedMax);
+            if (custom is not null) return custom;
+            double percentage = Math.Round((value / ResolvedMax) * 100);
+            var culture = System.Globalization.CultureInfo.CurrentCulture;
+            long bits = BitConverter.DoubleToInt64Bits(percentage);
+            if (!culture.IsReadOnly) return $"{percentage}%";
+            if (_valueLabel is null || _valueLabelBits != bits || !ReferenceEquals(_valueLabelCulture, culture))
+            {
+                _valueLabelBits = bits;
+                _valueLabelCulture = culture;
+                _valueLabel = $"{percentage}%";
+            }
+            return _valueLabel;
+        }
+    }
 
     private Dictionary<string, object> ProgressAttributes => BuildAttributes(
         ("role", "progressbar"),
-        ("aria-valuemax", ResolvedMax),
-        ("aria-valuemin", 0),
-        ("aria-valuenow", ResolvedValue),
+        ("aria-valuemax", MaxAttribute),
+        ("aria-valuemin", BradixAttributeValues.Zero),
+        ("aria-valuenow", ValueAttribute),
         ("aria-valuetext", ValueLabel),
         ("data-state", State),
-        ("data-value", ResolvedValue),
-        ("data-max", ResolvedMax));
+        ("data-value", ValueAttribute),
+        ("data-max", MaxAttribute));
 
     private static bool IsValidMax(double max)
     {

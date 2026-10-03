@@ -11,6 +11,7 @@ namespace Soenneker.Bradix;
 public sealed class BradixEventCallback
 {
     private readonly Func<object?, Task> _callback;
+    internal Func<object?, Task> Callback => _callback;
 
     private BradixEventCallback(Func<object?, Task> callback)
     {

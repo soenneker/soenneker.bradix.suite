@@ -17,12 +17,18 @@
                     Class="@Class"
                     Style="@ComputedStyle"
                     AdditionalAttributes="@IndicatorAttributes"
-                    OnElementReferenceCaptured="@HandleElementCaptured">
+                    OnElementReferenceCaptured="(_cachedHandleElementCapturedDelegate ??= HandleElementCaptured)">
         @ChildContent
     </BradixPresence>
 }
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<ElementReference, Task>? _cachedHandleElementCapturedDelegate;
+
+    private string? _positionStyle;
+    private (bool Vertical, long Size, long Offset) _positionStyleKey;
     private ElementReference _element;
     private bool _hasElement;
     private bool _registered;
@@ -59,17 +65,18 @@
 
             if (_size.HasValue && _offset.HasValue)
             {
-                if (orientation == Orientation.Vertical)
+                var key = (orientation == Orientation.Vertical, BitConverter.DoubleToInt64Bits(_size.Value), BitConverter.DoubleToInt64Bits(_offset.Value));
+                if (_positionStyle is null || _positionStyleKey != key)
                 {
-                    baseStyle += $" top:0;height:{_size.Value.ToString(CultureInfo.InvariantCulture)}px;transform:translateY({_offset.Value.ToString(CultureInfo.InvariantCulture)}px);";
+                    _positionStyleKey = key;
+                    _positionStyle = orientation == Orientation.Vertical
+                        ? string.Create(CultureInfo.InvariantCulture, $"position:absolute; top:0;height:{_size.Value}px;transform:translateY({_offset.Value}px);")
+                        : string.Create(CultureInfo.InvariantCulture, $"position:absolute; left:0;width:{_size.Value}px;transform:translateX({_offset.Value}px);");
                 }
-                else
-                {
-                    baseStyle += $" left:0;width:{_size.Value.ToString(CultureInfo.InvariantCulture)}px;transform:translateX({_offset.Value.ToString(CultureInfo.InvariantCulture)}px);";
-                }
+                baseStyle = _positionStyle;
             }
 
-            return MergeStyleValues(baseStyle, Style)!;
+            return BradixStringCache.MergeStyle(baseStyle, Style, ref _mergedStyleCache0)!;
         }
     }
 
@@ -152,6 +159,6 @@
 
         _size = size;
         _offset = offset;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 }

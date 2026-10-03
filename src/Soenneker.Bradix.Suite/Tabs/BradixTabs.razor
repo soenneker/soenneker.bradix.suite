@@ -12,6 +12,9 @@
 </CascadingValue>
 
 @code {
+    private string? _childIdCache0;
+    private string? _childIdCache1;
+
     private readonly List<BradixTabsTrigger> _triggers = [];
     private bool _initialized;
     private string? _uncontrolledValue;
@@ -74,11 +77,11 @@
         EnsureCurrentTabStopId();
     }
 
-    internal string MakeTriggerId(string value) =>
-        BlazorIdGenerator.Child(BlazorIdGenerator.Child(BaseId!, "trigger"), value);
+    internal string MakeTriggerId(string value, ref string? previous) =>
+        BradixStringCache.ChildId(BradixStringCache.ChildId(BaseId!, "trigger", ref _childIdCache0), value, ref previous);
 
-    internal string MakeContentId(string value) =>
-        BlazorIdGenerator.Child(BlazorIdGenerator.Child(BaseId!, "content"), value);
+    internal string MakeContentId(string value, ref string? previous) =>
+        BradixStringCache.ChildId(BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache1), value, ref previous);
 
     internal void RegisterTrigger(BradixTabsTrigger trigger)
     {
@@ -106,12 +109,12 @@
             return;
 
         CurrentTabStopId = tabStopId;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal async Task HandleTriggerKeyDown(BradixTabsTrigger trigger, bool loop, KeyboardEventArgs args)
     {
-        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey || !BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 
         var focusableCount = CountFocusableTriggers(out var currentIndex, trigger);
@@ -138,12 +141,12 @@
 
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     internal async Task HandleListKeyDown(bool loop, KeyboardEventArgs args)
     {
-        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey || !BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 
         var focusableCount = CountFocusableTriggers(out var selectedIndex, out var tabStopIndex);
@@ -172,7 +175,7 @@
 
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     internal async Task SetValue(string value)
@@ -190,7 +193,7 @@
             await OnValueChange.InvokeAsync(value);
 
         EnsureCurrentTabStopId();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private void RefreshTabStopIfChanged()
@@ -198,7 +201,7 @@
         string? previous = CurrentTabStopId;
         EnsureCurrentTabStopId();
         if (!string.Equals(previous, CurrentTabStopId, StringComparison.Ordinal))
-            _ = InvokeAsync(StateHasChanged);
+            _ = RequestRender();
     }
 
     private void EnsureCurrentTabStopId()

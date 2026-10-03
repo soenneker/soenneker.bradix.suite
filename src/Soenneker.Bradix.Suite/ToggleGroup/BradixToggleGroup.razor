@@ -6,12 +6,14 @@
 @implements IBradixToggleGroup
 
 <CascadingValue Value="this">
-    <div dir="@ResolvedDirection" @attributes="RootAttributes" @onfocus="HandleFocus">
+    <div dir="@ResolvedDirection" @attributes="RootAttributes" @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)">
         @ChildContent
     </div>
 </CascadingValue>
 
 @code {
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+
     private readonly List<BradixToggleGroupItem> _items = [];
     private bool _initialized;
     private string _uncontrolledValue = string.Empty;
@@ -74,7 +76,7 @@
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", IsSingle ? "radiogroup" : "toolbar"),
-        ("tabindex", RovingFocus ? 0 : null),
+        ("tabindex", RovingFocus ? BradixAttributeValues.Zero : null),
         ("data-orientation", NormalizedOrientation));
 
     protected override void OnInitialized()
@@ -91,7 +93,7 @@
         }
 
         _uncontrolledValue = NormalizeSingleValue(DefaultValue);
-        _uncontrolledValues = CopyValues(DefaultValues);
+        _uncontrolledValues = BradixStringCollection.CopyValues(DefaultValues);
         _initialized = true;
         EnsureCurrentTabStopId();
     }
@@ -102,7 +104,7 @@
             return string.Equals(NormalizeSingleValue(Value ?? _uncontrolledValue), value, StringComparison.Ordinal);
 
         IReadOnlyCollection<string> values = Values ?? _uncontrolledValues;
-        return ContainsOrdinal(values, value);
+        return BradixStringCollection.ContainsOrdinal(values, value);
     }
 
     internal bool IsCurrentTabStop(BradixToggleGroupItem item)
@@ -131,7 +133,7 @@
             return;
 
         CurrentTabStopId = tabStopId;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal async Task ActivateItem(string value)
@@ -142,9 +144,9 @@
             return;
         }
 
-        List<string> next = Values is not null ? CopyValues(Values) : [.. _uncontrolledValues];
+        List<string> next = Values is not null ? BradixStringCollection.CopyValues(Values) : [.. _uncontrolledValues];
 
-        if (ContainsOrdinal(next, value))
+        if (BradixStringCollection.ContainsOrdinal(next, value))
             return;
 
         next.Add(value);
@@ -159,9 +161,9 @@
             return;
         }
 
-        List<string> next = Values is not null ? CopyValues(Values) : [.. _uncontrolledValues];
+        List<string> next = Values is not null ? BradixStringCollection.CopyValues(Values) : [.. _uncontrolledValues];
 
-        if (!RemoveAllOrdinal(next, value))
+        if (!BradixStringCollection.RemoveAllOrdinal(next, value))
             return;
 
         await SetMultipleValues(next);
@@ -169,7 +171,7 @@
 
     internal async Task HandleItemKeyDown(BradixToggleGroupItem item, KeyboardEventArgs args)
     {
-        if (!RovingFocus || args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+        if (!RovingFocus || args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey || !BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 
         int focusableCount = CountFocusableItems(item, out int currentIndex);
@@ -192,7 +194,7 @@
         BradixToggleGroupItem target = GetFocusableItemAt(targetIndex)!;
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private async Task HandleFocus(FocusEventArgs _)
@@ -207,7 +209,7 @@
 
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private void RefreshTabStopIfChanged()
@@ -215,7 +217,7 @@
         string? previous = CurrentTabStopId;
         EnsureCurrentTabStopId();
         if (!string.Equals(previous, CurrentTabStopId, StringComparison.Ordinal))
-            _ = InvokeAsync(StateHasChanged);
+            _ = RequestRender();
     }
 
     private void EnsureCurrentTabStopId()
@@ -264,7 +266,7 @@
             await OnValueChange.InvokeAsync(normalizedValue);
 
         EnsureCurrentTabStopId();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private async Task SetMultipleValues(List<string> next)
@@ -279,7 +281,7 @@
             await OnValuesChange.InvokeAsync(next);
 
         EnsureCurrentTabStopId();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private static string NormalizeSingleValue(string? value)
@@ -335,59 +337,4 @@
         return null;
     }
 
-    private static List<string> CopyValues(IEnumerable<string>? values)
-    {
-        if (values is null)
-            return [];
-
-        if (values is IReadOnlyCollection<string> readOnlyCollection)
-        {
-            List<string> result = new(readOnlyCollection.Count);
-
-            foreach (string value in readOnlyCollection)
-                result.Add(value);
-
-            return result;
-        }
-
-        if (values is ICollection<string> collection)
-        {
-            List<string> result = new(collection.Count);
-
-            foreach (string value in collection)
-                result.Add(value);
-
-            return result;
-        }
-
-        return [.. values];
-    }
-
-    private static bool ContainsOrdinal(IEnumerable<string> values, string value)
-    {
-        foreach (string candidate in values)
-        {
-            if (string.Equals(candidate, value, StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
-    }
-
-    private static bool RemoveAllOrdinal(List<string> values, string value)
-    {
-        var removed = false;
-
-        for (var i = 0; i < values.Count; i++)
-        {
-            if (!string.Equals(values[i], value, StringComparison.Ordinal))
-                continue;
-
-            values.RemoveAt(i);
-            i--;
-            removed = true;
-        }
-
-        return removed;
-    }
 }

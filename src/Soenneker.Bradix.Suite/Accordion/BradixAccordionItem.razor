@@ -6,12 +6,15 @@
 @implements IBradixAccordionItem
 
 <CascadingValue Value="this" >
-    <BradixCollapsible Id="@BaseId" Class="@Class" Style="@Style" Open="@IsOpen" Disabled="@IsDisabled" OnOpenChange="HandleOpenChange" AdditionalAttributes="ItemAttributes" >
+    <BradixCollapsible Id="@BaseId" Class="@Class" Style="@Style" Open="@IsOpen" Disabled="@IsDisabled" OnOpenChange="(_cachedHandleOpenChangeDelegate ??= HandleOpenChange)" AdditionalAttributes="ItemAttributes" >
         @ChildContent
     </BradixCollapsible>
 </CascadingValue>
 
 @code {
+    private string? _triggerIdCache;
+    private System.Func<bool, Task>? _cachedHandleOpenChangeDelegate;
+
 
     [CascadingParameter]
     internal BradixAccordion Accordion { get; set; } = null!;
@@ -26,7 +29,7 @@
 
     internal string BaseId => Id.HasContent() ? Id! : _generatedBaseId ??= BlazorIdGenerator.New("bradix-accordion-item");
 
-    internal string TriggerId => BlazorIdGenerator.Child(BaseId, "trigger");
+    internal string TriggerId => BradixStringCache.ChildId(BaseId, "trigger", ref _triggerIdCache);
 
     internal bool IsOpen => Accordion.IsItemOpen(Value);
 

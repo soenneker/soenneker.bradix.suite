@@ -10,19 +10,23 @@
 
 @inject IRovingFocusInterop RovingFocusInterop
 <a @ref="_element"
-   @onclick="HandleClick"
-   @onfocus="HandleFocus"
-   @onkeydown="HandleKeyDown"
+   @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+   @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+   @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
    @attributes="LinkAttributes">
     @ChildContent
 </a>
 
 @code {
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
     private ElementReference _element;
     private bool _registered;
     private bool _rovingFocusBridgeReady;
     private ValueAtomicBool _disposed;
-    private RootLinkRegistration? _rootRegistration;
+    private BradixNavigationMenuRootLinkRegistration? _rootRegistration;
     private bool _focusGroupRegistered;
 
     [CascadingParameter]
@@ -66,7 +70,7 @@
 
         if (NavigationMenu?.IsRootMenu == true && !IsInContent && Item is not null)
         {
-            _rootRegistration = new RootLinkRegistration(Item.ResolvedValue, Item.TriggerId, _element);
+            _rootRegistration = new BradixNavigationMenuRootLinkRegistration(Item.ResolvedValue, Item.TriggerId, _element);
             NavigationMenu.RegisterTrigger(_rootRegistration);
         }
 
@@ -162,7 +166,7 @@
             return;
 
         if (NavigationMenu.TryGetTrigger(Item.ResolvedValue, out IBradixNavigationMenuRegisteredTrigger trigger))
-            await NavigationMenu.HandleTriggerNavigation(trigger, args);
+            await NavigationMenu.HandleTriggerNavigation(trigger, args.Key, args.CtrlKey, args.AltKey, args.MetaKey, args.ShiftKey);
     }
 
     [JSInvokable]
@@ -175,19 +179,6 @@
     private static bool ShouldIgnoreInteropException(Exception ex)
     {
         return ex is ObjectDisposedException or JSDisconnectedException;
-    }
-
-    private sealed class RootLinkRegistration(string value, string triggerId, ElementReference triggerElement) : IBradixNavigationMenuRegisteredTrigger
-    {
-        public string Value { get; } = value;
-        public string TriggerId { get; } = triggerId;
-        public bool Disabled => false;
-        public ElementReference TriggerElement { get; } = triggerElement;
-
-        public ValueTask Focus()
-        {
-            return TriggerElement.FocusAsync();
-        }
     }
 
     ValueTask IBradixNavigationMenuFocusGroupItem.Focus()

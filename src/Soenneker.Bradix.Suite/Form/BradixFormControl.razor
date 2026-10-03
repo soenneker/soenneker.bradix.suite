@@ -7,12 +7,16 @@
 @inject IFormInterop FormInterop
 <input @ref="_element"
        @oninvalid:preventDefault="true"
-       @oninvalid="HandleInvalid"
-       @oninput="HandleInput"
-       @onchange="HandleChange"
+       @oninvalid="(_cachedHandleInvalidDelegate ??= HandleInvalid)"
+       @oninput="(_cachedHandleInputDelegate ??= HandleInput)"
+       @onchange="(_cachedHandleChangeDelegate ??= HandleChange)"
        @attributes="ControlAttributes" />
 
 @code {
+    private System.Func<Task>? _cachedHandleInvalidDelegate;
+    private System.Func<ChangeEventArgs, Task>? _cachedHandleInputDelegate;
+    private System.Func<ChangeEventArgs, Task>? _cachedHandleChangeDelegate;
+
     private ElementReference _element;
     private bool? _lastServerInvalid;
     private bool _registeredWithForm;
@@ -48,7 +52,7 @@
         if (!string.IsNullOrWhiteSpace(ResolvedName))
             Form?.SetFieldValidity(ResolvedName, validity);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     public async Task HandleControlStateChanged(BradixFormControlSnapshot snapshot)
@@ -57,7 +61,7 @@
             return;
 
         await Form.UpdateControlState(_element, ResolvedName, snapshot);
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -103,6 +107,6 @@
         if (!string.IsNullOrWhiteSpace(ResolvedName))
             Form?.ClearFieldValidation(ResolvedName);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 }

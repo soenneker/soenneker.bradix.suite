@@ -22,12 +22,12 @@
                        AdditionalAttributes="@ContentAttributes"
                        OnOpenAutoFocus="@OnOpenAutoFocus"
                        OnOpenAutoFocusDetailed="@OnOpenAutoFocusDetailed"
-                       OnEscapeKeyDownDetailed="HandleEscapeKeyDown"
-                       OnContentKeyDown="HandleContentKeyDown"
-                       OnCloseAutoFocusDetailed="HandleCloseAutoFocus"
+                       OnEscapeKeyDownDetailed="(_cachedHandleEscapeKeyDownDelegate ??= HandleEscapeKeyDown)"
+                       OnContentKeyDown="(_cachedHandleContentKeyDownDelegate ??= HandleContentKeyDown)"
+                       OnCloseAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)"
                        OnPointerDownOutside="OnPointerDownOutside"
-                       OnPointerDownOutsideDetailed="HandlePointerDownOutside"
-                       OnFocusOutsideDetailed="HandleFocusOutside"
+                       OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
+                       OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)"
                        OnInteractOutside="OnInteractOutside"
                        OnInteractOutsideDetailed="OnInteractOutsideDetailed"
                        OnPlaced="OnPlaced">
@@ -36,6 +36,12 @@
 </BradixDismissableLayerBranch>
 
 @code {
+    private System.Func<BradixEscapeKeyDownEventArgs, Task>? _cachedHandleEscapeKeyDownDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleContentKeyDownDelegate;
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleCloseAutoFocusDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixFocusOutsideEventArgs, Task>? _cachedHandleFocusOutsideDelegate;
+
     private readonly BradixAttributeDictionary _attributeDictionaries = new();
 
     [CascadingParameter]

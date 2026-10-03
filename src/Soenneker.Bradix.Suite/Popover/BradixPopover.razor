@@ -12,6 +12,9 @@
 </BradixPopper>
 
 @code {
+    private string? _childIdCache0;
+    private string? _childIdCache1;
+
     private bool _initialized;
     private bool _uncontrolledOpen;
     private bool _pendingControlledOpen;
@@ -39,8 +42,8 @@
 
     public bool HasCustomAnchor => _customAnchorCount > 0;
 
-    public string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
-    public string DefaultTriggerId => BlazorIdGenerator.Child(BaseId!, "trigger");
+    public string ContentId => BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache0);
+    public string DefaultTriggerId => BradixStringCache.ChildId(BaseId!, "trigger", ref _childIdCache1);
 
     public ElementReference TriggerElement { get; private set; }
     public ElementReference AnchorElement { get; private set; }
@@ -90,7 +93,7 @@
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     public Task ToggleOpen()
@@ -103,14 +106,14 @@
         TriggerElement = element;
         ResolvedTriggerId = string.IsNullOrWhiteSpace(triggerId) ? DefaultTriggerId : triggerId;
         HasTrigger = true;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     public void RegisterAnchor(ElementReference element)
     {
         AnchorElement = element;
         HasAnchor = true;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     public bool ContainsTriggerTarget(string? targetId, IEnumerable<string>? ancestorIds)

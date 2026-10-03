@@ -26,8 +26,10 @@
             <option value=""></option>
         }
 
-        @foreach (BradixCollectionEntry<IBradixSelectCollectionItem> entry in _items.Snapshot())
+        @{ var items = _items.Snapshot(); }
+        @for (var i = 0; i < items.Count; i++)
         {
+            BradixCollectionEntry<IBradixSelectCollectionItem> entry = items[i];
             <option value="@entry.Item.Value"
                     disabled="@entry.Item.Disabled">
                 @entry.Item.TextValue
@@ -44,6 +46,11 @@
 }
 
 @code {
+    private string? _childIdCache0;
+
+    private BradixAttributeDictionary? _bubbleAttributes;
+    private Action? _refreshCallback;
+    private Func<Task>? _focusOpenItemCallback;
     private readonly BradixCollectionRegistry<IBradixSelectCollectionItem> _items = new();
     private readonly BradixTypeaheadBuffer _typeahead = new();
     private bool _initialized;
@@ -121,7 +128,7 @@
 
     internal bool HasActiveTypeahead => !string.IsNullOrEmpty(_typeahead.CurrentSearch);
 
-    internal string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
+    internal string ContentId => BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache0);
 
     internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
@@ -153,14 +160,12 @@
     {
         get
         {
-            Dictionary<string, object> attributes = new()
-            {
-                ["tabindex"] = -1,
-                ["aria-hidden"] = "true",
-                ["required"] = Required,
-                ["disabled"] = Disabled,
-                ["style"] = "position:absolute;width:0;height:0;padding:0;border:0;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);"
-            };
+            Dictionary<string, object> attributes = (_bubbleAttributes ??= new BradixAttributeDictionary()).Create(null, 8);
+                attributes["tabindex"] = BradixAttributeValues.MinusOne;
+                attributes["aria-hidden"] = "true";
+                attributes["required"] = Required ? BradixAttributeValues.True : BradixAttributeValues.False;
+                attributes["disabled"] = Disabled ? BradixAttributeValues.True : BradixAttributeValues.False;
+                attributes["style"] = "position:absolute;width:0;height:0;padding:0;border:0;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);";
 
             if (!string.IsNullOrWhiteSpace(Name))
                 attributes["name"] = Name;
@@ -224,7 +229,7 @@
             if (_isFormControl != isFormControl)
             {
                 _isFormControl = isFormControl;
-                await InvokeAsync(StateHasChanged);
+                await RequestRender();
                 return;
             }
         }
@@ -316,7 +321,7 @@
             return;
 
         ValueNodeHasChildren = hasChildren;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal Task FocusTrigger()
@@ -347,7 +352,7 @@
         if (OnValueChange.HasDelegate)
             await OnValueChange.InvokeAsync(value);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     internal async Task SetOpen(bool open)
@@ -370,7 +375,7 @@
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     internal Task ToggleOpen()
@@ -493,6 +498,9 @@
                 return;
         }
 
+        if (key is not ("ArrowUp" or "ArrowDown"))
+            return;
+
         int enabledCount = CountEnabledItems(CurrentFocusedItemValue, CurrentValue, out int currentIndex);
         if (enabledCount == 0 || currentIndex < 0)
             return;
@@ -610,14 +618,14 @@
 
         _refreshQueued = true;
 
-        _ = InvokeAsync(() =>
-        {
-            if (_disposed.Read())
-                return;
+        _ = InvokeAsync(_refreshCallback ??= RefreshQueued);
+    }
 
-            _refreshQueued = false;
-            StateHasChanged();
-        });
+    private void RefreshQueued()
+    {
+        if (_disposed.Read()) return;
+        _refreshQueued = false;
+        StateHasChanged();
     }
 
     private void QueueOpenItemFocusIfNeeded()
@@ -627,20 +635,16 @@
 
         _focusOpenItemQueued = true;
 
-        _ = InvokeAsync(async () =>
-        {
-            if (_disposed.Read())
-                return;
+        _ = InvokeAsync(_focusOpenItemCallback ??= FocusOpenItemQueued);
+    }
 
-            await Task.Yield();
-
-            _focusOpenItemQueued = false;
-
-            if (_disposed.Read() || !CurrentOpen || CurrentFocusedItemValue is not null)
-                return;
-
-            await FocusSelectedOrFirstItem();
-        });
+    private async Task FocusOpenItemQueued()
+    {
+        if (_disposed.Read()) return;
+        await Task.Yield();
+        _focusOpenItemQueued = false;
+        if (_disposed.Read() || !CurrentOpen || CurrentFocusedItemValue is not null) return;
+        await FocusSelectedOrFirstItem();
     }
 
     private IBradixSelectCollectionItem? GetFirstEnabledItem()
@@ -728,7 +732,7 @@
         if (enabledCount == 0 || string.IsNullOrEmpty(search))
             return null;
 
-        string normalizedSearch = BradixTypeaheadMatcher.NormalizeSearch(search);
+        ReadOnlySpan<char> normalizedSearch = BradixTypeaheadMatcher.GetNormalizedSearch(search);
         int startIndex = Math.Max(currentIndex, 0);
         bool excludeCurrentItem = normalizedSearch.Length == 1 && currentItem is not null;
         IBradixSelectCollectionItem? nextItem = FindNextTypeaheadItemInRange(normalizedSearch, currentItem, excludeCurrentItem, startIndex, enabledCount)
@@ -756,13 +760,15 @@
         return count;
     }
 
-    private IBradixSelectCollectionItem? FindNextTypeaheadItemInRange(string normalizedSearch, IBradixSelectCollectionItem? currentItem, bool excludeCurrentItem,
+    private IBradixSelectCollectionItem? FindNextTypeaheadItemInRange(ReadOnlySpan<char> normalizedSearch, IBradixSelectCollectionItem? currentItem, bool excludeCurrentItem,
         int startIndex, int endIndex)
     {
         var index = 0;
 
         foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
         {
+            if (index >= endIndex) break;
+
             IBradixSelectCollectionItem item = entry.Value;
             if (item.Disabled)
                 continue;
@@ -770,7 +776,7 @@
             if (index >= startIndex && index < endIndex)
             {
                 if ((!excludeCurrentItem || !ReferenceEquals(item, currentItem)) &&
-                    (item.TextValue ?? string.Empty).StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase))
+                    item.TextValue.AsSpan().StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase))
                 {
                     return item;
                 }

@@ -17,6 +17,19 @@
 }
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleOpenAutoFocusDelegate;
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleCloseAutoFocusDelegate;
+    private System.Func<Task>? _cachedHandleDismissDelegate;
+    private System.Func<BradixEscapeKeyDownEventArgs, Task>? _cachedHandleEscapeKeyDownDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixFocusOutsideEventArgs, Task>? _cachedHandleFocusOutsideDelegate;
+    private System.Func<BradixInteractOutsideEventArgs, Task>? _cachedHandleInteractOutsideDelegate;
+    private System.Func<BradixPopperPlacementEventArgs, Task>? _cachedHandlePlacementChangedDelegate;
+    private System.Func<ElementReference, Task>? _cachedHandleContentElementCapturedDelegate;
+    private System.Func<Task>? _cachedHandleExitCompleteDelegate;
+
     private static readonly string[] ContentPreventDefaultKeys = ["Tab", "Home", "End", "PageUp", "PageDown"];
 
     private readonly HashSet<string> _submenuPointerGraceItems = [];
@@ -130,7 +143,7 @@
     private string PositionerStyle =>
         "--radix-menubar-content-transform-origin: var(--radix-popper-transform-origin); --radix-menubar-content-available-width: var(--radix-popper-available-width); --radix-menubar-content-available-height: var(--radix-popper-available-height); --radix-menubar-trigger-width: var(--radix-popper-anchor-width); --radix-menubar-trigger-height: var(--radix-popper-anchor-height);";
 
-    private string MergedContentStyle => MergeStyleValues("outline:none;", Style)!;
+    private string MergedContentStyle => BradixStringCache.MergeStyle("outline:none;", Style, ref _mergedStyleCache0)!;
 
     private IReadOnlyDictionary<string, object> PresenceAttributes
     {
@@ -139,7 +152,7 @@
             Dictionary<string, object> attributes = BuildAdditionalAttributes(10);
 
             attributes["role"] = "menu";
-            attributes["tabindex"] = -1;
+            attributes["tabindex"] = BradixAttributeValues.MinusOne;
             attributes["dir"] = Menubar?.ResolvedDirection ?? "ltr";
             attributes["aria-orientation"] = "vertical";
             if (!string.IsNullOrWhiteSpace(MenubarMenu?.TriggerId))
@@ -386,7 +399,7 @@
         _contentElementCaptured = false;
         _pendingOpenAutoFocus = false;
         _isExiting = false;
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private async Task HandleContentElementCaptured(ElementReference element)
@@ -500,17 +513,17 @@
             <BradixFocusScope Trapped="false"
                               PreventMountAutoFocus="true"
                               PreventUnmountAutoFocus="true"
-                              OnMountAutoFocusDetailed="HandleOpenAutoFocus"
-                              OnUnmountAutoFocusDetailed="HandleCloseAutoFocus">
+                              OnMountAutoFocusDetailed="(_cachedHandleOpenAutoFocusDelegate ??= HandleOpenAutoFocus)"
+                              OnUnmountAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)">
                 <BradixDismissableLayer DisableOutsidePointerEvents="false"
                                         DismissOnEscapeKeyDown="true"
                                         DismissOnPointerDownOutside="true"
                                         DismissOnFocusOutside="true"
-                                        OnDismiss="@HandleDismiss"
-                                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
-                                        OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
-                                        OnFocusOutsideDetailed="@HandleFocusOutside"
-                                        OnInteractOutsideDetailed="@HandleInteractOutside">
+                                        OnDismiss="(_cachedHandleDismissDelegate ??= HandleDismiss)"
+                                        OnEscapeKeyDownDetailed="(_cachedHandleEscapeKeyDownDelegate ??= HandleEscapeKeyDown)"
+                                        OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
+                                        OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)"
+                                        OnInteractOutsideDetailed="(_cachedHandleInteractOutsideDelegate ??= HandleInteractOutside)">
                     <BradixPopperContent Side="@Soenneker.Bradix.Side.Bottom"
                                          SideOffset="@SideOffset"
                                          Align="@Align"
@@ -523,7 +536,7 @@
                                          Sticky="@Sticky"
                                          HideWhenDetached="@HideWhenDetached"
                                          Style="@PositionerStyle"
-                                         OnPlacementChanged="@HandlePlacementChanged"
+                                         OnPlacementChanged="(_cachedHandlePlacementChangedDelegate ??= HandlePlacementChanged)"
                                          OnPlaced="@OnPlaced">
                         <BradixPresence Present="IsPresent"
                                         Tag="div"
@@ -531,8 +544,8 @@
                                         Class="@Class"
                                         Style="@MergedContentStyle"
                                         AdditionalAttributes="@PresenceAttributes"
-                                        OnElementReferenceCaptured="@HandleContentElementCaptured"
-                                        OnExitComplete="@HandleExitComplete">
+                                        OnElementReferenceCaptured="(_cachedHandleContentElementCapturedDelegate ??= HandleContentElementCaptured)"
+                                        OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
                             @ChildContent
                         </BradixPresence>
                     </BradixPopperContent>

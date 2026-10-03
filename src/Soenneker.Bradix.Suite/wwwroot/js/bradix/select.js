@@ -46,54 +46,44 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
 
   const registration = {
     animationFrameId: 0,
-    itemAlignedFrameId: 0
+    itemAlignedFrameId: 0,
+    scrollTop: undefined, scrollHeight: undefined, viewportHeight: undefined
   };
 
+  const runNotify = () => {
+    registration.animationFrameId = 0;
+    notify();
+  };
   const queueNotify = () => {
-    if (registration.animationFrameId) {
-      return;
-    }
-
-    registration.animationFrameId = requestAnimationFrame(() => {
-      registration.animationFrameId = 0;
-
-      if (selectViewportHandlers.get(viewport) !== registration) {
-        return;
-      }
-
-      notify();
-    });
-
+    if (registration.animationFrameId || selectViewportHandlers.get(viewport) !== registration) return;
+    registration.animationFrameId = requestAnimationFrame(runNotify);
   };
-
   const notify = () => {
     if (selectViewportHandlers.get(viewport) !== registration) {
       return;
     }
 
     const contentElement = content || viewport.firstElementChild;
-    invokeDotNetSafely(
-      dotNetRef,
-      "HandleViewportMetricsChanged",
-      viewport.scrollTop,
-      contentElement ? contentElement.scrollHeight : viewport.scrollHeight,
-      viewport.offsetHeight
-    );
+    const scrollTop = viewport.scrollTop;
+    const scrollHeight = contentElement ? contentElement.scrollHeight : viewport.scrollHeight;
+    const viewportHeight = viewport.offsetHeight;
+    if (registration.scrollTop === scrollTop && registration.scrollHeight === scrollHeight &&
+        registration.viewportHeight === viewportHeight) return;
+    registration.scrollTop = scrollTop;
+    registration.scrollHeight = scrollHeight;
+    registration.viewportHeight = viewportHeight;
+    invokeDotNetSafely(dotNetRef, "HandleViewportMetricsChanged", scrollTop, scrollHeight, viewportHeight);
   };
 
   const scroll = queueNotify;
   viewport.addEventListener("scroll", scroll);
 
-  const viewportResizeObserver = new ResizeObserver(() => {
-    queueNotify();
-  });
+  const viewportResizeObserver = new ResizeObserver(queueNotify);
   viewportResizeObserver.observe(viewport);
 
   let contentResizeObserver = null;
   if (content) {
-    contentResizeObserver = new ResizeObserver(() => {
-      queueNotify();
-    });
+    contentResizeObserver = new ResizeObserver(queueNotify);
     contentResizeObserver.observe(content);
   }
 
@@ -267,7 +257,7 @@ function applyFocusedSelectValue(content, registration) {
 }
 
 function getEnabledSelectOptions(content) {
-  return Array.from(content.querySelectorAll("[role='option']:not([data-disabled]):not([aria-disabled='true'])"));
+  return content.querySelectorAll("[role='option']:not([data-disabled]):not([aria-disabled='true'])");
 }
 
 function getCurrentSelectOption(content, options) {
@@ -275,30 +265,34 @@ function getCurrentSelectOption(content, options) {
     ? document.activeElement.closest("[role='option']")
     : null;
 
-  if (active && options.includes(active)) {
-    return active;
+  let highlighted = null;
+  let checked = null;
+  for (const option of options) {
+    if (option === active) return active;
+    if (highlighted === null && option.hasAttribute("data-highlighted")) highlighted = option;
+    if (checked === null && option.getAttribute("data-state") === "checked") checked = option;
   }
+  return highlighted || checked || options[0];
+}
 
-  return options.find(option => option.hasAttribute("data-highlighted"))
-    || options.find(option => option.getAttribute("data-state") === "checked")
-    || options[0];
+function indexOfSelectOption(options, current) {
+  for (let i = 0; i < options.length; i++) if (options[i] === current) return i;
+  return -1;
 }
 
 function getAdjacentSelectOption(options, current, delta) {
-  const currentIndex = Math.max(options.indexOf(current), 0);
-  const nextIndex = (currentIndex + delta + options.length) % options.length;
-  return options[nextIndex];
+  const currentIndex = Math.max(indexOfSelectOption(options, current), 0);
+  return options[(currentIndex + delta + options.length) % options.length];
 }
 
 function getTypeaheadSelectOption(options, current, key, registration) {
   clearTimeout(registration.searchResetTimeout);
   const normalizedKey = key.toLowerCase();
   registration.search += normalizedKey;
-  registration.searchResetTimeout = setTimeout(() => {
-    registration.search = "";
-  }, TYPEAHEAD_RESET_MS);
+  registration.resetSearch ??= () => { registration.search = ""; };
+  registration.searchResetTimeout = setTimeout(registration.resetSearch, TYPEAHEAD_RESET_MS);
 
-  const currentIndex = Math.max(options.indexOf(current), -1);
+  const currentIndex = Math.max(indexOfSelectOption(options, current), -1);
   let repeatedCharacterSearch = registration.search.length > 1;
 
   if (repeatedCharacterSearch) {
@@ -367,17 +361,15 @@ export function registerSelectContentPointerTracker(content, dotNetRef, pageX, p
 
   const registration = {};
 
-  let pointerMoveDelta = { x: 0, y: 0 };
+  const pointerMoveDelta = { x: 0, y: 0 };
 
   const handlePointerMove = (event) => {
     if (selectContentPointerTrackers.get(content) !== registration) {
       return;
     }
 
-    pointerMoveDelta = {
-      x: Math.abs(Math.round(event.pageX) - Math.round(pageX || 0)),
-      y: Math.abs(Math.round(event.pageY) - Math.round(pageY || 0))
-    };
+    pointerMoveDelta.x = Math.abs(Math.round(event.pageX) - Math.round(pageX || 0));
+    pointerMoveDelta.y = Math.abs(Math.round(event.pageY) - Math.round(pageY || 0));
   };
 
   const handlePointerUp = (event) => {
@@ -533,7 +525,12 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
     );
     state.hasPositioned = true;
   };
+  const runUpdate = () => {
+    state.animationFrameId = 0;
+    if (selectItemAlignedHandlers.get(wrapper)?.state === state) updateNow();
+  };
   const update = (event) => {
+    if (selectItemAlignedHandlers.get(wrapper)?.state !== state) return;
     if (event instanceof Event && isSelectViewportScrollEvent(event, state.viewport)) {
       return;
     }
@@ -542,22 +539,7 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
       return;
     }
 
-    const preserveViewportScroll = state.hasPositioned;
-    state.animationFrameId = requestAnimationFrame(() => {
-      state.animationFrameId = 0;
-      positionSelectItemAligned(
-        wrapper,
-        state.content,
-        state.viewport,
-        state.trigger,
-        state.valueNode,
-        state.selectedItem,
-        state.selectedItemText,
-        state.dir,
-        preserveViewportScroll
-      );
-      state.hasPositioned = true;
-    });
+    state.animationFrameId = requestAnimationFrame(runUpdate);
   };
   const resizeObserver = new ResizeObserver(update);
 
@@ -585,15 +567,7 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
     state
   });
 
-  state.animationFrameId = requestAnimationFrame(() => {
-    state.animationFrameId = 0;
-
-    if (selectItemAlignedHandlers.get(wrapper)?.state !== state) {
-      return;
-    }
-
-    updateNow();
-  });
+  state.animationFrameId = requestAnimationFrame(runUpdate);
 }
 
 export function updateSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir) {

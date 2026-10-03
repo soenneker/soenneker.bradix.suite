@@ -123,7 +123,7 @@ public static class BradixTypeaheadMatcher
         return normalized.Length == search.Length ? search : normalized.ToString();
     }
 
-    private static ReadOnlySpan<char> GetNormalizedSearch(string search)
+    internal static ReadOnlySpan<char> GetNormalizedSearch(string search)
     {
         if (search.Length <= 1)
             return search;

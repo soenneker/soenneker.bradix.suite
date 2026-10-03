@@ -12,15 +12,20 @@
 @inject IRovingFocusInterop RovingFocusInterop
 @inject IControlsInterop ControlsInterop
 <a @ref="_element"
-   @onclick="HandleClick"
-   @onmousedown="HandleMouseDown"
-   @onfocus="HandleFocus"
-   @onkeydown="HandleKeyDown"
+   @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+   @onmousedown="(_cachedHandleMouseDownDelegate ??= HandleMouseDown)"
+   @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+   @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
    @attributes="LinkAttributes">
     @ChildContent
 </a>
 
 @code {
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+    private System.Func<MouseEventArgs, Task>? _cachedHandleMouseDownDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
     private ElementReference _element;
     private bool _registered;
     private ValueAtomicBool _disposed;
@@ -56,7 +61,7 @@
         ("data-bradix-roving-dir", Toolbar.ResolvedDirection),
         ("data-bradix-roving-loop", Toolbar.Loop ? "true" : "false"),
         ("data-bradix-prevent-nonprimary-mousedown", "true"),
-        ("tabindex", Toolbar.IsCurrentTabStop(this) ? 0 : -1));
+        ("tabindex", Toolbar.IsCurrentTabStop(this) ? BradixAttributeValues.Zero : BradixAttributeValues.MinusOne));
 
     protected override void OnInitialized()
     {
@@ -93,12 +98,11 @@
 
     public ValueTask Focus() => _element.FocusAsync();
 
-    private async Task HandleClick(MouseEventArgs args)
+    private Task HandleClick(MouseEventArgs args)
     {
         Toolbar.SetCurrentTabStop(TabStopId);
 
-        if (OnClick.HasDelegate)
-            await OnClick.InvokeAsync(args);
+        return OnClick.HasDelegate ? OnClick.InvokeAsync(args) : Task.CompletedTask;
     }
 
     private Task HandleMouseDown(MouseEventArgs _)

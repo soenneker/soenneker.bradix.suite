@@ -12,12 +12,14 @@
                           Style="@Style"
                           AriaDisabled="@AriaDisabled"
                           OnClick="@OnClick"
-                          OnKeyDown="HandleKeyDown"
+                          OnKeyDown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
                           AdditionalAttributes="TriggerAttributes">
     @ChildContent
 </BradixCollapsibleTrigger>
 
 @code {
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
     private BradixCollapsibleTrigger? _trigger;
     private ValueAtomicBool _disposed;
     private ValueAtomicBool _asyncDisposed;

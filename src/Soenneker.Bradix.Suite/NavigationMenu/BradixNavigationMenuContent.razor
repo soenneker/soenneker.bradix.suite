@@ -22,6 +22,14 @@
 }
 
 @code {
+    private System.Func<BradixEscapeKeyDownEventArgs, Task>? _cachedHandleEscapeKeyDownDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixFocusOutsideEventArgs, Task>? _cachedHandleFocusOutsideDelegate;
+
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerEnterDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerLeaveDelegate;
+
+    private string? _viewportSelector;
     private ElementReference _contentElement;
     private ElementReference _exitProxyElement;
     private bool _registered;
@@ -51,7 +59,7 @@
         (!ShouldUseViewport || !string.IsNullOrWhiteSpace(ViewportSelector));
 
     private string? ViewportSelector => !string.IsNullOrWhiteSpace(NavigationMenu?.ViewportId)
-        ? $"#{NavigationMenu.ViewportId}"
+        ? BradixStringCache.Concat("#", NavigationMenu.ViewportId, ref _viewportSelector)
         : null;
 
     private RenderFragment? _contentBody;
@@ -62,14 +70,14 @@
                                 DismissOnEscapeKeyDown="false"
                                 DismissOnPointerDownOutside="false"
                                 DismissOnFocusOutside="false"
-                                OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
-                                OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
-                                OnFocusOutsideDetailed="@HandleFocusOutside">
+                                OnEscapeKeyDownDetailed="(_cachedHandleEscapeKeyDownDelegate ??= HandleEscapeKeyDown)"
+                                OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
+                                OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)">
             <div @ref="_contentElement"
                  tabindex="-1"
                  @attributes="ContentAttributes"
-                 @onpointerenter="HandlePointerEnter"
-                 @onpointerleave="HandlePointerLeave">
+                 @onpointerenter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
+                 @onpointerleave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)">
                 <CascadingValue Name="BradixNavigationMenuInContent" Value="true" IsFixed="true">
                     @ChildContent
                 </CascadingValue>
@@ -145,9 +153,9 @@
 
             if (ForceMount && !IsOpen)
             {
-                attributes["hidden"] = true;
+                attributes["hidden"] = BradixAttributeValues.True;
                 attributes["aria-hidden"] = "true";
-                attributes["inert"] = true;
+                attributes["inert"] = BradixAttributeValues.True;
             }
 
             string motion = ResolveMotion();
@@ -239,10 +247,7 @@
             return string.Empty;
         }
 
-        List<string> values = NavigationMenu.GetOrderedTriggerValues();
-        int index = values.IndexOf(NavigationMenu.CurrentValue);
-        int previousIndex = values.IndexOf(NavigationMenu.PreviousValue);
-        int activeIndex = values.IndexOf(Item.ResolvedValue);
+        NavigationMenu.GetTriggerIndices(Item.ResolvedValue, out int index, out int previousIndex, out int activeIndex);
 
         bool isSelected = Item.ResolvedValue == NavigationMenu.CurrentValue;
         bool wasSelected = activeIndex == previousIndex;

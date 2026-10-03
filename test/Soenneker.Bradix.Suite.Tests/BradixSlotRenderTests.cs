@@ -12,6 +12,34 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixSlotRenderTests : BunitContext
 {
     [Test]
+    public async ValueTask Slot_in_flight_composition_keeps_its_handler_pair_when_parameters_change()
+    {
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        List<string> calls = [];
+        var child = new Dictionary<string, object> { ["onclick"] = (Func<Task>)(async () =>
+        {
+            calls.Add("old-child");
+            await gate.Task;
+        }) };
+        var slot = new Dictionary<string, object> { ["onclick"] = (Action)(() => calls.Add("old-slot")) };
+        var cut = Render<BradixSlot>(p => p.Add(c => c.ElementName, "button")
+            .Add(c => c.AdditionalAttributes, slot).Add(c => c.ChildAttributes, child));
+        var click = cut.Find("button").ClickAsync();
+        child["onclick"] = (Action)(() => calls.Add("new-child"));
+        slot["onclick"] = (Action)(() => calls.Add("new-slot"));
+        cut.Render(p => p.Add(c => c.AdditionalAttributes, slot).Add(c => c.ChildAttributes, child));
+        gate.SetResult();
+        await click;
+        await cut.Find("button").ClickAsync();
+        await Assert.That(string.Join(",", calls)).IsEqualTo("old-child,old-slot,new-child,new-slot");
+
+        slot.Remove("onclick");
+        cut.Render(p => p.Add(c => c.AdditionalAttributes, slot));
+        await cut.Find("button").ClickAsync();
+        await Assert.That(string.Join(",", calls)).IsEqualTo("old-child,old-slot,new-child,new-slot,new-child");
+    }
+
+    [Test]
     [Arguments(" color:red ", " display:block;; ", "color:red; display:block;")]
     [Arguments("color:red;", "display:block;", "color:red; display:block;")]
     [Arguments(";;;", " display:block ", "; display:block;")]

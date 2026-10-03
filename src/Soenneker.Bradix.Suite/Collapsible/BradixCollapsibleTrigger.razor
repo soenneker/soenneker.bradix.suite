@@ -4,13 +4,16 @@
 
 @implements IBradixCollapsibleTrigger
 <button @ref="_element"
-        @onclick="HandleClick"
-        @onkeydown="HandleKeyDown"
+        @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+        @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
         @attributes="TriggerAttributes">
     @ChildContent
 </button>
 
 @code {
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
     private ElementReference _element;
 
     [CascadingParameter]
@@ -40,7 +43,7 @@
         ("aria-disabled", AriaDisabled),
         ("data-state", BradixDataStates.Open(Collapsible.IsOpen)),
         ("data-disabled", IsDisabled ? string.Empty : null),
-        ("disabled", IsDisabled ? true : null));
+        ("disabled", IsDisabled ? BradixAttributeValues.True : null));
 
     internal ValueTask Focus()
     {
@@ -58,9 +61,5 @@
         await Collapsible.Toggle();
     }
 
-    private async Task HandleKeyDown(KeyboardEventArgs args)
-    {
-        if (OnKeyDown.HasDelegate)
-            await OnKeyDown.InvokeAsync(args);
-    }
+    private Task HandleKeyDown(KeyboardEventArgs args) => OnKeyDown.InvokeAsync(args);
 }

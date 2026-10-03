@@ -64,7 +64,7 @@
             return;
 
         _uncontrolledValue = NormalizeSingleValue(DefaultValue);
-        _uncontrolledValues = CopyValues(DefaultValues);
+        _uncontrolledValues = BradixStringCollection.CopyValues(DefaultValues);
         _initialized = true;
     }
 
@@ -74,7 +74,7 @@
             return string.Equals(NormalizeSingleValue(IsSingleControlled ? Value : _uncontrolledValue), value, StringComparison.Ordinal);
 
         IReadOnlyCollection<string> values = IsMultipleControlled ? Values ?? [] : _uncontrolledValues;
-        return ContainsOrdinal(values, value);
+        return BradixStringCollection.ContainsOrdinal(values, value);
     }
 
     internal async Task ActivateItem(string value)
@@ -85,9 +85,9 @@
             return;
         }
 
-        List<string> next = IsMultipleControlled ? CopyValues(Values) : [.. _uncontrolledValues];
+        List<string> next = IsMultipleControlled ? BradixStringCollection.CopyValues(Values) : [.. _uncontrolledValues];
 
-        if (ContainsOrdinal(next, value))
+        if (BradixStringCollection.ContainsOrdinal(next, value))
             return;
 
         next.Add(value);
@@ -102,9 +102,9 @@
             return;
         }
 
-        List<string> next = IsMultipleControlled ? CopyValues(Values) : [.. _uncontrolledValues];
+        List<string> next = IsMultipleControlled ? BradixStringCollection.CopyValues(Values) : [.. _uncontrolledValues];
 
-        if (!RemoveAllOrdinal(next, value))
+        if (!BradixStringCollection.RemoveAllOrdinal(next, value))
             return;
 
         await SetMultipleValues(next);
@@ -126,7 +126,7 @@
         if (OnValueChange.HasDelegate)
             await OnValueChange.InvokeAsync(normalizedValue);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private async Task SetMultipleValues(List<string> next)
@@ -140,7 +140,7 @@
         if (OnValuesChange.HasDelegate)
             await OnValuesChange.InvokeAsync(next);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private static string NormalizeSingleValue(string? value)
@@ -148,59 +148,4 @@
         return value ?? string.Empty;
     }
 
-    private static List<string> CopyValues(IEnumerable<string>? values)
-    {
-        if (values is null)
-            return [];
-
-        if (values is IReadOnlyCollection<string> readOnlyCollection)
-        {
-            List<string> result = new(readOnlyCollection.Count);
-
-            foreach (string value in readOnlyCollection)
-                result.Add(value);
-
-            return result;
-        }
-
-        if (values is ICollection<string> collection)
-        {
-            List<string> result = new(collection.Count);
-
-            foreach (string value in collection)
-                result.Add(value);
-
-            return result;
-        }
-
-        return [.. values];
-    }
-
-    private static bool ContainsOrdinal(IEnumerable<string> values, string value)
-    {
-        foreach (string candidate in values)
-        {
-            if (string.Equals(candidate, value, StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
-    }
-
-    private static bool RemoveAllOrdinal(List<string> values, string value)
-    {
-        var removed = false;
-
-        for (var i = 0; i < values.Count; i++)
-        {
-            if (!string.Equals(values[i], value, StringComparison.Ordinal))
-                continue;
-
-            values.RemoveAt(i);
-            i--;
-            removed = true;
-        }
-
-        return removed;
-    }
 }

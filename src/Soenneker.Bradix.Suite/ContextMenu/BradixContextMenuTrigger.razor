@@ -6,17 +6,25 @@
 
 @implements IBradixContextMenuTrigger
 @inject IControlsInterop ControlsInterop
-<span @ref="_element" @oncontextmenu="HandleContextMenu"
+<span @ref="_element" @oncontextmenu="(_cachedHandleContextMenuDelegate ??= HandleContextMenu)"
       @oncontextmenu:preventDefault="@(!Disabled)"
-      @onpointerdown="HandlePointerDown"
-      @onpointermove="HandlePointerMove"
-      @onpointercancel="HandlePointerCancel"
-      @onpointerup="HandlePointerUp"
+      @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
+      @onpointermove="(_cachedHandlePointerMoveDelegate ??= HandlePointerMove)"
+      @onpointercancel="(_cachedHandlePointerCancelDelegate ??= HandlePointerCancel)"
+      @onpointerup="(_cachedHandlePointerUpDelegate ??= HandlePointerUp)"
       @attributes="TriggerAttributes">
     @ChildContent
 </span>
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<MouseEventArgs, Task>? _cachedHandleContextMenuDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerMoveDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerCancelDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerUpDelegate;
+
     private const int _longPressDelayMs = 700;
     private ElementReference _element;
     private bool _disposed;
@@ -33,7 +41,7 @@
 
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
         ("aria-haspopup", "menu"),
-        ("tabindex", Disabled ? -1 : 0),
+        ("tabindex", Disabled ? BradixAttributeValues.MinusOne : BradixAttributeValues.Zero),
         ("aria-controls", Menu?.ContentId),
         ("data-state", ContextMenu?.CurrentOpen == true ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
@@ -128,7 +136,7 @@
     private string BuildStyle()
     {
         const string baseStyle = "-webkit-touch-callout: none;";
-        return MergeStyleValues(baseStyle, Style)!;
+        return BradixStringCache.MergeStyle(baseStyle, Style, ref _mergedStyleCache0)!;
     }
 
     private static bool IsMousePointer(PointerEventArgs args)

@@ -56,14 +56,24 @@ test('one indicator observer tracks both elements without duplicate notification
     assert.equal(env.observers[0].elements.size, 2);
     for (let i = 0; i < 100; i++) env.observers[0].callback();
     assert.equal(env.calls.length, 1);
+    for (let i = 0; i < 100; i++) navigation.updateNavigationMenuIndicator(indicator, trigger, track, 'horizontal');
+    assert.equal(env.observers.length, 1);
+    assert.equal(env.calls.length, 1);
     trigger.offsetLeft = 20;
     env.observers[0].callback();
     assert.deepEqual(env.calls[1], ['HandleIndicatorPositionChanged', 100, 20]);
+    const replacement = { offsetWidth: 50, offsetLeft: 30, offsetHeight: 60, offsetTop: 40 };
+    navigation.updateNavigationMenuIndicator(indicator, replacement, track, 'vertical');
+    assert.equal(env.observers.length, 1);
+    assert.deepEqual([...env.observers[0].elements], [replacement, track]);
+    assert.deepEqual(env.calls[2], ['HandleIndicatorPositionChanged', 60, 40]);
   } finally {
     navigation.unregisterNavigationMenuIndicator(indicator);
   }
   assert.equal(env.observers[0].elements.size, 0);
   assert.equal(env.listenerCount(), 0);
+  env.observers[0].callback();
+  assert.equal(env.calls.length, 3);
 });
 
 test('delegated document listeners exist only while registrations remain', () => {

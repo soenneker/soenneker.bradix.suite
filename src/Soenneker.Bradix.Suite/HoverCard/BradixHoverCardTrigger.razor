@@ -5,12 +5,12 @@
 @implements IBradixHoverCardTrigger
 <BradixPopperAnchor>
     <button @ref="_triggerElement"
-            @onpointerenter="HandlePointerEnter"
-            @onpointerleave="HandlePointerLeave"
-            @onmouseenter="HandleMouseEnter"
-            @onmouseleave="HandleMouseLeave"
-            @onfocus="HandleFocus"
-            @onblur="HandleBlur"
+            @onpointerenter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
+            @onpointerleave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
+            @onmouseenter="(_cachedHandleMouseEnterDelegate ??= HandleMouseEnter)"
+            @onmouseleave="(_cachedHandleMouseLeaveDelegate ??= HandleMouseLeave)"
+            @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+            @onblur="(_cachedHandleBlurDelegate ??= HandleBlur)"
             @ontouchstart:preventDefault="true"
             @attributes="TriggerAttributes">
         @ChildContent
@@ -20,6 +20,13 @@
 @implements IHandleEvent
 
 @code {
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerEnterDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerLeaveDelegate;
+    private System.Func<Task>? _cachedHandleMouseEnterDelegate;
+    private System.Func<Task>? _cachedHandleMouseLeaveDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleBlurDelegate;
+
     // State changes render through the owning context or the explicit focus handlers.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 

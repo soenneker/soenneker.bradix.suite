@@ -102,7 +102,7 @@
             ? CopyValues(Values)
             : [.. _uncontrolledValues];
 
-        if (!next.Contains(value, StringComparer.Ordinal))
+        if (!next.Contains(value))
         {
             next.Add(value);
             await SetMultipleValues(next);
@@ -124,8 +124,17 @@
             ? CopyValues(Values)
             : [.. _uncontrolledValues];
 
-        if (next.RemoveAll(item => string.Equals(item, value, StringComparison.Ordinal)) > 0)
+        int removed = 0;
+        for (int index = 0; index < next.Count; index++)
+        {
+            if (string.Equals(next[index], value, StringComparison.Ordinal)) removed++;
+            else if (removed != 0) next[index - removed] = next[index];
+        }
+        if (removed != 0)
+        {
+            next.RemoveRange(next.Count - removed, removed);
             await SetMultipleValues(next);
+        }
     }
 
     internal void RegisterTrigger(BradixAccordionTrigger trigger)
@@ -143,6 +152,9 @@
 
     internal async Task HandleTriggerKeyDown(BradixAccordionTrigger trigger, KeyboardEventArgs args)
     {
+        if (args.Key is not ("Home" or "End" or "ArrowDown" or "ArrowUp" or "ArrowRight" or "ArrowLeft"))
+            return;
+
         var enabledCount = 0;
         int currentIndex = -1;
         foreach (BradixAccordionTrigger candidate in _triggers)
@@ -213,7 +225,7 @@
         if (OnValueChange.HasDelegate)
             await OnValueChange.InvokeAsync(value);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private async Task SetMultipleValues(List<string> next)
@@ -227,7 +239,7 @@
         if (OnValuesChange.HasDelegate)
             await OnValuesChange.InvokeAsync(next);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private static List<string> CopyValues(IEnumerable<string>? values)

@@ -57,13 +57,18 @@
     public ValueTask DisposeAsync()
     {
         CancelSkipDelayTimer();
-        _skipDelayTokenSource?.Dispose();
+        _openTooltip = null;
         return ValueTask.CompletedTask;
     }
 
     private void StartSkipDelayTimer()
     {
         CancelSkipDelayTimer();
+        if (SkipDelayDuration == 0)
+        {
+            IsOpenDelayed = true;
+            return;
+        }
         _skipDelayTokenSource = new CancellationTokenSource();
         _ = ResetDelayedOpen(_skipDelayTokenSource.Token);
     }

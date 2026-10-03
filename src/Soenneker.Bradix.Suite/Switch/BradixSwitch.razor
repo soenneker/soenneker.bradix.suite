@@ -13,7 +13,7 @@
 @inject IControlsInterop ControlsInterop
 <CascadingValue Value="this">
     <button @ref="_buttonElement"
-            @onclick="HandleClick"
+            @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
             @onclick:stopPropagation="ShouldRenderBubbleInput"
             @attributes="ButtonAttributes">
         @ChildContent
@@ -27,8 +27,11 @@
 }
 
 @code {
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+
     private static readonly string[] ToggleKeys = ["Enter", " ", "Spacebar"];
 
+    private BradixAttributeDictionary? _bubbleAttributes;
     private bool _initialized;
     private bool _delegatedInteractionReady;
     private bool _isFormControl = true;
@@ -89,24 +92,22 @@
         ("aria-required", Required ? "true" : null),
         ("data-state", CurrentChecked ? "checked" : "unchecked"),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("disabled", Disabled ? true : null),
+        ("disabled", Disabled ? BradixAttributeValues.True : null),
         ("value", Value));
 
     private Dictionary<string, object> BubbleInputAttributes
     {
         get
         {
-            Dictionary<string, object> attributes = new()
-            {
-                ["type"] = "checkbox",
-                ["value"] = Value,
-                ["checked"] = CurrentChecked,
-                ["required"] = Required,
-                ["disabled"] = Disabled,
-                ["tabindex"] = -1,
-                ["aria-hidden"] = "true",
-                ["style"] = "position:absolute;width:0;height:0;padding:0;border:0;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);"
-            };
+            Dictionary<string, object> attributes = (_bubbleAttributes ??= new BradixAttributeDictionary()).Create(null, 10);
+                attributes["type"] = "checkbox";
+                attributes["value"] = Value;
+                attributes["checked"] = CurrentChecked ? BradixAttributeValues.True : BradixAttributeValues.False;
+                attributes["required"] = Required ? BradixAttributeValues.True : BradixAttributeValues.False;
+                attributes["disabled"] = Disabled ? BradixAttributeValues.True : BradixAttributeValues.False;
+                attributes["tabindex"] = BradixAttributeValues.MinusOne;
+                attributes["aria-hidden"] = "true";
+                attributes["style"] = "position:absolute;width:0;height:0;padding:0;border:0;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);";
 
             if (!string.IsNullOrWhiteSpace(Name))
                 attributes["name"] = Name;
@@ -180,7 +181,7 @@
             _initialUncheckedState = DefaultChecked;
             _uncontrolledChecked = DefaultChecked;
             _lastRenderedState = CurrentChecked;
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
             return;
         }
 
@@ -195,7 +196,7 @@
             if (_isFormControl != isFormControl)
             {
                 _isFormControl = isFormControl;
-                await InvokeAsync(StateHasChanged);
+                await RequestRender();
                 return;
             }
         }
@@ -262,7 +263,7 @@
             return Task.CompletedTask;
 
         _uncontrolledChecked = _initialUncheckedState;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private async Task HandleClick(MouseEventArgs args)
@@ -314,7 +315,7 @@
         if (OnCheckedChange.HasDelegate)
             await OnCheckedChange.InvokeAsync(value);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private static bool IsSpaceKey(string key)

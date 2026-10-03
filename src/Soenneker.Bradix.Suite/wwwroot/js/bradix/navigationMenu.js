@@ -1,3 +1,15 @@
+const navigationTriggerKeys = new Set([
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Home",
+      "End",
+      "Enter",
+      " ",
+      "Spacebar"
+    ]);
+
 import { createDelegatedEventSnapshot } from "./core/eventSnapshots.js";
 import { getTabbableCandidates, focusFirst, focusElement } from "./core/focus.js";
 
@@ -13,10 +25,13 @@ export function registerNavigationMenuIndicator(indicator, activeTrigger, track,
 
   unregisterNavigationMenuIndicator(indicator);
 
+  const handlers = { activeTrigger, track, orientation, dotNetRef };
+
   const notify = () => {
-    const isHorizontal = orientation !== "vertical";
-    const size = isHorizontal ? activeTrigger.offsetWidth : activeTrigger.offsetHeight;
-    const offset = isHorizontal ? activeTrigger.offsetLeft : activeTrigger.offsetTop;
+    if (navigationMenuIndicatorHandlers.get(indicator) !== handlers) return;
+    const isHorizontal = handlers.orientation !== "vertical";
+    const size = isHorizontal ? handlers.activeTrigger.offsetWidth : handlers.activeTrigger.offsetHeight;
+    const offset = isHorizontal ? handlers.activeTrigger.offsetLeft : handlers.activeTrigger.offsetTop;
     if (size === lastSize && offset === lastOffset) {
       return;
     }
@@ -28,20 +43,17 @@ export function registerNavigationMenuIndicator(indicator, activeTrigger, track,
   let lastSize;
   let lastOffset;
   const triggerResizeObserver = new ResizeObserver(notify);
-  const handleWindowResize = () => notify();
+  const handleWindowResize = notify;
 
   triggerResizeObserver.observe(activeTrigger);
   triggerResizeObserver.observe(track);
   window.addEventListener("resize", handleWindowResize);
 
+  handlers.notify = notify;
+  handlers.triggerResizeObserver = triggerResizeObserver;
+  handlers.handleWindowResize = handleWindowResize;
+  navigationMenuIndicatorHandlers.set(indicator, handlers);
   notify();
-
-  navigationMenuIndicatorHandlers.set(indicator, {
-    notify,
-    triggerResizeObserver,
-    handleWindowResize,
-    dotNetRef
-  });
 }
 
 export function updateNavigationMenuIndicator(indicator, activeTrigger, track, orientation) {
@@ -50,8 +62,19 @@ export function updateNavigationMenuIndicator(indicator, activeTrigger, track, o
     return;
   }
 
-  unregisterNavigationMenuIndicator(indicator);
-  registerNavigationMenuIndicator(indicator, activeTrigger, track, handlers.dotNetRef, orientation);
+  if (!activeTrigger || !track) {
+    unregisterNavigationMenuIndicator(indicator);
+    return;
+  }
+  if (handlers.activeTrigger !== activeTrigger || handlers.track !== track) {
+    handlers.triggerResizeObserver.disconnect();
+    handlers.activeTrigger = activeTrigger;
+    handlers.track = track;
+    handlers.triggerResizeObserver.observe(activeTrigger);
+    handlers.triggerResizeObserver.observe(track);
+  }
+  handlers.orientation = orientation;
+  handlers.notify();
 }
 
 export function unregisterNavigationMenuIndicator(indicator) {
@@ -113,7 +136,7 @@ export function registerNavigationMenuContentFocusBridge(content, trigger, start
 
     const candidates = getTabbableCandidates(content);
     const focusedElement = document.activeElement;
-    const index = candidates.findIndex((candidate) => candidate === focusedElement);
+    const index = candidates.indexOf(focusedElement);
     const isMovingBackwards = event.shiftKey;
     const nextIndex = isMovingBackwards
       ? (index < 0 ? candidates.length - 2 : index - 1)
@@ -193,17 +216,7 @@ export function registerNavigationMenuTriggerInteraction(trigger, dotNetRef) {
   };
 
   const handleKeyDown = (event) => {
-    if ([
-      "ArrowLeft",
-      "ArrowRight",
-      "ArrowUp",
-      "ArrowDown",
-      "Home",
-      "End",
-      "Enter",
-      " ",
-      "Spacebar"
-    ].includes(event.key)) {
+    if (navigationTriggerKeys.has(event.key)) {
       event.preventDefault();
     }
 

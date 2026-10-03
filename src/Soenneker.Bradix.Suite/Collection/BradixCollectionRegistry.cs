@@ -110,6 +110,9 @@ public sealed class BradixCollectionRegistry<TItem>
         if (_snapshot is not null)
             return _snapshot;
 
+        if (_items.Count == 0)
+            return _snapshot = Array.Empty<BradixCollectionEntry<TItem>>();
+
         var snapshot = new BradixCollectionEntry<TItem>[_items.Count];
         var index = 0;
 

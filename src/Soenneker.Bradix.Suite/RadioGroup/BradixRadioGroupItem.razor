@@ -14,10 +14,10 @@
 @inject IControlsInterop ControlsInterop
 <CascadingValue Value="this">
     <button @ref="_element"
-            @onclick="HandleClick"
+            @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
             @onclick:stopPropagation="ShouldRenderBubbleInput"
-            @onfocus="HandleFocus"
-            @onkeydown="HandleKeyDown"
+            @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+            @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
             @attributes="ItemAttributes">
         @ChildContent
     </button>
@@ -30,6 +30,11 @@
 }
 
 @code {
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
+    private BradixAttributeDictionary? _bubbleAttributes;
     private ElementReference _element;
     private ElementReference _bubbleInputElement;
     private bool _hasSyncedBubbleInput;
@@ -91,26 +96,24 @@
         ("data-bradix-roving-dir", Group.ResolvedDirection),
         ("data-bradix-roving-loop", Group.Loop ? "true" : "false"),
         ("data-bradix-roving-click-on-focus", "true"),
-        ("disabled", IsDisabled ? true : null),
+        ("disabled", IsDisabled ? BradixAttributeValues.True : null),
         ("value", ResolvedInputValue),
-        ("tabindex", Group.IsCurrentTabStop(this) ? 0 : -1));
+        ("tabindex", Group.IsCurrentTabStop(this) ? BradixAttributeValues.Zero : BradixAttributeValues.MinusOne));
 
     private Dictionary<string, object> BubbleInputAttributes
     {
         get
         {
-            Dictionary<string, object> attributes = new()
-            {
-                ["type"] = "radio",
-                ["name"] = Group.Name!,
-                ["value"] = ResolvedInputValue,
-                ["checked"] = IsChecked,
-                ["required"] = Group.Required,
-                ["disabled"] = IsDisabled,
-                ["tabindex"] = -1,
-                ["aria-hidden"] = "true",
-                ["style"] = "position:absolute;width:0;height:0;padding:0;border:0;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);"
-            };
+            Dictionary<string, object> attributes = (_bubbleAttributes ??= new BradixAttributeDictionary()).Create(null, 10);
+                attributes["type"] = "radio";
+                attributes["name"] = Group.Name!;
+                attributes["value"] = ResolvedInputValue;
+                attributes["checked"] = IsChecked ? BradixAttributeValues.True : BradixAttributeValues.False;
+                attributes["required"] = Group.Required ? BradixAttributeValues.True : BradixAttributeValues.False;
+                attributes["disabled"] = IsDisabled ? BradixAttributeValues.True : BradixAttributeValues.False;
+                attributes["tabindex"] = BradixAttributeValues.MinusOne;
+                attributes["aria-hidden"] = "true";
+                attributes["style"] = "position:absolute;width:0;height:0;padding:0;border:0;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);";
 
             if (!string.IsNullOrWhiteSpace(Form))
                 attributes["form"] = Form;
@@ -161,7 +164,7 @@
             if (_isFormControl != isFormControl)
             {
                 _isFormControl = isFormControl;
-                await InvokeAsync(StateHasChanged);
+                await RequestRender();
                 return;
             }
         }

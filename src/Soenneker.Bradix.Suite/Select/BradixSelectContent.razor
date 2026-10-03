@@ -20,16 +20,16 @@
             <BradixFocusScope Trapped="@(Select?.CurrentOpen == true)"
                               PreventMountAutoFocus="true"
                               PreventUnmountAutoFocus="true"
-                              OnMountAutoFocusDetailed="@HandleOpenAutoFocus"
-                              OnUnmountAutoFocusDetailed="@HandleCloseAutoFocus">
+                              OnMountAutoFocusDetailed="(_cachedHandleOpenAutoFocusDelegate ??= HandleOpenAutoFocus)"
+                              OnUnmountAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)">
                 <BradixDismissableLayer DisableOutsidePointerEvents="@ShouldDisableOutsidePointerEvents"
                                         DismissOnEscapeKeyDown="true"
                                         DismissOnPointerDownOutside="true"
                                         DismissOnFocusOutside="true"
-                                        OnDismiss="@HandleDismiss"
-                                        OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
-                                        OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
-                                        OnFocusOutsideDetailed="@HandleFocusOutside">
+                                        OnDismiss="(_cachedHandleDismissDelegate ??= HandleDismiss)"
+                                        OnEscapeKeyDownDetailed="(_cachedHandleEscapeKeyDownDelegate ??= HandleEscapeKeyDown)"
+                                        OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
+                                        OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)">
                     @if (UseItemAlignedPosition)
                     {
                         <div @ref="_wrapperElement"
@@ -41,10 +41,10 @@
                                             Class="@Class"
                                             Style="@MergedStyle"
                                             AdditionalAttributes="@ContentAttributes"
-                                            OnKeyDown="@HandleContentKeyDown"
+                                            OnKeyDown="(_cachedHandleContentKeyDownDelegate ??= HandleContentKeyDown)"
                                             PreventKeyDownDefault="true"
-                                            OnElementReferenceCaptured="@HandleContentElementCaptured"
-                                            OnExitComplete="@HandleExitComplete">
+                                            OnElementReferenceCaptured="(_cachedHandleContentElementCapturedDelegate ??= HandleContentElementCaptured)"
+                                            OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
                                 <CascadingValue Value="this">
                                     @ChildContent
                                 </CascadingValue>
@@ -66,17 +66,17 @@
                                              HideWhenDetached="@HideWhenDetached"
                                              Style="@PositionerStyle"
                                              OnPlaced="@OnPlaced"
-                                             OnPlacementChanged="@HandlePlacementChanged">
+                                             OnPlacementChanged="(_cachedHandlePlacementChangedDelegate ??= HandlePlacementChanged)">
                             <BradixPresence Present="@IsPresent"
                                             Tag="div"
                                             Id="@Select?.ContentId"
                                             Class="@Class"
                                             Style="@MergedStyle"
                                             AdditionalAttributes="@ContentAttributes"
-                                            OnKeyDown="@HandleContentKeyDown"
+                                            OnKeyDown="(_cachedHandleContentKeyDownDelegate ??= HandleContentKeyDown)"
                                             PreventKeyDownDefault="true"
-                                            OnElementReferenceCaptured="@HandleContentElementCaptured"
-                                            OnExitComplete="@HandleExitComplete">
+                                            OnElementReferenceCaptured="(_cachedHandleContentElementCapturedDelegate ??= HandleContentElementCaptured)"
+                                            OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
                                 <CascadingValue Value="this">
                                     @ChildContent
                                 </CascadingValue>
@@ -97,6 +97,19 @@ else
 }
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleOpenAutoFocusDelegate;
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleCloseAutoFocusDelegate;
+    private System.Func<Task>? _cachedHandleDismissDelegate;
+    private System.Func<BradixEscapeKeyDownEventArgs, Task>? _cachedHandleEscapeKeyDownDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixFocusOutsideEventArgs, Task>? _cachedHandleFocusOutsideDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleContentKeyDownDelegate;
+    private System.Func<ElementReference, Task>? _cachedHandleContentElementCapturedDelegate;
+    private System.Func<Task>? _cachedHandleExitCompleteDelegate;
+    private System.Func<BradixPopperPlacementEventArgs, Task>? _cachedHandlePlacementChangedDelegate;
+
     private ValueAtomicBool _disposed;
     private bool _wasPresent;
     private bool _isExiting;
@@ -106,6 +119,7 @@ else
     private bool _hasViewportElement;
     private bool _itemAlignedRegistered;
     private bool _openLayoutPassQueued;
+    private Func<Task>? _openLayoutPassCallback;
     private bool _viewportRegistered;
     private bool _shouldRepositionOnScrollButton = true;
     private bool _pointerTrackerRegistered;
@@ -117,6 +131,8 @@ else
     private double _viewportHeight;
     private string? _lastItemAlignedPositionValue;
     private CancellationTokenSource? _autoScrollCts;
+    private Task? _autoScrollTask;
+    private bool _autoScrollUpward;
     private ElementReference _contentElement;
     private ElementReference _viewportElement;
     private ElementReference _wrapperElement;
@@ -195,13 +211,13 @@ else
     private bool IsPresent => Select?.CurrentOpen == true || ForceMount;
     private bool ShouldRenderContainer => Select is not null && (IsPresent || _isExiting);
     private bool UseItemAlignedPosition => Position != SelectPosition.Popper;
-    
+
     private bool ShouldDisableOutsidePointerEvents => Select?.CurrentOpen == true;
 
     private string PositionerStyle =>
         "--radix-select-content-transform-origin: var(--radix-popper-transform-origin); --radix-select-content-available-width: var(--radix-popper-available-width); --radix-select-content-available-height: var(--radix-popper-available-height); --radix-select-trigger-width: var(--radix-popper-anchor-width); --radix-select-trigger-height: var(--radix-popper-anchor-height);";
 
-    private string MergedStyle => MergeStyleValues("display:flex;flex-direction:column;outline:none;", Style)!;
+    private string MergedStyle => BradixStringCache.MergeStyle("display:flex;flex-direction:column;outline:none;", Style, ref _mergedStyleCache0)!;
 
     private IReadOnlyDictionary<string, object> ContentAttributes
     {
@@ -215,7 +231,7 @@ else
             attributes["data-position"] = UseItemAlignedPosition ? "item-aligned" : "popper";
             attributes["data-side"] = UseItemAlignedPosition ? Side.Value : _placedSide ?? Side.Value;
             attributes["data-align"] = UseItemAlignedPosition ? Align.Value : _placedAlign ?? Align.Value;
-            attributes["tabindex"] = -1;
+            attributes["tabindex"] = BradixAttributeValues.MinusOne;
             return attributes;
         }
     }
@@ -406,7 +422,7 @@ else
             return;
 
         _openLayoutPassQueued = true;
-        _ = InvokeAsync(RunQueuedOpenLayoutPass);
+        _ = InvokeAsync(_openLayoutPassCallback ??= RunQueuedOpenLayoutPass);
     }
 
     internal async Task FocusContent()
@@ -423,9 +439,13 @@ else
         if (_disposed.Read())
             return Task.CompletedTask;
 
+        if (_autoScrollCts is not null && _autoScrollUpward == upward && _autoScrollTask is { IsCompleted: false })
+            return _autoScrollTask;
+
         StopAutoScroll();
         _autoScrollCts = new CancellationTokenSource();
-        return RunAutoScroll(upward, _autoScrollCts.Token);
+        _autoScrollUpward = upward;
+        return _autoScrollTask = RunAutoScroll(upward, _autoScrollCts.Token);
     }
 
     internal void StopAutoScroll()
@@ -433,6 +453,7 @@ else
         _autoScrollCts?.Cancel();
         _autoScrollCts?.Dispose();
         _autoScrollCts = null;
+        _autoScrollTask = null;
     }
 
     internal async Task HandleScrollButtonMounted()
@@ -459,7 +480,7 @@ else
         _viewportHeight = viewportHeight;
 
         return couldScrollUp != CanScrollUp || couldScrollDown != CanScrollDown
-            ? InvokeAsync(StateHasChanged)
+            ? RequestRender()
             : Task.CompletedTask;
     }
 
@@ -579,10 +600,10 @@ else
         return Select?.SetOpen(false) ?? Task.CompletedTask;
     }
 
-    private async Task HandleExitComplete()
+    private Task HandleExitComplete()
     {
         _isExiting = false;
-        await InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private async Task HandleContentKeyDown(KeyboardEventArgs args)
@@ -678,14 +699,13 @@ else
 
             IBradixSelectCollectionItem? item = Select.GetSelectedOrFirstEnabledItem();
 
-            if (item is not null)
-                await SelectInterop.ScrollSelectViewportByItem(_viewportElement, item.ItemElement, upward, cancellationToken);
-
             try
             {
+                if (item is not null)
+                    await SelectInterop.ScrollSelectViewportByItem(_viewportElement, item.ItemElement, upward, cancellationToken);
                 await Task.Delay(50, cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 return;
             }

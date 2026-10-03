@@ -27,19 +27,25 @@
                    AdditionalAttributes="@ContentAttributes"
                    OnOpenAutoFocus="@OnOpenAutoFocus"
                    OnOpenAutoFocusDetailed="@OnOpenAutoFocusDetailed"
-                   OnCloseAutoFocusDetailed="@HandleCloseAutoFocus"
+                   OnCloseAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)"
                    OnEscapeKeyDown="@OnEscapeKeyDown"
                    OnEscapeKeyDownDetailed="@OnEscapeKeyDownDetailed"
                    OnPointerDownOutside="@OnPointerDownOutside"
-                   OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
+                   OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
                    OnFocusOutside="@OnFocusOutside"
                    OnFocusOutsideDetailed="@OnFocusOutsideDetailed"
-                   OnInteractOutsideDetailed="@HandleInteractOutside"
+                   OnInteractOutsideDetailed="(_cachedHandleInteractOutsideDelegate ??= HandleInteractOutside)"
                    OnPlaced="@OnPlaced">
     @ChildContent
 </BradixMenuContent>
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleCloseAutoFocusDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixInteractOutsideEventArgs, Task>? _cachedHandleInteractOutsideDelegate;
+
     // Forwarding focus/outside callbacks does not change this wrapper's markup.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 
@@ -139,7 +145,7 @@
             const string dropdownVariables =
                 "--radix-dropdown-menu-content-transform-origin: var(--radix-popper-transform-origin); --radix-dropdown-menu-content-available-width: var(--radix-popper-available-width); --radix-dropdown-menu-content-available-height: var(--radix-popper-available-height); --radix-dropdown-menu-trigger-width: var(--radix-popper-anchor-width); --radix-dropdown-menu-trigger-height: var(--radix-popper-anchor-height);";
 
-            return MergeStyleValues(dropdownVariables, Style)!;
+            return BradixStringCache.MergeStyle(dropdownVariables, Style, ref _mergedStyleCache0)!;
         }
     }
 

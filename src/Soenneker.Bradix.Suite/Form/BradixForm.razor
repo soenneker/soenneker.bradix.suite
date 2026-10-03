@@ -11,14 +11,17 @@
 @inject IFormInterop FormInterop
 <CascadingValue Value="this">
     <form @ref="_formElement"
-          @onsubmit="HandleSubmit"
-          @onreset="HandleReset"
+          @onsubmit="(_cachedHandleSubmitDelegate ??= HandleSubmit)"
+          @onreset="(_cachedHandleResetDelegate ??= HandleReset)"
           @attributes="FormAttributes">
         @ChildContent
     </form>
 </CascadingValue>
 
 @code {
+    private System.Func<EventArgs, Task>? _cachedHandleSubmitDelegate;
+    private System.Func<EventArgs, Task>? _cachedHandleResetDelegate;
+
     private const string _defaultInvalidMessage = "This value is not valid";
 
     private readonly Dictionary<string, BradixFormValiditySnapshot?> _validityMap = new(StringComparer.Ordinal);
@@ -27,6 +30,7 @@
     private readonly Dictionary<string, long> _validationVersions = new(StringComparer.Ordinal);
     private readonly Dictionary<string, HashSet<string>> _messageIdsByField = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ElementReference> _controlsByField = new(StringComparer.Ordinal);
+    private Dictionary<string, string>? _fieldDescriptions;
     private ElementReference _formElement;
     private bool _registered;
     private ValueAtomicBool _disposed;
@@ -93,17 +97,16 @@
         if (!_messageIdsByField.TryGetValue(fieldName, out HashSet<string>? ids) || ids.Count == 0)
             return null;
 
-        using var builder = new PooledStringBuilder(ids.Count * 24);
-
-        foreach (string id in ids)
+        if (ids.Count == 1)
         {
-            if (builder.Length != 0)
-                builder.Append(' ');
-
-            builder.Append(id);
+            foreach (string id in ids) return id;
         }
+        if (_fieldDescriptions is not null && _fieldDescriptions.TryGetValue(fieldName, out string? description))
+            return description;
 
-        return builder.ToString();
+        string joined = string.Join(' ', ids);
+        (_fieldDescriptions ??= new(StringComparer.Ordinal))[fieldName] = joined;
+        return joined;
     }
 
     internal bool GetFieldCustomError(string fieldName, string matcherId)
@@ -120,7 +123,7 @@
         else
             _validityMap[fieldName] = validity;
 
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void ClearFieldValidation(string fieldName)
@@ -128,7 +131,7 @@
         _validityMap.Remove(fieldName);
         _customErrorsByField.Remove(fieldName);
         _validationVersions.Remove(fieldName);
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void RegisterFieldCustomMatcher(string fieldName, BradixFormCustomMatcherEntry entry)
@@ -173,8 +176,7 @@
             if (!IsLatestValidation(fieldName, version))
                 return;
 
-            SetFieldCustomErrors(fieldName, null);
-            SetFieldValidity(fieldName, validity);
+            SetFieldValidationState(fieldName, null, validity);
             return;
         }
 
@@ -186,8 +188,7 @@
             if (!IsLatestValidation(fieldName, version))
                 return;
 
-            SetFieldCustomErrors(fieldName, null);
-            SetFieldValidity(fieldName, validity);
+            SetFieldValidationState(fieldName, null, validity);
             return;
         }
 
@@ -224,8 +225,7 @@
             if (!IsLatestValidation(fieldName, version))
                 return;
 
-            SetFieldCustomErrors(fieldName, syncResults);
-            SetFieldValidity(fieldName, syncValidity);
+            SetFieldValidationState(fieldName, syncResults, syncValidity);
 
             if (hasSyncErrors || asyncMatchers is not { Count: > 0 })
                 return;
@@ -255,8 +255,7 @@
             if (!IsLatestValidation(fieldName, version))
                 return;
 
-            SetFieldCustomErrors(fieldName, asyncResults);
-            SetFieldValidity(fieldName, asyncValidity);
+            SetFieldValidationState(fieldName, asyncResults, asyncValidity);
         }
         finally
         {
@@ -290,7 +289,10 @@
         }
 
         if (ids.Add(id))
-            _ = InvokeAsync(StateHasChanged);
+        {
+            _fieldDescriptions?.Remove(fieldName);
+            _ = RequestRender();
+        }
     }
 
     internal void UnregisterFieldMessageId(string fieldName, string id)
@@ -300,10 +302,11 @@
 
         if (ids.Remove(id))
         {
+            _fieldDescriptions?.Remove(fieldName);
             if (ids.Count == 0)
                 _messageIdsByField.Remove(fieldName);
 
-            _ = InvokeAsync(StateHasChanged);
+            _ = RequestRender();
         }
     }
 
@@ -330,7 +333,7 @@
         if (OnClearServerErrors.HasDelegate)
             await OnClearServerErrors.InvokeAsync();
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private static bool HasBuiltInError(BradixFormValiditySnapshot validity)
@@ -372,17 +375,12 @@
         return !_disposed.Read() && _validationVersions.TryGetValue(fieldName, out long current) && current == version;
     }
 
-    private void SetFieldCustomErrors(string fieldName, Dictionary<string, bool>? errors)
+    private void SetFieldValidationState(string fieldName, Dictionary<string, bool>? errors, BradixFormValiditySnapshot validity)
     {
-        if (errors is null || errors.Count == 0)
-        {
-            _customErrorsByField.Remove(fieldName);
-            _ = InvokeAsync(StateHasChanged);
-            return;
-        }
-
-        _customErrorsByField[fieldName] = errors;
-        _ = InvokeAsync(StateHasChanged);
+        if (errors is null || errors.Count == 0) _customErrorsByField.Remove(fieldName);
+        else _customErrorsByField[fieldName] = errors;
+        _validityMap[fieldName] = validity;
+        _ = RequestRender();
     }
 
     internal void RegisterControl(string fieldName, ElementReference element)

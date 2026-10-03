@@ -44,15 +44,26 @@
                         Class="@Class"
                         Style="@ResolvedStyle"
                         AdditionalAttributes="@ToastAttributes"
-                        OnKeyDown="HandleKeyDown"
-                        OnElementReferenceCaptured="HandleElementReferenceCaptured"
-                        OnExitComplete="HandleExitComplete">
+                        OnKeyDown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
+                        OnElementReferenceCaptured="(_cachedHandleElementReferenceCapturedDelegate ??= HandleElementReferenceCaptured)"
+                        OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
             @ChildContent
         </BradixPresence>
     </CascadingValue>
 }
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+    private System.Func<ElementReference, Task>? _cachedHandleElementReferenceCapturedDelegate;
+    private System.Func<Task>? _cachedHandleExitCompleteDelegate;
+
+    private object? _cachedHandlePointerDownCallback;
+    private object? _cachedHandlePointerMoveCallback;
+    private object? _cachedHandlePointerUpCallback;
+    private object? _cachedHandlePointerCancelCallback;
+
     private static readonly string[] EscapeKeys = ["Escape"];
 
     private static readonly IReadOnlyDictionary<string, object> _foregroundAnnounceAttributes = new Dictionary<string, object>
@@ -68,6 +79,9 @@
     };
 
     private ValueAtomicBool _disposed;
+    private string? _swipeStyle;
+    private (long MoveX, long MoveY, long EndX, long EndY) _swipeStyleKey;
+    private Func<Task>? _closeCallback;
     private bool _initialized;
     private bool _uncontrolledOpen = true;
     private bool _registered;
@@ -164,18 +178,30 @@
     {
         get
         {
-            var swipeStyles = "user-select:none;touch-action:none;";
-            if (_swipeMoveX != 0)
-                swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-move-x:{_swipeMoveX}px;");
-            if (_swipeMoveY != 0)
-                swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-move-y:{_swipeMoveY}px;");
-            if (_swipeEndX != 0)
-                swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-end-x:{_swipeEndX}px;");
-            if (_swipeEndY != 0)
-                swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-end-y:{_swipeEndY}px;");
-
-            return MergeStyleValues(swipeStyles, Style)!;
+            var key = (BitConverter.DoubleToInt64Bits(_swipeMoveX), BitConverter.DoubleToInt64Bits(_swipeMoveY),
+                BitConverter.DoubleToInt64Bits(_swipeEndX), BitConverter.DoubleToInt64Bits(_swipeEndY));
+            if (_swipeStyle is null || _swipeStyleKey != key)
+            {
+                _swipeStyleKey = key;
+                _swipeStyle = BuildSwipeStyle();
+            }
+            return BradixStringCache.MergeStyle(_swipeStyle, Style, ref _mergedStyleCache0)!;
         }
+    }
+
+    private string BuildSwipeStyle()
+    {
+        var swipeStyles = "user-select:none;touch-action:none;";
+        if (_swipeMoveX != 0)
+            swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-move-x:{_swipeMoveX}px;");
+        if (_swipeMoveY != 0)
+            swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-move-y:{_swipeMoveY}px;");
+        if (_swipeEndX != 0)
+            swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-end-x:{_swipeEndX}px;");
+        if (_swipeEndY != 0)
+            swipeStyles += string.Create(CultureInfo.InvariantCulture, $"--radix-toast-swipe-end-y:{_swipeEndY}px;");
+
+        return swipeStyles;
     }
 
     private IReadOnlyDictionary<string, object> ToastAttributes
@@ -184,7 +210,7 @@
         {
             Dictionary<string, object> attributes = BuildAdditionalAttributes(8);
 
-            attributes["tabindex"] = 0;
+            attributes["tabindex"] = BradixAttributeValues.Zero;
             attributes["data-radix-toast-root"] = string.Empty;
             attributes["data-state"] = CurrentOpen ? "open" : "closed";
             attributes["data-swipe-direction"] = (Provider?.SwipeDirection ?? SwipeDirection.Right).Value;
@@ -196,10 +222,10 @@
             // compatibility fallback for prerendering and JS runtimes that cannot register it.
             if (!_swipeRegistered)
             {
-                attributes["onpointerdown"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDown);
-                attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove);
-                attributes["onpointerup"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUp);
-                attributes["onpointercancel"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerCancel);
+                attributes["onpointerdown"] = (_cachedHandlePointerDownCallback ??= EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDown));
+                attributes["onpointermove"] = (_cachedHandlePointerMoveCallback ??= EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove));
+                attributes["onpointerup"] = (_cachedHandlePointerUpCallback ??= EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUp));
+                attributes["onpointercancel"] = (_cachedHandlePointerCancelCallback ??= EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerCancel));
             }
 
             return attributes;
@@ -257,7 +283,7 @@
 
             _renderAnnounceText = true;
             _announceRenderScheduled = false;
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
             return;
         }
 
@@ -451,7 +477,7 @@
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private void StartCloseTimer()
@@ -482,7 +508,7 @@
         try
         {
             await Task.Delay(TimeSpan.FromMilliseconds(duration), cancellationToken);
-            await InvokeAsync(Close);
+            await InvokeAsync(_closeCallback ??= Close);
         }
         catch (OperationCanceledException)
         {
@@ -592,7 +618,7 @@
         if (OnSwipeMove.HasDelegate)
             await OnSwipeMove.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = clampedX, DeltaY = clampedY });
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private async Task HandlePointerUp(PointerEventArgs _)
@@ -605,7 +631,8 @@
             return;
         }
 
-        var args = new BradixToastSwipeEventArgs { DeltaX = _swipeMoveX, DeltaY = _swipeMoveY };
+        double deltaX = _swipeMoveX;
+        double deltaY = _swipeMoveY;
 
         if (IsDeltaInDirection(_swipeMoveX, _swipeMoveY, Provider.SwipeDirection, Provider.SwipeThreshold))
         {
@@ -616,7 +643,7 @@
             _swipeMoveY = 0;
 
             if (OnSwipeEnd.HasDelegate)
-                await OnSwipeEnd.InvokeAsync(args);
+                await OnSwipeEnd.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = deltaX, DeltaY = deltaY });
 
             await ControlsInterop.SuppressNextClick(_toastElement);
             await Close();
@@ -630,10 +657,10 @@
             _swipeEndY = 0;
 
             if (OnSwipeCancel.HasDelegate)
-                await OnSwipeCancel.InvokeAsync(args);
+                await OnSwipeCancel.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = deltaX, DeltaY = deltaY });
 
             await ControlsInterop.SuppressNextClick(_toastElement);
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
         }
 
         ResetSwipeTracking(clearState: false);
@@ -649,7 +676,8 @@
             return;
         }
 
-        var args = new BradixToastSwipeEventArgs { DeltaX = _swipeMoveX, DeltaY = _swipeMoveY };
+        double deltaX = _swipeMoveX;
+        double deltaY = _swipeMoveY;
         _swipeState = "cancel";
         _swipeMoveX = 0;
         _swipeMoveY = 0;
@@ -657,10 +685,10 @@
         _swipeEndY = 0;
 
         if (OnSwipeCancel.HasDelegate)
-            await OnSwipeCancel.InvokeAsync(args);
+            await OnSwipeCancel.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = deltaX, DeltaY = deltaY });
 
         ResetSwipeTracking(clearState: false);
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private void ResetSwipeTracking(bool clearState = true)
@@ -732,7 +760,6 @@
     [JSInvokable]
     public async Task HandleSwipeCompletedFromJs(bool ended, double deltaX, double deltaY)
     {
-        var args = new BradixToastSwipeEventArgs { DeltaX = deltaX, DeltaY = deltaY };
         _swipeState = ended ? "end" : "cancel";
         _swipeMoveX = 0;
         _swipeMoveY = 0;
@@ -742,11 +769,11 @@
         if (ended)
         {
             if (OnSwipeEnd.HasDelegate)
-                await OnSwipeEnd.InvokeAsync(args);
+                await OnSwipeEnd.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = deltaX, DeltaY = deltaY });
         }
         else if (OnSwipeCancel.HasDelegate)
         {
-            await OnSwipeCancel.InvokeAsync(args);
+            await OnSwipeCancel.InvokeAsync(new BradixToastSwipeEventArgs { DeltaX = deltaX, DeltaY = deltaY });
         }
 
         await ControlsInterop.SuppressNextClick(_toastElement);
@@ -754,7 +781,7 @@
         if (ended)
             await Close();
         else
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
     }
 
     private async Task SyncSwipeRegistration()
@@ -782,7 +809,8 @@
                 return;
 
             await module.InvokeVoidAsync("registerToastSwipe", _toastElement, direction, threshold,
-                hasStartCallback, hasMoveCallback, _dotNetReference);
+                hasStartCallback ? BradixAttributeValues.True : BradixAttributeValues.False,
+                hasMoveCallback ? BradixAttributeValues.True : BradixAttributeValues.False, _dotNetReference);
             if (_disposed.Read())
             {
                 await module.InvokeVoidAsync("unregisterToastSwipe", _toastElement);
@@ -794,7 +822,7 @@
             _registeredSwipeStartCallback = hasStartCallback;
             _registeredSwipeMoveCallback = hasMoveCallback;
             _swipeRegistered = true;
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
         }
         catch (Exception)
         {
@@ -841,7 +869,7 @@
         if (_announceTextSegments.Length == 0)
         {
             CancelAnnouncement();
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
             return;
         }
 
@@ -849,7 +877,7 @@
         _renderAnnounceText = false;
         _announceDismissScheduled = false;
         CancelAnnouncementTimer();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private async Task CompleteAnnouncement(CancellationToken cancellationToken)
@@ -863,7 +891,7 @@
             _announceVisible = false;
             _renderAnnounceText = false;
             _announceDismissScheduled = false;
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
         }
         catch (OperationCanceledException)
         {

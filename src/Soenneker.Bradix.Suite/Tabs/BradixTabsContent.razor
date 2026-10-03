@@ -11,6 +11,10 @@
 </div>
 
 @code {
+    private string? _triggerId;
+    private string? _contentId;
+    private string? _mergedStyleCache0;
+
     private bool _preventMountAnimation = true;
 
     [CascadingParameter]
@@ -28,18 +32,18 @@
 
     private bool IsSelected => string.Equals(Tabs.CurrentValue, Value, StringComparison.Ordinal);
 
-    private string TriggerId => Tabs.MakeTriggerId(Value);
+    private string TriggerId => Tabs.MakeTriggerId(Value, ref _triggerId);
 
-    private string ContentId => Tabs.MakeContentId(Value);
+    private string ContentId => Tabs.MakeContentId(Value, ref _contentId);
 
     private IReadOnlyDictionary<string, object> ContentAttributes => BuildAttributes(
         ("role", "tabpanel"),
         ("aria-labelledby", TriggerId),
-        ("hidden", !IsSelected),
+        ("hidden", IsSelected ? BradixAttributeValues.False : BradixAttributeValues.True),
         ("aria-hidden", !IsSelected ? "true" : null),
-        ("inert", !IsSelected ? true : null),
+        ("inert", !IsSelected ? BradixAttributeValues.True : null),
         ("id", ContentId),
-        ("tabindex", IsSelected ? 0 : -1),
+        ("tabindex", IsSelected ? BradixAttributeValues.Zero : BradixAttributeValues.MinusOne),
         ("data-state", IsSelected ? "active" : "inactive"),
         ("data-orientation", Tabs.RovingOrientationValue),
         ("style", BuildContentStyle()));
@@ -50,13 +54,13 @@
             return Task.CompletedTask;
 
         _preventMountAnimation = false;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private string? BuildContentStyle()
     {
         string? animationStyle = _preventMountAnimation ? "animation-duration: 0s;" : null;
 
-        return MergeStyleValues(animationStyle, Style);
+        return BradixStringCache.MergeStyle(animationStyle, Style, ref _mergedStyleCache0);
     }
 }

@@ -33,6 +33,8 @@
 </BradixMenuSubContent>
 
 @code {
+    private string? _mergedStyleCache0;
+
     [Parameter]
     public bool ForceMount { get; set; }
 
@@ -109,7 +111,7 @@
             const string contextMenuVariables =
                 "--radix-context-menu-content-transform-origin: var(--radix-popper-transform-origin); --radix-context-menu-content-available-width: var(--radix-popper-available-width); --radix-context-menu-content-available-height: var(--radix-popper-available-height); --radix-context-menu-trigger-width: var(--radix-popper-anchor-width); --radix-context-menu-trigger-height: var(--radix-popper-anchor-height);";
 
-            return MergeStyleValues(contextMenuVariables, Style)!;
+            return BradixStringCache.MergeStyle(contextMenuVariables, Style, ref _mergedStyleCache0)!;
         }
     }
 }

@@ -7,12 +7,14 @@
                    Style="@Style"
                    Disabled="Disabled"
                    AdditionalAttributes="@ResolvedAttributes"
-                   OnElementReferenceCaptured="@HandleElementCaptured"
+                   OnElementReferenceCaptured="(_cachedHandleElementCapturedDelegate ??= HandleElementCaptured)"
                    OnClick="OnClick">
     @ChildContent
 </BradixDialogClose>
 
 @code {
+    private System.Func<ElementReference, Task>? _cachedHandleElementCapturedDelegate;
+
     [CascadingParameter]
     private BradixAlertDialogContent? Content { get; set; }
 

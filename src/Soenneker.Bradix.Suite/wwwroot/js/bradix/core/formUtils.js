@@ -40,7 +40,7 @@ export function createFormValiditySnapshot(element) {
 }
 
 export function serializeFormDataSnapshot(form) {
-  const values = {};
+  const values = Object.create(null);
 
   if (!form || typeof FormData !== "function") {
     return { values };

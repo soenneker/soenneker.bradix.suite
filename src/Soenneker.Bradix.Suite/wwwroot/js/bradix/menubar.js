@@ -9,6 +9,8 @@ export function registerMenubarDocumentDismiss(element, dotNetRef, menubarId) {
 
   unregisterMenubarDocumentDismiss(element);
 
+  const selector = `[data-radix-menubar-content][data-bradix-menubar-id="${cssEscape(menubarId)}"][data-state="open"]`;
+
   const pointerdown = (event) => {
     const target = event.target;
 
@@ -20,7 +22,6 @@ export function registerMenubarDocumentDismiss(element, dotNetRef, menubarId) {
       return;
     }
 
-    const selector = `[data-radix-menubar-content][data-bradix-menubar-id="${cssEscape(menubarId)}"][data-state="open"]`;
     const openContent = document.querySelector(selector);
 
     if (!(openContent instanceof HTMLElement)) {

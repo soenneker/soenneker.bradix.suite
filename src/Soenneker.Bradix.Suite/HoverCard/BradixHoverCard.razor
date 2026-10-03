@@ -14,6 +14,8 @@
 </BradixPopper>
 
 @code {
+    private string? _childIdCache0;
+
     private BradixPopper? _popper;
     private bool _initialized;
     private bool _uncontrolledOpen;
@@ -44,7 +46,7 @@
 
     public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    public string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
+    public string ContentId => BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache0);
 
     public void RegisterAnchor(ElementReference element)
     {
@@ -85,11 +87,11 @@
         return Task.CompletedTask;
     }
 
-    public async Task HandleTriggerFocus()
+    public Task HandleTriggerFocus()
     {
         CancelOpenDelay();
         CancelCloseDelay();
-        await SetOpen(true);
+        return SetOpen(true);
     }
 
     public Task HandleTriggerBlur()
@@ -123,18 +125,19 @@
         _hasSelection = hasSelection;
     }
 
-    public async Task Dismiss()
+    public Task Dismiss()
     {
         CancelOpenDelay();
         CancelCloseDelay();
         _isPointerDownOnContent = false;
         _hasSelection = false;
-        await SetOpen(false);
+        return SetOpen(false);
     }
 
     private void StartOpenDelay()
     {
         CancelOpenDelay();
+        if (OpenDelay == 0) { _ = SetOpen(true); return; }
         _openDelayTokenSource = new CancellationTokenSource();
         _ = OpenAfterDelay(_openDelayTokenSource.Token);
     }
@@ -159,6 +162,7 @@
             return;
 
         CancelCloseDelay();
+        if (CloseDelay == 0) { _ = SetOpen(false); return; }
         _closeDelayTokenSource = new CancellationTokenSource();
         _ = CloseAfterDelay(_closeDelayTokenSource.Token);
     }
@@ -195,7 +199,7 @@
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private void CancelOpenDelay()

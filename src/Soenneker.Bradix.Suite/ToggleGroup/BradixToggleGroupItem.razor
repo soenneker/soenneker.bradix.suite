@@ -14,15 +14,20 @@
               Pressed="@IsPressed"
               Disabled="@IsDisabled"
               RenderAriaPressed="@(!IsSingle)"
-              OnPressedChange="HandlePressedChange"
-              OnMouseDown="HandleMouseDown"
-              OnFocus="HandleFocus"
-              OnKeyDown="HandleKeyDown"
+              OnPressedChange="(_cachedHandlePressedChangeDelegate ??= HandlePressedChange)"
+              OnMouseDown="(_cachedHandleMouseDownDelegate ??= HandleMouseDown)"
+              OnFocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+              OnKeyDown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
               AdditionalAttributes="ToggleAttributes">
     @ChildContent
 </BradixToggle>
 
 @code {
+    private System.Func<bool, Task>? _cachedHandlePressedChangeDelegate;
+    private System.Func<MouseEventArgs, Task>? _cachedHandleMouseDownDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
     private BradixToggle? _toggle;
     private bool _registered;
     private ValueAtomicBool _disposed;
@@ -61,7 +66,7 @@
 
             if (Group.RovingFocus)
             {
-                attributes["tabindex"] = Group.IsCurrentTabStop(this) ? 0 : -1;
+                attributes["tabindex"] = Group.IsCurrentTabStop(this) ? BradixAttributeValues.Zero : BradixAttributeValues.MinusOne;
                 attributes["data-bradix-roving-group"] = Group.GroupId;
                 attributes["data-bradix-roving-item"] = string.Empty;
 

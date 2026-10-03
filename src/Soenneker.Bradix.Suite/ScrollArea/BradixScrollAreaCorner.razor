@@ -10,6 +10,8 @@
 }
 
 @code {
+    private string? _mergedStyleCache0;
+
     [CascadingParameter]
     internal BradixScrollArea ScrollArea { get; set; } = null!;
 
@@ -20,6 +22,6 @@
     {
         string baseStyle = ScrollArea.GetCornerStyle();
 
-        return MergeStyleValues(baseStyle, Style)!;
+        return BradixStringCache.MergeStyle(baseStyle, Style, ref _mergedStyleCache0)!;
     }
 }

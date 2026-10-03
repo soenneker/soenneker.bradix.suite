@@ -20,6 +20,6 @@
             return Task.CompletedTask;
 
         ImageLoadingStatus = status;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 }

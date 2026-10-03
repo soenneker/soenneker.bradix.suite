@@ -1,3 +1,5 @@
+using Microsoft.JSInterop;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -57,35 +59,42 @@ public sealed class BradixSuiteInterop : IBradixSuiteInterop
 
     public ValueTask Initialize(CancellationToken cancellationToken = default)
     {
-        return new ValueTask(Task.WhenAll(
-            _collapsibleInterop.Initialize(cancellationToken).AsTask(),
-            _controlsInterop.Initialize(cancellationToken).AsTask(),
-            _delegatedInteractionInterop.Initialize(cancellationToken).AsTask(),
-            _dismissableLayerInterop.Initialize(cancellationToken).AsTask(),
-            _domInterop.Initialize(cancellationToken).AsTask(),
-            _focusScopeInterop.Initialize(cancellationToken).AsTask(),
-            _formInterop.Initialize(cancellationToken).AsTask(),
-            _hoverCardAvatarInterop.Initialize(cancellationToken).AsTask(),
-            _keyboardModeInterop.Initialize(cancellationToken).AsTask(),
-            _labelInterop.Initialize(cancellationToken).AsTask(),
-            _menuInterop.Initialize(cancellationToken).AsTask(),
-            _menubarInterop.Initialize(cancellationToken).AsTask(),
-            _navigationMenuInterop.Initialize(cancellationToken).AsTask(),
-            _popperInterop.Initialize(cancellationToken).AsTask(),
-            _portalInterop.Initialize(cancellationToken).AsTask(),
-            _presenceOverlayInterop.Initialize(cancellationToken).AsTask(),
-            _radioGroupInterop.Initialize(cancellationToken).AsTask(),
-            _rovingFocusInterop.Initialize(cancellationToken).AsTask(),
-            _scrollAreaInterop.Initialize(cancellationToken).AsTask(),
-            _selectInterop.Initialize(cancellationToken).AsTask(),
-            _toastInterop.Initialize(cancellationToken).AsTask(),
-            _tooltipInterop.Initialize(cancellationToken).AsTask()));
+        List<Task>? pending = null;
+        AddInitialization(ref pending, _collapsibleInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _controlsInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _delegatedInteractionInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _dismissableLayerInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _domInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _focusScopeInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _formInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _hoverCardAvatarInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _keyboardModeInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _labelInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _menuInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _menubarInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _navigationMenuInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _popperInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _portalInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _presenceOverlayInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _radioGroupInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _rovingFocusInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _scrollAreaInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _selectInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _toastInterop.Initialize(cancellationToken));
+        AddInitialization(ref pending, _tooltipInterop.Initialize(cancellationToken));
+        return pending is null ? ValueTask.CompletedTask : new ValueTask(Task.WhenAll(pending));
     }
 
-    /// <summary>
-    /// Asynchronously releases resources used by the current instance.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    private static void AddInitialization(ref List<Task>? pending, ValueTask<IJSObjectReference> operation)
+    {
+        if (operation.IsCompletedSuccessfully)
+        {
+            _ = operation.Result;
+            return;
+        }
+        (pending ??= new List<Task>(22)).Add(operation.AsTask());
+    }
+
     public ValueTask DisposeAsync()
     {
         return ValueTask.CompletedTask;

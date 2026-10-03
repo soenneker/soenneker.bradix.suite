@@ -21,19 +21,24 @@
                    AdditionalAttributes="@AdditionalAttributes"
                    OnOpenAutoFocus="@OnOpenAutoFocus"
                    OnOpenAutoFocusDetailed="@OnOpenAutoFocusDetailed"
-                   OnCloseAutoFocusDetailed="@HandleCloseAutoFocus"
+                   OnCloseAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)"
                    OnEscapeKeyDown="@OnEscapeKeyDown"
                    OnEscapeKeyDownDetailed="@OnEscapeKeyDownDetailed"
                    OnPointerDownOutside="@OnPointerDownOutside"
                    OnPointerDownOutsideDetailed="@OnPointerDownOutsideDetailed"
                    OnFocusOutside="@OnFocusOutside"
                    OnFocusOutsideDetailed="@OnFocusOutsideDetailed"
-                   OnInteractOutsideDetailed="@HandleInteractOutside"
+                   OnInteractOutsideDetailed="(_cachedHandleInteractOutsideDelegate ??= HandleInteractOutside)"
                    OnPlaced="@OnPlaced">
     @ChildContent
 </BradixMenuContent>
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleCloseAutoFocusDelegate;
+    private System.Func<BradixInteractOutsideEventArgs, Task>? _cachedHandleInteractOutsideDelegate;
+
     private bool _hasInteractedOutside;
 
     [CascadingParameter]
@@ -124,7 +129,7 @@
             const string contextMenuVariables =
                 "--radix-context-menu-content-transform-origin: var(--radix-popper-transform-origin); --radix-context-menu-content-available-width: var(--radix-popper-available-width); --radix-context-menu-content-available-height: var(--radix-popper-available-height); --radix-context-menu-trigger-width: var(--radix-popper-anchor-width); --radix-context-menu-trigger-height: var(--radix-popper-anchor-height);";
 
-            return MergeStyleValues(contextMenuVariables, Style)!;
+            return BradixStringCache.MergeStyle(contextMenuVariables, Style, ref _mergedStyleCache0)!;
         }
     }
 

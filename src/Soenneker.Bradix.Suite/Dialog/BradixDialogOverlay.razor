@@ -11,12 +11,16 @@
                     Class="@Class"
                     Style="@OverlayStyle"
                     AdditionalAttributes="OverlayAttributes"
-                    OnExitComplete="@HandleExitComplete">
+                    OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
         @ChildContent
     </BradixPresence>
 }
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<Task>? _cachedHandleExitCompleteDelegate;
+
     private bool _wasPresent;
     private bool _isExiting;
 
@@ -33,7 +37,7 @@
 
     private bool ShouldRenderOverlay => Dialog?.Modal == true && (IsPresent || _isExiting);
 
-    private string? OverlayStyle => MergeStyleValues("pointer-events:auto;", Style);
+    private string? OverlayStyle => BradixStringCache.MergeStyle("pointer-events:auto;", Style, ref _mergedStyleCache0);
 
     private IReadOnlyDictionary<string, object> OverlayAttributes
     {
@@ -61,6 +65,6 @@
     private Task HandleExitComplete()
     {
         _isExiting = false;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 }

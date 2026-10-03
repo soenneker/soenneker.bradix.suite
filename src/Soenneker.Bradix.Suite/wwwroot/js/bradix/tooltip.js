@@ -95,6 +95,7 @@ export function registerTooltipContent(content, trigger, dotNetRef, contentId, h
   };
 
   if (hoverableContent) {
+    const pointerPosition = { x: 0, y: 0 };
     const removeGraceArea = () => {
       state.pointerGraceArea = null;
 
@@ -127,7 +128,8 @@ export function registerTooltipContent(content, trigger, dotNetRef, contentId, h
 
       state.pointerMove = (moveEvent) => {
         const target = moveEvent.target;
-        const pointerPosition = { x: moveEvent.clientX, y: moveEvent.clientY };
+        pointerPosition.x = moveEvent.clientX;
+        pointerPosition.y = moveEvent.clientY;
         const hasEnteredTarget =
           (trigger instanceof HTMLElement && trigger.contains(target)) ||
           (content instanceof HTMLElement && content.contains(target));

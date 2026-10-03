@@ -13,9 +13,9 @@
 <BradixDismissableLayerBranch>
     <BradixMenuAnchor>
         <button @ref="_button"
-                @onpointerdown="HandlePointerDown"
+                @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
                 @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
-                @onkeydown="HandleKeyDown"
+                @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
                 @attributes="ButtonAttributes">
             @ChildContent
         </button>
@@ -23,6 +23,10 @@
 </BradixDismissableLayerBranch>
 
 @code {
+    private Func<Task>? _focusAfterKeyboardOpen;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
     // The root owns open state and notifies the trigger through its cascade.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 
@@ -60,7 +64,7 @@
         ("aria-controls", DropdownMenu?.ContentId),
         ("data-state", DropdownMenu?.CurrentOpen == true ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("disabled", Disabled ? true : null));
+        ("disabled", Disabled ? BradixAttributeValues.True : null));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -78,14 +82,22 @@
                 return;
 
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new BradixDelegatedInteractionOptions
+            try
             {
-                Keydown = new BradixDelegatedEventOptions
+                await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new BradixDelegatedInteractionOptions
                 {
-                    CurrentTargetOnly = true,
-                    PreventDefaultKeys = PreventDefaultKeys
-                }
-            });
+                    Keydown = new BradixDelegatedEventOptions
+                    {
+                        CurrentTargetOnly = true,
+                        PreventDefaultKeys = PreventDefaultKeys
+                    }
+                });
+            }
+            catch (ObjectDisposedException) when (_disposed.Read())
+            {
+                // Navigation can dispose the callback while the JavaScript module is loading.
+                return;
+            }
             if (_disposed.Read())
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
             else
@@ -164,12 +176,13 @@
 
         Menu?.SetFocusFirstItemOnOpen(true);
 
-        await InvokeAsync(async () =>
-        {
-            await Task.Yield();
+        await InvokeAsync(_focusAfterKeyboardOpen ??= FocusAfterKeyboardOpen);
+    }
 
-            if (Menu?.CurrentOpen == true)
-                await Menu.FocusFirstItem();
-        });
+    private async Task FocusAfterKeyboardOpen()
+    {
+        await Task.Yield();
+        if (Menu?.CurrentOpen == true)
+            await Menu.FocusFirstItem();
     }
 }

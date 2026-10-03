@@ -22,7 +22,7 @@ public sealed class ControlsInterop : IControlsInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("syncCheckboxBubbleInputState", cancellationToken, element, isChecked, isIndeterminate, dispatchEvent, bubbles)
+        await module.InvokeVoidAsync("syncCheckboxBubbleInputState", cancellationToken, element, (isChecked ? BradixAttributeValues.True : BradixAttributeValues.False), (isIndeterminate ? BradixAttributeValues.True : BradixAttributeValues.False), (dispatchEvent ? BradixAttributeValues.True : BradixAttributeValues.False), (bubbles ? BradixAttributeValues.True : BradixAttributeValues.False))
             ;
     }
 
@@ -88,7 +88,7 @@ public sealed class ControlsInterop : IControlsInterop
     public async ValueTask SyncSliderBubbleInputValue(ElementReference element, double value, bool dispatchEvent, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("syncSliderBubbleInputValue", cancellationToken, element, value, dispatchEvent);
+        await module.InvokeVoidAsync("syncSliderBubbleInputValue", cancellationToken, element, value, (dispatchEvent ? BradixAttributeValues.True : BradixAttributeValues.False));
     }
 
     public async ValueTask RegisterSelectBubbleInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
@@ -107,7 +107,7 @@ public sealed class ControlsInterop : IControlsInterop
     public async ValueTask SyncSelectBubbleInputValue(ElementReference element, string? value, bool dispatchEvent, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("syncSelectBubbleInputValue", cancellationToken, element, value, dispatchEvent);
+        await module.InvokeVoidAsync("syncSelectBubbleInputValue", cancellationToken, element, value, (dispatchEvent ? BradixAttributeValues.True : BradixAttributeValues.False));
     }
 
     public async ValueTask CapturePointer(ElementReference element, long pointerId, CancellationToken cancellationToken = default)

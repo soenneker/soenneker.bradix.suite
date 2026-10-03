@@ -1,3 +1,5 @@
+const hoverCardTabFilter = { acceptNode: node => node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP };
+
 const hoverCardSelectionHandlers = new WeakMap();
 
 export function disableHoverCardContentTabNavigation(content) {
@@ -5,9 +7,7 @@ export function disableHoverCardContentTabNavigation(content) {
     return;
   }
 
-  const walker = document.createTreeWalker(content, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: (node) => node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
-  });
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_ELEMENT, hoverCardTabFilter);
 
   while (walker.nextNode()) {
     walker.currentNode.setAttribute("tabindex", "-1");

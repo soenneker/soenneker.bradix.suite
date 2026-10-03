@@ -84,7 +84,7 @@
                     return;
                 _registered = true;
                 _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
-                await InvokeAsync(StateHasChanged);
+                await RequestRender();
             }
             catch (Exception ex) when (ShouldIgnoreInteropException(ex))
             {
@@ -145,6 +145,13 @@
         if (_disposed.Read())
             return false;
 
+        if (!OnEscapeKeyDown.HasDelegate && !OnEscapeKeyDownDetailed.HasDelegate)
+        {
+            bool dismiss = DismissOnEscapeKeyDown && OnDismiss.HasDelegate;
+            if (dismiss) await OnDismiss.InvokeAsync();
+            return dismiss;
+        }
+
         var args = new BradixEscapeKeyDownEventArgs(originalEvent ?? new BradixDelegatedKeyboardEvent());
 
         if (OnEscapeKeyDown.HasDelegate)
@@ -169,6 +176,13 @@
     {
         if (_disposed.Read())
             return;
+
+        if (!OnPointerDownOutside.HasDelegate && !OnPointerDownOutsideDetailed.HasDelegate &&
+            !OnInteractOutside.HasDelegate && !OnInteractOutsideDetailed.HasDelegate)
+        {
+            if (DismissOnPointerDownOutside && OnDismiss.HasDelegate) await OnDismiss.InvokeAsync();
+            return;
+        }
 
         var pointerArgs = new BradixPointerDownOutsideEventArgs(originalEvent ?? new BradixDelegatedMouseEvent());
 
@@ -201,6 +215,13 @@
     {
         if (_disposed.Read())
             return;
+
+        if (!OnFocusOutside.HasDelegate && !OnFocusOutsideDetailed.HasDelegate &&
+            !OnInteractOutside.HasDelegate && !OnInteractOutsideDetailed.HasDelegate)
+        {
+            if (DismissOnFocusOutside && OnDismiss.HasDelegate) await OnDismiss.InvokeAsync();
+            return;
+        }
 
         var focusArgs = new BradixFocusOutsideEventArgs(originalEvent ?? new BradixDelegatedFocusEvent());
 

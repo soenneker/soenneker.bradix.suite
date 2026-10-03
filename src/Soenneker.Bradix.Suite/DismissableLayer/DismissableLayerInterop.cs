@@ -20,7 +20,7 @@ public sealed class DismissableLayerInterop : IDismissableLayerInterop
     public async ValueTask RegisterDismissableLayer(ElementReference element, object dotNetReference, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerDismissableLayer", cancellationToken, element, dotNetReference, disableOutsidePointerEvents, element.Id);
+        await module.InvokeVoidAsync("registerDismissableLayer", cancellationToken, element, dotNetReference, (disableOutsidePointerEvents ? BradixAttributeValues.True : BradixAttributeValues.False), element.Id);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -31,7 +31,7 @@ public sealed class DismissableLayerInterop : IDismissableLayerInterop
     public async ValueTask UpdateDismissableLayer(ElementReference element, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("updateDismissableLayer", cancellationToken, element, disableOutsidePointerEvents);
+        await module.InvokeVoidAsync("updateDismissableLayer", cancellationToken, element, (disableOutsidePointerEvents ? BradixAttributeValues.True : BradixAttributeValues.False));
     }
 
     public async ValueTask UnregisterDismissableLayer(ElementReference element, CancellationToken cancellationToken = default)

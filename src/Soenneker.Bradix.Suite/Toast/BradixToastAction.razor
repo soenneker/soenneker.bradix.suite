@@ -3,12 +3,14 @@
 @inherits BradixContentElement
 
 @implements IBradixToastAction
-<button @onclick="HandleClick"
+<button @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
         @attributes="ButtonAttributes">
     @ChildContent
 </button>
 
 @code {
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+
     [CascadingParameter]
     private BradixToast? Toast { get; set; }
 
@@ -23,7 +25,7 @@
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
-        ("disabled", Disabled ? true : null),
+        ("disabled", Disabled ? BradixAttributeValues.True : null),
         ("data-radix-toast-announce-exclude", string.Empty),
         ("data-radix-toast-announce-alt", AltText));
 

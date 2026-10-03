@@ -13,6 +13,6 @@
 
     private Dictionary<string, object> IndicatorAttributes => BuildAttributes(
         ("data-state", Progress.State),
-        ("data-value", Progress.ResolvedValue),
-        ("data-max", Progress.ResolvedMax));
+        ("data-value", Progress.ValueAttribute),
+        ("data-max", Progress.MaxAttribute));
 }

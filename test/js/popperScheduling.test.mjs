@@ -72,6 +72,8 @@ test('option updates invalidate an in-flight position and render the new placeme
   const env = fixture(t);
   const first = env.runFrame();
   popper.updatePopperContent(env.content, null, { side: 'top' });
+  assert.equal(env.observers.length, 1);
+  assert.equal(env.observers[0].disconnected, false);
   env.result(0);
   await first;
   assert.equal(env.notifications.length, 0);

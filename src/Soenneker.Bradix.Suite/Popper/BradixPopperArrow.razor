@@ -12,8 +12,8 @@
     else
     {
         <svg class="@Class"
-             width="@Width.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-             height="@Height.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+             width="@_widthText.Get(Width)"
+             height="@_heightText.Get(Height)"
              viewBox="0 0 30 10"
              preserveAspectRatio="none"
              style="display: block;">
@@ -23,6 +23,12 @@
 </span>
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private BradixInvariantDoubleTextCache _widthText;
+    private BradixInvariantDoubleTextCache _heightText;
+    private string? _positionStyle;
+    private (string Side, long? X, long? Y, bool Hidden) _positionKey;
     private ElementReference _element;
 
     [CascadingParameter]
@@ -60,7 +66,21 @@
         if (Content is null)
             return Style ?? string.Empty;
 
-        string oppositeSide = Content.PlacedSide switch
+        var key = (Content.PlacedSide,
+            Content.ArrowX.HasValue ? (long?)BitConverter.DoubleToInt64Bits(Content.ArrowX.Value) : null,
+            Content.ArrowY.HasValue ? (long?)BitConverter.DoubleToInt64Bits(Content.ArrowY.Value) : null,
+            Content.ShouldHideArrow);
+        if (_positionStyle is null || _positionKey != key)
+        {
+            _positionKey = key;
+            _positionStyle = BuildPositionStyle(Content);
+        }
+        return BradixStringCache.MergeStyle(_positionStyle, Style, ref _mergedStyleCache0)!;
+    }
+
+    private static string BuildPositionStyle(BradixPopperContent content)
+    {
+        string oppositeSide = content.PlacedSide switch
         {
             "top" => "bottom",
             "right" => "left",
@@ -69,7 +89,7 @@
             _ => "top"
         };
 
-        var transform = Content.PlacedSide switch
+        var transform = content.PlacedSide switch
         {
             "top" => " transform: translateY(100%);",
             "bottom" => " transform: translateY(-100%);",
@@ -80,14 +100,14 @@
 
         var positionStyle = $"position: absolute; {oppositeSide}: 0;{transform}";
 
-        if (Content.ArrowX.HasValue)
-            positionStyle += $" left: {Content.ArrowX.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px;";
-        else if (Content.ArrowY.HasValue)
-            positionStyle += $" top: {Content.ArrowY.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px;";
+        if (content.ArrowX.HasValue)
+            positionStyle += $" left: {content.ArrowX.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px;";
+        else if (content.ArrowY.HasValue)
+            positionStyle += $" top: {content.ArrowY.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px;";
 
-        if (Content.ShouldHideArrow)
+        if (content.ShouldHideArrow)
             positionStyle += " visibility: hidden;";
 
-        return MergeStyleValues(positionStyle, Style)!;
+        return positionStyle;
     }
 }

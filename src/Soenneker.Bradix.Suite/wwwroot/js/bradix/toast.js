@@ -15,6 +15,19 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
   const resolvedTailProxy = tailProxy instanceof Element ? tailProxy : null;
 
   const hotkeys = Array.isArray(hotkey) ? hotkey : [];
+  const handlers = { focusFrame: 0, tabFrame: 0, backwards: false };
+  const focusViewport = () => {
+    handlers.focusFrame = 0;
+    if (toastViewportHandlers.get(viewport) === handlers) focusElement(viewport, false);
+  };
+  const focusToastDeferred = () => {
+    handlers.tabFrame = 0;
+    if (toastViewportHandlers.get(viewport) === handlers) focusToastFromViewport(handlers.backwards);
+  };
+  const queueToastFocus = backwards => {
+    handlers.backwards = backwards;
+    if (!handlers.tabFrame) handlers.tabFrame = requestAnimationFrame(focusToastDeferred);
+  };
   const hasToasts = () => viewport.childElementCount > 0;
   const invokePause = () => {
     if (hasToasts() && dotNetRef) {
@@ -60,13 +73,17 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     focusFirst(getSortedCandidates(backwards), false);
   };
   const keydown = (event) => {
-    const isHotkeyPressed = hotkeys.length !== 0 && hotkeys.every((key) => {
-      return event[key] || event.code === key || event.key === key;
-    });
+    let isHotkeyPressed = hotkeys.length !== 0;
+    for (const key of hotkeys) {
+      if (!(event[key] || event.code === key || event.key === key)) {
+        isHotkeyPressed = false;
+        break;
+      }
+    }
 
     if (isHotkeyPressed) {
       focusElement(viewport, false);
-      requestAnimationFrame(() => focusElement(viewport, false));
+      if (!handlers.focusFrame) handlers.focusFrame = requestAnimationFrame(focusViewport);
     }
   };
   const focusToastFromViewport = (backwards) => {
@@ -91,9 +108,9 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
 
     event.preventDefault();
     focusToastFromViewport(event.shiftKey);
-    requestAnimationFrame(() => focusToastFromViewport(event.shiftKey));
+    queueToastFocus(event.shiftKey);
   };
-  const focusin = () => invokePause();
+  const focusin = invokePause;
   const focusout = (event) => {
     if (!resolvedWrapper || resolvedWrapper.contains(event.relatedTarget)) {
       return;
@@ -101,7 +118,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
 
     invokeResume();
   };
-  const pointerenter = () => invokePause();
+  const pointerenter = invokePause;
   const pointerleave = () => {
     if (!resolvedWrapper || resolvedWrapper.contains(document.activeElement)) {
       return;
@@ -109,8 +126,8 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
 
     invokeResume();
   };
-  const windowBlur = () => invokePause();
-  const windowFocus = () => invokeResume();
+  const windowBlur = invokePause;
+  const windowFocus = invokeResume;
   const viewportKeydown = (event) => {
     const isMetaKey = event.altKey || event.ctrlKey || event.metaKey;
     if (event.key !== "Tab" || isMetaKey) {
@@ -122,12 +139,12 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     if (targetIsViewport) {
       event.preventDefault();
       focusToastFromViewport(backwards);
-      requestAnimationFrame(() => focusToastFromViewport(backwards));
+      queueToastFocus(backwards);
       return;
     }
 
     const sortedCandidates = getSortedCandidates(backwards);
-    const index = sortedCandidates.findIndex((candidate) => candidate === document.activeElement);
+    const index = sortedCandidates.indexOf(document.activeElement);
     if (focusFirst(sortedCandidates, false, index + 1)) {
       event.preventDefault();
     } else {
@@ -163,7 +180,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     resolvedTailProxy.addEventListener("focus", tailFocus);
   }
 
-  toastViewportHandlers.set(viewport, {
+  Object.assign(handlers, {
     wrapper: resolvedWrapper,
     keydown,
     documentTabKeydown,
@@ -179,6 +196,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     tailProxy: resolvedTailProxy,
     tailFocus
   });
+  toastViewportHandlers.set(viewport, handlers);
 }
 
 export function unregisterToastViewport(viewport) {
@@ -188,6 +206,8 @@ export function unregisterToastViewport(viewport) {
     return;
   }
 
+  cancelAnimationFrame(handlers.focusFrame);
+  cancelAnimationFrame(handlers.tabFrame);
   document.removeEventListener("keydown", handlers.keydown);
   document.removeEventListener("keydown", handlers.documentTabKeydown, true);
   if (handlers.wrapper) {
@@ -216,9 +236,10 @@ export function registerToastSwipe(toast, direction, threshold, notifyStart, not
 
   unregisterToastSwipe(toast);
 
+  const horizontal = direction === "left" || direction === "right";
   const state = {
     pointerId: null,
-    pointerType: "",
+    startBuffer: 2,
     startX: 0,
     startY: 0,
     moveX: 0,
@@ -242,7 +263,7 @@ export function registerToastSwipe(toast, direction, threshold, notifyStart, not
     }
 
     state.pointerId = event.pointerId;
-    state.pointerType = event.pointerType || "";
+    state.startBuffer = (event.pointerType || "").toLowerCase() === "touch" ? 10 : 2;
     state.startX = event.clientX;
     state.startY = event.clientY;
     state.moveX = 0;
@@ -259,10 +280,9 @@ export function registerToastSwipe(toast, direction, threshold, notifyStart, not
 
     const x = event.clientX - state.startX;
     const y = event.clientY - state.startY;
-    const horizontal = direction === "left" || direction === "right";
     const moveX = horizontal ? clampSwipeDelta(x, direction) : 0;
     const moveY = horizontal ? 0 : clampSwipeDelta(y, direction);
-    const startBuffer = state.pointerType.toLowerCase() === "touch" ? 10 : 2;
+    const startBuffer = state.startBuffer;
 
     if (!state.started) {
       if (!isSwipeDeltaInDirection(moveX, moveY, direction, startBuffer)) {
@@ -335,7 +355,7 @@ export function registerToastSwipe(toast, direction, threshold, notifyStart, not
   toast.addEventListener("pointermove", pointermove);
   toast.addEventListener("pointerup", pointerup);
   toast.addEventListener("pointercancel", pointercancel);
-  toastSwipeHandlers.set(toast, { pointerdown, pointermove, pointerup, pointercancel });
+  toastSwipeHandlers.set(toast, { pointerdown, pointermove, pointerup, pointercancel, state });
 }
 
 export function unregisterToastSwipe(toast) {
@@ -348,6 +368,11 @@ export function unregisterToastSwipe(toast) {
   toast.removeEventListener("pointermove", handlers.pointermove);
   toast.removeEventListener("pointerup", handlers.pointerup);
   toast.removeEventListener("pointercancel", handlers.pointercancel);
+  const pointerId = handlers.state.pointerId;
+  handlers.state.pointerId = null;
+  if (pointerId !== null) {
+    try { toast.releasePointerCapture(pointerId); } catch {}
+  }
   toastSwipeHandlers.delete(toast);
 }
 

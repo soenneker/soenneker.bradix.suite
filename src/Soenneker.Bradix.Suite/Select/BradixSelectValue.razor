@@ -20,6 +20,8 @@
 </span>
 
 @code {
+    private string? _mergedStyleCache0;
+
     private ElementReference _element;
 
     [CascadingParameter]
@@ -48,6 +50,6 @@
     private string BuildStyle()
     {
         const string baseStyle = "pointer-events:none;";
-        return MergeStyleValues(baseStyle, Style)!;
+        return BradixStringCache.MergeStyle(baseStyle, Style, ref _mergedStyleCache0)!;
     }
 }

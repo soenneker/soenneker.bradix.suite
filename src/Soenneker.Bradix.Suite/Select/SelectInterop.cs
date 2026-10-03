@@ -75,7 +75,7 @@ public sealed class SelectInterop : ISelectInterop
     public async ValueTask ScrollSelectViewportByItem(ElementReference viewport, ElementReference item, bool upward, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("scrollSelectViewportByItem", cancellationToken, viewport, item, upward);
+        await module.InvokeVoidAsync("scrollSelectViewportByItem", cancellationToken, viewport, item, upward ? BradixAttributeValues.True : BradixAttributeValues.False);
     }
 
     public async ValueTask RegisterSelectContentPointerTracker(ElementReference content, DotNetObjectReference<object> dotNetReference, double pageX, double pageY,

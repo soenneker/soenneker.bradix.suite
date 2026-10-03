@@ -8,11 +8,14 @@
 {
     <img @attributes="ImageAttributes"
          hidden="@(_loadingStatus != BradixAvatarImageLoadingStatus.Loaded)"
-         @onload="HandleImageLoad"
-         @onerror="HandleImageError" />
+         @onload="(_cachedHandleImageLoadDelegate ??= HandleImageLoad)"
+         @onerror="(_cachedHandleImageErrorDelegate ??= HandleImageError)" />
 }
 
 @code {
+    private System.Func<Task>? _cachedHandleImageLoadDelegate;
+    private System.Func<Task>? _cachedHandleImageErrorDelegate;
+
     private bool _pendingStatusReset = true;
     private bool _hasRendered;
     private string? _lastSrc;
@@ -89,7 +92,7 @@
         return ValueTask.CompletedTask;
     }
 
-    public async Task HandleImageLoadingStatusChanged(string status)
+    public Task HandleImageLoadingStatusChanged(string status)
     {
         BradixAvatarImageLoadingStatus resolvedStatus = status switch
         {
@@ -99,7 +102,7 @@
             _ => BradixAvatarImageLoadingStatus.Idle
         };
 
-        await SetImageLoadingStatus(resolvedStatus);
+        return SetImageLoadingStatus(resolvedStatus);
     }
 
     private async Task SetImageLoadingStatus(BradixAvatarImageLoadingStatus resolvedStatus)
@@ -108,7 +111,7 @@
             return;
 
         _loadingStatus = resolvedStatus;
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
 
         if (OnLoadingStatusChange.HasDelegate)
             await OnLoadingStatusChange.InvokeAsync(resolvedStatus);

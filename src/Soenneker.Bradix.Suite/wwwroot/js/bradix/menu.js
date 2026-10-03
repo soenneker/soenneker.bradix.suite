@@ -56,9 +56,11 @@ export function beginMenuSubmenuPointerGrace(trigger, content, clientX, clientY,
     dotNetRef.invokeMethodAsync("HandlePointerGraceChanged", false).catch(() => {});
   };
 
+  const pointerPosition = { x: clientX, y: clientY };
   const pointerMove = (event) => {
     const target = event.target;
-    const pointerPosition = { x: event.clientX, y: event.clientY };
+    pointerPosition.x = event.clientX;
+    pointerPosition.y = event.clientY;
     const pointerXHasChanged = event.clientX !== lastClientX;
     const pointerDirection = pointerXHasChanged
       ? (event.clientX > lastClientX ? "right" : "left")
@@ -76,9 +78,7 @@ export function beginMenuSubmenuPointerGrace(trigger, content, clientX, clientY,
     }
   };
 
-  const timeoutId = window.setTimeout(() => {
-    cleanup();
-  }, 300);
+  const timeoutId = window.setTimeout(cleanup, 300);
 
   menuSubmenuGraceHandlers.set(trigger, { pointerMove, timeoutId });
   document.addEventListener("pointermove", pointerMove);

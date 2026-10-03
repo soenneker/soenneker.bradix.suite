@@ -16,14 +16,14 @@
 @if (RenderAsLink)
 {
     <a @ref="_element"
-       @onclick="HandleClick"
-       @onfocus="HandleFocus"
-       @onblur="HandleBlur"
-       @onkeydown="HandleKeyDown"
-       @onpointerdown="HandlePointerDown"
-       @onpointerup="HandlePointerUp"
-        @onpointermove="HandlePointerMove"
-       @onpointerleave="HandlePointerLeave"
+       @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+       @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+       @onblur="(_cachedHandleBlurDelegate ??= HandleBlur)"
+       @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
+       @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
+       @onpointerup="(_cachedHandlePointerUpDelegate ??= HandlePointerUp)"
+        @onpointermove="(_cachedHandlePointerMoveDelegate ??= HandlePointerMove)"
+       @onpointerleave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
        @attributes="ItemAttributes">
         @ChildContent
     </a>
@@ -31,14 +31,14 @@
 else
 {
     <div @ref="_element"
-         @onclick="HandleClick"
-         @onfocus="HandleFocus"
-         @onblur="HandleBlur"
-         @onkeydown="HandleKeyDown"
-         @onpointerdown="HandlePointerDown"
-         @onpointerup="HandlePointerUp"
-          @onpointermove="HandlePointerMove"
-         @onpointerleave="HandlePointerLeave"
+         @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+         @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+         @onblur="(_cachedHandleBlurDelegate ??= HandleBlur)"
+         @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
+         @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
+         @onpointerup="(_cachedHandlePointerUpDelegate ??= HandlePointerUp)"
+          @onpointermove="(_cachedHandlePointerMoveDelegate ??= HandlePointerMove)"
+         @onpointerleave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
          @attributes="ItemAttributes">
         @ChildContent
     </div>
@@ -47,6 +47,15 @@ else
 @implements IHandleEvent
 
 @code {
+    private System.Func<Task>? _cachedHandleClickDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleBlurDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+    private System.Action<PointerEventArgs>? _cachedHandlePointerDownDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerUpDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerMoveDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerLeaveDelegate;
+
     // State changes render through the owning context or the explicit focus handlers.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 
@@ -115,7 +124,7 @@ else
     private Dictionary<string, object> ItemAttributes => BuildAttributes(
         ("role", Role),
         ("aria-checked", AriaChecked),
-        ("tabindex", _isFocused ? 0 : -1),
+        ("tabindex", _isFocused ? BradixAttributeValues.Zero : BradixAttributeValues.MinusOne),
         ("data-bradix-roving-group", Menu.BaseId),
         ("data-bradix-roving-item", string.Empty),
         ("data-bradix-roving-item-id", TabStopId),
@@ -242,17 +251,19 @@ else
         if (Disabled)
             return;
 
-        var args = new BradixMenuItemSelectEventArgs();
-
         if (OnSelect.HasDelegate)
             await OnSelect.InvokeAsync();
 
+        BradixMenuItemSelectEventArgs? args = null;
         if (OnSelectDetailed.HasDelegate)
+        {
+            args = new BradixMenuItemSelectEventArgs();
             await OnSelectDetailed.InvokeAsync(args);
+        }
 
         Menu.ResetTypeahead();
 
-        if (CloseOnSelect && !args.DefaultPrevented)
+        if (CloseOnSelect && args?.DefaultPrevented != true)
             await Menu.RootMenu.SetOpen(false);
     }
 
@@ -282,7 +293,7 @@ else
             return Task.CompletedTask;
 
         _isFocused = false;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private Task HandleFocus(FocusEventArgs _)
@@ -295,7 +306,7 @@ else
 
         _isFocused = true;
         Menu.SetCurrentTabStop(TabStopId);
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args)

@@ -183,29 +183,20 @@ export function registerDismissableLayer(element, dotNetRef, disableOutsidePoint
   ensureDismissableLayerListeners();
 
   const handlePointerDownCapture = () => {
-    const layer = dismissableLayers.find((item) => item.element === element);
-    if (layer) {
-      layer.isPointerInside = true;
-    }
+    layer.isPointerInside = true;
   };
   const handleFocusInCapture = () => {
-    const layer = dismissableLayers.find((item) => item.element === element);
-    if (layer) {
-      layer.isFocusInside = true;
-    }
+    layer.isFocusInside = true;
   };
   const handleFocusOutCapture = () => {
-    const layer = dismissableLayers.find((item) => item.element === element);
-    if (layer) {
-      layer.isFocusInside = false;
-    }
+    layer.isFocusInside = false;
   };
 
   element.addEventListener("pointerdown", handlePointerDownCapture, true);
   element.addEventListener("focusin", handleFocusInCapture, true);
   element.addEventListener("focusout", handleFocusOutCapture, true);
 
-  dismissableLayers.push({
+  const layer = {
     element,
     registrationId,
     dotNetRef,
@@ -218,7 +209,8 @@ export function registerDismissableLayer(element, dotNetRef, disableOutsidePoint
     handlePointerDownCapture,
     handleFocusInCapture,
     handleFocusOutCapture
-  });
+  };
+  dismissableLayers.push(layer);
   updateDismissableLayerPointerEvents();
 }
 

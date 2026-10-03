@@ -22,6 +22,17 @@
 }
 
 @code {
+    private Func<BradixAutoFocusEventArgs, Task>? _openAutoFocusHandler;
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleCloseAutoFocusDelegate;
+    private System.Func<Task>? _cachedHandleDismissDelegate;
+    private System.Func<BradixInteractOutsideEventArgs, Task>? _cachedHandleInteractOutsideDelegate;
+    private System.Func<BradixEscapeKeyDownEventArgs, Task>? _cachedHandleEscapeKeyDownDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixFocusOutsideEventArgs, Task>? _cachedHandleFocusOutsideDelegate;
+    private System.Func<ElementReference, Task>? _cachedHandleElementReferenceCapturedDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleContentKeyDownDelegate;
+    private System.Func<Task>? _cachedHandleExitCompleteDelegate;
+
     private bool _wasPresent;
     private bool _isExiting;
     private bool _hasInteractedOutside;
@@ -119,7 +130,7 @@
             if (!string.IsNullOrWhiteSpace(Dialog?.RegisteredDescriptionId))
                 attributes["aria-describedby"] = Dialog.RegisteredDescriptionId;
 
-            attributes.TryAdd("tabindex", -1);
+            attributes.TryAdd("tabindex", BradixAttributeValues.MinusOne);
 
             return attributes;
         }
@@ -299,7 +310,7 @@ ResetState:
             _hideOthersRegistered = false;
         }
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private RenderFragment RenderContentTree() => _contentTree ??= @<BradixFocusGuards>
@@ -308,25 +319,25 @@ ResetState:
                           PreventMountAutoFocus="PreventMountAutoFocus"
                           PreventUnmountAutoFocus="true"
                           OnMountAutoFocusDetailed="@OpenAutoFocusCallback"
-                          OnUnmountAutoFocusDetailed="HandleCloseAutoFocus">
+                          OnUnmountAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)">
             <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
                                     DismissOnEscapeKeyDown="CloseOnEscapeKeyDown"
                                     DismissOnPointerDownOutside="CloseOnPointerDownOutside"
                                     DismissOnFocusOutside="CloseOnFocusOutside"
-                                    OnDismiss="@HandleDismiss"
-                                    OnInteractOutsideDetailed="@HandleInteractOutside"
-                                    OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
-                                    OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
-                                    OnFocusOutsideDetailed="@HandleFocusOutside"
-                                    OnElementReferenceCaptured="@HandleElementReferenceCaptured">
+                                    OnDismiss="(_cachedHandleDismissDelegate ??= HandleDismiss)"
+                                    OnInteractOutsideDetailed="(_cachedHandleInteractOutsideDelegate ??= HandleInteractOutside)"
+                                    OnEscapeKeyDownDetailed="(_cachedHandleEscapeKeyDownDelegate ??= HandleEscapeKeyDown)"
+                                    OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
+                                    OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)"
+                                    OnElementReferenceCaptured="(_cachedHandleElementReferenceCapturedDelegate ??= HandleElementReferenceCaptured)">
                 <BradixPresence Present="IsPresent"
                                 Tag="div"
                                 Id="@ResolvedContentId"
                                 Class="@Class"
                                 Style="@Style"
                                 AdditionalAttributes="@ContentAttributes"
-                                OnKeyDown="@HandleContentKeyDown"
-                                OnExitComplete="@HandleExitComplete">
+                                OnKeyDown="(_cachedHandleContentKeyDownDelegate ??= HandleContentKeyDown)"
+                                OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
                     @ChildContent
                 </BradixPresence>
             </BradixDismissableLayer>
@@ -348,6 +359,6 @@ ResetState:
 
     private EventCallback<BradixAutoFocusEventArgs> OpenAutoFocusCallback =>
         HasOpenAutoFocusCallback
-            ? EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, HandleOpenAutoFocus)
+            ? EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, _openAutoFocusHandler ??= HandleOpenAutoFocus)
             : default;
 }

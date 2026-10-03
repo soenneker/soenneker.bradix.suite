@@ -1,6 +1,7 @@
 @namespace Soenneker.Bradix
 
 @using Microsoft.JSInterop
+@using Soenneker.Atomics.ValueBools
 
 @inherits BradixContentElement
 
@@ -8,15 +9,15 @@
 
 @inject ITooltipInterop TooltipInterop
 <button @ref="_triggerElement"
-        @onclick="HandleClick"
-        @onpointerenter="HandlePointerMove"
-        @onpointerleave="HandlePointerLeave"
-        @onmouseenter="HandleMouseEnter"
-        @onmouseleave="HandleMouseLeave"
-        @onpointerdown="HandlePointerDown"
-        @onpointerup="HandlePointerUp"
-        @onfocus="HandleFocus"
-        @onblur="HandleBlur"
+        @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+        @onpointerenter="(_cachedHandlePointerMoveDelegate ??= HandlePointerMove)"
+        @onpointerleave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
+        @onmouseenter="(_cachedHandleMouseEnterDelegate ??= HandleMouseEnter)"
+        @onmouseleave="(_cachedHandleMouseLeaveDelegate ??= HandleMouseLeave)"
+        @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
+        @onpointerup="(_cachedHandlePointerUpDelegate ??= HandlePointerUp)"
+        @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+        @onblur="(_cachedHandleBlurDelegate ??= HandleBlur)"
         @attributes="TriggerAttributes">
     @ChildContent
 </button>
@@ -24,9 +25,22 @@
 @implements IHandleEvent
 
 @code {
+    private System.Func<Task>? _cachedHandleClickDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerMoveDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerLeaveDelegate;
+    private System.Func<Task>? _cachedHandleMouseEnterDelegate;
+    private System.Func<Task>? _cachedHandleMouseLeaveDelegate;
+    private System.Action<PointerEventArgs>? _cachedHandlePointerDownDelegate;
+    private System.Action<PointerEventArgs>? _cachedHandlePointerUpDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleBlurDelegate;
+
     // State changes render through the owning context or the explicit focus handlers.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 
+    private ValueAtomicBool _disposed;
+    private Task? _registrationTask;
+    private bool _registered;
     private bool _hasPointerMoveOpened;
     private bool _pointerDown;
     private ElementReference _triggerElement;
@@ -40,20 +54,34 @@
         ("aria-describedby", Tooltip?.CurrentOpen == true ? Tooltip.ContentId : null),
         ("data-state", Tooltip?.StateAttribute));
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || Tooltip is null)
-            return;
-
+        if (!firstRender || Tooltip is null || _disposed.Read()) return Task.CompletedTask;
         Tooltip.RegisterTrigger(_triggerElement);
         _dotNetReference = DotNetObjectReference.Create(this);
-        await TooltipInterop.RegisterTooltipTrigger(_triggerElement, _dotNetReference);
+        return _registrationTask = RegisterTrigger();
+    }
+
+    private async Task RegisterTrigger()
+    {
+        await TooltipInterop.RegisterTooltipTrigger(_triggerElement, _dotNetReference!);
+        _registered = true;
     }
 
     public async ValueTask DisposeAsync()
     {
-        await TooltipInterop.UnregisterTooltipTrigger(_triggerElement);
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue()) return;
+        try
+        {
+            if (_registrationTask is not null) await _registrationTask;
+            if (_registered) await TooltipInterop.UnregisterTooltipTrigger(_triggerElement);
+        }
+        finally
+        {
+            _registered = false;
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     private Task HandlePointerMove(PointerEventArgs args)

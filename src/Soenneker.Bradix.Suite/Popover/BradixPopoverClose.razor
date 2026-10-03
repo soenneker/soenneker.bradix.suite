@@ -4,12 +4,14 @@
 
 @implements IBradixPopoverClose
 <button @ref="_button"
-        @onclick="HandleClick"
+        @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
         @attributes="ButtonAttributes">
     @ChildContent
 </button>
 
 @code {
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+
     private ElementReference _button;
 
     [CascadingParameter]
@@ -24,7 +26,7 @@
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("disabled", Disabled ? true : null));
+        ("disabled", Disabled ? BradixAttributeValues.True : null));
 
     private async Task HandleClick(MouseEventArgs args)
     {

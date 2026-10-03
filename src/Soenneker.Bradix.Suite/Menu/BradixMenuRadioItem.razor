@@ -13,14 +13,17 @@
                     DataState="@(IsChecked ? "checked" : "unchecked")"
                     Disabled="IsDisabled"
                     CloseOnSelect="CloseOnSelect"
-                    OnSelect="HandleSelect"
-                    OnSelectDetailed="@HandleSelectDetailed"
+                    OnSelect="(_cachedHandleSelectDelegate ??= HandleSelect)"
+                    OnSelectDetailed="(_cachedHandleSelectDetailedDelegate ??= HandleSelectDetailed)"
                     AdditionalAttributes="@AdditionalAttributes">
         @ChildContent
     </BradixMenuItem>
 </CascadingValue>
 
 @code {
+    private System.Func<Task>? _cachedHandleSelectDelegate;
+    private System.Func<BradixMenuItemSelectEventArgs, Task>? _cachedHandleSelectDetailedDelegate;
+
     private BradixMenuItemIndicatorContext? _indicatorContext;
 
     [CascadingParameter]

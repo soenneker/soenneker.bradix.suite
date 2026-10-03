@@ -15,10 +15,10 @@
                          CloseOnEscapeKeyDown="CloseOnEscapeKeyDown"
                          CloseOnPointerDownOutside="false"
                          CloseOnFocusOutside="false"
-                         OnOpenAutoFocusDetailed="@HandleOpenAutoFocus"
-                         OnElementReferenceCaptured="@HandleContentElementCaptured"
-                         OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
-                         OnInteractOutsideDetailed="@HandleInteractOutside"
+                         OnOpenAutoFocusDetailed="(_cachedHandleOpenAutoFocusDelegate ??= HandleOpenAutoFocus)"
+                         OnElementReferenceCaptured="(_cachedHandleContentElementCapturedDelegate ??= HandleContentElementCaptured)"
+                         OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
+                         OnInteractOutsideDetailed="(_cachedHandleInteractOutsideDelegate ??= HandleInteractOutside)"
                          OnCloseAutoFocus="OnCloseAutoFocus"
                          OnCloseAutoFocusDetailed="@OnCloseAutoFocusDetailed"
                          OnEscapeKeyDown="OnEscapeKeyDown"
@@ -30,6 +30,13 @@
 </CascadingValue>
 
 @code {
+    private Func<Task>? _focusPendingCallback;
+    private Func<Task>? _focusOpenCallback;
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleOpenAutoFocusDelegate;
+    private System.Func<ElementReference, Task>? _cachedHandleContentElementCapturedDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixInteractOutsideEventArgs, Task>? _cachedHandleInteractOutsideDelegate;
+
     private ElementReference _cancelElement;
     private ElementReference _contentElement;
     private bool _hasCancelElement;
@@ -74,10 +81,7 @@
     {
         _cancelElement = element;
         _hasCancelElement = true;
-        _ = InvokeAsync(async () =>
-        {
-            await FocusCancelIfPending();
-        });
+        _ = InvokeAsync(_focusPendingCallback ??= FocusCancelIfPending);
     }
 
     private Task HandleContentElementCaptured(ElementReference element)
@@ -106,7 +110,7 @@
     {
         args.PreventDefault();
         _pendingCancelFocus = true;
-        _ = InvokeAsync(FocusCancelIfPending);
+        _ = InvokeAsync(_focusPendingCallback ??= FocusCancelIfPending);
         return Task.CompletedTask;
     }
 
@@ -114,19 +118,19 @@
     {
         args.PreventDefault();
         _pendingCancelFocus = true;
-        _ = InvokeAsync(FocusCancelIfPending);
+        _ = InvokeAsync(_focusPendingCallback ??= FocusCancelIfPending);
         return Task.CompletedTask;
     }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
         if (Dialog?.CurrentOpen == true && !_didFocusCancelForCurrentOpen)
-            _ = InvokeAsync(FocusCancelForOpen);
+            _ = InvokeAsync(_focusOpenCallback ??= FocusCancelForOpen);
         else if (Dialog?.CurrentOpen != true)
             _didFocusCancelForCurrentOpen = false;
 
         if (_pendingCancelFocus)
-            _ = InvokeAsync(FocusCancelIfPending);
+            _ = InvokeAsync(_focusPendingCallback ??= FocusCancelIfPending);
 
         return Task.CompletedTask;
     }

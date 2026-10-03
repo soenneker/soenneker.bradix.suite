@@ -12,6 +12,8 @@
 </div>
 
 @code {
+    private string? _mergedStyleCache0;
+
     private ElementReference _element;
     private bool _mounted;
     private ValueAtomicBool _disposed;
@@ -26,7 +28,7 @@
     public ElementReference Container { get; set; }
 
     private Dictionary<string, object> PortalAttributes => BuildAttributes(
-        ("style", MergeStyleValues("display:contents;", Style)));
+        ("style", BradixStringCache.MergeStyle("display:contents;", Style, ref _mergedStyleCache0)));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

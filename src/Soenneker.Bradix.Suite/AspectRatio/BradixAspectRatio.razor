@@ -10,12 +10,28 @@
 </div>
 
 @code {
+    private double _lastSafeRatio;
+    private string? _wrapperStyle;
+    private string? _mergedStyleCache0;
+
     [Parameter]
     public double Ratio { get; set; } = 1;
 
     private double SafeRatio => Ratio > 0 ? Ratio : 1;
 
-    private string WrapperStyle => $"position: relative; width: 100%; padding-bottom: {(100 / SafeRatio).ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+    private string WrapperStyle
+    {
+        get
+        {
+            var ratio = SafeRatio;
+            if (_wrapperStyle is null || _lastSafeRatio != ratio)
+            {
+                _lastSafeRatio = ratio;
+                _wrapperStyle = $"position: relative; width: 100%; padding-bottom: {(100 / ratio).ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+            }
+            return _wrapperStyle;
+        }
+    }
 
     private Dictionary<string, object> ContentAttributes => BuildAttributes(
         ("style", BuildContentStyle()));
@@ -24,6 +40,6 @@
     {
         const string contentStyle = "position: absolute; top: 0; right: 0; bottom: 0; left: 0;";
 
-        return MergeStyleValues(contentStyle, Style)!;
+        return BradixStringCache.MergeStyle(contentStyle, Style, ref _mergedStyleCache0)!;
     }
 }

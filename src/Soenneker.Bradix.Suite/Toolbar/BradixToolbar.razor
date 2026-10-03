@@ -73,12 +73,12 @@
             return;
 
         CurrentTabStopId = tabStopId;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal async Task HandleItemKeyDown(IBradixToolbarRovingItem item, KeyboardEventArgs args)
     {
-        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey || !BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 
         int focusableCount = CountFocusableItems(item, out int currentIndex);
@@ -101,7 +101,7 @@
         IBradixToolbarRovingItem target = GetFocusableItemAt(targetIndex)!;
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private void RefreshTabStopIfChanged()
@@ -109,7 +109,7 @@
         string? previous = CurrentTabStopId;
         EnsureCurrentTabStopId();
         if (!string.Equals(previous, CurrentTabStopId, StringComparison.Ordinal))
-            _ = InvokeAsync(StateHasChanged);
+            _ = RequestRender();
     }
 
     private void EnsureCurrentTabStopId()

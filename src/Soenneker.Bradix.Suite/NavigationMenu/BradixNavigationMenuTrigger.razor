@@ -11,11 +11,11 @@
 @inject IRovingFocusInterop RovingFocusInterop
 @inject INavigationMenuInterop NavigationMenuInterop
 <button @ref="_button"
-        @onpointerenter="HandlePointerEnter"
-        @onpointerleave="HandlePointerLeave"
-        @onclick="HandleClick"
-        @onfocus="HandleFocus"
-        @onkeydown="HandleKeyDown"
+        @onpointerenter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
+        @onpointerleave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
+        @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+        @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+        @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
         @attributes="TriggerAttributes">
     @ChildContent
 </button>
@@ -33,6 +33,14 @@
 }
 
 @code {
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerEnterDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerLeaveDelegate;
+    private System.Func<Task>? _cachedHandleClickDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
+    private object? _cachedHandlePointerMoveCallback;
+
     private ElementReference _button;
     private ElementReference _focusProxy;
     private bool _hasPointerMoveOpened;
@@ -46,7 +54,7 @@
     private ValueAtomicBool _disposed;
     private string? _pointerOpenClickSuppressedValue;
     private DotNetObjectReference<BradixNavigationMenuTrigger>? _dotNetReference;
-    private TriggerRegistration? _registration;
+    private BradixNavigationMenuTriggerRegistration? _registration;
 
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
@@ -66,7 +74,7 @@
             Dictionary<string, object> attributes = BuildAttributes(
                 ("id", Item?.TriggerId),
                 ("type", "button"),
-                ("disabled", Disabled ? true : null),
+                ("disabled", Disabled ? BradixAttributeValues.True : null),
                 ("data-disabled", Disabled ? string.Empty : null),
                 ("data-state", IsOpen ? "open" : "closed"),
                 ("data-bradix-roving-group", NavigationMenu?.TriggerRovingGroupId),
@@ -81,7 +89,7 @@
                 ("tabindex", null));
 
             if (!_hasPointerMoveOpened)
-                attributes["onpointermove"] = EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove);
+                attributes["onpointermove"] = (_cachedHandlePointerMoveCallback ??= EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove));
 
             return attributes;
         }
@@ -96,7 +104,7 @@
         {
             if (_registration is null)
             {
-                _registration = new TriggerRegistration(Item.ResolvedValue, Item.TriggerId, this);
+                _registration = new BradixNavigationMenuTriggerRegistration(Item.ResolvedValue, Item.TriggerId, this);
                 NavigationMenu.RegisterTrigger(_registration);
             }
 
@@ -324,7 +332,9 @@
             _pointerOpenClickSuppressedValue = null;
     }
 
-    private Task HandleFocus(FocusEventArgs _)
+    private Task HandleFocus(FocusEventArgs _) => HandleDirectFocus();
+
+    private Task FocusCurrentTrigger()
     {
         if (NavigationMenu is not null && Item is not null)
             NavigationMenu.SetCurrentTabStop(Item.ResolvedValue);
@@ -332,12 +342,9 @@
         return Task.CompletedTask;
     }
 
-    private async Task HandleKeyDown(KeyboardEventArgs args)
-    {
-        await ProcessKeyDown(args);
-    }
+    private Task HandleKeyDown(KeyboardEventArgs args) => ProcessKeyDown(args.Key, args.CtrlKey, args.AltKey, args.MetaKey, args.ShiftKey);
 
-    private async Task ProcessKeyDown(KeyboardEventArgs args)
+    private async Task ProcessKeyDown(string key, bool ctrlKey, bool altKey, bool metaKey, bool shiftKey)
     {
         if (Disabled || NavigationMenu is null || Item is null)
             return;
@@ -345,31 +352,31 @@
         string verticalEntryKey = NavigationMenu.ResolvedDirection == "rtl" ? "ArrowLeft" : "ArrowRight";
         string entryKey = NavigationMenu.Orientation == Orientation.Vertical ? verticalEntryKey : "ArrowDown";
 
-        if (IsOpen && string.Equals(args.Key, entryKey, StringComparison.Ordinal))
+        if (IsOpen && string.Equals(key, entryKey, StringComparison.Ordinal))
         {
             await NavigationMenu.FocusContent(Item.ResolvedValue);
             return;
         }
 
-        if (IsOpen && string.Equals(args.Key, "Escape", StringComparison.Ordinal))
+        if (IsOpen && string.Equals(key, "Escape", StringComparison.Ordinal))
         {
             NavigationMenu.MarkEscapeClosed(Item.ResolvedValue);
             await NavigationMenu.Dismiss(Item.ResolvedValue);
             return;
         }
 
-        if (args.Key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown" or "Home" or "End")
+        if (key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown" or "Home" or "End")
         {
-            if (_rovingFocusBridgeReady && args.Key is "ArrowLeft" or "ArrowRight")
+            if (_rovingFocusBridgeReady && key is "ArrowLeft" or "ArrowRight")
                 return;
 
             if (_registration is not null)
-                await NavigationMenu.HandleTriggerNavigation(_registration, args);
+                await NavigationMenu.HandleTriggerNavigation(_registration, key, ctrlKey, altKey, metaKey, shiftKey);
 
             return;
         }
 
-        if (args.Key is "Enter" or " " or "Spacebar")
+        if (key is "Enter" or " " or "Spacebar")
             await NavigationMenu.ToggleItem(Item.ResolvedValue);
     }
 
@@ -390,7 +397,7 @@
     [JSInvokable]
     public Task HandleDirectFocus()
     {
-        return HandleFocus(new FocusEventArgs());
+        return FocusCurrentTrigger();
     }
 
     [JSInvokable(nameof(HandleDirectKeyDown))]
@@ -399,16 +406,7 @@
 
     public Task HandleDirectKeyDown(BradixDelegatedKeyboardEvent args)
     {
-        return ProcessKeyDown(new KeyboardEventArgs
-        {
-            Key = args.Key,
-            Code = args.Code,
-            CtrlKey = args.CtrlKey,
-            ShiftKey = args.ShiftKey,
-            AltKey = args.AltKey,
-            MetaKey = args.MetaKey,
-            Repeat = args.Repeat
-        });
+        return ProcessKeyDown(args.Key, args.CtrlKey, args.AltKey, args.MetaKey, args.ShiftKey);
     }
 
     private static bool ShouldIgnoreInteropException(Exception ex)
@@ -416,16 +414,6 @@
         return ex is ObjectDisposedException or JSDisconnectedException;
     }
 
-    private sealed class TriggerRegistration(string value, string triggerId, BradixNavigationMenuTrigger owner) : IBradixNavigationMenuRegisteredTrigger
-    {
-        public string Value { get; } = value;
-        public string TriggerId { get; } = triggerId;
-        public bool Disabled => owner.Disabled;
-        public ElementReference TriggerElement => owner._button;
+    internal ElementReference TriggerElement => _button;
 
-        public ValueTask Focus()
-        {
-            return TriggerElement.FocusAsync();
-        }
-    }
 }

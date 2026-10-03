@@ -13,21 +13,30 @@
 @inject IControlsInterop ControlsInterop
 <CascadingValue Value="this">
     <div @ref="_element"
-         @onclick="HandleClick"
-         @onfocus="HandleFocus"
-         @onblur="HandleBlur"
-         @onkeydown="HandleKeyDown"
+         @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+         @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+         @onblur="(_cachedHandleBlurDelegate ??= HandleBlur)"
+         @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
          @onkeydown:preventDefault="true"
-         @onpointerdown="HandlePointerDown"
-         @onpointerup="HandlePointerUp"
-         @onpointermove="HandlePointerMove"
-         @onpointerleave="HandlePointerLeave"
+         @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
+         @onpointerup="(_cachedHandlePointerUpDelegate ??= HandlePointerUp)"
+         @onpointermove="(_cachedHandlePointerMoveDelegate ??= HandlePointerMove)"
+         @onpointerleave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
          @attributes="ItemAttributes">
         @ChildContent
     </div>
 </CascadingValue>
 
 @code {
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleBlurDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerUpDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerMoveDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerLeaveDelegate;
+
     // Handlers below explicitly refresh changed items or selection/open state.
     // Pointer bookkeeping alone must not render the item subtree.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
@@ -88,7 +97,7 @@
         ("data-state", IsSelected ? "checked" : "unchecked"),
         ("data-highlighted", IsHighlighted ? string.Empty : null),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("tabindex", Disabled ? null : -1));
+        ("tabindex", Disabled ? null : BradixAttributeValues.MinusOne));
 
     protected override void OnInitialized()
     {
@@ -137,7 +146,7 @@
 
     ValueTask IBradixSelectCollectionItem.ScrollIntoView() => ControlsInterop.ScrollElementIntoViewNearest(_element);
 
-    ValueTask IBradixSelectCollectionItem.Refresh() => new(InvokeAsync(StateHasChanged));
+    ValueTask IBradixSelectCollectionItem.Refresh() => new(RequestRender());
 
     internal async Task NotifyResolvedText(string? text)
     {
@@ -157,7 +166,7 @@
         _hasItemTextElement = false;
         _itemTextElement = default;
         if (!_disposed.Read() && _registered)
-            _ = InvokeAsync(StateHasChanged);
+            _ = RequestRender();
     }
 
     internal void RegisterTextElement(ElementReference element)
@@ -191,7 +200,7 @@
 
         _isFocused = true;
         Select.SetFocusedItem(Value);
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private Task HandleBlur(FocusEventArgs _)
@@ -200,7 +209,7 @@
             return Task.CompletedTask;
 
         _isFocused = false;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args)

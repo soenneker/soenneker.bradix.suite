@@ -15,9 +15,9 @@
                             DismissOnEscapeKeyDown="false"
                             DismissOnPointerDownOutside="false"
                             DismissOnFocusOutside="false"
-                            OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
+                            OnEscapeKeyDownDetailed="(_cachedHandleEscapeKeyDownDelegate ??= HandleEscapeKeyDown)"
                             OnFocusOutsideDetailed="@HandleFocusOutside"
-                            OnPointerDownOutsideDetailed="@HandlePointerDownOutside">
+                            OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)">
         <BradixPopperContent Side="@Side"
                              SideOffset="@SideOffset"
                              Align="@Align"
@@ -32,16 +32,16 @@
                              Anchor="@TooltipTriggerAnchor"
                              UseAnchor="@HasTooltipTriggerAnchor"
                              Style="@PositionerStyle"
-                             OnPlacementChanged="@HandlePlacementChanged">
+                             OnPlacementChanged="(_cachedHandlePlacementChangedDelegate ??= HandlePlacementChanged)">
             <BradixPresence Present="IsPresent"
                             Tag="div"
                             Class="@Class"
                             Style="@Style"
                             AdditionalAttributes="@TooltipAttributes"
-                            OnElementReferenceCaptured="@HandleContentElementCaptured"
-                            OnPointerEnter="@HandlePointerEnter"
-                            OnPointerLeave="@HandlePointerLeave"
-                            OnExitComplete="@HandleExitComplete">
+                            OnElementReferenceCaptured="(_cachedHandleContentElementCapturedDelegate ??= HandleContentElementCaptured)"
+                            OnPointerEnter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
+                            OnPointerLeave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
+                            OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
                 @ChildContent
                 <BradixVisuallyHidden Id="@Tooltip?.ContentId"
                                       AdditionalAttributes="@AccessibleTooltipAttributes">
@@ -53,6 +53,14 @@
 }
 
 @code {
+    private System.Func<BradixEscapeKeyDownEventArgs, Task>? _cachedHandleEscapeKeyDownDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixPopperPlacementEventArgs, Task>? _cachedHandlePlacementChangedDelegate;
+    private System.Func<ElementReference, Task>? _cachedHandleContentElementCapturedDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerEnterDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerLeaveDelegate;
+    private System.Func<Task>? _cachedHandleExitCompleteDelegate;
+
     private ValueAtomicBool _disposed;
     private static readonly IReadOnlyDictionary<string, object> _accessibleTooltipAttributes = new Dictionary<string, object>
     {
@@ -216,7 +224,7 @@
             if (!_disposed.Read() && !string.Equals(_accessibleLabel, textContent, StringComparison.Ordinal))
             {
                 _accessibleLabel = textContent;
-                await InvokeAsync(StateHasChanged);
+                await RequestRender();
             }
         }
     }
@@ -297,10 +305,10 @@
         return Task.CompletedTask;
     }
 
-    private async Task HandleExitComplete()
+    private Task HandleExitComplete()
     {
         _isExiting = false;
-        await InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     [JSInvokable]

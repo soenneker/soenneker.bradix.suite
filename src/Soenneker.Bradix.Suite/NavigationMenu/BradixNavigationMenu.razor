@@ -33,6 +33,11 @@
 </CascadingValue>
 
 @code {
+    private string? _childIdCache0;
+    private string? _childIdCache1;
+    private string? _childIdCache2;
+    private string? _childIdCache3;
+
     private readonly BradixCollectionRegistry<IBradixNavigationMenuRegisteredTrigger> _triggers = new();
     private readonly Dictionary<string, ElementReference> _contentElements = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ElementReference> _focusProxyElements = new(StringComparer.Ordinal);
@@ -90,7 +95,7 @@
 
     internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
 
-    internal string TriggerRovingGroupId => BlazorIdGenerator.Child(BaseId!, "triggers");
+    internal string TriggerRovingGroupId => BradixStringCache.ChildId(BaseId!, "triggers", ref _childIdCache0);
 
     internal string PreviousValue => _previousValue;
 
@@ -113,7 +118,7 @@
     internal string ActiveViewportValue => HasOpenItem ? CurrentValue : PreviousValue;
 
     internal string RootId =>
-        string.IsNullOrWhiteSpace(Id) ? BlazorIdGenerator.Child(BaseId!, "root") : Id;
+        string.IsNullOrWhiteSpace(Id) ? BradixStringCache.ChildId(BaseId!, "root", ref _childIdCache1) : Id;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("id", RootId),
@@ -145,11 +150,11 @@
         EnsureCurrentTabStopValue();
     }
 
-    internal string MakeTriggerId(string value) =>
-        BlazorIdGenerator.Child(BlazorIdGenerator.Child(BaseId!, "trigger"), value);
+    internal string MakeTriggerId(string value, ref string? previous) =>
+        BradixStringCache.ChildId(BradixStringCache.ChildId(BaseId!, "trigger", ref _childIdCache2), value, ref previous);
 
-    internal string MakeContentId(string value) =>
-        BlazorIdGenerator.Child(BlazorIdGenerator.Child(BaseId!, "content"), value);
+    internal string MakeContentId(string value, ref string? previous) =>
+        BradixStringCache.ChildId(BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache3), value, ref previous);
 
     internal bool IsCurrentTabStop(BradixNavigationMenuItem item)
     {
@@ -239,14 +244,14 @@
     {
         _triggers.Register(trigger.Value, trigger);
         EnsureCurrentTabStopValue();
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void UnregisterTrigger(IBradixNavigationMenuRegisteredTrigger trigger)
     {
         _triggers.Unregister(trigger.Value);
         EnsureCurrentTabStopValue();
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void RegisterContent(string value, ElementReference element)
@@ -257,7 +262,7 @@
             HasViewport &&
             string.Equals(CurrentValue, value, StringComparison.Ordinal))
         {
-            _ = InvokeAsync(StateHasChanged);
+            _ = RequestRender();
         }
     }
 
@@ -344,7 +349,7 @@
             return;
 
         _hasViewport = true;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void UnregisterViewport(string viewportId)
@@ -359,7 +364,7 @@
             return;
 
         _hasViewport = false;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void RegisterIndicatorTrack(ElementReference element)
@@ -390,7 +395,7 @@
         }
 
         _viewportContents[registration.Value] = registration;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void UnregisterViewportContent(string value)
@@ -399,7 +404,7 @@
             return;
 
         if (_viewportContents.Remove(value))
-            _ = InvokeAsync(StateHasChanged);
+            _ = RequestRender();
     }
 
     internal bool TryGetViewportContent(string value, out BradixNavigationMenuViewportRegistration registration)
@@ -437,19 +442,25 @@
         return ordered;
     }
 
-    internal List<string> GetOrderedTriggerValues()
+    internal void GetTriggerIndices(string activeValue, out int currentIndex, out int previousIndex, out int activeIndex)
     {
-        List<string> values = [];
-
+        currentIndex = previousIndex = activeIndex = -1;
+        bool rtl = ResolvedDirection == "rtl";
+        var index = 0;
         foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
         {
-            values.Add(trigger.Value);
+            string value = trigger.Value;
+            if ((rtl || currentIndex < 0) && string.Equals(value, CurrentValue, StringComparison.Ordinal)) currentIndex = index;
+            if ((rtl || previousIndex < 0) && string.Equals(value, PreviousValue, StringComparison.Ordinal)) previousIndex = index;
+            if ((rtl || activeIndex < 0) && string.Equals(value, activeValue, StringComparison.Ordinal)) activeIndex = index;
+            index++;
         }
-
-        if (ResolvedDirection == "rtl")
-            values.Reverse();
-
-        return values;
+        if (rtl)
+        {
+            if (currentIndex >= 0) currentIndex = index - 1 - currentIndex;
+            if (previousIndex >= 0) previousIndex = index - 1 - previousIndex;
+            if (activeIndex >= 0) activeIndex = index - 1 - activeIndex;
+        }
     }
 
     internal void HandleTriggerPointerEnter()
@@ -470,7 +481,7 @@
 
         CancelCloseDelay();
 
-        if (_isOpenDelayed)
+        if (_isOpenDelayed && DelayDuration != 0)
         {
             CancelOpenDelay();
             _openDelayTokenSource = new CancellationTokenSource();
@@ -559,7 +570,7 @@
             return;
 
         CurrentTabStopValue = value;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal bool WasEscapeClosed(string value)
@@ -579,33 +590,34 @@
             _escapeClosedValues.Remove(value);
     }
 
-    internal async Task HandleTriggerNavigation(IBradixNavigationMenuRegisteredTrigger trigger, KeyboardEventArgs args)
+    internal async Task HandleTriggerNavigation(IBradixNavigationMenuRegisteredTrigger trigger, string key, bool ctrlKey, bool altKey, bool metaKey, bool shiftKey)
     {
-        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+        if (ctrlKey || altKey || metaKey || shiftKey || !BradixRovingFocusNavigator.IsNavigationKey(key))
             return;
 
-        List<IBradixNavigationMenuRegisteredTrigger> focusableTriggers = GetFocusableTriggers();
-        int currentIndex = focusableTriggers.IndexOf(trigger);
+        int count = CountFocusableTriggers(trigger, out int currentIndex);
 
         if (currentIndex < 0)
             return;
 
         if (!BradixRovingFocusNavigator.TryGetTargetIndex(
-                args.Key,
+                key,
                 Orientation.Value,
                 ResolvedDirection,
                 currentIndex,
-                focusableTriggers.Count,
+                count,
                 false,
                 out int targetIndex))
         {
             return;
         }
 
-        IBradixNavigationMenuRegisteredTrigger target = focusableTriggers[targetIndex];
+        IBradixNavigationMenuRegisteredTrigger? target = GetFocusableTriggerAt(targetIndex);
+        if (target is null)
+            return;
         CurrentTabStopValue = target.Value;
         await target.Focus();
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private async Task OpenAfterDelay(string value, CancellationToken cancellationToken)
@@ -679,11 +691,15 @@
             await OnValueChange.InvokeAsync(nextValue);
 
         if (!isControlled)
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
     }
 
     private void EnsureCurrentTabStopValue()
     {
+        if (!string.IsNullOrWhiteSpace(CurrentTabStopValue) && _triggers.TryGet(CurrentTabStopValue, out IBradixNavigationMenuRegisteredTrigger current) &&
+            !current.Disabled && string.Equals(current.Value, CurrentTabStopValue, StringComparison.Ordinal))
+            return;
+
         IBradixNavigationMenuRegisteredTrigger? first = null;
         IBradixNavigationMenuRegisteredTrigger? active = null;
         foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
@@ -700,17 +716,32 @@
         CurrentTabStopValue = active?.Value ?? first?.Value ?? string.Empty;
     }
 
-    private List<IBradixNavigationMenuRegisteredTrigger> GetFocusableTriggers()
+    private int CountFocusableTriggers(IBradixNavigationMenuRegisteredTrigger current, out int currentIndex)
     {
-        List<IBradixNavigationMenuRegisteredTrigger> focusableTriggers = [];
-
+        var count = 0;
+        currentIndex = -1;
         foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
         {
-            if (!trigger.Disabled)
-                focusableTriggers.Add(trigger);
+            if (trigger.Disabled)
+                continue;
+            if (currentIndex < 0 && EqualityComparer<IBradixNavigationMenuRegisteredTrigger>.Default.Equals(trigger, current))
+                currentIndex = count;
+            count++;
         }
+        return count;
+    }
 
-        return focusableTriggers;
+    private IBradixNavigationMenuRegisteredTrigger? GetFocusableTriggerAt(int targetIndex)
+    {
+        var index = 0;
+        foreach ((_, IBradixNavigationMenuRegisteredTrigger trigger) in _triggers)
+        {
+            if (trigger.Disabled)
+                continue;
+            if (index++ == targetIndex)
+                return trigger;
+        }
+        return null;
     }
 
     private IBradixNavigationMenuRegisteredTrigger? FindTrigger(string value)
@@ -773,6 +804,11 @@
     private void StartSkipDelay()
     {
         CancelSkipDelay();
+        if (SkipDelayDuration == 0)
+        {
+            _isOpenDelayed = true;
+            return;
+        }
         _skipDelayTokenSource = new CancellationTokenSource();
         _ = ResetOpenDelay(_skipDelayTokenSource.Token);
     }

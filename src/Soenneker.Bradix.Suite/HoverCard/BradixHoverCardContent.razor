@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 @using Microsoft.JSInterop
 
@@ -13,10 +14,10 @@
                             DismissOnEscapeKeyDown="false"
                             DismissOnPointerDownOutside="false"
                             DismissOnFocusOutside="false"
-                            OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
-                            OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
-                            OnFocusOutsideDetailed="@HandleFocusOutside"
-                            OnInteractOutsideDetailed="@HandleInteractOutside">
+                            OnEscapeKeyDownDetailed="(_cachedHandleEscapeKeyDownDelegate ??= HandleEscapeKeyDown)"
+                            OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
+                            OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)"
+                            OnInteractOutsideDetailed="(_cachedHandleInteractOutsideDelegate ??= HandleInteractOutside)">
         <BradixPopperContent Side="@Side"
                              SideOffset="@SideOffset"
                              Align="@Align"
@@ -30,17 +31,17 @@
                              HideWhenDetached="@HideWhenDetached"
                              Style="@PositionerStyle"
                              OnPlaced="@OnPlaced"
-                             OnPlacementChanged="@HandlePlacementChanged">
+                             OnPlacementChanged="(_cachedHandlePlacementChangedDelegate ??= HandlePlacementChanged)">
             <BradixPresence Present="IsPresent"
                             Tag="div"
                             Id="@ResolvedContentId"
                             Class="@Class"
                             Style="@Style"
                             AdditionalAttributes="@ContentAttributes"
-                            OnElementReferenceCaptured="@HandleContentReferenceCaptured"
-                            OnPointerEnter="@HandlePointerEnter"
-                            OnPointerLeave="@HandlePointerLeave"
-                            OnPointerDown="@HandlePointerDown">
+                            OnElementReferenceCaptured="(_cachedHandleContentReferenceCapturedDelegate ??= HandleContentReferenceCaptured)"
+                            OnPointerEnter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
+                            OnPointerLeave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
+                            OnPointerDown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)">
                 @ChildContent
             </BradixPresence>
         </BradixPopperContent>
@@ -48,6 +49,16 @@
 }
 
 @code {
+    private System.Func<BradixEscapeKeyDownEventArgs, Task>? _cachedHandleEscapeKeyDownDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixFocusOutsideEventArgs, Task>? _cachedHandleFocusOutsideDelegate;
+    private System.Func<BradixInteractOutsideEventArgs, Task>? _cachedHandleInteractOutsideDelegate;
+    private System.Func<BradixPopperPlacementEventArgs, Task>? _cachedHandlePlacementChangedDelegate;
+    private System.Func<ElementReference, Task>? _cachedHandleContentReferenceCapturedDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerEnterDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerLeaveDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
+
     private ElementReference _contentElement;
     private bool _hasContentElement;
     private bool _selectionContainmentRegistered;
@@ -149,8 +160,18 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private ValueAtomicBool _disposed;
+    private Task _afterRenderTask = Task.CompletedTask;
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
+        return _disposed.Read() ? Task.CompletedTask : _afterRenderTask = UpdateAfterRender(_afterRenderTask);
+    }
+
+    private async Task UpdateAfterRender(Task previous)
+    {
+        await previous;
+        if (_disposed.Read()) return;
         if (!IsPresent)
         {
             if (_selectionContainmentRegistered)
@@ -173,7 +194,7 @@
             _tabNavigationDisabled = true;
         }
 
-        if (_selectionContainmentRegistered)
+        if (_disposed.Read() || _selectionContainmentRegistered)
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
@@ -183,10 +204,19 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_selectionContainmentRegistered)
-            await HoverCardAvatarInterop.UnregisterHoverCardSelectionContainment(_contentElement);
-
-        _dotNetReference?.Dispose();
+        if (!_disposed.TrySetTrue()) return;
+        try
+        {
+            await _afterRenderTask;
+            if (_selectionContainmentRegistered)
+                await HoverCardAvatarInterop.UnregisterHoverCardSelectionContainment(_contentElement);
+        }
+        finally
+        {
+            _selectionContainmentRegistered = false;
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     private Task HandleContentReferenceCaptured(ElementReference element)

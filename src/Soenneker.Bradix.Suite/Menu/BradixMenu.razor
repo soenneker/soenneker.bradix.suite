@@ -17,6 +17,8 @@
 </CascadingValue>
 
 @code {
+    private string? _childIdCache0;
+
     private readonly BradixCollectionRegistry<IBradixMenuRovingItem> _items = new();
     private readonly BradixTypeaheadBuffer _typeahead = new();
     private BradixPopper? _popper;
@@ -25,6 +27,7 @@
     private bool _focusContentOnOpen = true;
     private bool? _lastControlledOpen;
     private bool _uncontrolledOpen;
+    private Func<Task>? _focusFirstItemCallback;
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -54,7 +57,7 @@
 
     internal bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    internal string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
+    internal string ContentId => BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache0);
 
     internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
@@ -129,7 +132,7 @@
         EnsureCurrentTabStopId();
 
         if (CurrentOpen && _focusFirstItemOnOpen)
-            _ = InvokeAsync(FocusFirstItem);
+            _ = InvokeAsync(_focusFirstItemCallback ??= FocusFirstItem);
     }
 
     internal void UnregisterItem(IBradixMenuRovingItem item)
@@ -153,6 +156,9 @@
 
     internal async Task<bool> HandleItemNavigation(IBradixMenuRovingItem item, string key, bool loop)
     {
+        if (key is not ("ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown"))
+            return false;
+
         int enabledCount = CountEnabledItems(item, out int currentIndex);
         if (enabledCount == 0 || currentIndex < 0)
             return false;
@@ -243,13 +249,13 @@
         if (_popper is not null && !_popper.HasAnchor && !_popper.HasVirtualAnchor)
             _popper.RegisterAnchor(element);
 
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void RegisterAnchor(ElementReference element)
     {
         _popper?.RegisterAnchor(element);
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void RegisterContent(ElementReference element)
@@ -282,11 +288,20 @@
         }
     }
 
+    private string? _focusItemId;
+    private string? _focusItemSelector;
+
     private async Task FocusItem(IBradixMenuRovingItem item)
     {
         if (HasContentElement)
         {
-            bool focused = await ControlsInterop.FocusFirstMatchingDescendant(ContentElement, $"[data-bradix-roving-item-id='{item.TabStopId}']");
+            string id = item.TabStopId;
+            if (_focusItemSelector is null || _focusItemId != id)
+            {
+                _focusItemId = id;
+                _focusItemSelector = $"[data-bradix-roving-item-id='{id}']";
+            }
+            bool focused = await ControlsInterop.FocusFirstMatchingDescendant(ContentElement, _focusItemSelector);
 
             if (focused)
                 return;
@@ -324,7 +339,7 @@
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     public Task ToggleOpen()
@@ -358,6 +373,10 @@
 
     private void EnsureCurrentTabStopId()
     {
+        if (CurrentTabStopId is not null && _items.TryGet(CurrentTabStopId, out IBradixMenuRovingItem current) &&
+            !current.IsDisabled && string.Equals(current.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
+            return;
+
         IBradixMenuRovingItem? first = null;
 
         foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
@@ -423,7 +442,7 @@
         if (enabledCount == 0 || string.IsNullOrEmpty(search))
             return null;
 
-        string normalizedSearch = BradixTypeaheadMatcher.NormalizeSearch(search);
+        ReadOnlySpan<char> normalizedSearch = BradixTypeaheadMatcher.GetNormalizedSearch(search);
         int startIndex = Math.Max(currentIndex, 0);
         bool excludeCurrentItem = normalizedSearch.Length == 1 && currentItem is not null;
         IBradixMenuRovingItem? nextItem = FindNextTypeaheadItemInRange(normalizedSearch, currentItem, excludeCurrentItem, startIndex, enabledCount)
@@ -432,13 +451,16 @@
         return currentItem is not null && ReferenceEquals(nextItem, currentItem) ? null : nextItem;
     }
 
-    private IBradixMenuRovingItem? FindNextTypeaheadItemInRange(string normalizedSearch, IBradixMenuRovingItem? currentItem, bool excludeCurrentItem, int startIndex,
+    private IBradixMenuRovingItem? FindNextTypeaheadItemInRange(ReadOnlySpan<char> normalizedSearch, IBradixMenuRovingItem? currentItem, bool excludeCurrentItem, int startIndex,
         int endIndex)
     {
         var index = 0;
 
         foreach (KeyValuePair<string, IBradixMenuRovingItem> entry in _items)
         {
+            if (index >= endIndex)
+                break;
+
             IBradixMenuRovingItem item = entry.Value;
             if (item.IsDisabled)
                 continue;
@@ -446,7 +468,7 @@
             if (index >= startIndex && index < endIndex)
             {
                 if ((!excludeCurrentItem || !ReferenceEquals(item, currentItem)) &&
-                    (item.TextValue ?? string.Empty).StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase))
+                    item.TextValue.AsSpan().StartsWith(normalizedSearch, StringComparison.OrdinalIgnoreCase))
                 {
                     return item;
                 }

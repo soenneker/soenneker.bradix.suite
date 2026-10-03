@@ -12,13 +12,15 @@
 </div>
 
 @code {
+    private string? _mergedStyleCache0;
+
     private ElementReference _element;
     private bool _registered;
     private ValueAtomicBool _disposed;
 
     private Dictionary<string, object> BranchAttributes => BuildAttributes(
         ("data-bradix-dismissable-layer-branch", string.Empty),
-        ("style", MergeStyleValues("display:contents;", Style)));
+        ("style", BradixStringCache.MergeStyle("display:contents;", Style, ref _mergedStyleCache0)));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

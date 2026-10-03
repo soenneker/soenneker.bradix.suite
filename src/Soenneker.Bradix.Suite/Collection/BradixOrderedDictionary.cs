@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Soenneker.Bradix;
 
@@ -102,10 +103,10 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     /// <returns>The resulting bradix Ordered Dictionary.</returns>
     public BradixOrderedDictionary<TKey, TValue> Set(TKey key, TValue value)
     {
-        if (_map.TryAdd(key, value))
+        ref TValue? slot = ref CollectionsMarshal.GetValueRefOrAddDefault(_map, key, out bool exists);
+        slot = value;
+        if (!exists)
             _keys.Add(key);
-        else
-            _map[key] = value;
 
         return this;
     }

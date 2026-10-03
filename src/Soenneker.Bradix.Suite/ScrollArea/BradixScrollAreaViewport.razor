@@ -20,6 +20,8 @@
 </div>
 
 @code {
+    private string? _mergedStyleCache0;
+
     private ElementReference _viewport;
     private ElementReference _content;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -73,17 +75,21 @@
     }
 
     private Dictionary<string, object> ViewportAttributes => BuildAttributes(
-        ("tabindex", 0),
+        ("tabindex", BradixAttributeValues.Zero),
         ("data-radix-scroll-area-viewport", string.Empty),
         ("class", Class),
         ("style", BuildViewportStyle()));
 
     private string BuildViewportStyle()
     {
-        string overflowX = ScrollArea.ScrollbarXMounted ? "scroll" : "hidden";
-        string overflowY = ScrollArea.ScrollbarYMounted ? "scroll" : "hidden";
-        var baseStyle = $"overflow-x: {overflowX}; overflow-y: {overflowY};";
+        string baseStyle = (ScrollArea.ScrollbarXMounted, ScrollArea.ScrollbarYMounted) switch
+        {
+            (true, true) => "overflow-x: scroll; overflow-y: scroll;",
+            (true, false) => "overflow-x: scroll; overflow-y: hidden;",
+            (false, true) => "overflow-x: hidden; overflow-y: scroll;",
+            _ => "overflow-x: hidden; overflow-y: hidden;"
+        };
 
-        return MergeStyleValues(baseStyle, Style)!;
+        return BradixStringCache.MergeStyle(baseStyle, Style, ref _mergedStyleCache0)!;
     }
 }

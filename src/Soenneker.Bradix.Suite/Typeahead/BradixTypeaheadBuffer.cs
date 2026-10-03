@@ -43,9 +43,10 @@ public sealed class BradixTypeaheadBuffer
             return CurrentSearch;
         }
 
-        Refresh();
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        if (_expiresAt is not null && now >= _expiresAt.Value) Reset();
         _search += key;
-        _expiresAt = _timeProvider.GetUtcNow().Add(_resetAfter);
+        _expiresAt = now.Add(_resetAfter);
 
         return _search;
     }

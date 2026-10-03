@@ -22,7 +22,7 @@
     private bool? _lastPreventMountAutoFocus;
     private bool? _lastPreventUnmountAutoFocus;
     private ValueAtomicBool _disposed;
-    private readonly CancellationTokenSource _disposeCts = new();
+    private CancellationTokenSource? _disposeCts;
 
     [Parameter]
     public bool Loop { get; set; }
@@ -50,7 +50,7 @@
 
     private bool HasMountAutoFocusCallback => OnMountAutoFocus.HasDelegate || OnMountAutoFocusDetailed.HasDelegate;
 
-    private Dictionary<string, object> ScopeAttributes => BuildAttributes("tabindex", -1);
+    private Dictionary<string, object> ScopeAttributes => BuildAttributes("tabindex", BradixAttributeValues.MinusOne);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -65,7 +65,7 @@
             try
             {
                 await FocusScopeInterop.RegisterFocusScope(_element, dotNetReference, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus,
-                    HasMountAutoFocusCallback, _disposeCts.Token);
+                    HasMountAutoFocusCallback, (_disposeCts ??= new()).Token);
             }
             catch (OperationCanceledException) when (_disposed.Read())
             {
@@ -94,7 +94,7 @@
         {
             try
             {
-                await FocusScopeInterop.UpdateFocusScope(_element, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus, _disposeCts.Token);
+                await FocusScopeInterop.UpdateFocusScope(_element, Loop, Trapped, PreventMountAutoFocus, PreventUnmountAutoFocus, (_disposeCts ??= new()).Token);
             }
             catch (OperationCanceledException) when (_disposed.Read())
             {
@@ -122,7 +122,7 @@
         bool unmountAutoFocusPrevented = PreventUnmountAutoFocus;
         try
         {
-            await _disposeCts.CancelAsync();
+            if (_disposeCts is not null) await _disposeCts.CancelAsync();
             if (_registered && Trapped)
                 await FocusScopeInterop.UpdateFocusScope(_element, Loop, false, PreventMountAutoFocus, PreventUnmountAutoFocus);
             if (OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate)
@@ -142,7 +142,7 @@
             {
                 _dotNetReference?.Dispose();
                 _dotNetReference = null;
-                _disposeCts.Dispose();
+                _disposeCts?.Dispose();
             }
         }
     }
@@ -150,13 +150,14 @@
     [JSInvokable]
     public Task<bool> HandleMountAutoFocus()
     {
-        return HandleMountAutoFocusCore(new BradixAutoFocusEventArgs());
+        return HasMountAutoFocusCallback ? HandleMountAutoFocusCore(new BradixAutoFocusEventArgs()) : Task.FromResult(false);
     }
 
     [JSInvokable]
     public Task<bool> HandleUnmountAutoFocus()
     {
-        return HandleUnmountAutoFocusCore(new BradixAutoFocusEventArgs());
+        return OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate
+            ? HandleUnmountAutoFocusCore(new BradixAutoFocusEventArgs()) : Task.FromResult(false);
     }
 
     private async Task<bool> HandleMountAutoFocusCore(BradixAutoFocusEventArgs args)

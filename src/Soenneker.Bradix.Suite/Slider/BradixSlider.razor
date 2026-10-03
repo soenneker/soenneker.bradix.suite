@@ -21,8 +21,12 @@
     private ValueAtomicBool _disposed;
     private bool _initialized;
     private bool _registered;
-    private List<double> _valuesBeforeSlideStart = [];
-    private List<double> _uncontrolledValues = [];
+    private readonly List<double> _valuesBeforeSlideStart = [];
+    private string? _multipleInputName;
+    private bool _hasStepDecimalCount;
+    private long _stepBits;
+    private int _stepDecimalCount;
+    private IReadOnlyList<double> _uncontrolledValues = [];
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
 
@@ -97,7 +101,7 @@
 
         _uncontrolledValues = BradixSliderMath.NormalizeValues(DefaultValues, Min, Max);
         _initialized = true;
-        _valuesBeforeSlideStart = CopyValues(CurrentValues);
+        CaptureValuesBeforeSlideStart();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -114,7 +118,7 @@
         }
 
         _registered = true;
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     public async ValueTask DisposeAsync()
@@ -139,13 +143,13 @@
             return;
 
         _thumbs.Add(thumb);
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void UnregisterThumb(BradixSliderThumb thumb)
     {
         if (_thumbs.Remove(thumb) && !_disposed.Read())
-            _ = InvokeAsync(StateHasChanged);
+            _ = RequestRender();
     }
 
     internal int GetThumbIndex(BradixSliderThumb thumb)
@@ -171,7 +175,7 @@
         if (string.IsNullOrWhiteSpace(Name))
             return null;
 
-        return CurrentValues.Count > 1 ? $"{Name}[]" : Name;
+        return CurrentValues.Count > 1 ? BradixStringCache.Concat(Name, "[]", ref _multipleInputName) : Name;
     }
 
     internal double GetPercentForValue(double value)
@@ -181,7 +185,7 @@
 
     internal double NormalizeStepValue(double value)
     {
-        int decimalCount = BradixSliderMath.GetDecimalCount(Step);
+        int decimalCount = StepDecimalCount;
         return BradixSliderMath.RoundValue(value, decimalCount);
     }
 
@@ -239,7 +243,7 @@
         if (_disposed.Read() || Disabled)
             return;
 
-        _valuesBeforeSlideStart = CopyValues(CurrentValues);
+        CaptureValuesBeforeSlideStart();
 
         if (thumbIndex >= 0)
         {
@@ -286,7 +290,7 @@
         if (ValuesEqual(_valuesBeforeSlideStart, CurrentValues))
             return;
 
-        List<double> restoredValues = CopyValues(_valuesBeforeSlideStart);
+        double[] restoredValues = CopyValues(_valuesBeforeSlideStart);
 
         if (Values is null)
             _uncontrolledValues = restoredValues;
@@ -297,7 +301,7 @@
         if (OnValuesChange.HasDelegate)
             await OnValuesChange.InvokeAsync(restoredValues);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
         await FocusThumb(CurrentThumbIndex);
     }
 
@@ -306,18 +310,12 @@
         if (atIndex < 0 || atIndex >= CurrentValues.Count)
             return;
 
-        int decimalCount = BradixSliderMath.GetDecimalCount(Step);
+        int decimalCount = StepDecimalCount;
         double snappedValue = BradixSliderMath.RoundValue(Math.Round((value - Min) / Step) * Step + Min, decimalCount);
         double clampedValue = BradixSliderMath.Clamp(snappedValue, Min, Max);
 
-        List<double> nextValues = BradixSliderMath.GetNextSortedValues(CurrentValues, clampedValue, atIndex);
-
-        if (!BradixSliderMath.HasMinStepsBetweenValues(nextValues, MinStepsBetweenThumbs * Step))
-            return;
-
-        int nextIndex = nextValues.IndexOf(clampedValue);
-
-        if (ValuesEqual(nextValues, CurrentValues))
+        double[]? nextValues = BuildChangedValues(CurrentValues, clampedValue, atIndex, MinStepsBetweenThumbs * Step, out int nextIndex);
+        if (nextValues is null)
             return;
 
         CurrentThumbIndex = nextIndex;
@@ -338,7 +336,7 @@
                 await OnValueCommit.InvokeAsync(result);
         }
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
         await FocusThumb(CurrentThumbIndex);
     }
 
@@ -406,15 +404,63 @@
         return key is "ArrowUp" or "ArrowDown" or "ArrowLeft" or "ArrowRight";
     }
 
-    private static List<double> CopyValues(IReadOnlyList<double> values)
+    private int StepDecimalCount
     {
-        List<double> copy = new(values.Count);
-
-        for (var i = 0; i < values.Count; i++)
+        get
         {
-            copy.Add(values[i]);
+            long bits = BitConverter.DoubleToInt64Bits(Step);
+            if (!_hasStepDecimalCount || _stepBits != bits)
+            {
+                _stepBits = bits;
+                _stepDecimalCount = BradixSliderMath.GetDecimalCount(Step);
+                _hasStepDecimalCount = true;
+            }
+            return _stepDecimalCount;
         }
+    }
 
+    private void CaptureValuesBeforeSlideStart()
+    {
+        _valuesBeforeSlideStart.Clear();
+        IReadOnlyList<double> values = CurrentValues;
+        for (var i = 0; i < values.Count; i++) _valuesBeforeSlideStart.Add(values[i]);
+    }
+
+    private static double[]? BuildChangedValues(IReadOnlyList<double> current, double value, int atIndex, double minimumGap, out int nextIndex)
+    {
+        double[]? rented = null;
+        Span<double> candidate = current.Count <= 64
+            ? stackalloc double[current.Count]
+            : (rented = System.Buffers.ArrayPool<double>.Shared.Rent(current.Count)).AsSpan(0, current.Count);
+        try
+        {
+            for (var i = 0; i < candidate.Length; i++) candidate[i] = current[i];
+            candidate[atIndex] = value;
+            candidate.Sort();
+            nextIndex = -1;
+            if (minimumGap > 0)
+            {
+                for (var i = 1; i < candidate.Length; i++)
+                    if (candidate[i] - candidate[i - 1] < minimumGap) return null;
+            }
+            var changed = false;
+            for (var i = 0; i < candidate.Length; i++)
+            {
+                if (candidate[i] != current[i]) changed = true;
+                if (nextIndex < 0 && candidate[i].Equals(value)) nextIndex = i;
+            }
+            return changed ? candidate.ToArray() : null;
+        }
+        finally
+        {
+            if (rented is not null) System.Buffers.ArrayPool<double>.Shared.Return(rented);
+        }
+    }
+
+    private static double[] CopyValues(IReadOnlyList<double> values)
+    {
+        var copy = new double[values.Count];
+        for (var i = 0; i < copy.Length; i++) copy[i] = values[i];
         return copy;
     }
 

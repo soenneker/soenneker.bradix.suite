@@ -39,7 +39,7 @@ public sealed class TooltipInterop : ITooltipInterop
         bool hoverableContent, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerTooltipContent", cancellationToken, content, trigger, dotNetReference, contentId, hoverableContent);
+        await module.InvokeVoidAsync("registerTooltipContent", cancellationToken, content, trigger, dotNetReference, contentId, hoverableContent ? BradixAttributeValues.True : BradixAttributeValues.False);
     }
 
     public async ValueTask UnregisterTooltipContent(ElementReference content, CancellationToken cancellationToken = default)

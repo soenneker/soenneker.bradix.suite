@@ -13,6 +13,9 @@
 }
 
 @code {
+    private object? _matcherSource;
+    private Func<string?, BradixFormDataSnapshot, ValueTask<bool>>? _cachedMatcher;
+    private BradixFormCustomMatcherEntry? _matcherEntry;
     private static readonly IReadOnlyDictionary<string, string> _defaultMessages = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["badInput"] = "This value is not valid",
@@ -83,11 +86,9 @@
         {
             if (!string.IsNullOrWhiteSpace(ResolvedName))
             {
-                Form?.RegisterFieldCustomMatcher(ResolvedName, new BradixFormCustomMatcherEntry
-                {
-                    Id = MessageId,
-                    Match = matcher!
-                });
+                if (_matcherEntry is null || _matcherEntry.Id != MessageId || !ReferenceEquals(_matcherEntry.Match, matcher))
+                    _matcherEntry = new BradixFormCustomMatcherEntry { Id = MessageId, Match = matcher! };
+                Form?.RegisterFieldCustomMatcher(ResolvedName, _matcherEntry);
 
                 _registeredCustomMatcherFieldName = ResolvedName;
             }
@@ -148,32 +149,30 @@
         if (Match is null)
             return true;
 
-        if (Validity is null)
+        var validity = Validity;
+        if (validity is null)
             return false;
-
-        if (Match is null)
-            return !Validity.Valid || Field?.ServerInvalid == true;
 
         if (TryGetBuiltInMatch(out string? builtInMatch))
         {
             return builtInMatch switch
             {
-                "badInput" => Validity.BadInput,
-                "customError" => Validity.CustomError,
-                "patternMismatch" => Validity.PatternMismatch,
-                "rangeOverflow" => Validity.RangeOverflow,
-                "rangeUnderflow" => Validity.RangeUnderflow,
-                "stepMismatch" => Validity.StepMismatch,
-                "tooLong" => Validity.TooLong,
-                "tooShort" => Validity.TooShort,
-                "typeMismatch" => Validity.TypeMismatch,
-                "valid" => Validity.Valid,
-                "valueMissing" => Validity.ValueMissing,
+                "badInput" => validity.BadInput,
+                "customError" => validity.CustomError,
+                "patternMismatch" => validity.PatternMismatch,
+                "rangeOverflow" => validity.RangeOverflow,
+                "rangeUnderflow" => validity.RangeUnderflow,
+                "stepMismatch" => validity.StepMismatch,
+                "tooLong" => validity.TooLong,
+                "tooShort" => validity.TooShort,
+                "typeMismatch" => validity.TypeMismatch,
+                "valid" => validity.Valid,
+                "valueMissing" => validity.ValueMissing,
                 _ => false
             };
         }
 
-        return !HasBuiltInError(Validity) &&
+        return !HasBuiltInError(validity) &&
                !string.IsNullOrWhiteSpace(ResolvedName) &&
                Form?.GetFieldCustomError(ResolvedName, MessageId) == true;
     }
@@ -200,19 +199,25 @@
 
     private bool TryCreateCustomMatcher(out Func<string?, BradixFormDataSnapshot, ValueTask<bool>>? matcher)
     {
+        if (ReferenceEquals(_matcherSource, Match))
+        {
+            matcher = _cachedMatcher;
+            return matcher is not null;
+        }
+        _matcherSource = Match;
         switch (Match)
         {
             case Func<string?, BradixFormDataSnapshot, ValueTask<bool>> valueTaskMatcher:
-                matcher = valueTaskMatcher;
+                matcher = _cachedMatcher = valueTaskMatcher;
                 return true;
             case Func<string?, BradixFormDataSnapshot, Task<bool>> taskMatcher:
-                matcher = (value, formData) => new ValueTask<bool>(taskMatcher(value, formData));
+                matcher = _cachedMatcher = (value, formData) => new ValueTask<bool>(taskMatcher(value, formData));
                 return true;
             case Func<string?, BradixFormDataSnapshot, bool> syncMatcher:
-                matcher = (value, formData) => ValueTask.FromResult(syncMatcher(value, formData));
+                matcher = _cachedMatcher = (value, formData) => ValueTask.FromResult(syncMatcher(value, formData));
                 return true;
             default:
-                matcher = null;
+                matcher = _cachedMatcher = null;
                 return false;
         }
     }

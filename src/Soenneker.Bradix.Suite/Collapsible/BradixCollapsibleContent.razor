@@ -8,8 +8,8 @@
 <BradixPresence Present="@(Collapsible.IsOpen || ForceMount)"
                 Tag="div"
                 AdditionalAttributes="@ContentAttributes"
-                OnElementReferenceCaptured="@HandleElementCaptured"
-                OnExitComplete="@HandleExitComplete">
+                OnElementReferenceCaptured="(_cachedHandleElementCapturedDelegate ??= HandleElementCaptured)"
+                OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
     @if (ShouldRenderChildren)
     {
         @ChildContent
@@ -17,6 +17,11 @@
 </BradixPresence>
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<ElementReference, Task>? _cachedHandleElementCapturedDelegate;
+    private System.Func<Task>? _cachedHandleExitCompleteDelegate;
+
     private ElementReference _element;
     private bool _hasElement;
     private bool _observing;
@@ -51,9 +56,9 @@
 
             if (ForceMount && !Collapsible.IsOpen)
             {
-                attributes["hidden"] = true;
+                attributes["hidden"] = BradixAttributeValues.True;
                 attributes["aria-hidden"] = "true";
-                attributes["inert"] = true;
+                attributes["inert"] = BradixAttributeValues.True;
             }
 
             if (Collapsible.Disabled)
@@ -80,10 +85,7 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await EnsureObservation();
-    }
+    protected override Task OnAfterRenderAsync(bool firstRender) => EnsureObservation();
 
     protected override void OnParametersSet()
     {
@@ -125,12 +127,12 @@
         _hasElement = false;
         _wasPresent = false;
         _shouldRenderChildren = false;
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private string? BuildMergedStyle(string? additionalStyle)
     {
-        return MergeStyleValues(additionalStyle, Style);
+        return BradixStringCache.MergeStyle(additionalStyle, Style, ref _mergedStyleCache0);
     }
 
     private async Task EnsureObservation()

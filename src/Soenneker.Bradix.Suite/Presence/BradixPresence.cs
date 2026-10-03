@@ -75,6 +75,9 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
     [Parameter]
     public bool PreventKeyDownDefault { get; set; }
 
+    private Func<KeyboardEventArgs, Task>? _keyDownCallback;
+    private Func<Task>? _completeUnmountCallback;
+    private Action<ElementReference>? _captureElementCallback;
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _registered;
@@ -190,7 +193,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
         builder.AddMultipleAttributes(1, BuildRenderAttributes());
         if (OnKeyDown.HasDelegate)
         {
-            builder.AddAttribute(2, "onkeydown", EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDown));
+            builder.AddAttribute(2, "onkeydown", EventCallback.Factory.Create<KeyboardEventArgs>(this, _keyDownCallback ??= HandleKeyDown));
             if (PreventKeyDownDefault)
                 builder.AddEventPreventDefaultAttribute(3, "onkeydown", true);
         }
@@ -200,7 +203,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
             builder.AddAttribute(5, "onpointerleave", OnPointerLeave);
         if (OnPointerDown.HasDelegate)
             builder.AddAttribute(6, "onpointerdown", OnPointerDown);
-        builder.AddElementReferenceCapture(7, element => _element = element);
+        builder.AddElementReferenceCapture(7, _captureElementCallback ??= CaptureElement);
         builder.AddContent(8, ChildContent);
         builder.CloseElement();
     }
@@ -274,7 +277,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
         if (!_exitSuspended || Present)
             return;
 
-        await InvokeAsync(CompleteUnmount);
+        await InvokeAsync(_completeUnmountCallback ??= CompleteUnmount);
     }
 
     private async Task CompleteUnmount()
@@ -296,13 +299,15 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
         if (OnExitComplete.HasDelegate)
             await OnExitComplete.InvokeAsync();
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private Dictionary<string, object> BuildRenderAttributes()
     {
         return BuildAttributes();
     }
+
+    private void CaptureElement(ElementReference element) => _element = element;
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {

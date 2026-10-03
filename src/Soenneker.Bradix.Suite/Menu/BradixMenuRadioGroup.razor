@@ -16,6 +16,7 @@
     private bool _initialized;
     private string? _uncontrolledValue;
     private BradixMenuRadioGroupContext? _radioGroupContext;
+    private Func<string, Task>? _setValueCallback;
 
     [Parameter]
     public string? Value { get; set; }
@@ -47,7 +48,7 @@
                 {
                     CurrentValue = currentValue,
                     Disabled = Disabled,
-                    SetValue = SetValue
+                    SetValue = _setValueCallback ??= SetValue
                 };
             }
 
@@ -80,6 +81,6 @@
         if (OnValueChange.HasDelegate)
             await OnValueChange.InvokeAsync(value);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 }

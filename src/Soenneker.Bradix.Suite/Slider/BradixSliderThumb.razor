@@ -12,8 +12,8 @@
 @inject IControlsInterop ControlsInterop
 <span style="@WrapperStyle">
     <span @ref="_element"
-          @onfocus="HandleFocus"
-          @onkeydown="HandleKeyDown"
+          @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+          @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
           @attributes="ThumbAttributes">
     </span>
 
@@ -25,8 +25,21 @@
 </span>
 
 @code {
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
     private static readonly string[] PreventDefaultKeys = ["Home", "End", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
 
+    private BradixAttributeDictionary? _bubbleAttributes;
+    private BradixInvariantDoubleTextCache _minText;
+    private BradixInvariantDoubleTextCache _maxText;
+    private BradixInvariantDoubleTextCache _valueText;
+    private string? _wrapperStyle;
+    private (long Percent, string Edge, string Transform, int Direction) _wrapperStyleKey;
+    private System.Globalization.CultureInfo? _wrapperStyleCulture;
+    private string? _defaultLabel;
+    private (int Index, int Count) _defaultLabelKey;
+    private System.Globalization.CultureInfo? _defaultLabelCulture;
     private ElementReference _element;
     private ElementReference _bubbleInputElement;
     private bool _hasSyncedBubbleInput;
@@ -52,11 +65,28 @@
 
     private double? Value => Slider.GetThumbValue(Index);
 
-    private string? FormattedValue => Value is null ? null : Slider.FormatStepValue(Value.Value);
+    private string? FormattedValue => Value is double value ? _valueText.Get(Slider.NormalizeStepValue(value)) : null;
 
     private string? InputName => Slider.GetThumbInputName(this);
 
     private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Slider.Form);
+
+    private string? DefaultLabel
+    {
+        get
+        {
+            var key = (Index, Slider.CurrentValues.Count);
+            var culture = System.Globalization.CultureInfo.CurrentCulture;
+            if (!culture.IsReadOnly) return BradixSliderMath.GetThumbLabel(key.Item1, key.Item2);
+            if (_defaultLabelCulture is null || _defaultLabelKey != key || !ReferenceEquals(_defaultLabelCulture, culture))
+            {
+                _defaultLabelKey = key;
+                _defaultLabelCulture = culture;
+                _defaultLabel = BradixSliderMath.GetThumbLabel(key.Item1, key.Item2);
+            }
+            return _defaultLabel;
+        }
+    }
 
     private string WrapperStyle
     {
@@ -87,8 +117,19 @@
                 direction = fromBottom ? 1 : -1;
             }
 
+            var key = (BitConverter.DoubleToInt64Bits(percent), startEdge, transform, direction);
+            var culture = System.Globalization.CultureInfo.CurrentCulture;
+            if (culture.IsReadOnly && _wrapperStyle is not null && _wrapperStyleKey == key && ReferenceEquals(_wrapperStyleCulture, culture))
+                return _wrapperStyle;
+
             var percentText = percent.ToString(System.Globalization.CultureInfo.InvariantCulture);
             var style = $"--bradix-slider-thumb-percent: {percentText}; --bradix-slider-thumb-direction: {direction}; position: absolute; {startEdge}: calc({percentText}% + var(--bradix-slider-thumb-in-bounds-offset, 0px)); transform: {transform};";
+            if (culture.IsReadOnly)
+            {
+                _wrapperStyleKey = key;
+                _wrapperStyleCulture = culture;
+                _wrapperStyle = style;
+            }
             return style;
         }
     }
@@ -99,19 +140,19 @@
         {
             Dictionary<string, object> attributes = BuildAttributes(
                 ("role", "slider"),
-                ("aria-label", AriaLabel ?? BradixSliderMath.GetThumbLabel(Index, Slider.CurrentValues.Count)),
-                ("aria-valuemin", Slider.Min.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("aria-label", AriaLabel ?? DefaultLabel),
+                ("aria-valuemin", _minText.Get(Slider.Min)),
                 ("aria-valuenow", FormattedValue),
-                ("aria-valuemax", Slider.Max.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("aria-valuemax", _maxText.Get(Slider.Max)),
                 ("aria-orientation", Slider.Orientation.Value),
                 ("aria-disabled", Slider.Disabled ? "true" : null),
                 ("data-orientation", Slider.Orientation.Value),
                 ("data-disabled", Slider.Disabled ? string.Empty : null),
-                ("tabindex", Slider.Disabled ? null : 0),
+                ("tabindex", Slider.Disabled ? null : BradixAttributeValues.Zero),
                 ("style", Value is null ? "display: none;" : null));
 
             if (Slider.Disabled)
-                attributes["tabindex"] = -1;
+                attributes["tabindex"] = BradixAttributeValues.MinusOne;
 
             return attributes;
         }
@@ -121,11 +162,9 @@
     {
         get
         {
-            Dictionary<string, object> attributes = new()
-            {
-                ["style"] = "display:none;",
-                ["value"] = FormattedValue ?? string.Empty
-            };
+            Dictionary<string, object> attributes = (_bubbleAttributes ??= new BradixAttributeDictionary()).Create(null, 4);
+            attributes["style"] = "display:none;";
+            attributes["value"] = FormattedValue ?? string.Empty;
 
             if (InputName is not null)
                 attributes["name"] = InputName;
@@ -176,7 +215,7 @@
             if (_isFormControl != isFormControl)
             {
                 _isFormControl = isFormControl;
-                await InvokeAsync(StateHasChanged);
+                await RequestRender();
                 return;
             }
         }

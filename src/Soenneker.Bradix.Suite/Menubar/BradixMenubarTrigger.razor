@@ -10,23 +10,32 @@
 @inject IDelegatedInteractionInterop DelegatedInteractionInterop
 <BradixMenuAnchor>
     <button @ref="_button"
-            @onpointerdown="HandlePointerDown"
+            @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
             @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
-            @onpointerenter="HandlePointerEnter"
-            @onclick="HandleClick"
-            @onkeydown="HandleKeyDown"
-            @onkeyup="HandleKeyUp"
-            @onfocus="HandleFocus"
-            @onblur="HandleBlur"
+            @onpointerenter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
+            @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+            @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
+            @onkeyup="(_cachedHandleKeyUpDelegate ??= HandleKeyUp)"
+            @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+            @onblur="(_cachedHandleBlurDelegate ??= HandleBlur)"
             @attributes="TriggerAttributes">
         @ChildContent
     </button>
 </BradixMenuAnchor>
 
 @code {
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerEnterDelegate;
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyUpDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleBlurDelegate;
+
     private static readonly string[] PreventDefaultKeys = ["Enter", " ", "Spacebar", "ArrowDown"];
 
     private ElementReference _button;
+    private Func<Task>? _focusFirstItemCallback;
     private bool _registered;
     private ValueAtomicBool _disposed;
     private bool _isFocused;
@@ -61,14 +70,14 @@
         ("type", "button"),
         ("role", "menuitem"),
         ("id", MenubarMenu?.TriggerId),
-        ("tabindex", IsOpen ? 0 : -1),
+        ("tabindex", IsOpen ? BradixAttributeValues.Zero : BradixAttributeValues.MinusOne),
         ("aria-haspopup", "menu"),
         ("aria-expanded", IsOpen ? "true" : "false"),
         ("aria-controls", IsOpen ? MenubarMenu?.ContentId : null),
         ("data-highlighted", _isFocused ? string.Empty : null),
         ("data-state", IsOpen ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("disabled", Disabled ? true : null));
+        ("disabled", Disabled ? BradixAttributeValues.True : null));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -196,13 +205,13 @@
 
         _isFocused = true;
         Menubar.SetCurrentTabStop(MenubarMenu.CurrentValue);
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private Task HandleBlur(FocusEventArgs _)
     {
         _isFocused = false;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private void QueueFocusFirstItemAfterKeyboardOpen()
@@ -210,7 +219,9 @@
         if (Menu is null)
             return;
 
-        _ = InvokeAsync(() => Menu.FocusFirstItem());
+        _ = InvokeAsync(_focusFirstItemCallback ??= FocusFirstItem);
     }
+
+    private Task FocusFirstItem() => Menu?.FocusFirstItem() ?? Task.CompletedTask;
 
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -13,6 +14,12 @@ namespace Soenneker.Bradix;
 /// </summary>
 public sealed class BradixSlot : BradixIdentifiableContentElement
 {
+    private Dictionary<string, BradixSlotEventHandlers>? _composedHandlers;
+    private string? _mergedClass;
+    private string? _mergedStyle;
+    private int _compositionGeneration;
+    private int _composedThisRender;
+
     /// <summary>
     /// Gets or sets element name.
     /// </summary>
@@ -43,20 +50,35 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
     private Dictionary<string, object> BuildMergedAttributes()
     {
         Dictionary<string, object> merged = BuildAttributes();
+        _compositionGeneration = unchecked(_compositionGeneration + 1);
+        _composedThisRender = 0;
 
         if (ChildAttributes is null)
+        {
+            _composedHandlers?.Clear();
             return merged;
+        }
 
         if (ChildAttributes is Dictionary<string, object> dictionary)
         {
             foreach (KeyValuePair<string, object> pair in dictionary)
                 MergeChildAttribute(merged, pair.Key, pair.Value);
 
-            return merged;
+        }
+        else
+        {
+            foreach ((string key, object value) in ChildAttributes)
+                MergeChildAttribute(merged, key, value);
         }
 
-        foreach ((string key, object value) in ChildAttributes)
-            MergeChildAttribute(merged, key, value);
+        if (_composedHandlers is not null && _composedThisRender != _composedHandlers.Count)
+        {
+            // Removed events must not retain application handlers. Dictionary removal
+            // is supported while enumerating on the targeted runtime.
+            foreach (var pair in _composedHandlers)
+                if (pair.Value.Generation != _compositionGeneration)
+                    _composedHandlers.Remove(pair.Key);
+        }
 
         return merged;
     }
@@ -67,7 +89,7 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
         {
             if (IsEventHandler(key))
             {
-                merged[key] = ComposeEventHandlers(childValue: value, slotValue);
+                merged[key] = ComposeEventHandlers(key, childValue: value, slotValue);
                 return;
             }
 
@@ -87,8 +109,23 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
         merged[key] = value;
     }
 
-    private object ComposeEventHandlers(object childValue, object slotValue)
+    private object ComposeEventHandlers(string key, object childValue, object slotValue)
     {
+        _composedHandlers ??= new(StringComparer.OrdinalIgnoreCase);
+        ref var cached = ref CollectionsMarshal.GetValueRefOrAddDefault(_composedHandlers, key, out bool exists);
+        if (!exists || cached.Callback is null || !Equals(cached.ChildValue, childValue) || !Equals(cached.SlotValue, slotValue))
+        {
+            cached = new BradixSlotEventHandlers(childValue, slotValue, CreateComposedCallback(childValue, slotValue));
+        }
+        cached.Generation = _compositionGeneration;
+        _composedThisRender++;
+        return cached.Callback;
+    }
+
+    private object CreateComposedCallback(object childValue, object slotValue)
+    {
+        // Allocate the closure only on a cache miss. Capture the pair, so an in-flight
+        // event retains its second handler if awaiting the first causes another render.
         return EventCallback.Factory.Create<object?>(this, async args =>
         {
             await InvokeHandler(childValue, args);
@@ -96,34 +133,27 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
         });
     }
 
-    private static async Task InvokeHandler(object handler, object? argument)
+    private static Task InvokeHandler(object handler, object? argument)
     {
         switch (handler)
         {
             case BradixEventCallback callback:
-                await callback.InvokeAsync(argument);
-                return;
+                return callback.InvokeAsync(argument);
             case EventCallback eventCallback:
-                await eventCallback.InvokeAsync(argument);
-                return;
+                return eventCallback.InvokeAsync(argument);
             case EventCallback<object?> callback:
-                await callback.InvokeAsync(argument);
-                return;
+                return callback.InvokeAsync(argument);
             case EventCallback<EventArgs> callback:
-                await callback.InvokeAsync(argument as EventArgs ?? EventArgs.Empty);
-                return;
+                return callback.InvokeAsync(argument as EventArgs ?? EventArgs.Empty);
             case Action action:
                 action();
-                return;
+                return Task.CompletedTask;
             case Func<Task> callback:
-                await callback();
-                return;
+                return callback();
             case Func<ValueTask> callback:
-                await callback();
-                return;
+                return callback().AsTask();
             default:
-                await InvokeTypedHandler(handler, argument);
-                return;
+                return InvokeTypedHandler(handler, argument);
         }
     }
 
@@ -148,25 +178,21 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
         };
     }
 
-    private static async Task InvokeTypedHandler<TArgument>(object handler, TArgument argument)
+    private static Task InvokeTypedHandler<TArgument>(object handler, TArgument argument)
     {
         switch (handler)
         {
             case EventCallback<TArgument> callback:
-                await callback.InvokeAsync(argument);
-                return;
+                return callback.InvokeAsync(argument);
             case Action<TArgument> callback:
                 callback(argument);
-                return;
+                return Task.CompletedTask;
             case Func<TArgument, Task> callback:
-                await callback(argument);
-                return;
+                return callback(argument);
             case Func<TArgument, ValueTask> callback:
-                await callback(argument);
-                return;
+                return callback(argument).AsTask();
             default:
-                await ThrowUnsupportedHandler(handler);
-                return;
+                return ThrowUnsupportedHandler(handler);
         }
     }
 
@@ -181,52 +207,32 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
         return key.StartsWith("on", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string MergeStringValues(object slotValue, object childValue)
-    {
-        return MergeNonEmptyValues(slotValue?.ToString(), childValue?.ToString());
-    }
-
-    private static string MergeStyleValues(object slotValue, object childValue)
+    private string MergeStringValues(object slotValue, object childValue)
     {
         string? first = slotValue?.ToString();
         string? second = childValue?.ToString();
-        if (string.IsNullOrWhiteSpace(first))
-            return NormalizeStyle(second) ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(second))
-            return NormalizeStyle(first) ?? string.Empty;
-
-        // Normalize directly into the final string instead of allocating two
-        // intermediate strings for declarations without trailing semicolons.
-        ReadOnlySpan<char> left = first.AsSpan().Trim().TrimEnd(';');
-        ReadOnlySpan<char> right = second.AsSpan().Trim().TrimEnd(';');
-        return string.Concat(left, "; ".AsSpan(), right, ";".AsSpan());
+        if (string.IsNullOrWhiteSpace(first) && string.IsNullOrWhiteSpace(second)) return string.Empty;
+        return BradixStringCache.MergeClass(first, second, ref _mergedClass)!;
     }
 
-    private static string MergeNonEmptyValues(string? first, string? second)
+    private string MergeStyleValues(object slotValue, object childValue)
     {
+        string? first = slotValue?.ToString();
+        string? second = childValue?.ToString();
         bool hasFirst = !string.IsNullOrWhiteSpace(first);
         bool hasSecond = !string.IsNullOrWhiteSpace(second);
-
-        return (hasFirst, hasSecond) switch
-        {
-            (true, true) => $"{first} {second}",
-            (true, false) => first!,
-            (false, true) => second!,
-            _ => string.Empty
-        };
-    }
-
-    private static string? NormalizeStyle(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return null;
-
-        ReadOnlySpan<char> trimmed = value.AsSpan().Trim();
-        ReadOnlySpan<char> content = trimmed.TrimEnd(';');
-        if (trimmed.Length == value.Length && trimmed.Length == content.Length + 1)
-            return value;
-
-        return string.Concat(content, ";".AsSpan());
+        if (!hasFirst && !hasSecond) return string.Empty;
+        ReadOnlySpan<char> left = (hasFirst ? first : second).AsSpan().Trim().TrimEnd(';');
+        ReadOnlySpan<char> right = hasFirst && hasSecond ? second.AsSpan().Trim().TrimEnd(';') : default;
+        ReadOnlySpan<char> separator = hasFirst && hasSecond ? "; " : "";
+        int length = left.Length + separator.Length + right.Length + 1;
+        if (_mergedStyle is not null && _mergedStyle.Length == length &&
+            _mergedStyle.AsSpan(0, left.Length).SequenceEqual(left) &&
+            _mergedStyle.AsSpan(left.Length, separator.Length).SequenceEqual(separator) &&
+            _mergedStyle.AsSpan(left.Length + separator.Length, right.Length).SequenceEqual(right) &&
+            _mergedStyle[^1] == ';')
+            return _mergedStyle;
+        return _mergedStyle = string.Concat(left, separator, right, ";");
     }
 
     private void AddAttribute(RenderTreeBuilder builder, int sequence, string key, object value)
@@ -246,7 +252,7 @@ public sealed class BradixSlot : BradixIdentifiableContentElement
                 builder.AddAttribute(sequence, key, @delegate);
                 return;
             case BradixEventCallback callback:
-                builder.AddAttribute(sequence, key, EventCallback.Factory.Create<object?>(this, callback.InvokeAsync));
+                builder.AddAttribute(sequence, key, EventCallback.Factory.Create<object?>(this, callback.Callback));
                 return;
         }
 

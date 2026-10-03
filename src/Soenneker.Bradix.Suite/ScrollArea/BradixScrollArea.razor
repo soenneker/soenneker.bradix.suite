@@ -17,8 +17,18 @@
 </CascadingValue>
 
 @code {
+    private string? _mergedStyleCache0;
+
     private const int ScrollEndDebounceMs = 100;
 
+    private string? _rootGeometryStyle;
+    private (long Width, long Height) _rootGeometryKey;
+    private string? _cornerGeometryStyle;
+    private (long Width, long Height, bool Ltr) _cornerGeometryKey;
+    private string? _horizontalThumbStyle;
+    private (long Size, long Offset) _horizontalThumbKey;
+    private string? _verticalThumbStyle;
+    private (long Size, long Offset) _verticalThumbKey;
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
     private CancellationTokenSource? _hoverHideTokenSource;
@@ -137,7 +147,7 @@
             ScrollbarXMounted = true;
             ForceMountThumbX = forceMountThumb;
             if (changed)
-                _ = InvokeAsync(StateHasChanged);
+                _ = RequestRender();
         }
         else
         {
@@ -145,7 +155,7 @@
             ScrollbarYMounted = true;
             ForceMountThumbY = forceMountThumb;
             if (changed)
-                _ = InvokeAsync(StateHasChanged);
+                _ = RequestRender();
         }
     }
 
@@ -157,7 +167,7 @@
             ScrollbarXMounted = false;
             ForceMountThumbX = false;
             if (changed)
-                _ = InvokeAsync(StateHasChanged);
+                _ = RequestRender();
         }
         else
         {
@@ -165,7 +175,7 @@
             ScrollbarYMounted = false;
             ForceMountThumbY = false;
             if (changed)
-                _ = InvokeAsync(StateHasChanged);
+                _ = RequestRender();
         }
     }
 
@@ -226,30 +236,45 @@
 
     internal string GetScrollbarStyle(string orientation)
     {
-        return orientation == "horizontal"
-            ? $"position: absolute; bottom: 0; left: {(ResolvedDirection == "rtl" ? "var(--radix-scroll-area-corner-width)" : "0")}; right: {(ResolvedDirection == "ltr" ? "var(--radix-scroll-area-corner-width)" : "0")};"
-            : $"position: absolute; top: 0; {(ResolvedDirection == "ltr" ? "right: 0;" : "left: 0;")} bottom: var(--radix-scroll-area-corner-height);";
+        if (orientation == "horizontal")
+            return ResolvedDirection == "rtl"
+                ? "position: absolute; bottom: 0; left: var(--radix-scroll-area-corner-width); right: 0;"
+                : "position: absolute; bottom: 0; left: 0; right: var(--radix-scroll-area-corner-width);";
+        return ResolvedDirection == "ltr"
+            ? "position: absolute; top: 0; right: 0; bottom: var(--radix-scroll-area-corner-height);"
+            : "position: absolute; top: 0; left: 0; bottom: var(--radix-scroll-area-corner-height);";
     }
 
     internal string GetThumbStyle(string orientation)
     {
-        if (orientation == "horizontal")
+        bool horizontal = orientation == "horizontal";
+        double size = GetThumbSize(horizontal);
+        double offset = GetThumbOffset(horizontal, size);
+        var key = (BitConverter.DoubleToInt64Bits(size), BitConverter.DoubleToInt64Bits(offset));
+        ref string? style = ref (horizontal ? ref _horizontalThumbStyle : ref _verticalThumbStyle);
+        ref (long Size, long Offset) previous = ref (horizontal ? ref _horizontalThumbKey : ref _verticalThumbKey);
+        if (style is null || previous != key)
         {
-            double thumbSize = GetThumbSize(true);
-            double offset = GetThumbOffset(true);
-            return $"width: {thumbSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translate3d({offset.ToString(System.Globalization.CultureInfo.InvariantCulture)}px, 0, 0);";
+            previous = key;
+            style = horizontal
+                ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"width: {size}px; transform: translate3d({offset}px, 0, 0);")
+                : string.Create(System.Globalization.CultureInfo.InvariantCulture, $"height: {size}px; transform: translate3d(0, {offset}px, 0);");
         }
-
-        double verticalThumbSize = GetThumbSize(false);
-        double verticalOffset = GetThumbOffset(false);
-        return $"height: {verticalThumbSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; transform: translate3d(0, {verticalOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}px, 0);";
+        return style;
     }
 
     internal bool ShouldRenderCorner => Type != ScrollAreaType.Scroll && ScrollbarXMounted && ScrollbarYMounted && IsScrollbarVisible("horizontal") && IsScrollbarVisible("vertical");
 
     internal string GetCornerStyle()
     {
-        return $"width: {CornerWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; height: {CornerHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px; position: absolute; bottom: 0; {(ResolvedDirection == "ltr" ? "right: 0;" : "left: 0;")}";
+        var key = (BitConverter.DoubleToInt64Bits(CornerWidth), BitConverter.DoubleToInt64Bits(CornerHeight), ResolvedDirection == "ltr");
+        if (_cornerGeometryStyle is null || _cornerGeometryKey != key)
+        {
+            _cornerGeometryKey = key;
+            _cornerGeometryStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                $"width: {CornerWidth}px; height: {CornerHeight}px; position: absolute; bottom: 0; {(key.Item3 ? "right: 0;" : "left: 0;")}");
+        }
+        return _cornerGeometryStyle;
     }
 
     [JSInvokable]
@@ -263,7 +288,7 @@
             _hoverHideTokenSource?.Dispose();
             _hoverHideTokenSource = null;
             IsHovering = true;
-            return InvokeAsync(StateHasChanged);
+            return RequestRender();
         }
 
         if (Type == ScrollAreaType.Hover)
@@ -276,7 +301,7 @@
         }
 
         IsHovering = false;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     [JSInvokable]
@@ -310,7 +335,7 @@
                 NotifyScrollActivity(false);
         }
 
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     public Task HandleScrollbarPointerChanged(string orientation, bool entering)
@@ -348,7 +373,7 @@
             }
         }
 
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     [JSInvokable]
@@ -387,13 +412,13 @@
             VerticalScrollbarPaddingEnd = paddingEnd;
         }
 
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private bool HasOverflowX => ViewportWidth > 0 && ContentWidth > ViewportWidth;
     private bool HasOverflowY => ViewportHeight > 0 && ContentHeight > ViewportHeight;
-    private bool HasThumbX => GetThumbRatio(true) > 0 && GetThumbRatio(true) < 1;
-    private bool HasThumbY => GetThumbRatio(false) > 0 && GetThumbRatio(false) < 1;
+    private bool HasThumbX => GetThumbRatio(true) is > 0 and < 1;
+    private bool HasThumbY => GetThumbRatio(false) is > 0 and < 1;
 
     private static bool AreClose(double left, double right)
     {
@@ -402,13 +427,15 @@
 
     private string BuildRootStyle()
     {
-        var cornerWidth = CornerWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        var cornerHeight = CornerHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        var scrollAreaStyle = $"position: relative; --radix-scroll-area-corner-width: {cornerWidth}px; --radix-scroll-area-corner-height: {cornerHeight}px;";
-
-        return MergeStyleValues(scrollAreaStyle, Style)!;
+        var key = (BitConverter.DoubleToInt64Bits(CornerWidth), BitConverter.DoubleToInt64Bits(CornerHeight));
+        if (_rootGeometryStyle is null || _rootGeometryKey != key)
+        {
+            _rootGeometryKey = key;
+            _rootGeometryStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                $"position: relative; --radix-scroll-area-corner-width: {CornerWidth}px; --radix-scroll-area-corner-height: {CornerHeight}px;");
+        }
+        return BradixStringCache.MergeStyle(_rootGeometryStyle, Style, ref _mergedStyleCache0)!;
     }
-
 
     private double GetThumbRatio(bool horizontal)
     {
@@ -434,9 +461,8 @@
         return Math.Max(thumbSize, 18);
     }
 
-    private double GetThumbOffset(bool horizontal)
+    private double GetThumbOffset(bool horizontal, double thumbSize)
     {
-        double thumbSize = GetThumbSize(horizontal);
         double viewport = horizontal ? ViewportWidth : ViewportHeight;
         double content = horizontal ? ContentWidth : ContentHeight;
         double maxScrollPos = content - viewport;
@@ -551,7 +577,7 @@
                 IsScrollingY = false;
             }
 
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
         }
         catch (TaskCanceledException)
         {
@@ -564,7 +590,7 @@
         {
             await Task.Delay(ScrollHideDelay, cancellationToken);
             IsHovering = false;
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
         }
         catch (TaskCanceledException)
         {

@@ -5,7 +5,7 @@
 @implements IBradixContextMenu
 <BradixMenu @ref="_menu"
             Open="@_open"
-            OpenChanged="HandleMenuOpenChanged"
+            OpenChanged="(_cachedHandleMenuOpenChangedDelegate ??= HandleMenuOpenChanged)"
             Dir="@Dir"
             Modal="@Modal">
     <CascadingValue Value="this">
@@ -14,6 +14,8 @@
 </BradixMenu>
 
 @code {
+    private System.Func<bool, Task>? _cachedHandleMenuOpenChangedDelegate;
+
     private bool _open;
     private BradixMenu? _menu;
 
@@ -34,7 +36,7 @@
 
         if (_open)
         {
-            await InvokeAsync(StateHasChanged);
+            await RequestRender();
             return;
         }
 
@@ -56,7 +58,7 @@
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private Task HandleMenuOpenChanged(bool open)

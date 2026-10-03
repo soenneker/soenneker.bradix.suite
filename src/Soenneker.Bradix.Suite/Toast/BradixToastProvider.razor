@@ -11,6 +11,7 @@
 
 @code {
     private readonly HashSet<BradixToast> _toasts = [];
+    private BradixToast[]? _toastSnapshot;
 
     [Parameter]
     public string Label { get; set; } = "Notification";
@@ -55,7 +56,7 @@
             return;
 
         HasViewport = true;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void UnregisterViewport()
@@ -64,19 +65,25 @@
             return;
 
         HasViewport = false;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void RegisterToast(BradixToast toast)
     {
         if (_toasts.Add(toast))
-            _ = InvokeAsync(StateHasChanged);
+        {
+            _toastSnapshot = null;
+            _ = RequestRender();
+        }
     }
 
     internal void UnregisterToast(BradixToast toast)
     {
         if (_toasts.Remove(toast))
-            _ = InvokeAsync(StateHasChanged);
+        {
+            _toastSnapshot = null;
+            _ = RequestRender();
+        }
     }
 
     internal async Task PauseToasts()
@@ -89,8 +96,7 @@
         if (_toasts.Count == 0)
             return;
 
-        var toasts = new BradixToast[_toasts.Count];
-        _toasts.CopyTo(toasts);
+        BradixToast[] toasts = GetToastSnapshot();
 
         foreach (BradixToast toast in toasts)
         {
@@ -108,12 +114,19 @@
         if (_toasts.Count == 0)
             return;
 
-        var toasts = new BradixToast[_toasts.Count];
-        _toasts.CopyTo(toasts);
+        BradixToast[] toasts = GetToastSnapshot();
 
         foreach (BradixToast toast in toasts)
         {
             await toast.Resume();
         }
     }
+    private BradixToast[] GetToastSnapshot()
+    {
+        if (_toastSnapshot is not null) return _toastSnapshot;
+        var snapshot = new BradixToast[_toasts.Count];
+        _toasts.CopyTo(snapshot);
+        return _toastSnapshot = snapshot;
+    }
+
 }

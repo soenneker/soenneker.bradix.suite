@@ -33,6 +33,8 @@
 </BradixMenuSubContent>
 
 @code {
+    private string? _mergedStyleCache0;
+
     [CascadingParameter]
     private BradixMenubar? Menubar { get; set; }
 
@@ -112,7 +114,7 @@
             const string menubarVariables =
                 "--radix-menubar-content-transform-origin: var(--radix-popper-transform-origin); --radix-menubar-content-available-width: var(--radix-popper-available-width); --radix-menubar-content-available-height: var(--radix-popper-available-height); --radix-menubar-trigger-width: var(--radix-popper-anchor-width); --radix-menubar-trigger-height: var(--radix-popper-anchor-height);";
 
-            return MergeStyleValues(menubarVariables, Style)!;
+            return BradixStringCache.MergeStyle(menubarVariables, Style, ref _mergedStyleCache0)!;
         }
     }
 

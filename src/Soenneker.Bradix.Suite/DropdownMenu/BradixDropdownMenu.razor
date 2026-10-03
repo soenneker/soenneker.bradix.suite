@@ -8,7 +8,7 @@
 
 <CascadingValue Value="this">
 <BradixMenu Open="@CurrentOpen"
-            OpenChanged="HandleMenuOpenChanged"
+            OpenChanged="(_cachedHandleMenuOpenChangedDelegate ??= HandleMenuOpenChanged)"
             Dir="@Dir"
             Modal="@Modal">
         @ChildContent
@@ -16,6 +16,11 @@
 </CascadingValue>
 
 @code {
+    private string? _childIdCache0;
+    private string? _childIdCache1;
+
+    private System.Func<bool, Task>? _cachedHandleMenuOpenChangedDelegate;
+
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 
     private bool _initialized;
@@ -46,10 +51,10 @@
 
     public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    public string TriggerId => BlazorIdGenerator.Child(BaseId!, "trigger");
+    public string TriggerId => BradixStringCache.ChildId(BaseId!, "trigger", ref _childIdCache0);
 
     public string ContentId => string.IsNullOrWhiteSpace(ContentIdOverride)
-        ? BlazorIdGenerator.Child(BaseId!, "content")
+        ? BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache1)
         : ContentIdOverride;
 
     internal ElementReference TriggerElement { get; private set; }
@@ -79,7 +84,7 @@
     {
         TriggerElement = element;
         HasTrigger = true;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     public async Task SetOpen(bool open)
@@ -96,7 +101,7 @@
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private Task HandleMenuOpenChanged(bool open)

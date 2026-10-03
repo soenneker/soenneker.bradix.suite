@@ -22,7 +22,7 @@
         AnchorElement = element;
         HasAnchor = true;
         HasVirtualAnchor = false;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void RegisterVirtualAnchor(double x, double y)
@@ -34,7 +34,7 @@
         VirtualAnchorY = y;
         HasVirtualAnchor = true;
         HasAnchor = false;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
 }

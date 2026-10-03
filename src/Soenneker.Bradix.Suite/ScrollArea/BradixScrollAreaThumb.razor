@@ -11,6 +11,8 @@
 }
 
 @code {
+    private string? _mergedStyleCache0;
+
     private ElementReference _thumb;
 
     [CascadingParameter]
@@ -32,6 +34,6 @@
     {
         string baseStyle = Scrollbar.ScrollArea.GetThumbStyle(Scrollbar.Orientation.Value);
 
-        return MergeStyleValues(baseStyle, Style)!;
+        return BradixStringCache.MergeStyle(baseStyle, Style, ref _mergedStyleCache0)!;
     }
 }

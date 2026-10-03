@@ -68,12 +68,12 @@
         {
         }
 
-        _registered = false;
-
-        if (_dotNetReference is not null)
-            _ = DisposeReferenceLater(_dotNetReference);
-
-        _dotNetReference = null;
+        finally
+        {
+            _registered = false;
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
     }
 
     [JSInvokable(nameof(HandleMouseDownFromJs))]
@@ -98,10 +98,6 @@
             : Task.CompletedTask;
     }
 
-    private static async Task DisposeReferenceLater(DotNetObjectReference<object> dotNetReference)
-    {
-        await Task.Delay(5000);
-        dotNetReference.Dispose();
-    }
+
 
 }

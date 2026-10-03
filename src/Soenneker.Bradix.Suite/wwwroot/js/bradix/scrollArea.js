@@ -88,15 +88,15 @@ export function registerScrollAreaViewport(viewport, content, dotNetRef) {
     );
   };
 
+  const runNotify = () => {
+    registration.animationFrameId = 0;
+    notify();
+  };
   const queueNotify = () => {
-    if (registration.animationFrameId) {
+    if (registration.animationFrameId || scrollAreaViewportHandlers.get(viewport) !== registration) {
       return;
     }
-
-    registration.animationFrameId = requestAnimationFrame(() => {
-      registration.animationFrameId = 0;
-      notify();
-    });
+    registration.animationFrameId = requestAnimationFrame(runNotify);
   };
 
   const scroll = queueNotify;
@@ -184,15 +184,15 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     invokeDotNetSafe(dotNetRef, "HandleScrollbarMetricsChanged", orientation, width, height, paddingStart, paddingEnd);
   };
 
+  const runNotify = () => {
+    registration.animationFrameId = 0;
+    notify();
+  };
   const queueNotify = () => {
-    if (registration.animationFrameId) {
+    if (registration.animationFrameId || scrollAreaScrollbarHandlers.get(scrollbar) !== registration) {
       return;
     }
-
-    registration.animationFrameId = requestAnimationFrame(() => {
-      registration.animationFrameId = 0;
-      notify();
-    });
+    registration.animationFrameId = requestAnimationFrame(runNotify);
   };
 
   const getThumbSize = () => {

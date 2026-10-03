@@ -159,8 +159,11 @@ function getRovingFocusTarget(element, key) {
   const candidates = document.querySelectorAll(
     `[data-bradix-roving-group="${cssEscape(groupId)}"][data-bradix-roving-item]`
   );
-  const items = [];
-  let currentIndex = -1;
+  let first = null;
+  let last = null;
+  let previous = null;
+  let next = null;
+  let found = false;
 
   for (let index = 0; index < candidates.length; index += 1) {
     const candidate = candidates[index];
@@ -169,38 +172,31 @@ function getRovingFocusTarget(element, key) {
       continue;
     }
 
+    first ??= candidate;
     if (candidate === element) {
-      currentIndex = items.length;
+      previous = last;
+      found = true;
+    } else if (found && next === null) {
+      next = candidate;
     }
-
-    items.push(candidate);
+    last = candidate;
   }
 
-  if (currentIndex < 0 || items.length === 0) {
+  if (!found) {
     return null;
   }
 
   const loop = readBooleanDataAttribute(element, "bradixRovingLoop");
 
   if (intent === "first") {
-    return items[0];
+    return first;
   }
 
   if (intent === "last") {
-    return items[items.length - 1];
+    return last;
   }
 
-  const nextIndex = currentIndex + intent;
-
-  if (nextIndex >= 0 && nextIndex < items.length) {
-    return items[nextIndex];
-  }
-
-  if (!loop) {
-    return null;
-  }
-
-  return intent < 0 ? items[items.length - 1] : items[0];
+  return intent < 0 ? previous ?? (loop ? last : null) : next ?? (loop ? first : null);
 }
 
 function getRovingFocusIntent(key, orientation, dir) {

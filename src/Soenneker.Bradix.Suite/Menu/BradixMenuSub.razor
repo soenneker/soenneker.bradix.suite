@@ -7,8 +7,8 @@
 
 <BradixMenu Open="@Open"
             DefaultOpen="DefaultOpen"
-            OpenChanged="HandleOpenChanged"
-            OnOpenChange="HandleOpenChange"
+            OpenChanged="(_cachedHandleOpenChangedDelegate ??= HandleOpenChanged)"
+            OnOpenChange="(_cachedHandleOpenChangeDelegate ??= HandleOpenChange)"
             Dir="@ParentMenu?.ResolvedDirection"
             Modal="false">
     <CascadingValue Value="this">
@@ -19,6 +19,12 @@
 </BradixMenu>
 
 @code {
+    private string? _childIdCache0;
+    private string? _childIdCache1;
+
+    private System.Func<bool, Task>? _cachedHandleOpenChangedDelegate;
+    private System.Func<bool, Task>? _cachedHandleOpenChangeDelegate;
+
     [CascadingParameter]
     private BradixMenu? ParentMenu { get; set; }
 
@@ -36,9 +42,9 @@
 
     public string? BaseId { get; private set; }
 
-    internal string TriggerId => BlazorIdGenerator.Child(BaseId!, "trigger");
+    internal string TriggerId => BradixStringCache.ChildId(BaseId!, "trigger", ref _childIdCache0);
 
-    internal string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
+    internal string ContentId => BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache1);
 
     protected override void OnInitialized()
     {

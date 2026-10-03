@@ -27,7 +27,7 @@ else if (AsChild)
 }
 else
 {
-    <button @onclick="HandleClick"
+    <button @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
             @ref="_button"
             @attributes="ButtonAttributes">
         @ChildContent
@@ -35,6 +35,10 @@ else
 }
 
 @code {
+    private System.Func<Task>? _cachedHandleClickDelegate;
+
+    private object? _cachedHandleChildClickCallback;
+
     private BradixDialogCloseContext? _closeContext;
     private ElementReference _button;
     private bool _delegatedInteractionReady;
@@ -88,14 +92,14 @@ else
         ("type", "button"),
         ("aria-label", AriaLabel),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("disabled", Disabled ? true : null)));
+        ("disabled", Disabled ? BradixAttributeValues.True : null)));
 
     private Dictionary<string, object> SlottedButtonAttributes => MergeCloseAttributes(BuildAttributes(
         ("type", "button"),
         ("aria-label", AriaLabel),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("disabled", Disabled ? true : null),
-        ("onclick", EventCallback.Factory.Create<MouseEventArgs>(this, HandleChildClick))));
+        ("disabled", Disabled ? BradixAttributeValues.True : null),
+        ("onclick", (_cachedHandleChildClickCallback ??= EventCallback.Factory.Create<MouseEventArgs>(this, HandleChildClick)))));
 
     private Dictionary<string, object> MergeCloseAttributes(Dictionary<string, object> attributes)
     {

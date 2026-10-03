@@ -40,10 +40,11 @@
     private ElementReference _tailFocusProxy;
     private DotNetObjectReference<object>? _dotNetReference;
     private bool _lastRegisteredHasToasts;
-    private string? _lastRegisteredHotkeySignature;
+    private string[]? _lastRegisteredHotkey;
     private bool _registered;
     private string _hotkeyLabel = "F8";
-    private string _hotkeySignature = "F8";
+    private string[]? _hotkeySnapshot;
+    private string? _lastLabel;
     private string _regionAriaLabel = "Notifications (F8)";
 
     [CascadingParameter]
@@ -64,7 +65,7 @@
             Dictionary<string, object> attributes = BuildAdditionalAttributes(attributes: null, extraCapacity: 4);
             attributes["role"] = "region";
             attributes["aria-label"] = _regionAriaLabel;
-            attributes["tabindex"] = -1;
+            attributes["tabindex"] = BradixAttributeValues.MinusOne;
 
             if (Provider?.ToastCount <= 0)
                 attributes["style"] = "pointer-events:none;";
@@ -79,7 +80,7 @@
         {
             Dictionary<string, object> attributes = BuildAttributes(
                 ("id", ResolvedViewportId),
-                ("tabindex", -1));
+                ("tabindex", BradixAttributeValues.MinusOne));
 
             attributes["id"] = ResolvedViewportId;
             return attributes;
@@ -88,9 +89,18 @@
 
     protected override void OnParametersSet()
     {
-        _hotkeyLabel = BuildHotkeyLabel(Hotkey);
-        _hotkeySignature = BuildHotkeySignature(Hotkey);
-        _regionAriaLabel = Label.Replace("{hotkey}", _hotkeyLabel, StringComparison.Ordinal);
+        string[] snapshot = GetHotkeySnapshot();
+        bool hotkeyChanged = !ReferenceEquals(_hotkeySnapshot, snapshot);
+        if (hotkeyChanged)
+        {
+            _hotkeySnapshot = snapshot;
+            _hotkeyLabel = BuildHotkeyLabel(snapshot);
+        }
+        if (hotkeyChanged || !string.Equals(_lastLabel, Label, StringComparison.Ordinal))
+        {
+            _lastLabel = Label;
+            _regionAriaLabel = Label.Replace("{hotkey}", _hotkeyLabel, StringComparison.Ordinal);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -106,13 +116,14 @@
         if (!firstRender &&
             _registered &&
             _lastRegisteredHasToasts == hasToasts &&
-            string.Equals(_lastRegisteredHotkeySignature, _hotkeySignature, StringComparison.Ordinal))
+            ReferenceEquals(_lastRegisteredHotkey, _hotkeySnapshot))
         {
             return;
         }
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
-        await ToastInterop.RegisterToastViewport(_wrapperElement, _viewportElement, _headFocusProxy, _tailFocusProxy, Hotkey, _dotNetReference);
+        string[] hotkey = _hotkeySnapshot ?? GetHotkeySnapshot();
+        await ToastInterop.RegisterToastViewport(_wrapperElement, _viewportElement, _headFocusProxy, _tailFocusProxy, hotkey, _dotNetReference);
         if (_disposed.Read())
         {
             await ToastInterop.UnregisterToastViewport(_viewportElement);
@@ -121,7 +132,7 @@
 
         _registered = true;
         _lastRegisteredHasToasts = hasToasts;
-        _lastRegisteredHotkeySignature = _hotkeySignature;
+        _lastRegisteredHotkey = hotkey;
     }
 
     public async ValueTask DisposeAsync()
@@ -180,29 +191,23 @@
         });
     }
 
-    private static string BuildHotkeySignature(IReadOnlyList<string> hotkey)
+    private string[] GetHotkeySnapshot()
     {
-        if (hotkey.Count == 0)
-            return string.Empty;
-
-        int length = hotkey.Count - 1;
-
-        foreach (string key in hotkey)
-            length += key.Length;
-
-        return string.Create(length, hotkey, static (span, keys) =>
+        if (_hotkeySnapshot is not null && _hotkeySnapshot.Length == Hotkey.Count)
         {
-            var position = 0;
-
-            for (var i = 0; i < keys.Count; i++)
+            var equal = true;
+            for (var i = 0; i < _hotkeySnapshot.Length; i++)
             {
-                if (i > 0)
-                    span[position++] = '\u001F';
-
-                keys[i].AsSpan().CopyTo(span[position..]);
-                position += keys[i].Length;
+                if (string.Equals(_hotkeySnapshot[i], Hotkey[i], StringComparison.Ordinal)) continue;
+                equal = false;
+                break;
             }
-        });
+            if (equal) return _hotkeySnapshot;
+        }
+        if (Hotkey.Count == 0) return Array.Empty<string>();
+        var snapshot = new string[Hotkey.Count];
+        for (var i = 0; i < snapshot.Length; i++) snapshot[i] = Hotkey[i];
+        return snapshot;
     }
 
     private static int GetDisplayKeyLength(string key)

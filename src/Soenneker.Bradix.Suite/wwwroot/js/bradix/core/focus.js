@@ -1,15 +1,4 @@
-export function arrayRemove(array, item) {
-  const next = [...array];
-  const index = next.indexOf(item);
-  if (index >= 0) {
-    next.splice(index, 1);
-  }
-  return next;
-}
-
-export function getTabbableCandidates(container) {
-  const nodes = [];
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
+const tabbableFilter = {
     acceptNode: (node) => {
       const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
       if (node.closest("[inert], [hidden]")) {
@@ -21,7 +10,20 @@ export function getTabbableCandidates(container) {
 
       return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
     }
-  });
+  };
+
+export function arrayRemove(array, item) {
+  const next = [...array];
+  const index = next.indexOf(item);
+  if (index >= 0) {
+    next.splice(index, 1);
+  }
+  return next;
+}
+
+export function getTabbableCandidates(container) {
+  const nodes = [];
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, tabbableFilter);
 
   while (walker.nextNode()) {
     nodes.push(walker.currentNode);

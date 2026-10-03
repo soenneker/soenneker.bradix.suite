@@ -4,13 +4,16 @@
 
 @implements IBradixDialogTrigger
 <button @ref="_button"
-        @onpointerdown="HandlePointerDown"
-        @onclick="HandleClick"
+        @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
+        @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
         @attributes="ButtonAttributes">
     @ChildContent
 </button>
 
 @code {
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+
     private ElementReference _button;
     private bool _ignoreNextClickToggle;
 
@@ -33,12 +36,13 @@
         ("aria-controls", Dialog?.ContentId),
         ("data-state", Dialog?.CurrentOpen == true ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("disabled", Disabled ? true : null));
+        ("disabled", Disabled ? BradixAttributeValues.True : null));
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
             Dialog?.RegisterTrigger(_button, ResolvedTriggerId);
+        return Task.CompletedTask;
     }
 
     private async Task HandleClick(MouseEventArgs args)

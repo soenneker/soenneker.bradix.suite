@@ -20,6 +20,12 @@
 }
 
 @code {
+    private string? _mergedStyleCache0;
+    private string? _mergedStyleCache1;
+
+    private string? _viewportIdCache;
+    private string? _sizeStyle;
+    private (long Width, long Height) _sizeStyleKey;
     private ElementReference _viewportElement;
     private bool _viewportRegisteredWithRoot;
     private DotNetObjectReference<BradixNavigationMenuViewport>? _dotNetReference;
@@ -41,7 +47,7 @@
 
     private string ResolvedViewportId =>
         string.IsNullOrWhiteSpace(Id)
-            ? BlazorIdGenerator.Child(NavigationMenu!.BaseId!, "viewport")
+            ? BradixStringCache.ChildId(NavigationMenu!.BaseId!, "viewport", ref _viewportIdCache)
             : Id;
 
     private IReadOnlyDictionary<string, object> ViewportAttributes
@@ -65,16 +71,23 @@
 
             if (_width > 0 || _height > 0)
             {
-                string width = _width > 0 ? $"{_width.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
-                string height = _height > 0 ? $"{_height.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : "0px";
-                sizeStyle = $"--radix-navigation-menu-viewport-width:{width};--radix-navigation-menu-viewport-height:{height};";
+                double width = _width > 0 ? _width : 0;
+                double height = _height > 0 ? _height : 0;
+                var key = (BitConverter.DoubleToInt64Bits(width), BitConverter.DoubleToInt64Bits(height));
+                if (_sizeStyle is null || _sizeStyleKey != key)
+                {
+                    _sizeStyleKey = key;
+                    _sizeStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                        $"--radix-navigation-menu-viewport-width:{width}px;--radix-navigation-menu-viewport-height:{height}px;");
+                }
+                sizeStyle = _sizeStyle;
             }
 
             string viewportStyle = NavigationMenu?.HasOpenItem == true
                 ? string.Empty
                 : "pointer-events:none;";
 
-            return MergeStyleValues(MergeStyleValues(sizeStyle, viewportStyle), Style);
+            return BradixStringCache.MergeStyle(BradixStringCache.MergeStyle(sizeStyle, viewportStyle, ref _mergedStyleCache0), Style, ref _mergedStyleCache1);
         }
     }
 
@@ -105,7 +118,7 @@
                 if (!_disposed.Read() &&
                     string.Equals(_pendingContentRetryValue, contentValue, StringComparison.Ordinal))
                 {
-                    await InvokeAsync(StateHasChanged);
+                    await RequestRender();
                 }
             }
 
@@ -189,7 +202,7 @@
 
         _width = width;
         _height = height;
-        return InvokeAsync(StateHasChanged);
+        return RequestRender();
     }
 
     private static bool ShouldIgnoreInteropException(Exception ex)

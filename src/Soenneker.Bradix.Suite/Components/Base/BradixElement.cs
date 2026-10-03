@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Components;
 using Soenneker.Lepton.Suite;
 using Soenneker.Lepton.Suite.Abstract;
@@ -17,6 +18,8 @@ public abstract class BradixElement : LeptonElement
     private Dictionary<string, object>? _attributesB;
     private BradixAttributeDictionary? _additionalAttributeDictionaries;
     private bool _useAttributesA;
+    private string? _mergedAdditionalClass;
+    private string? _mergedAdditionalStyle;
 
     protected virtual string? AttributeId => null;
 
@@ -51,7 +54,10 @@ public abstract class BradixElement : LeptonElement
         return CompleteAttributes(attributes);
     }
 
-    protected Dictionary<string, object> BuildAttributes(params ReadOnlySpan<(string Key, object? Value)> values)
+    // Older Lepton packages do not expose this overload yet.
+#pragma warning disable CS0109
+    protected new Dictionary<string, object> BuildAttributes(params ReadOnlySpan<(string Key, object? Value)> values)
+#pragma warning restore CS0109
     {
         Dictionary<string, object> attributes = BeginAttributes();
         foreach (var value in values)
@@ -69,14 +75,14 @@ public abstract class BradixElement : LeptonElement
         return CompleteAttributes(attributes);
     }
 
-    protected Dictionary<string, object> BuildAttributes((string Key, object? Value) value1)
+    protected new Dictionary<string, object> BuildAttributes((string Key, object? Value) value1)
     {
         Dictionary<string, object> attributes = BeginAttributes();
         SetAttribute(attributes, value1.Key, value1.Value);
         return CompleteAttributes(attributes);
     }
 
-    protected Dictionary<string, object> BuildAttributes((string Key, object? Value) value1, (string Key, object? Value) value2)
+    protected new Dictionary<string, object> BuildAttributes((string Key, object? Value) value1, (string Key, object? Value) value2)
     {
         Dictionary<string, object> attributes = BeginAttributes();
         SetAttribute(attributes, value1.Key, value1.Value);
@@ -214,48 +220,29 @@ public abstract class BradixElement : LeptonElement
             MergeAdditionalAttribute(attributes, key, value);
     }
 
-    private static void MergeAdditionalAttribute(Dictionary<string, object> attributes, string key, object? value)
+    private void MergeAdditionalAttribute(Dictionary<string, object> attributes, string key, object? value)
     {
         if (value is null)
             return;
 
         if (key.Equals("class", StringComparison.OrdinalIgnoreCase))
         {
-            MergeClassAttribute(attributes, value as string ?? value.ToString());
+            string? text = value as string ?? value.ToString();
+            if (string.IsNullOrWhiteSpace(text)) return;
+            ref object? slot = ref CollectionsMarshal.GetValueRefOrAddDefault(attributes, "class", out _);
+            slot = BradixStringCache.MergeClass(slot as string ?? slot?.ToString(), text, ref _mergedAdditionalClass);
             return;
         }
 
         if (key.Equals("style", StringComparison.OrdinalIgnoreCase))
         {
-            MergeStyleAttribute(attributes, value as string ?? value.ToString());
+            string? text = value as string ?? value.ToString();
+            if (string.IsNullOrWhiteSpace(text)) return;
+            ref object? slot = ref CollectionsMarshal.GetValueRefOrAddDefault(attributes, "style", out _);
+            slot = BradixStringCache.MergeStyle(slot as string ?? slot?.ToString(), text, ref _mergedAdditionalStyle);
             return;
         }
 
         attributes[key] = value;
     }
-}
-
-/// <inheritdoc cref="ILeptonContentElement" />
-public abstract class BradixContentElement : BradixElement, ILeptonContentElement
-{
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-}
-
-/// <inheritdoc cref="ILeptonIdentifiableElement" />
-public abstract class BradixIdentifiableElement : BradixElement, ILeptonIdentifiableElement
-{
-    [Parameter]
-    public string? Id { get; set; }
-
-    protected override string? AttributeId => Id;
-
-    protected IReadOnlyDictionary<string, object> EffectiveAttributes => BuildAttributes();
-}
-
-/// <inheritdoc cref="ILeptonIdentifiableContentElement" />
-public abstract class BradixIdentifiableContentElement : BradixIdentifiableElement, ILeptonIdentifiableContentElement
-{
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 }

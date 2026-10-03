@@ -12,6 +12,9 @@
 </CascadingValue>
 
 @code {
+    private string? _childIdCache0;
+    private string? _childIdCache1;
+
     private bool _initialized;
     private bool _uncontrolledOpen;
     private string? _generatedBaseId;
@@ -33,9 +36,9 @@
 
     public string BaseId => Id.HasContent() ? Id! : _generatedBaseId ??= BlazorIdGenerator.New("bradix-collapsible");
 
-    public string TriggerId => BlazorIdGenerator.Child(BaseId, "trigger");
+    public string TriggerId => BradixStringCache.ChildId(BaseId, "trigger", ref _childIdCache0);
 
-    public string ContentId => BlazorIdGenerator.Child(BaseId, "content");
+    public string ContentId => BradixStringCache.ChildId(BaseId, "content", ref _childIdCache1);
 
     public bool IsOpen => Open ?? _uncontrolledOpen;
 
@@ -76,6 +79,6 @@
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 }

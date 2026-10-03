@@ -13,11 +13,11 @@
 <BradixDismissableLayerBranch>
     <BradixPopperAnchor>
         <button @ref="_button"
-                @onclick="HandleClick"
-                @onpointerdown="HandlePointerDown"
+                @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+                @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
                 @onpointerdown:preventDefault="false"
-                @onpointerup="HandlePointerUp"
-                @onkeydown="HandleKeyDown"
+                @onpointerup="(_cachedHandlePointerUpDelegate ??= HandlePointerUp)"
+                @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
                 @attributes="TriggerAttributes">
             @ChildContent
         </button>
@@ -25,6 +25,11 @@
 </BradixDismissableLayerBranch>
 
 @code {
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerUpDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+
     private static readonly string[] PreventDefaultKeys = [" ", "Spacebar", "Enter", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"];
 
     private ElementReference _button;
@@ -52,7 +57,7 @@
         ("data-state", Select?.CurrentOpen == true ? "open" : "closed"),
         ("data-disabled", IsDisabled ? string.Empty : null),
         ("data-placeholder", Select?.ShouldShowPlaceholder == true ? string.Empty : null),
-        ("disabled", IsDisabled ? true : null));
+        ("disabled", IsDisabled ? BradixAttributeValues.True : null));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

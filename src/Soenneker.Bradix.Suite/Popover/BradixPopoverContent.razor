@@ -21,6 +21,17 @@
 }
 
 @code {
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleOpenAutoFocusDelegate;
+    private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleCloseAutoFocusDelegate;
+    private System.Func<Task>? _cachedHandleDismissDelegate;
+    private System.Func<BradixInteractOutsideEventArgs, Task>? _cachedHandleInteractOutsideDelegate;
+    private System.Func<BradixEscapeKeyDownEventArgs, Task>? _cachedHandleEscapeKeyDownDelegate;
+    private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
+    private System.Func<BradixFocusOutsideEventArgs, Task>? _cachedHandleFocusOutsideDelegate;
+    private System.Func<ElementReference, Task>? _cachedHandleElementReferenceCapturedDelegate;
+    private System.Func<BradixPopperPlacementEventArgs, Task>? _cachedHandlePlacementChangedDelegate;
+    private System.Func<Task>? _cachedHandleExitCompleteDelegate;
+
     private bool _wasPresent;
     private ValueAtomicBool _disposed;
     private RenderFragment? _contentTree;
@@ -156,12 +167,12 @@
         {
             Dictionary<string, object> attributes = BuildAdditionalAttributes(5);
 
-            bool hasExplicitRole = attributes.ContainsKey("role");
+            bool hasExplicitRole = attributes.TryGetValue("role", out object? role);
 
             if (!hasExplicitRole)
                 attributes["role"] = "dialog";
 
-            string resolvedRole = attributes["role"]?.ToString() ?? "dialog";
+            string resolvedRole = role?.ToString() ?? "dialog";
 
             if (!attributes.ContainsKey("aria-modal") && string.Equals(resolvedRole, "dialog", StringComparison.Ordinal) && Popover?.Modal == true)
                 attributes["aria-modal"] = "true";
@@ -330,18 +341,18 @@ ResetState:
         <BradixFocusScope Loop
                           Trapped="ShouldTrapFocus"
                           PreventUnmountAutoFocus="true"
-                          OnMountAutoFocusDetailed="HandleOpenAutoFocus"
-                          OnUnmountAutoFocusDetailed="HandleCloseAutoFocus">
+                          OnMountAutoFocusDetailed="(_cachedHandleOpenAutoFocusDelegate ??= HandleOpenAutoFocus)"
+                          OnUnmountAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)">
             <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
                                     DismissOnEscapeKeyDown="CloseOnEscapeKeyDown"
                                     DismissOnPointerDownOutside="CloseOnPointerDownOutside"
                                     DismissOnFocusOutside="CloseOnFocusOutside"
-                                    OnDismiss="@HandleDismiss"
-                                    OnInteractOutsideDetailed="@HandleInteractOutside"
-                                    OnEscapeKeyDownDetailed="@HandleEscapeKeyDown"
-                                    OnPointerDownOutsideDetailed="@HandlePointerDownOutside"
-                                    OnFocusOutsideDetailed="@HandleFocusOutside"
-                                    OnElementReferenceCaptured="@HandleElementReferenceCaptured">
+                                    OnDismiss="(_cachedHandleDismissDelegate ??= HandleDismiss)"
+                                    OnInteractOutsideDetailed="(_cachedHandleInteractOutsideDelegate ??= HandleInteractOutside)"
+                                    OnEscapeKeyDownDetailed="(_cachedHandleEscapeKeyDownDelegate ??= HandleEscapeKeyDown)"
+                                    OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
+                                    OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)"
+                                    OnElementReferenceCaptured="(_cachedHandleElementReferenceCapturedDelegate ??= HandleElementReferenceCaptured)">
                 <BradixPopperContent Side="@Side"
                                      SideOffset="SideOffset"
                                      Align="@Align"
@@ -356,7 +367,7 @@ ResetState:
                                      Anchor="@ResolvedAnchor"
                                      UseAnchor="@ShouldUseAnchor"
                                      Style="@PositionerStyle"
-                                     OnPlacementChanged="@HandlePlacementChanged"
+                                     OnPlacementChanged="(_cachedHandlePlacementChangedDelegate ??= HandlePlacementChanged)"
                                      OnPlaced="@OnPlaced">
                     <BradixPresence Present="IsPresent"
                                     Tag="div"
@@ -364,7 +375,7 @@ ResetState:
                                     Class="@Class"
                                     Style="@PresenceStyle"
                                     AdditionalAttributes="@PresenceAttributes"
-                                    OnExitComplete="@HandleExitComplete">
+                                    OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
                         @ChildContent
                     </BradixPresence>
                 </BradixPopperContent>
@@ -400,7 +411,7 @@ ResetState:
             await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
         }
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private ElementReference ResolvedAnchor =>

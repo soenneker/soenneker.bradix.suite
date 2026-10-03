@@ -9,9 +9,9 @@
 
 @inject IRovingFocusInterop RovingFocusInterop
 <button @ref="_element"
-        @onmousedown="HandleMouseDown"
-        @onkeydown="HandleKeyDown"
-        @onfocus="HandleFocus"
+        @onmousedown="(_cachedHandleMouseDownDelegate ??= HandleMouseDown)"
+        @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
+        @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
         @attributes="TriggerAttributes">
     @ChildContent
 </button>
@@ -19,6 +19,12 @@
 @implements IHandleEvent
 
 @code {
+    private string? _triggerId;
+    private string? _contentId;
+    private System.Func<MouseEventArgs, Task>? _cachedHandleMouseDownDelegate;
+    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+    private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
+
     // State changes render through the owning context or the explicit focus handlers.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 
@@ -55,9 +61,9 @@
 
     internal string TabStopId => TriggerId;
 
-    private string TriggerId => Tabs.MakeTriggerId(Value);
+    private string TriggerId => Tabs.MakeTriggerId(Value, ref _triggerId);
 
-    private string ContentId => Tabs.MakeContentId(Value);
+    private string ContentId => Tabs.MakeContentId(Value, ref _contentId);
 
     private Dictionary<string, object> TriggerAttributes => BuildAttributes(
         ("type", "button"),
@@ -75,9 +81,9 @@
         ("data-bradix-roving-loop", (List?.Loop ?? true) ? "true" : "false"),
         ("data-bradix-prevent-nonprimary-mousedown", "true"),
         ("data-bradix-prevent-mousedown-when-disabled", "true"),
-        ("disabled", Disabled ? true : null),
+        ("disabled", Disabled ? BradixAttributeValues.True : null),
         ("id", TriggerId),
-        ("tabindex", !Disabled && Tabs.IsCurrentTabStop(this) ? 0 : -1));
+        ("tabindex", !Disabled && Tabs.IsCurrentTabStop(this) ? BradixAttributeValues.Zero : BradixAttributeValues.MinusOne));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

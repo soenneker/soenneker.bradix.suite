@@ -14,6 +14,10 @@
 </CascadingValue>
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private string? _positionStyle;
+    private string _boundarySelectorKey = string.Empty;
     private ElementReference _element;
     private ElementReference _arrow;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -240,7 +244,7 @@
             return;
 
         _arrow = element;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     [JSInvokable]
@@ -269,11 +273,12 @@
         _hideArrow = shouldHideArrow;
         _hidden = hidden;
         _isPositioned = true;
+        _positionStyle = null;
         _transformOriginX = transformOriginX;
         _transformOriginY = transformOriginY;
         _zIndex = zIndex;
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
 
         if (!newlyPlaced)
             return;
@@ -287,6 +292,11 @@
 
     private string BuildContentStyle()
     {
+        return BradixStringCache.MergeStyle(_positionStyle ??= BuildPositionStyle(), Style, ref _mergedStyleCache0)!;
+    }
+
+    private string BuildPositionStyle()
+    {
         string baseStyle = _isPositioned ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"position: fixed; left: {_left}px; top: {_top}px; min-width: max-content; --radix-popper-available-width: {_availableWidth}px; --radix-popper-available-height: {_availableHeight}px; --radix-popper-anchor-width: {_anchorWidth}px; --radix-popper-anchor-height: {_anchorHeight}px; --radix-popper-transform-origin: {_transformOriginX} {_transformOriginY};") : "position: fixed; left: 0px; top: 0px; min-width: max-content; transform: translate(0, -200%); animation: none; visibility: hidden; pointer-events: none; --radix-popper-available-width: 100vw; --radix-popper-available-height: 100vh; --radix-popper-anchor-width: 0px; --radix-popper-anchor-height: 0px; --radix-popper-transform-origin: 50% 0px;";
 
         if (!string.IsNullOrEmpty(_zIndex))
@@ -295,7 +305,7 @@
         if (_hidden)
             baseStyle += " visibility: hidden; pointer-events: none;";
 
-        return MergeStyleValues(baseStyle, Style)!;
+        return baseStyle;
     }
 
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) CurrentOptions => (Side.Value, SideOffset, Align.Value, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, CreateBoundarySelectorKey(), NormalizeSticky(Sticky), HideWhenDetached, Direction == "rtl" ? "rtl" : "ltr");
@@ -305,7 +315,10 @@
     private string CreateBoundarySelectorKey()
     {
         if (string.IsNullOrWhiteSpace(CollisionBoundarySelector) && CollisionBoundarySelectors is null)
-            return string.Empty;
+            return _boundarySelectorKey = string.Empty;
+
+        if (BoundarySelectorsMatch())
+            return _boundarySelectorKey;
 
         using var selectors = new PooledStringBuilder();
 
@@ -326,7 +339,28 @@
             }
         }
 
-        return selectors.ToString();
+        return _boundarySelectorKey = selectors.ToString();
+    }
+
+    private bool BoundarySelectorsMatch()
+    {
+        var offset = 0;
+        if (!MatchBoundarySelector(CollisionBoundarySelector, ref offset)) return false;
+        if (CollisionBoundarySelectors is not null)
+        {
+            for (var i = 0; i < CollisionBoundarySelectors.Count; i++)
+                if (!MatchBoundarySelector(CollisionBoundarySelectors[i], ref offset)) return false;
+        }
+        return offset == _boundarySelectorKey.Length;
+    }
+
+    private bool MatchBoundarySelector(string? selector, ref int offset)
+    {
+        if (string.IsNullOrWhiteSpace(selector)) return true;
+        if (offset > 0 && (offset >= _boundarySelectorKey.Length || _boundarySelectorKey[offset++] != '\n')) return false;
+        if (!_boundarySelectorKey.AsSpan(offset).StartsWith(selector, StringComparison.Ordinal)) return false;
+        offset += selector.Length;
+        return true;
     }
 
     private static BradixPopperInteropOptions CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options)

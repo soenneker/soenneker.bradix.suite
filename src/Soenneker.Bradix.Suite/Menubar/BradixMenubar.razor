@@ -121,14 +121,14 @@
     {
         _triggers.Register(trigger.Value, trigger);
         EnsureCurrentTabStopId();
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void UnregisterTrigger(IBradixMenubarTriggerEntry trigger)
     {
         _triggers.Unregister(trigger.Value);
         EnsureCurrentTabStopId();
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal void SetCurrentTabStop(string? value)
@@ -137,7 +137,7 @@
             return;
 
         CurrentTabStopId = value;
-        _ = InvokeAsync(StateHasChanged);
+        _ = RequestRender();
     }
 
     internal async Task OpenMenu(string value)
@@ -163,20 +163,22 @@
 
     internal async Task HandleTriggerKeyDown(IBradixMenubarTriggerEntry trigger, KeyboardEventArgs args)
     {
-        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey)
+        if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey ||
+            args.Key is not ("ArrowLeft" or "ArrowRight" or "Home" or "End" or "PageUp" or "PageDown"))
             return;
 
-        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
-        int currentIndex = focusableTriggers.IndexOf(trigger);
+        int count = CountFocusableTriggers(trigger, null, out int currentIndex);
 
         if (currentIndex < 0)
             return;
 
-        if (!BradixRovingFocusNavigator.TryGetTargetIndex(args.Key, "horizontal", ResolvedDirection, currentIndex, focusableTriggers.Count, Loop, out int targetIndex))
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(args.Key, "horizontal", ResolvedDirection, currentIndex, count, Loop, out int targetIndex))
             return;
 
         bool wasOpen = HasOpenMenu;
-        IBradixMenubarTriggerEntry target = focusableTriggers[targetIndex];
+        IBradixMenubarTriggerEntry? target = GetFocusableTriggerAt(targetIndex);
+        if (target is null)
+            return;
         CurrentTabStopId = target.Value;
 
         if (wasOpen)
@@ -184,31 +186,30 @@
 
         await target.Focus();
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     internal async Task MoveToAdjacentMenu(string value, string key)
     {
-        List<IBradixMenubarTriggerEntry> focusableTriggers = GetFocusableTriggers();
+        int count = CountFocusableTriggers(null, value, out int currentIndex);
 
         string previousMenuKey = ResolvedDirection == "rtl" ? "ArrowRight" : "ArrowLeft";
         bool isPreviousKey = string.Equals(previousMenuKey, key, StringComparison.Ordinal);
-        int currentIndex = FindTriggerIndex(focusableTriggers, value);
 
         if (currentIndex < 0)
             return;
 
         int step = isPreviousKey ? -1 : 1;
         int nextIndex = currentIndex + step;
-        if (nextIndex < 0 || nextIndex >= focusableTriggers.Count)
+        if (nextIndex < 0 || nextIndex >= count)
         {
             if (!Loop)
                 return;
 
-            nextIndex = isPreviousKey ? focusableTriggers.Count - 1 : 0;
+            nextIndex = isPreviousKey ? count - 1 : 0;
         }
 
-        string nextValue = focusableTriggers[nextIndex].Value;
+        string? nextValue = GetFocusableTriggerAt(nextIndex)?.Value;
 
         if (string.IsNullOrWhiteSpace(nextValue))
             return;
@@ -264,24 +265,46 @@
         if (OnValueChange.HasDelegate)
             await OnValueChange.InvokeAsync(value);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
-    private List<IBradixMenubarTriggerEntry> GetFocusableTriggers()
+    private int CountFocusableTriggers(IBradixMenubarTriggerEntry? current, string? value, out int currentIndex)
     {
-        List<IBradixMenubarTriggerEntry> focusableTriggers = [];
-
+        var count = 0;
+        currentIndex = -1;
         foreach ((_, IBradixMenubarTriggerEntry trigger) in _triggers)
         {
-            if (!trigger.Disabled)
-                focusableTriggers.Add(trigger);
-        }
+            if (trigger.Disabled)
+                continue;
 
-        return focusableTriggers;
+            if (currentIndex < 0 && (current is not null
+                    ? EqualityComparer<IBradixMenubarTriggerEntry>.Default.Equals(trigger, current)
+                    : string.Equals(trigger.Value, value, StringComparison.Ordinal)))
+                currentIndex = count;
+            count++;
+        }
+        return count;
+    }
+
+    private IBradixMenubarTriggerEntry? GetFocusableTriggerAt(int targetIndex)
+    {
+        var index = 0;
+        foreach ((_, IBradixMenubarTriggerEntry trigger) in _triggers)
+        {
+            if (trigger.Disabled)
+                continue;
+            if (index++ == targetIndex)
+                return trigger;
+        }
+        return null;
     }
 
     private void EnsureCurrentTabStopId()
     {
+        if (CurrentTabStopId is not null && _triggers.TryGet(CurrentTabStopId, out IBradixMenubarTriggerEntry current) &&
+            !current.Disabled && string.Equals(current.Value, CurrentTabStopId, StringComparison.Ordinal))
+            return;
+
         IBradixMenubarTriggerEntry? first = null;
         foreach ((_, IBradixMenubarTriggerEntry trigger) in _triggers)
         {
@@ -292,17 +315,6 @@
                 return;
         }
         CurrentTabStopId = first?.Value;
-    }
-
-    private static int FindTriggerIndex(IReadOnlyList<IBradixMenubarTriggerEntry> triggers, string value)
-    {
-        for (var i = 0; i < triggers.Count; i++)
-        {
-            if (string.Equals(triggers[i].Value, value, StringComparison.Ordinal))
-                return i;
-        }
-
-        return -1;
     }
 
     [JSInvokable]

@@ -7,16 +7,23 @@
 @if (Content?.CanScrollUp == true)
 {
     <div aria-hidden="true"
-         @onpointerdown="HandlePointerDown"
-         @onpointermove="HandlePointerMove"
-         @onpointerleave="HandlePointerLeave"
-         @onpointerup="HandlePointerUp"
+         @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
+         @onpointermove="(_cachedHandlePointerMoveDelegate ??= HandlePointerMove)"
+         @onpointerleave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
+         @onpointerup="(_cachedHandlePointerUpDelegate ??= HandlePointerUp)"
          @attributes="ButtonAttributes">
         @ChildContent
     </div>
 }
 
 @code {
+    private string? _mergedStyleCache0;
+
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
+    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerMoveDelegate;
+    private System.Action<PointerEventArgs>? _cachedHandlePointerLeaveDelegate;
+    private System.Action<PointerEventArgs>? _cachedHandlePointerUpDelegate;
+
     private bool _didNotifyContent;
 
     [CascadingParameter]
@@ -44,7 +51,7 @@
     private string BuildStyle()
     {
         const string baseStyle = "flex-shrink:0;";
-        return MergeStyleValues(baseStyle, Style)!;
+        return BradixStringCache.MergeStyle(baseStyle, Style, ref _mergedStyleCache0)!;
     }
 
     private Task HandlePointerDown(PointerEventArgs _)

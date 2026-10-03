@@ -52,6 +52,7 @@ function getCollisionBoundarySelectors(options) {
     }
   }
 
+  if (selectors.length < 2) return selectors;
   return [...new Set(selectors)];
 }
 
@@ -91,11 +92,7 @@ function getImplicitCollisionBoundary(reference) {
 }
 
 function alignToOrigin(align) {
-  return {
-    start: "0%",
-    center: "50%",
-    end: "100%"
-  }[align] || "50%";
+  return align === "start" ? "0%" : align === "end" ? "100%" : "50%";
 }
 
 function transformOriginMiddleware(arrowWidth, arrowHeight) {
@@ -375,8 +372,9 @@ function createVirtualAnchor(x, y) {
 
 function observeAutoUpdate(handlers) {
   const floating = getFloatingUi();
+  handlers.animationFrame = handlers.options?.updatePositionStrategy === "always";
   handlers.cleanup = floating.autoUpdate(handlers.reference, handlers.content, handlers.update, {
-    animationFrame: handlers.options?.updatePositionStrategy === "always"
+    animationFrame: handlers.animationFrame
   });
 }
 
@@ -472,7 +470,12 @@ export function updatePopperContent(content, arrow, options) {
 
   handlers.arrow = arrow instanceof Element ? arrow : null;
   handlers.options = options || {};
-  reconnect(content);
+  if (handlers.animationFrame !== (handlers.options.updatePositionStrategy === "always")) {
+    reconnect(content);
+  } else {
+    handlers.revision++;
+    handlers.update();
+  }
 }
 
 export function updateVirtualPopperContent(content, arrow, x, y, options) {

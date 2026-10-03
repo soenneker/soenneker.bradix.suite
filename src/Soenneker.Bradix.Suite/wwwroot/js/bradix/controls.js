@@ -327,12 +327,13 @@ export function registerSliderPointerBridge(element, dotNetRef) {
       }
       pending = false;
     };
+    const runMoveFrame = () => {
+      moveFrame = 0;
+      flushMove().catch(console.error);
+    };
     const scheduleMove = () => {
       if (moveFrame || moveTask || ended || !isCurrent()) return;
-      moveFrame = requestAnimationFrame(() => {
-        moveFrame = 0;
-        flushMove().catch(console.error);
-      });
+      moveFrame = requestAnimationFrame(runMoveFrame);
     };
     const detachPointer = () => {
       document.removeEventListener("pointermove", pointermove);
@@ -348,16 +349,18 @@ export function registerSliderPointerBridge(element, dotNetRef) {
       cancelPendingMove();
       if (handlers.cancelGesture === cancelGesture) handlers.cancelGesture = null;
     };
+    const sendMove = async () => {
+      if (!await startTask || !isCurrent() || !pending) return;
+      pending = false;
+      await dotNetRef.invokeMethodAsync("HandlePointerMove", pendingMove.x, pendingMove.y);
+    };
+    const completeMove = () => {
+      moveTask = null;
+      if (pending) scheduleMove();
+    };
     const flushMove = () => {
       if (moveTask) return moveTask;
-      moveTask = (async () => {
-        if (!await startTask || !isCurrent() || !pending) return;
-        pending = false;
-        await dotNetRef.invokeMethodAsync("HandlePointerMove", pendingMove.x, pendingMove.y);
-      })().finally(() => {
-        moveTask = null;
-        if (pending) scheduleMove();
-      });
+      moveTask = sendMove().finally(completeMove);
       return moveTask;
     };
     const pointermove = moveEvent => {
@@ -531,7 +534,7 @@ export async function focusFirstMatchingDescendant(element, selector) {
       return true;
     }
 
-    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
   }
 
   return false;
@@ -552,12 +555,7 @@ export function registerOneTimePasswordInput(element, dotNetRef) {
 
   unregisterOneTimePasswordInput(element);
 
-  const keydown = async (event) => {
-    if (event.target !== element) {
-      return;
-    }
-
-    const focusBoundaryInput = (start) => {
+  const focusBoundaryInput = (start) => {
       const root = element.closest('[role="group"]');
       const inputs = (root || document).querySelectorAll("[data-radix-otp-input]");
       let next = null;
@@ -585,8 +583,12 @@ export function registerOneTimePasswordInput(element, dotNetRef) {
           next.select();
         }
       }
-    };
+  };
 
+  const keydown = async (event) => {
+    if (event.target !== element) {
+      return;
+    }
     switch (event.key) {
       case "Home":
       case "End":

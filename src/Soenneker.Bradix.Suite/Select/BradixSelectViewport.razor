@@ -16,6 +16,8 @@
 </div>
 
 @code {
+    private string? _mergedStyleCache0;
+
     private ElementReference _element;
     private ElementReference _content;
     private bool _registered;
@@ -48,6 +50,6 @@
     private string BuildStyle()
     {
         const string baseStyle = "position:relative;flex:1 1 auto;min-height:0;overflow:hidden auto;";
-        return MergeStyleValues(baseStyle, Style)!;
+        return BradixStringCache.MergeStyle(baseStyle, Style, ref _mergedStyleCache0)!;
     }
 }

@@ -16,6 +16,8 @@
 </BradixPopper>
 
 @code {
+    private string? _childIdCache0;
+
     private ValueAtomicBool _disposed;
     private bool _initialized;
     private bool _uncontrolledOpen;
@@ -49,7 +51,7 @@
 
     public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    public string ContentId => BlazorIdGenerator.Child(BaseId!, "content");
+    public string ContentId => BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache0);
 
     public string StateAttribute => CurrentOpen
         ? (_openedWithDelay ? "delayed-open" : "instant-open")
@@ -141,15 +143,12 @@
         return Close();
     }
 
-    public async Task CloseFromProvider()
-    {
-        await SetOpen(false, false, false);
-    }
+    public Task CloseFromProvider() => SetOpen(false, false, false);
 
-    public async Task Close()
+    public Task Close()
     {
         CancelOpenDelay();
-        await SetOpen(false, false, true);
+        return SetOpen(false, false, true);
     }
 
     private void StartOpenDelay()
@@ -158,6 +157,11 @@
             return;
 
         CancelOpenDelay();
+        if (EffectiveDelayDuration == 0)
+        {
+            _ = OpenNow(true);
+            return;
+        }
         _openDelayTokenSource = new CancellationTokenSource();
         _ = OpenAfterDelay(_openDelayTokenSource.Token);
     }
@@ -174,10 +178,10 @@
         }
     }
 
-    private async Task OpenNow(bool delayed)
+    private Task OpenNow(bool delayed)
     {
         CancelOpenDelay();
-        await SetOpen(true, delayed, true);
+        return SetOpen(true, delayed, true);
     }
 
     private async Task SetOpen(bool open, bool delayed, bool notifyProvider)
@@ -213,7 +217,7 @@
         if (!open && notifyProvider)
             Provider?.NotifyClose(this);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private void CancelOpenDelay()

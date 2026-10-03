@@ -13,14 +13,17 @@
                     DataState="@CheckboxDataState"
                     Disabled="Disabled"
                     CloseOnSelect="CloseOnSelect"
-                    OnSelect="HandleSelect"
-                    OnSelectDetailed="@HandleSelectDetailed"
+                    OnSelect="(_cachedHandleSelectDelegate ??= HandleSelect)"
+                    OnSelectDetailed="(_cachedHandleSelectDetailedDelegate ??= HandleSelectDetailed)"
                     AdditionalAttributes="@AdditionalAttributes">
         @ChildContent
     </BradixMenuItem>
 </CascadingValue>
 
 @code {
+    private System.Func<Task>? _cachedHandleSelectDelegate;
+    private System.Func<BradixMenuItemSelectEventArgs, Task>? _cachedHandleSelectDetailedDelegate;
+
     private bool _initialized;
     private BradixCheckboxCheckedState _uncontrolledChecked = BradixCheckboxCheckedState.Unchecked;
     private BradixMenuItemIndicatorContext? _indicatorContext;
@@ -106,7 +109,7 @@
         if (OnCheckedChange.HasDelegate)
             await OnCheckedChange.InvokeAsync(nextState == BradixCheckboxCheckedState.Checked);
 
-        await InvokeAsync(StateHasChanged);
+        await RequestRender();
     }
 
     private Task HandleSelectDetailed(BradixMenuItemSelectEventArgs args)
