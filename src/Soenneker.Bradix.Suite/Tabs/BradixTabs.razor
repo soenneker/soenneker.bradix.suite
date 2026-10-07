@@ -5,13 +5,23 @@
 @using Soenneker.Blazor.Utils.Ids
 @implements IBradixTabs
 
-<CascadingValue Value="this">
+<CascadingValue Value="this" IsFixed="true">
     <div @attributes="RootAttributes">
         @ChildContent
     </div>
 </CascadingValue>
 
 @code {
+    internal event Action? StateChanged;
+
+    private Task NotifyStateChanged()
+    {
+        StateChanged?.Invoke();
+        return Task.CompletedTask;
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender) => NotifyStateChanged();
+
     private string? _childIdCache0;
     private string? _childIdCache1;
 
@@ -109,7 +119,7 @@
             return;
 
         CurrentTabStopId = tabStopId;
-        _ = RequestRender();
+        _ = NotifyStateChanged();
     }
 
     internal async Task HandleTriggerKeyDown(BradixTabsTrigger trigger, bool loop, KeyboardEventArgs args)
@@ -141,7 +151,7 @@
 
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
-        await RequestRender();
+        await NotifyStateChanged();
     }
 
     internal async Task HandleListKeyDown(bool loop, KeyboardEventArgs args)
@@ -175,7 +185,7 @@
 
         CurrentTabStopId = target.TabStopId;
         await target.Focus();
-        await RequestRender();
+        await NotifyStateChanged();
     }
 
     internal async Task SetValue(string value)
@@ -193,7 +203,7 @@
             await OnValueChange.InvokeAsync(value);
 
         EnsureCurrentTabStopId();
-        await RequestRender();
+        await NotifyStateChanged();
     }
 
     private void RefreshTabStopIfChanged()
@@ -201,7 +211,7 @@
         string? previous = CurrentTabStopId;
         EnsureCurrentTabStopId();
         if (!string.Equals(previous, CurrentTabStopId, StringComparison.Ordinal))
-            _ = RequestRender();
+            _ = NotifyStateChanged();
     }
 
     private void EnsureCurrentTabStopId()

@@ -7,7 +7,39 @@
     @ChildContent
 </BradixCollapsibleContent>
 
+@implements IDisposable
+
 @code {
+    public void Dispose() => UnsubscribeOwner();
+    private BradixAccordion? _subscribedOwner;
+    private string _ownerState = default!;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!ReferenceEquals(_subscribedOwner, Accordion))
+        {
+            if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+            _subscribedOwner = Accordion;
+            _subscribedOwner.StateChanged += OnOwnerStateChanged;
+        }
+        _ownerState = Accordion.Orientation.Value;
+    }
+
+    private void OnOwnerStateChanged()
+    {
+        var state = Accordion.Orientation.Value;
+        if (EqualityComparer<string>.Default.Equals(_ownerState, state)) return;
+        _ownerState = state;
+        _ = RequestRender();
+    }
+
+    private void UnsubscribeOwner()
+    {
+        if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+        _subscribedOwner = null;
+    }
+
     private string? _mergedStyleCache0;
 
 

@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using System.Collections.Generic;
 using Bunit;
@@ -24,6 +25,20 @@ public sealed class BradixTabsRenderTests : BunitContext
         module.Setup<JsonElement?>("getPresenceState", _ => true)
             .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
         Services.AddBradixTestInterops();
+    }
+
+    [Test]
+    public async ValueTask Selection_only_refreshes_affected_tabs()
+    {
+        int contentRenders = 0;
+        var cut = Render(CreateTabs(defaultValue: "tab1", contentRendered: () => contentRenders++));
+        var unrelated = cut.FindComponents<BradixTabsTrigger>()[1];
+        int ownerRenders = contentRenders;
+        int unrelatedRenders = unrelated.RenderCount;
+        await cut.FindAll("button")[2].MouseDownAsync(new MouseEventArgs { Button = 0 });
+        await Assert.That(contentRenders).IsEqualTo(ownerRenders);
+        await Assert.That(unrelated.RenderCount).IsEqualTo(unrelatedRenders);
+        await Assert.That(cut.FindAll("button")[2].GetAttribute("aria-selected")).IsEqualTo("true");
     }
 
     [Test]
@@ -166,7 +181,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     private static RenderFragment CreateTabs(string? defaultValue = null, TabsActivationMode? activationMode = null, EventCallback<string?> onValueChange = default,
-        bool forceMount = false, Orientation? orientation = null, string? dir = null)
+        bool forceMount = false, Orientation? orientation = null, string? dir = null, Action? contentRendered = null)
     {
         return builder =>
         {
@@ -186,6 +201,7 @@ public sealed class BradixTabsRenderTests : BunitContext
 
             builder.AddAttribute(4, nameof(BradixTabs.ChildContent), (RenderFragment) (contentBuilder =>
             {
+                contentRendered?.Invoke();
                 contentBuilder.OpenComponent<BradixTabsList>(0);
                 contentBuilder.AddAttribute(1, nameof(BradixTabsList.ChildContent), (RenderFragment) (listBuilder =>
                 {

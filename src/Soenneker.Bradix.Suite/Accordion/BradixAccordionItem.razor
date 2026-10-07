@@ -11,7 +11,39 @@
     </BradixCollapsible>
 </CascadingValue>
 
+@implements IDisposable
+
 @code {
+    public void Dispose() => UnsubscribeOwner();
+    private BradixAccordion? _subscribedOwner;
+    private (bool, bool, string, string, bool) _ownerState = default!;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!ReferenceEquals(_subscribedOwner, Accordion))
+        {
+            if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+            _subscribedOwner = Accordion;
+            _subscribedOwner.StateChanged += OnOwnerStateChanged;
+        }
+        _ownerState = (IsOpen, IsDisabled, Accordion.Orientation.Value, Accordion.ResolvedDirection, Accordion.IsCollapsible);
+    }
+
+    private void OnOwnerStateChanged()
+    {
+        var state = (IsOpen, IsDisabled, Accordion.Orientation.Value, Accordion.ResolvedDirection, Accordion.IsCollapsible);
+        if (EqualityComparer<(bool, bool, string, string, bool)>.Default.Equals(_ownerState, state)) return;
+        _ownerState = state;
+        _ = RequestRender();
+    }
+
+    private void UnsubscribeOwner()
+    {
+        if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+        _subscribedOwner = null;
+    }
+
     private string? _triggerIdCache;
     private System.Func<bool, Task>? _cachedHandleOpenChangeDelegate;
 

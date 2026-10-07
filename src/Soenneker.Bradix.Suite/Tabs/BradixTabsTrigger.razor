@@ -19,6 +19,35 @@
 @implements IHandleEvent
 
 @code {
+    private BradixTabs? _subscribedOwner;
+    private (bool, bool, string, string, bool) _ownerState = default!;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!ReferenceEquals(_subscribedOwner, Tabs))
+        {
+            if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+            _subscribedOwner = Tabs;
+            _subscribedOwner.StateChanged += OnOwnerStateChanged;
+        }
+        _ownerState = (IsSelected, Tabs.IsCurrentTabStop(this), Tabs.RovingOrientationValue, Tabs.ResolvedDirection, Tabs.IsAutomaticActivation);
+    }
+
+    private void OnOwnerStateChanged()
+    {
+        var state = (IsSelected, Tabs.IsCurrentTabStop(this), Tabs.RovingOrientationValue, Tabs.ResolvedDirection, Tabs.IsAutomaticActivation);
+        if (EqualityComparer<(bool, bool, string, string, bool)>.Default.Equals(_ownerState, state)) return;
+        _ownerState = state;
+        _ = RequestRender();
+    }
+
+    private void UnsubscribeOwner()
+    {
+        if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+        _subscribedOwner = null;
+    }
+
     private string? _triggerId;
     private string? _contentId;
     private System.Func<MouseEventArgs, Task>? _cachedHandleMouseDownDelegate;
@@ -104,6 +133,7 @@
 
     public async ValueTask DisposeAsync()
     {
+        UnsubscribeOwner();
         if (!_disposed.TrySetTrue())
             return;
         if (_registered)

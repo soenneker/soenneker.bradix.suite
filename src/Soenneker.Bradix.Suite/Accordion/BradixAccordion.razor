@@ -5,13 +5,23 @@
 @inherits BradixContentElement
 
 @implements IBradixAccordion
-<CascadingValue Value="this">
+<CascadingValue Value="this" IsFixed="true">
     <div @attributes="RootAttributes">
         @ChildContent
     </div>
 </CascadingValue>
 
 @code {
+    internal event Action? StateChanged;
+
+    private Task NotifyStateChanged()
+    {
+        StateChanged?.Invoke();
+        return Task.CompletedTask;
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender) => NotifyStateChanged();
+
     private readonly List<BradixAccordionTrigger> _triggers = [];
     private bool _initialized;
     private string? _groupId;
@@ -29,7 +39,7 @@
 
     [Parameter]
     public Orientation Orientation { get; set; } = Orientation.Vertical;
-     
+
     [Parameter]
     public string? Dir { get; set; }
 
@@ -225,7 +235,7 @@
         if (OnValueChange.HasDelegate)
             await OnValueChange.InvokeAsync(value);
 
-        await RequestRender();
+        await NotifyStateChanged();
     }
 
     private async Task SetMultipleValues(List<string> next)
@@ -239,7 +249,7 @@
         if (OnValuesChange.HasDelegate)
             await OnValuesChange.InvokeAsync(next);
 
-        await RequestRender();
+        await NotifyStateChanged();
     }
 
     private static List<string> CopyValues(IEnumerable<string>? values)

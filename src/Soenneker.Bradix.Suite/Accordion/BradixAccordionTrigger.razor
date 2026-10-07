@@ -18,6 +18,35 @@
 </BradixCollapsibleTrigger>
 
 @code {
+    private BradixAccordion? _subscribedOwner;
+    private (bool, bool, string, string, bool) _ownerState = default!;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!ReferenceEquals(_subscribedOwner, Accordion))
+        {
+            if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+            _subscribedOwner = Accordion;
+            _subscribedOwner.StateChanged += OnOwnerStateChanged;
+        }
+        _ownerState = (Item.IsOpen, Item.IsDisabled, Accordion.Orientation.Value, Accordion.ResolvedDirection, Accordion.IsCollapsible);
+    }
+
+    private void OnOwnerStateChanged()
+    {
+        var state = (Item.IsOpen, Item.IsDisabled, Accordion.Orientation.Value, Accordion.ResolvedDirection, Accordion.IsCollapsible);
+        if (EqualityComparer<(bool, bool, string, string, bool)>.Default.Equals(_ownerState, state)) return;
+        _ownerState = state;
+        _ = RequestRender();
+    }
+
+    private void UnsubscribeOwner()
+    {
+        if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+        _subscribedOwner = null;
+    }
+
     private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
 
     private BradixCollapsibleTrigger? _trigger;
@@ -75,6 +104,7 @@
 
     public void Dispose()
     {
+        UnsubscribeOwner();
         if (!_disposed.TrySetTrue())
             return;
         Accordion.UnregisterTrigger(this);

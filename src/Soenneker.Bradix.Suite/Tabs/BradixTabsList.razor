@@ -12,7 +12,39 @@
 
 @implements IHandleEvent
 
+@implements IDisposable
+
 @code {
+    public void Dispose() => UnsubscribeOwner();
+    private BradixTabs? _subscribedOwner;
+    private string _ownerState = default!;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!ReferenceEquals(_subscribedOwner, Tabs))
+        {
+            if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+            _subscribedOwner = Tabs;
+            _subscribedOwner.StateChanged += OnOwnerStateChanged;
+        }
+        _ownerState = Tabs.RovingOrientationValue;
+    }
+
+    private void OnOwnerStateChanged()
+    {
+        var state = Tabs.RovingOrientationValue;
+        if (EqualityComparer<string>.Default.Equals(_ownerState, state)) return;
+        _ownerState = state;
+        _ = RequestRender();
+    }
+
+    private void UnsubscribeOwner()
+    {
+        if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+        _subscribedOwner = null;
+    }
+
     private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
 
     // State changes render through the owning context or the explicit focus handlers.

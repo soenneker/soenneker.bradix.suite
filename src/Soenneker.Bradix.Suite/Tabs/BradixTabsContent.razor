@@ -10,7 +10,39 @@
     }
 </div>
 
+@implements IDisposable
+
 @code {
+    public void Dispose() => UnsubscribeOwner();
+    private BradixTabs? _subscribedOwner;
+    private (bool, string) _ownerState = default!;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!ReferenceEquals(_subscribedOwner, Tabs))
+        {
+            if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+            _subscribedOwner = Tabs;
+            _subscribedOwner.StateChanged += OnOwnerStateChanged;
+        }
+        _ownerState = (IsSelected, Tabs.RovingOrientationValue);
+    }
+
+    private void OnOwnerStateChanged()
+    {
+        var state = (IsSelected, Tabs.RovingOrientationValue);
+        if (EqualityComparer<(bool, string)>.Default.Equals(_ownerState, state)) return;
+        _ownerState = state;
+        _ = RequestRender();
+    }
+
+    private void UnsubscribeOwner()
+    {
+        if (_subscribedOwner is not null) _subscribedOwner.StateChanged -= OnOwnerStateChanged;
+        _subscribedOwner = null;
+    }
+
     private string? _triggerId;
     private string? _contentId;
     private string? _mergedStyleCache0;
