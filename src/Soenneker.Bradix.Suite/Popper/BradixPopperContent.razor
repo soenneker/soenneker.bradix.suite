@@ -195,8 +195,7 @@
         finally
         {
             _registered = false;
-            // Unregistration cancels scheduled JS work and invalidates in-flight
-            // updates. Their rejected callbacks are handled by the JS scheduler.
+            // Unregistration cancels scheduled work and drains dispatched callbacks.
             _dotNetReference?.Dispose();
             _dotNetReference = null;
         }

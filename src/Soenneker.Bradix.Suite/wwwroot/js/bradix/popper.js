@@ -281,7 +281,7 @@ async function updateRegisteredPopperContent(content, handlers) {
   }
 
   handlers.lastPosition = nextPosition;
-  await handlers.dotNetRef.invokeMethodAsync(
+  handlers.callback = handlers.dotNetRef.invokeMethodAsync(
     "HandlePositionChanged",
     nextPosition.placedSide,
     nextPosition.placedAlign,
@@ -299,6 +299,7 @@ async function updateRegisteredPopperContent(content, handlers) {
     nextPosition.transformOriginY,
     nextPosition.zIndex
   );
+  await handlers.callback;
 }
 
 function isSamePosition(previous, next) {
@@ -500,4 +501,6 @@ export function unregisterPopperContent(content) {
   cancelAnimationFrame(handlers.frame);
   handlers.frame = 0;
   popperContentHandlers.delete(content);
+  // Keep the .NET reference alive until an already-dispatched callback settles.
+  return handlers.callback?.catch(() => {});
 }

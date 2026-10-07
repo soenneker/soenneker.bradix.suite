@@ -37,7 +37,7 @@ function fixture(t) {
   const register = () => popper.registerVirtualPopperContent(content, null, receiver, 0, 0, {});
   register();
   t.after(() => popper.unregisterPopperContent(content));
-  return { frames, computations, observers, notifications, content, register,
+  return { frames, computations, observers, notifications, content, receiver, register,
     runFrame() {
       const callbacks = [...frames.values()];
       frames.clear();
@@ -103,6 +103,24 @@ test('unregister suppresses results from a computation already in flight', async
   await running;
   assert.equal(env.notifications.length, 0);
   assert.equal(env.frames.size, 0);
+});
+
+test('unregister waits for an already-dispatched .NET callback before disposal', async t => {
+  const env = fixture(t);
+  const callback = deferred();
+  env.receiver.invokeMethodAsync = () => callback.promise;
+  const running = env.runFrame();
+  env.result(0);
+  await Promise.resolve();
+  let unregistered = false;
+  const cleanup = Promise.resolve(popper.unregisterPopperContent(env.content))
+    .then(() => { unregistered = true; });
+  await Promise.resolve();
+  assert.equal(unregistered, false);
+  assert.ok(env.observers[0].disconnected);
+  callback.resolve();
+  await Promise.all([running, cleanup]);
+  assert.equal(unregistered, true);
 });
 
 test('replacing a registration ignores old results and observers', async t => {
