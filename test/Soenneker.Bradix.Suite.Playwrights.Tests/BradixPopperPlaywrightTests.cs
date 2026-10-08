@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Popper_demo_reports_initial_placement()
+    public async ValueTask Popper_demo_reports_initial_placement(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/poppers"));
@@ -23,9 +24,9 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Popper_demo_positions_content_below_anchor_with_arrow_offset_and_no_console_errors()
+    public async ValueTask Popper_demo_positions_content_below_anchor_with_arrow_offset_and_no_console_errors(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var consoleMessages = new System.Collections.Generic.List<string>();
         var pageErrors = new System.Collections.Generic.List<string>();
@@ -65,9 +66,9 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Popper_demo_respects_explicit_collision_boundary_selectors()
+    public async ValueTask Popper_demo_respects_explicit_collision_boundary_selectors(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var consoleMessages = new System.Collections.Generic.List<string>();
         var pageErrors = new System.Collections.Generic.List<string>();

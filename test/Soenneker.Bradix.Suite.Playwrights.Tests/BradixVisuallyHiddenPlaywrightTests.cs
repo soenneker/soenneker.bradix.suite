@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixVisuallyHiddenPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Visually_hidden_demo_preserves_accessible_name_for_icon_button()
+    public async ValueTask Visually_hidden_demo_preserves_accessible_name_for_icon_button(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var consoleErrors = new System.Collections.Generic.List<string>();
         var sawPageError = false;

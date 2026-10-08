@@ -4,6 +4,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -21,7 +22,7 @@ public sealed class BradixLabelRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Label_renders_native_for_attribute_and_additional_attributes()
+    public async ValueTask Label_renders_native_for_attribute_and_additional_attributes(CancellationToken cancellationToken)
     {
         IRenderedComponent<BradixLabel> cut = Render<BradixLabel>(parameters => parameters
             .Add(label => label.For, "firstName")
@@ -41,7 +42,7 @@ public sealed class BradixLabelRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Label_forwards_delegated_mouse_down_callback()
+    public async ValueTask Label_forwards_delegated_mouse_down_callback(CancellationToken cancellationToken)
     {
         var count = 0;
 

@@ -2,6 +2,7 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async ValueTask Scroll_area_demo_supports_horizontal_viewport_scrolling()
+    public async ValueTask Scroll_area_demo_supports_horizontal_viewport_scrolling(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scrollareas"));
@@ -26,9 +27,9 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async ValueTask Scroll_area_demo_supports_vertical_horizontal_and_rtl_viewport_scrolling()
+    public async ValueTask Scroll_area_demo_supports_vertical_horizontal_and_rtl_viewport_scrolling(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenPage(BaseUrl, "/scrollareas?testScenarios=true", async currentPage =>
@@ -56,9 +57,9 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async ValueTask Scroll_area_demo_allows_viewport_scrolling()
+    public async ValueTask Scroll_area_demo_allows_viewport_scrolling(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scrollareas"));
@@ -69,9 +70,9 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
     }
 
     [Test]
-    public async ValueTask Scroll_area_demo_custom_vertical_scrollbar_wheel_scrolls_viewport()
+    public async ValueTask Scroll_area_demo_custom_vertical_scrollbar_wheel_scrolls_viewport(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/scrollareas"));

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
     }
 
 [Test]
-    public async ValueTask One_time_password_demo_distributes_typed_digits_across_slots()
+    public async ValueTask One_time_password_demo_distributes_typed_digits_across_slots(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));
@@ -32,9 +33,9 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
     }
 
     [Test]
-    public async ValueTask One_time_password_demo_rejects_non_numeric_characters()
+    public async ValueTask One_time_password_demo_rejects_non_numeric_characters(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));
@@ -48,9 +49,9 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
     }
 
 [Test]
-    public async ValueTask One_time_password_demo_home_and_end_keys_move_focus_to_first_and_last_filled_slots()
+    public async ValueTask One_time_password_demo_home_and_end_keys_move_focus_to_first_and_last_filled_slots(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));
@@ -68,9 +69,9 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
     }
 
 [Test]
-    public async ValueTask One_time_password_demo_controlled_buttons_keep_visible_slots_and_hidden_input_in_sync()
+    public async ValueTask One_time_password_demo_controlled_buttons_keep_visible_slots_and_hidden_input_in_sync(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));
@@ -105,9 +106,9 @@ public sealed class BradixOneTimePasswordFieldPlaywrightTests : BradixComponentP
     }
 
 [Test]
-    public async ValueTask One_time_password_demo_backspace_after_paste_clears_uncontrolled_slots_and_form_reset_restores_default_value()
+    public async ValueTask One_time_password_demo_backspace_after_paste_clears_uncontrolled_slots_and_form_reset_restores_default_value(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/onetimepasswordfields"));

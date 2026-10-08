@@ -2,13 +2,14 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixPendingRegistrationTests : BunitContext
 {
     [Test]
-    public async ValueTask Toast_viewport_releases_registration_that_completes_after_disposal()
+    public async ValueTask Toast_viewport_releases_registration_that_completes_after_disposal(CancellationToken cancellationToken)
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         var register = module.SetupVoid("registerToastViewport", _ => true);
@@ -25,7 +26,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Slider_releases_registration_that_completes_after_disposal()
+    public async ValueTask Slider_releases_registration_that_completes_after_disposal(CancellationToken cancellationToken)
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         var register = module.SetupVoid("registerSliderPointerBridge", _ => true);
@@ -42,7 +43,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Form_releases_registration_that_completes_after_disposal()
+    public async ValueTask Form_releases_registration_that_completes_after_disposal(CancellationToken cancellationToken)
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         var register = module.SetupVoid("registerFormRoot", _ => true);
@@ -57,7 +58,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Checkbox_releases_form_registration_that_completes_after_disposal()
+    public async ValueTask Checkbox_releases_form_registration_that_completes_after_disposal(CancellationToken cancellationToken)
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         var register = module.SetupVoid("registerCheckboxRoot", _ => true);
@@ -72,7 +73,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Viewport_releases_registration_that_completes_after_disposal()
+    public async ValueTask Viewport_releases_registration_that_completes_after_disposal(CancellationToken cancellationToken)
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerScrollAreaRoot", _ => true).SetVoidResult();
@@ -94,7 +95,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Scrollbar_releases_registration_that_completes_after_disposal()
+    public async ValueTask Scrollbar_releases_registration_that_completes_after_disposal(CancellationToken cancellationToken)
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerScrollAreaRoot", _ => true).SetVoidResult();
@@ -121,7 +122,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Portal_unmounts_when_mount_completes_after_disposal()
+    public async ValueTask Portal_unmounts_when_mount_completes_after_disposal(CancellationToken cancellationToken)
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         var mount = module.SetupVoid("mountPortal", _ => true);
@@ -137,7 +138,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_guards_release_registration_that_completes_after_disposal()
+    public async ValueTask Focus_guards_release_registration_that_completes_after_disposal(CancellationToken cancellationToken)
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         var register = module.SetupVoid("registerFocusGuards", _ => true);
@@ -153,7 +154,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Dismissable_branch_releases_registration_that_completes_after_disposal()
+    public async ValueTask Dismissable_branch_releases_registration_that_completes_after_disposal(CancellationToken cancellationToken)
     {
         var module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         var register = module.SetupVoid("registerDismissableLayerBranch", _ => true);

@@ -2,6 +2,7 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Menu_demo_updates_selection_from_modal_submenu_item()
+    public async ValueTask Menu_demo_updates_selection_from_modal_submenu_item(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
@@ -38,9 +39,9 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Menu_demo_supports_keyboard_entry_typeahead_and_escape_close()
+    public async ValueTask Menu_demo_supports_keyboard_entry_typeahead_and_escape_close(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
@@ -67,9 +68,9 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Menu_demo_submenu_close_key_returns_focus_to_submenu_trigger()
+    public async ValueTask Menu_demo_submenu_close_key_returns_focus_to_submenu_trigger(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(

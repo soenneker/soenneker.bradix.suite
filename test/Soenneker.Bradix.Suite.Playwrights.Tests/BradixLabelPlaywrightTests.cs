@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Label_demo_focuses_input_when_label_is_clicked()
+    public async ValueTask Label_demo_focuses_input_when_label_is_clicked(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/labels"));
@@ -26,9 +27,9 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Label_demo_toggles_associated_checkbox_when_label_is_clicked()
+    public async ValueTask Label_demo_toggles_associated_checkbox_when_label_is_clicked(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/labels"));
@@ -42,9 +43,9 @@ public sealed class BradixLabelPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Label_demo_prevents_double_click_text_selection_default_on_label_text()
+    public async ValueTask Label_demo_prevents_double_click_text_selection_default_on_label_text(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/labels"));

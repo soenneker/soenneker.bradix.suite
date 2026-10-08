@@ -26,7 +26,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Remove_scroll_renders_child_content()
+    public async ValueTask Remove_scroll_renders_child_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -45,7 +45,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Remove_scroll_forwards_allow_pinch_zoom_to_interop()
+    public async ValueTask Remove_scroll_forwards_allow_pinch_zoom_to_interop(CancellationToken cancellationToken)
     {
         Render(builder =>
         {
@@ -64,7 +64,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Remove_scroll_unregisters_interop_on_dispose()
+    public async ValueTask Remove_scroll_unregisters_interop_on_dispose(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -86,7 +86,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Remove_scroll_unregisters_when_disposed_before_register_finishes()
+    public async ValueTask Remove_scroll_unregisters_when_disposed_before_register_finishes(CancellationToken cancellationToken)
     {
         var interop = new DelayedPresenceOverlayInterop();
         Services.RemoveAll<IPresenceOverlayInterop>();
@@ -98,7 +98,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
             builder.CloseComponent();
         });
 
-        await interop.RegisterStarted.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        await interop.RegisterStarted.Task.WaitAsync(TimeSpan.FromSeconds(1), cancellationToken: cancellationToken);
 
         await cut.InvokeAsync(() => cut.FindComponent<BradixRemoveScroll>().Instance.DisposeAsync().AsTask());
 
@@ -106,7 +106,7 @@ public sealed class BradixRemoveScrollRenderTests : BunitContext
 
         interop.AllowRegister.SetResult();
 
-        string unregisteredId = await interop.Unregistered.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        string unregisteredId = await interop.Unregistered.Task.WaitAsync(TimeSpan.FromSeconds(1), cancellationToken: cancellationToken);
         await Assert.That(unregisteredId).IsEqualTo(interop.RegisteredIds.Single());
     }
 

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -28,7 +29,7 @@ public sealed class BradixAccordionAnimationRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Content_stays_mounted_in_closed_state_when_exit_animation_is_detected()
+    public async ValueTask Content_stays_mounted_in_closed_state_when_exit_animation_is_detected(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAccordion());
 

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -25,7 +26,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Toolbar_renders_role_and_separator_orientation()
+    public async ValueTask Toolbar_renders_role_and_separator_orientation(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
@@ -38,7 +39,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Toolbar_roving_focus_skips_disabled_items()
+    public async ValueTask Toolbar_roving_focus_skips_disabled_items(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
@@ -50,7 +51,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Toolbar_toggle_group_updates_pressed_state()
+    public async ValueTask Toolbar_toggle_group_updates_pressed_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 
@@ -66,7 +67,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Toolbar_items_register_radix_roving_mousedown_guards_and_click_callbacks()
+    public async ValueTask Toolbar_items_register_radix_roving_mousedown_guards_and_click_callbacks(CancellationToken cancellationToken)
     {
         var buttonClicks = 0;
         var toggleClicks = 0;
@@ -109,7 +110,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Controlled_toolbar_toggle_group_with_null_value_does_not_mutate_internal_state()
+    public async ValueTask Controlled_toolbar_toggle_group_with_null_value_does_not_mutate_internal_state(CancellationToken cancellationToken)
     {
         string? reported = null;
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
@@ -139,7 +140,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Inherited_direction_flips_horizontal_navigation()
+    public async ValueTask Inherited_direction_flips_horizontal_navigation(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -160,7 +161,7 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Toolbar_link_space_key_invokes_click_interop()
+    public async ValueTask Toolbar_link_space_key_invokes_click_interop(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToolbar());
 

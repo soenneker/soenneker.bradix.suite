@@ -8,6 +8,7 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -47,7 +48,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Trigger_click_opens_dialog_and_links_title_and_description()
+    public async ValueTask Trigger_click_opens_dialog_and_links_title_and_description(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog());
 
@@ -63,7 +64,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Dialog_without_title_or_description_does_not_emit_orphaned_relationship_ids()
+    public async ValueTask Dialog_without_title_or_description_does_not_emit_orphaned_relationship_ids(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -88,7 +89,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Modal_dialog_renders_overlay_and_sets_aria_modal()
+    public async ValueTask Modal_dialog_renders_overlay_and_sets_aria_modal(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true, modal: true));
 
@@ -98,7 +99,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Non_modal_dialog_does_not_render_overlay()
+    public async ValueTask Non_modal_dialog_does_not_render_overlay(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true, modal: false));
 
@@ -106,7 +107,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Modal_state_controls_focus_trap_and_outside_pointer_lock()
+    public async ValueTask Modal_state_controls_focus_trap_and_outside_pointer_lock(CancellationToken cancellationToken)
     {
         Render(CreateDialog(defaultOpen: true, modal: true));
 
@@ -118,7 +119,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Non_modal_state_disables_focus_trap_and_outside_pointer_lock()
+    public async ValueTask Non_modal_state_disables_focus_trap_and_outside_pointer_lock(CancellationToken cancellationToken)
     {
         Render(CreateDialog(defaultOpen: true, modal: false));
 
@@ -130,7 +131,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_down_outside_closes_dialog()
+    public async ValueTask Pointer_down_outside_closes_dialog(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -141,7 +142,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_down_on_trigger_does_not_dismiss_non_modal_dialog()
+    public async ValueTask Pointer_down_on_trigger_does_not_dismiss_non_modal_dialog(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true, modal: false));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -157,7 +158,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Detailed_pointer_down_outside_can_prevent_dialog_dismiss()
+    public async ValueTask Detailed_pointer_down_outside_can_prevent_dialog_dismiss(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -184,7 +185,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Close_button_keeps_content_mounted_until_exit_animation_finishes()
+    public async ValueTask Close_button_keeps_content_mounted_until_exit_animation_finishes(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog(defaultOpen: true));
 
@@ -202,7 +203,7 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Modal_dialog_registers_hide_others()
+    public async ValueTask Modal_dialog_registers_hide_others(CancellationToken cancellationToken)
     {
         Render(CreateDialog(defaultOpen: true));
 

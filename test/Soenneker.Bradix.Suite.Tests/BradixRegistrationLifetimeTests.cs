@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -20,7 +21,7 @@ public sealed class BradixRegistrationLifetimeTests : BunitContext
     }
 
     [Test]
-    public async Task Tooltip_disposal_waits_for_registration_then_unregisters_once()
+    public async Task Tooltip_disposal_waits_for_registration_then_unregisters_once(CancellationToken cancellationToken)
     {
         var pending = _module.SetupVoid("registerTooltipTrigger", _ => true);
         var cut = Render<BradixTooltip>(p => p.AddChildContent<BradixTooltipTrigger>());
@@ -36,7 +37,7 @@ public sealed class BradixRegistrationLifetimeTests : BunitContext
     }
 
     [Test]
-    public async Task Otp_disposal_waits_for_registration_without_syncing_a_disposed_input()
+    public async Task Otp_disposal_waits_for_registration_without_syncing_a_disposed_input(CancellationToken cancellationToken)
     {
         var pending = _module.SetupVoid("registerOneTimePasswordInput", _ => true);
         var cut = Render<BradixOneTimePasswordFieldInput>();
@@ -51,7 +52,7 @@ public sealed class BradixRegistrationLifetimeTests : BunitContext
     }
 
     [Test]
-    public async Task Hover_card_disposal_waits_for_selection_registration()
+    public async Task Hover_card_disposal_waits_for_selection_registration(CancellationToken cancellationToken)
     {
         var pending = _module.SetupVoid("registerHoverCardSelectionContainment", _ => true);
         var cut = Render<BradixHoverCardContent>(p => p.Add(c => c.ForceMount, true));

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using System;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -25,7 +26,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Popper_disposal_releases_callback_reference_without_a_retention_timer()
+    public async ValueTask Popper_disposal_releases_callback_reference_without_a_retention_timer(CancellationToken cancellationToken)
     {
         _module.SetupVoid("registerPopperContent", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterPopperContent", _ => true).SetVoidResult();
@@ -40,7 +41,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Missing_anchor_waits_without_scheduling_more_renders()
+    public async ValueTask Missing_anchor_waits_without_scheduling_more_renders(CancellationToken cancellationToken)
     {
         var cut = Render<BradixPopperContent>(p => p.AddChildContent("Waiting for anchor"));
         await cut.InvokeAsync(() => Task.CompletedTask);
@@ -50,7 +51,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Popper_renders_anchor_and_content()
+    public async ValueTask Popper_renders_anchor_and_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopper());
 
@@ -59,7 +60,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Position_updates_are_reflected_in_attributes_and_callbacks()
+    public async ValueTask Position_updates_are_reflected_in_attributes_and_callbacks(CancellationToken cancellationToken)
     {
         var placedCount = 0;
 
@@ -116,7 +117,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Popper_arrow_uses_explicit_size_for_measurement_wrapper()
+    public async ValueTask Popper_arrow_uses_explicit_size_for_measurement_wrapper(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -156,7 +157,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Duplicate_position_updates_do_not_trigger_additional_rerenders()
+    public async ValueTask Duplicate_position_updates_do_not_trigger_additional_rerenders(CancellationToken cancellationToken)
     {
         var placedCount = 0;
 
@@ -205,7 +206,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Popper_registers_rtl_direction_in_positioning_options()
+    public async ValueTask Popper_registers_rtl_direction_in_positioning_options(CancellationToken cancellationToken)
     {
         BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerPopperContent", _ => true);
@@ -231,7 +232,7 @@ public sealed class BradixPopperRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Popper_registers_explicit_collision_boundary_selectors_and_sticky_option()
+    public async ValueTask Popper_registers_explicit_collision_boundary_selectors_and_sticky_option(CancellationToken cancellationToken)
     {
         BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Soenneker.Bradix.Suite/js/bradix.js");
         module.SetupVoid("registerPopperContent", _ => true);

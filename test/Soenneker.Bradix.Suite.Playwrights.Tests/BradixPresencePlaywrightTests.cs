@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixPresencePlaywrightTests : BradixComponentPlaywrightTes
     }
 
 [Test]
-    public async ValueTask Presence_demo_runs_exit_completion_when_toggled_closed()
+    public async ValueTask Presence_demo_runs_exit_completion_when_toggled_closed(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/presences"));

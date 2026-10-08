@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixFocusGuardsPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async ValueTask Focus_guards_demo_mounts_body_edge_sentinels_and_removes_them_on_unmount()
+    public async ValueTask Focus_guards_demo_mounts_body_edge_sentinels_and_removes_them_on_unmount(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/focusguards"));

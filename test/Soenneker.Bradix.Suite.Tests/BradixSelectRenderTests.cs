@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -72,7 +73,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_changes_do_not_render_select_or_unrelated_items()
+    public async ValueTask Focus_changes_do_not_render_select_or_unrelated_items(CancellationToken cancellationToken)
     {
         var cut = Render<FocusCountingSelect>(p => p.AddChildContent(builder =>
         {
@@ -101,7 +102,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Text_observer_updates_selected_text_without_rereading_on_render_and_disconnects()
+    public async ValueTask Text_observer_updates_selected_text_without_rereading_on_render_and_disconnects(CancellationToken cancellationToken)
     {
         var cut = Render<BradixSelect>(p => p.Add(c => c.DefaultValue, "fruit").AddChildContent(builder =>
         {
@@ -134,7 +135,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Closed_select_defers_content_and_item_interop()
+    public async ValueTask Closed_select_defers_content_and_item_interop(CancellationToken cancellationToken)
     {
         _ = Render(CreateSelect());
 
@@ -148,7 +149,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     [Arguments("ArrowDown")]
     [Arguments(" ")]
     [Arguments("Enter")]
-    public async ValueTask Activation_key_opens_content_and_links_ids(string key)
+    public async ValueTask Activation_key_opens_content_and_links_ids(string key, CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
         IElement trigger = cut.Find("button[role='combobox']");
@@ -167,7 +168,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Primary_mouse_pointer_down_opens_content_from_delegated_trigger_path()
+    public async ValueTask Primary_mouse_pointer_down_opens_content_from_delegated_trigger_path(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
         IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
@@ -188,7 +189,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Open_select_disables_outside_pointer_events()
+    public async ValueTask Open_select_disables_outside_pointer_events(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
         IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
@@ -209,7 +210,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Open_select_hides_outside_content()
+    public async ValueTask Open_select_hides_outside_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
         IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
@@ -229,7 +230,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Open_select_registers_focus_guards_and_remove_scroll()
+    public async ValueTask Open_select_registers_focus_guards_and_remove_scroll(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect());
         IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
@@ -250,7 +251,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Trigger_typeahead_selects_next_match_while_closed()
+    public async ValueTask Trigger_typeahead_selects_next_match_while_closed(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultValue: "orange"));
         IElement trigger = cut.Find("button[role='combobox']");
@@ -265,7 +266,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Selecting_item_updates_value_and_closes_content()
+    public async ValueTask Selecting_item_updates_value_and_closes_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
 
@@ -282,7 +283,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Space_does_not_select_item_while_typeahead_is_active()
+    public async ValueTask Space_does_not_select_item_while_typeahead_is_active(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         IRenderedComponent<BradixSelectContent> content = cut.FindComponent<BradixSelectContent>();
@@ -303,7 +304,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Page_up_and_page_down_move_focus_to_first_and_last_items()
+    public async ValueTask Page_up_and_page_down_move_focus_to_first_and_last_items(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         IRenderedComponent<BradixSelectContent> content = cut.FindComponent<BradixSelectContent>();
@@ -338,7 +339,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Content_typeahead_scrolls_newly_focused_item_into_view()
+    public async ValueTask Content_typeahead_scrolls_newly_focused_item_into_view(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         cut.Find("[role='listbox']").KeyDown("s");
@@ -354,7 +355,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Hidden_native_select_tracks_selected_option()
+    public async ValueTask Hidden_native_select_tracks_selected_option(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultValue: "lime"));
 
@@ -369,7 +370,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Default_content_uses_item_aligned_position_and_group_label_wiring()
+    public async ValueTask Default_content_uses_item_aligned_position_and_group_label_wiring(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true));
 
@@ -388,7 +389,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Popper_position_forwards_collision_boundary_selectors_and_sticky()
+    public async ValueTask Popper_position_forwards_collision_boundary_selectors_and_sticky(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, position: SelectPosition.Popper, configureContent: content =>
         {
@@ -411,7 +412,7 @@ public sealed class BradixSelectRenderTests : BunitContext
 
 
     [Test]
-    public async ValueTask Scroll_buttons_follow_viewport_metrics()
+    public async ValueTask Scroll_buttons_follow_viewport_metrics(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, includeScrollButtons: true));
         BradixSelectContent content = cut.FindComponent<BradixSelectContent>().Instance;
@@ -434,7 +435,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_guard_suppresses_first_mouse_pointerup_selection()
+    public async ValueTask Pointer_guard_suppresses_first_mouse_pointerup_selection(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         BradixSelectContent content = cut.FindComponent<BradixSelectContent>().Instance;
@@ -452,7 +453,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_guard_closes_when_pointerup_occurs_outside_content()
+    public async ValueTask Pointer_guard_closes_when_pointerup_occurs_outside_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         BradixSelectContent content = cut.FindComponent<BradixSelectContent>().Instance;
@@ -467,7 +468,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Window_dismiss_closes_open_content()
+    public async ValueTask Window_dismiss_closes_open_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultOpen: true, defaultValue: "orange"));
         BradixSelectContent content = cut.FindComponent<BradixSelectContent>().Instance;
@@ -482,7 +483,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Select_can_reopen_after_closing()
+    public async ValueTask Select_can_reopen_after_closing(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelect(defaultValue: "orange"));
         IRenderedComponent<BradixSelectTrigger> trigger = cut.FindComponent<BradixSelectTrigger>();
@@ -525,7 +526,7 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Detailed_close_auto_focus_can_prevent_select_trigger_refocus()
+    public async ValueTask Detailed_close_auto_focus_can_prevent_select_trigger_refocus(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

@@ -7,6 +7,7 @@ using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -22,7 +23,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Label_renders_native_relationship_attributes()
+    public async ValueTask Label_renders_native_relationship_attributes(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -41,7 +42,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Label_forwards_js_mouse_down_to_consumer_callback()
+    public async ValueTask Label_forwards_js_mouse_down_to_consumer_callback(CancellationToken cancellationToken)
     {
         MouseEventArgs? captured = null;
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
@@ -69,7 +70,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Separator_sets_semantic_and_decorative_roles_correctly()
+    public async ValueTask Separator_sets_semantic_and_decorative_roles_correctly(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> semantic = Render(builder =>
         {
@@ -93,7 +94,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Separator_as_child_renders_requested_native_element_and_preserves_semantics()
+    public async ValueTask Separator_as_child_renders_requested_native_element_and_preserves_semantics(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -115,7 +116,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Separator_as_child_requires_child_element_name()
+    public async ValueTask Separator_as_child_requires_child_element_name(CancellationToken cancellationToken)
     {
         await Assert.That(() =>
         {
@@ -129,7 +130,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Aspect_ratio_uses_native_css_ratio_with_absolute_content_slot()
+    public async ValueTask Aspect_ratio_uses_native_css_ratio_with_absolute_content_slot(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -151,7 +152,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Visually_hidden_applies_screen_reader_only_styles()
+    public async ValueTask Visually_hidden_applies_screen_reader_only_styles(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -172,7 +173,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Visually_hidden_as_child_renders_requested_native_element_and_merges_attributes()
+    public async ValueTask Visually_hidden_as_child_renders_requested_native_element_and_merges_attributes(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -205,7 +206,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Visually_hidden_as_child_requires_child_element_name()
+    public async ValueTask Visually_hidden_as_child_requires_child_element_name(CancellationToken cancellationToken)
     {
         await Assert.That(() => Render(builder =>
         {
@@ -216,7 +217,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Accessible_icon_hides_visual_glyph_and_renders_hidden_label()
+    public async ValueTask Accessible_icon_hides_visual_glyph_and_renders_hidden_label(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -242,7 +243,7 @@ public sealed class BradixCorePrimitiveRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Accessible_icon_requires_non_empty_label()
+    public async ValueTask Accessible_icon_requires_non_empty_label(CancellationToken cancellationToken)
     {
         await Assert.That(() => Render(builder =>
         {

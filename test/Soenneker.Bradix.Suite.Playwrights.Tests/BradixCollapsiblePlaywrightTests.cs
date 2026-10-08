@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async ValueTask Collapsible_demo_disabled_trigger_stays_open_and_force_mounted_content_remains_hidden_in_dom()
+    public async ValueTask Collapsible_demo_disabled_trigger_stays_open_and_force_mounted_content_remains_hidden_in_dom(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsibles"));
@@ -40,9 +41,9 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async ValueTask Collapsible_demo_reveals_additional_repositories_when_opened()
+    public async ValueTask Collapsible_demo_reveals_additional_repositories_when_opened(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsibles"));
@@ -59,9 +60,9 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async ValueTask Collapsible_demo_enter_key_opens_trigger()
+    public async ValueTask Collapsible_demo_enter_key_opens_trigger(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsibles"));
@@ -76,9 +77,9 @@ public sealed class BradixCollapsiblePlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async ValueTask Collapsible_demo_space_key_opens_trigger()
+    public async ValueTask Collapsible_demo_space_key_opens_trigger(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/collapsibles"));

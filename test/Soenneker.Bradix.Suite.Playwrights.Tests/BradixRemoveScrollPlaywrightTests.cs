@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
     }
 
 [Test]
-    public async ValueTask Remove_scroll_demo_mount_toggle_shows_and_hides_locked_surface()
+    public async ValueTask Remove_scroll_demo_mount_toggle_shows_and_hides_locked_surface(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/removescrolls"));
@@ -34,9 +35,9 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
     }
 
     [Test]
-    public async ValueTask Remove_scroll_demo_locks_body_scroll_and_restores_styles_on_unmount()
+    public async ValueTask Remove_scroll_demo_locks_body_scroll_and_restores_styles_on_unmount(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/removescrolls"));

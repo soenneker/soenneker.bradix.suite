@@ -5,6 +5,7 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -23,7 +24,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Present_presence_renders_content()
+    public async ValueTask Present_presence_renders_content(CancellationToken cancellationToken)
     {
         var present = true;
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => present));
@@ -32,7 +33,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Non_present_presence_does_not_render_initially()
+    public async ValueTask Non_present_presence_does_not_render_initially(CancellationToken cancellationToken)
     {
         var present = false;
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => present));
@@ -41,7 +42,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Exit_animation_keeps_content_mounted_until_animation_end()
+    public async ValueTask Exit_animation_keeps_content_mounted_until_animation_end(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => true));
         IRenderedComponent<BradixPresence> presence = cut.FindComponent<BradixPresence>();
@@ -59,7 +60,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Exit_complete_callback_runs_after_animation_end()
+    public async ValueTask Exit_complete_callback_runs_after_animation_end(CancellationToken cancellationToken)
     {
         var exitCompleteCount = 0;
 
@@ -87,7 +88,7 @@ public sealed class BradixPresenceRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Exit_animation_ignores_non_current_animation_end_events()
+    public async ValueTask Exit_animation_ignores_non_current_animation_end_events(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePresenceHost(() => true));
         IRenderedComponent<BradixPresence> presence = cut.FindComponent<BradixPresence>();

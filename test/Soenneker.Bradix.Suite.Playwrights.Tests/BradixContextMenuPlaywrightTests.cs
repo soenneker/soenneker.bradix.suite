@@ -2,6 +2,7 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async ValueTask Context_menu_demo_supports_nested_menu_inside_modal_dialog()
+    public async ValueTask Context_menu_demo_supports_nested_menu_inside_modal_dialog(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/contextmenus"));
@@ -45,9 +46,9 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async ValueTask Context_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled()
+    public async ValueTask Context_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/contextmenus"));
@@ -81,9 +82,9 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async ValueTask Context_menu_demo_opens_from_right_click_and_reveals_submenu()
+    public async ValueTask Context_menu_demo_opens_from_right_click_and_reveals_submenu(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/contextmenus"));
@@ -99,9 +100,9 @@ public sealed class BradixContextMenuPlaywrightTests : BradixComponentPlaywright
     }
 
     [Test]
-    public async ValueTask Context_menu_demo_closes_root_from_single_outside_click_with_submenu_open()
+    public async ValueTask Context_menu_demo_closes_root_from_single_outside_click_with_submenu_open(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/contextmenus"));

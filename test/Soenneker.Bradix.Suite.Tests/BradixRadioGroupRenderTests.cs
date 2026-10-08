@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using Bunit.Rendering;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -31,7 +32,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Radio_group_renders_checked_state_without_hidden_input_outside_form()
+    public async ValueTask Radio_group_renders_checked_state_without_hidden_input_outside_form(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", required: true, orientation: Orientation.Horizontal));
 
@@ -47,7 +48,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Radio_item_with_explicit_form_renders_hidden_input_outside_form()
+    public async ValueTask Radio_item_with_explicit_form_renders_hidden_input_outside_form(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one", name: "plan", itemForm: "settings-form"));
 
@@ -62,7 +63,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Clicking_item_updates_uncontrolled_selection()
+    public async ValueTask Clicking_item_updates_uncontrolled_selection(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(defaultValue: "one"));
 
@@ -75,7 +76,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Arrow_navigation_moves_focus_without_selecting_target()
+    public async ValueTask Arrow_navigation_moves_focus_without_selecting_target(CancellationToken cancellationToken)
     {
         string? requestedValue = null;
 
@@ -97,7 +98,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Enter_does_not_change_selection()
+    public async ValueTask Enter_does_not_change_selection(CancellationToken cancellationToken)
     {
         string? requestedValue = null;
 
@@ -113,7 +114,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Force_mount_renders_all_indicators()
+    public async ValueTask Force_mount_renders_all_indicators(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateRadioGroup(forceMountIndicator: true));
 
@@ -121,7 +122,7 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Inherited_direction_flips_horizontal_navigation()
+    public async ValueTask Inherited_direction_flips_horizontal_navigation(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

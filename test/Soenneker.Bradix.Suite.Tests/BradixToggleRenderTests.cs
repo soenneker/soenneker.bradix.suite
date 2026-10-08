@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using Bunit.Rendering;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -15,7 +16,7 @@ public sealed class BradixToggleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Uncontrolled_toggle_updates_pressed_state_metadata()
+    public async ValueTask Uncontrolled_toggle_updates_pressed_state_metadata(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToggle());
 
@@ -32,7 +33,7 @@ public sealed class BradixToggleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Controlled_toggle_notifies_parent_without_changing_pressed_markup()
+    public async ValueTask Controlled_toggle_notifies_parent_without_changing_pressed_markup(CancellationToken cancellationToken)
     {
         bool? requestedPressed = null;
 
@@ -50,7 +51,7 @@ public sealed class BradixToggleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Default_pressed_toggle_renders_on_initially()
+    public async ValueTask Default_pressed_toggle_renders_on_initially(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateToggle(defaultPressed: true));
 
@@ -61,7 +62,7 @@ public sealed class BradixToggleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Disabled_toggle_does_not_change_on_click()
+    public async ValueTask Disabled_toggle_does_not_change_on_click(CancellationToken cancellationToken)
     {
         var callbackInvoked = false;
         IRenderedComponent<ContainerFragment> cut = Render(CreateToggle(

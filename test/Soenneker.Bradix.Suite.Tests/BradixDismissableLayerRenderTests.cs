@@ -3,6 +3,7 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -21,7 +22,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Dismissable_layer_renders_child_content()
+    public async ValueTask Dismissable_layer_renders_child_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateLayer());
 
@@ -29,7 +30,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_down_outside_triggers_dismiss()
+    public async ValueTask Pointer_down_outside_triggers_dismiss(CancellationToken cancellationToken)
     {
         var dismissed = false;
 
@@ -42,7 +43,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Escape_can_be_ignored_when_dismiss_disabled()
+    public async ValueTask Escape_can_be_ignored_when_dismiss_disabled(CancellationToken cancellationToken)
     {
         var dismissed = false;
 
@@ -55,7 +56,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Escape_reports_prevent_default_when_it_dismisses()
+    public async ValueTask Escape_reports_prevent_default_when_it_dismisses(CancellationToken cancellationToken)
     {
         var dismissed = false;
 
@@ -69,7 +70,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Escape_does_not_report_prevent_default_when_handler_prevents_dismiss()
+    public async ValueTask Escape_does_not_report_prevent_default_when_handler_prevents_dismiss(CancellationToken cancellationToken)
     {
         var dismissed = false;
 
@@ -93,7 +94,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_outside_triggers_interact_and_dismiss_callbacks()
+    public async ValueTask Focus_outside_triggers_interact_and_dismiss_callbacks(CancellationToken cancellationToken)
     {
         var dismissed = false;
 
@@ -122,7 +123,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_down_outside_prevent_default_prevents_dismiss()
+    public async ValueTask Pointer_down_outside_prevent_default_prevents_dismiss(CancellationToken cancellationToken)
     {
         var dismissed = false;
 
@@ -150,7 +151,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Interact_outside_prevent_default_prevents_focus_dismiss()
+    public async ValueTask Interact_outside_prevent_default_prevents_focus_dismiss(CancellationToken cancellationToken)
     {
         var dismissed = false;
 
@@ -178,7 +179,7 @@ public sealed class BradixDismissableLayerRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Branch_renders_child_content()
+    public async ValueTask Branch_renders_child_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Popover_demo_preserves_explicit_content_role_over_dialog_default()
+    public async ValueTask Popover_demo_preserves_explicit_content_role_over_dialog_default(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
@@ -46,9 +47,9 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Popover_demo_closes_from_escape_after_opening_from_trigger()
+    public async ValueTask Popover_demo_closes_from_escape_after_opening_from_trigger(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
@@ -70,9 +71,9 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Popover_demo_opens_and_closes_from_close_button()
+    public async ValueTask Popover_demo_opens_and_closes_from_close_button(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
@@ -86,9 +87,9 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Popover_demo_positions_content_relative_to_the_trigger()
+    public async ValueTask Popover_demo_positions_content_relative_to_the_trigger(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
@@ -113,9 +114,9 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Popover_demo_closes_from_outside_click_after_opening_from_trigger()
+    public async ValueTask Popover_demo_closes_from_outside_click_after_opening_from_trigger(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
@@ -144,9 +145,9 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Popover_demo_outside_control_button_opens_controlled_popover_while_another_popover_is_open()
+    public async ValueTask Popover_demo_outside_control_button_opens_controlled_popover_while_another_popover_is_open(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));
@@ -168,9 +169,9 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Popover_demo_controlled_open_state_stays_in_sync_with_outside_dismissal()
+    public async ValueTask Popover_demo_controlled_open_state_stays_in_sync_with_outside_dismissal(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/popovers"));

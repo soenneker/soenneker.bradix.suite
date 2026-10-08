@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -15,9 +16,9 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Dialog_demo_saves_updated_project_details()
+    public async ValueTask Dialog_demo_saves_updated_project_details(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
@@ -43,9 +44,9 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Dialog_demo_traps_focus_and_restores_trigger_focus_after_escape()
+    public async ValueTask Dialog_demo_traps_focus_and_restores_trigger_focus_after_escape(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var consoleMessages = new List<string>();
         var pageErrors = new List<string>();
@@ -83,9 +84,9 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Dialog_demo_supports_popover_nested_inside_modal_dialog()
+    public async ValueTask Dialog_demo_supports_popover_nested_inside_modal_dialog(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialogs"));
@@ -116,9 +117,9 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Dialog_demo_close_discards_unsaved_changes()
+    public async ValueTask Dialog_demo_close_discards_unsaved_changes(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialogs"));
@@ -132,9 +133,9 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Dialog_demo_dismisses_from_overlay_click()
+    public async ValueTask Dialog_demo_dismisses_from_overlay_click(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dialogs"));

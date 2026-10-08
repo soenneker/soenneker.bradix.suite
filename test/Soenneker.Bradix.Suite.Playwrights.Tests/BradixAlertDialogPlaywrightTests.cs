@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async ValueTask Alert_dialog_demo_opens_and_closes_from_cancel()
+    public async ValueTask Alert_dialog_demo_opens_and_closes_from_cancel(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alertdialogs"));
@@ -30,9 +31,9 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async ValueTask Alert_dialog_demo_can_disable_escape_dismissal()
+    public async ValueTask Alert_dialog_demo_can_disable_escape_dismissal(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alertdialogs"));
@@ -52,9 +53,9 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async ValueTask Alert_dialog_demo_action_closes_and_restores_trigger_focus()
+    public async ValueTask Alert_dialog_demo_action_closes_and_restores_trigger_focus(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alertdialogs"));
@@ -72,9 +73,9 @@ public sealed class BradixAlertDialogPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async ValueTask Alert_dialog_demo_does_not_dismiss_from_outside_click_and_focuses_cancel_by_default()
+    public async ValueTask Alert_dialog_demo_does_not_dismiss_from_outside_click_and_focuses_cancel_by_default(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/alertdialogs"));

@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixCollectionRegistryTests
 {
     [Test]
-    public async ValueTask Repeated_registration_reuses_snapshot_but_equal_replacements_do_not()
+    public async ValueTask Repeated_registration_reuses_snapshot_but_equal_replacements_do_not(CancellationToken cancellationToken)
     {
         var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();
         var item = new BradixCollectionRegistryDemoItem("Alpha");
@@ -30,7 +31,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Snapshot_returns_keys_in_registration_order()
+    public async ValueTask Snapshot_returns_keys_in_registration_order(CancellationToken cancellationToken)
     {
         var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();
 
@@ -42,7 +43,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Snapshot_is_read_only_reused_and_invalidated_by_mutations()
+    public async ValueTask Snapshot_is_read_only_reused_and_invalidated_by_mutations(CancellationToken cancellationToken)
     {
         var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();
         registry.Register("alpha", new BradixCollectionRegistryDemoItem("Alpha"));
@@ -90,7 +91,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Insert_repositions_existing_entry_without_duplication()
+    public async ValueTask Insert_repositions_existing_entry_without_duplication(CancellationToken cancellationToken)
     {
         var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();
 
@@ -105,7 +106,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Ordered_dictionary_invalid_lookup_does_not_return_default_key_item()
+    public async ValueTask Ordered_dictionary_invalid_lookup_does_not_return_default_key_item(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<int, string>();
 
@@ -116,7 +117,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Ordered_dictionary_matches_radix_negative_insert_semantics()
+    public async ValueTask Ordered_dictionary_matches_radix_negative_insert_semantics(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, string>();
 
@@ -129,7 +130,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Ordered_dictionary_repositions_existing_key_without_shifting_values()
+    public async ValueTask Ordered_dictionary_repositions_existing_key_without_shifting_values(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, string>();
 
@@ -148,7 +149,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Ordered_dictionary_out_of_range_insert_updates_without_reordering_existing_key()
+    public async ValueTask Ordered_dictionary_out_of_range_insert_updates_without_reordering_existing_key(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, string>();
 
@@ -165,7 +166,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Ordered_dictionary_out_of_range_insert_appends_new_key()
+    public async ValueTask Ordered_dictionary_out_of_range_insert_appends_new_key(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, string>();
 
@@ -179,7 +180,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Ordered_dictionary_supports_radix_relative_helpers()
+    public async ValueTask Ordered_dictionary_supports_radix_relative_helpers(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, string>();
 
@@ -196,7 +197,7 @@ public sealed class BradixCollectionRegistryTests
     }
 
     [Test]
-    public async ValueTask Ordered_dictionary_filter_reverse_and_delete_at_preserve_order()
+    public async ValueTask Ordered_dictionary_filter_reverse_and_delete_at_preserve_order(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, string>();
 

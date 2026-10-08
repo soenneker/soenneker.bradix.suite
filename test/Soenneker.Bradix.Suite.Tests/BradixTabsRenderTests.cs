@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using Bunit.Rendering;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -28,7 +29,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Selection_only_refreshes_affected_tabs()
+    public async ValueTask Selection_only_refreshes_affected_tabs(CancellationToken cancellationToken)
     {
         int contentRenders = 0;
         var cut = Render(CreateTabs(defaultValue: "tab1", contentRendered: () => contentRenders++));
@@ -42,7 +43,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Trigger_registration_and_ignored_keys_do_not_rerender_the_tabs_tree()
+    public async ValueTask Trigger_registration_and_ignored_keys_do_not_rerender_the_tabs_tree(CancellationToken cancellationToken)
     {
         var cut = Render(CreateTabs(defaultValue: "tab1"));
         var tabs = cut.FindComponent<BradixTabs>();
@@ -59,7 +60,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Tabs_render_active_trigger_and_panel_relationships()
+    public async ValueTask Tabs_render_active_trigger_and_panel_relationships(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1"));
 
@@ -77,7 +78,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Manual_activation_does_not_switch_on_focus_but_does_on_enter()
+    public async ValueTask Manual_activation_does_not_switch_on_focus_but_does_on_enter(CancellationToken cancellationToken)
     {
         string? requestedValue = null;
 
@@ -98,7 +99,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Automatic_activation_switches_on_focus()
+    public async ValueTask Automatic_activation_switches_on_focus(CancellationToken cancellationToken)
     {
         string? requestedValue = null;
 
@@ -113,7 +114,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Force_mount_keeps_inactive_panel_present_but_inert()
+    public async ValueTask Force_mount_keeps_inactive_panel_present_but_inert(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", forceMount: true));
 
@@ -127,7 +128,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Inherited_direction_flips_horizontal_roving_focus_intent()
+    public async ValueTask Inherited_direction_flips_horizontal_roving_focus_intent(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -149,7 +150,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Local_ltr_direction_overrides_inherited_rtl_direction()
+    public async ValueTask Local_ltr_direction_overrides_inherited_rtl_direction(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -172,7 +173,7 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Vertical_tabs_root_and_roving_focus_expose_vertical_orientation()
+    public async ValueTask Vertical_tabs_root_and_roving_focus_expose_vertical_orientation(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTabs(defaultValue: "tab1", orientation: Orientation.Vertical));
 

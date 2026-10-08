@@ -2,6 +2,7 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
     }
 
     [Test]
-    public async ValueTask Dropdown_menu_submenu_home_and_end_keys_move_focus_to_first_and_last_items()
+    public async ValueTask Dropdown_menu_submenu_home_and_end_keys_move_focus_to_first_and_last_items(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
@@ -42,9 +43,9 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
     }
 
     [Test]
-    public async ValueTask Dropdown_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled()
+    public async ValueTask Dropdown_menu_demo_keeps_checkbox_and_radio_groups_open_when_close_on_select_is_disabled(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
@@ -75,9 +76,9 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
     }
 
     [Test]
-    public async ValueTask Dropdown_menu_demo_home_and_end_keys_move_focus_to_first_and_last_items()
+    public async ValueTask Dropdown_menu_demo_home_and_end_keys_move_focus_to_first_and_last_items(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
@@ -104,9 +105,9 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
     }
 
     [Test]
-    public async ValueTask Dropdown_menu_demo_opens_and_reveals_submenu_items()
+    public async ValueTask Dropdown_menu_demo_opens_and_reveals_submenu_items(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));
@@ -119,9 +120,9 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
     }
 
     [Test]
-    public async ValueTask Dropdown_menu_demo_supports_nested_menu_inside_modal_dialog()
+    public async ValueTask Dropdown_menu_demo_supports_nested_menu_inside_modal_dialog(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dropdownmenus"));

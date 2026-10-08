@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async ValueTask Radio_group_demo_disabled_item_does_not_change_selection()
+    public async ValueTask Radio_group_demo_disabled_item_does_not_change_selection(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radiogroups"));
@@ -39,9 +40,9 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async ValueTask Radio_group_demo_home_and_end_keys_move_selection_to_enabled_edges()
+    public async ValueTask Radio_group_demo_home_and_end_keys_move_selection_to_enabled_edges(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radiogroups"));
@@ -83,9 +84,9 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async ValueTask Radio_group_demo_controlled_buttons_and_clicks_stay_in_sync()
+    public async ValueTask Radio_group_demo_controlled_buttons_and_clicks_stay_in_sync(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radiogroups"));
@@ -108,9 +109,9 @@ public sealed class BradixRadioGroupPlaywrightTests : BradixComponentPlaywrightT
     }
 
 [Test]
-    public async ValueTask Radio_group_demo_changes_selected_density()
+    public async ValueTask Radio_group_demo_changes_selected_density(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/radiogroups"));

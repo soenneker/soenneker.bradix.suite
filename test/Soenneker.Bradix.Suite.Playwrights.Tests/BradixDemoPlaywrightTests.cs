@@ -4,6 +4,7 @@ using Microsoft.Playwright;
 using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
 using Soenneker.Playwrights.Tests.Unit;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -15,11 +16,11 @@ public sealed class BradixDemoPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Overview_page_loads_and_lists_core_demo_links()
+    public async ValueTask Overview_page_loads_and_lists_core_demo_links(CancellationToken cancellationToken)
     {
         Logger.LogInformation("Initial loading complete");
 
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(

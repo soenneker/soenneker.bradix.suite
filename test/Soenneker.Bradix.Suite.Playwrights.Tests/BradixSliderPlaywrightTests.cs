@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Slider_demo_rtl_keyboard_direction_matches_radix_behavior()
+    public async ValueTask Slider_demo_rtl_keyboard_direction_matches_radix_behavior(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
@@ -37,9 +38,9 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Slider_demo_minimum_spacing_prevents_thumbs_from_crossing()
+    public async ValueTask Slider_demo_minimum_spacing_prevents_thumbs_from_crossing(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
@@ -66,9 +67,9 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Slider_demo_home_and_end_keys_jump_to_minimum_and_maximum()
+    public async ValueTask Slider_demo_home_and_end_keys_jump_to_minimum_and_maximum(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
@@ -89,9 +90,9 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Slider_demo_controlled_buttons_and_keyboard_updates_stay_in_sync()
+    public async ValueTask Slider_demo_controlled_buttons_and_keyboard_updates_stay_in_sync(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
@@ -114,9 +115,9 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Slider_demo_horizontal_track_click_updates_value()
+    public async ValueTask Slider_demo_horizontal_track_click_updates_value(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
@@ -143,9 +144,9 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Slider_demo_updates_value_from_keyboard_input()
+    public async ValueTask Slider_demo_updates_value_from_keyboard_input(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));
@@ -160,9 +161,9 @@ public sealed class BradixSliderPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Slider_demo_vertical_track_click_and_keyboard_update_value()
+    public async ValueTask Slider_demo_vertical_track_click_and_keyboard_update_value(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/sliders"));

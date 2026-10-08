@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
     }
 
 [Test]
-    public async ValueTask Dismissable_layer_demo_dismisses_on_outside_click()
+    public async ValueTask Dismissable_layer_demo_dismisses_on_outside_click(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dismissablelayers"));
@@ -34,9 +35,9 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
     }
 
 [Test]
-    public async ValueTask Dismissable_layer_demo_dismisses_on_escape()
+    public async ValueTask Dismissable_layer_demo_dismisses_on_escape(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/dismissablelayers"));

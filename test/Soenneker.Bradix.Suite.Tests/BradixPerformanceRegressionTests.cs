@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -22,7 +23,7 @@ public sealed class BradixPerformanceRegressionTests : BunitContext
     }
 
     [Test]
-    public async Task Slot_observes_mutated_attribute_text_and_preserves_whitespace_order()
+    public async Task Slot_observes_mutated_attribute_text_and_preserves_whitespace_order(CancellationToken cancellationToken)
     {
         var text = new MutableAttributeText(" child ");
         var style = new MutableAttributeText(" color:red;; ");
@@ -38,7 +39,7 @@ public sealed class BradixPerformanceRegressionTests : BunitContext
     }
 
     [Test]
-    public async Task Toast_hotkey_snapshot_detects_in_place_mutation_and_joined_key_collisions()
+    public async Task Toast_hotkey_snapshot_detects_in_place_mutation_and_joined_key_collisions(CancellationToken cancellationToken)
     {
         var keys = new List<string> { "Alt", "F8" };
         var cut = Render<BradixToastViewport>(p => p.Add(c => c.Hotkey, keys));
@@ -54,7 +55,7 @@ public sealed class BradixPerformanceRegressionTests : BunitContext
     }
 
     [Test]
-    public async Task Popper_observes_in_place_collision_boundary_changes()
+    public async Task Popper_observes_in_place_collision_boundary_changes(CancellationToken cancellationToken)
     {
         var selectors = new List<string> { "#first", "#second" };
         var cut = Render<BradixPopper>(p => p.AddChildContent(builder =>
@@ -72,7 +73,7 @@ public sealed class BradixPerformanceRegressionTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_owns_callback_snapshots_and_suppresses_noop_and_rejected_moves()
+    public async Task Slider_owns_callback_snapshots_and_suppresses_noop_and_rejected_moves(CancellationToken cancellationToken)
     {
         var callbacks = new List<IReadOnlyList<double>>();
         var cut = Render<BradixSlider>(p => p.Add(c => c.DefaultValues, new double[] { 10, 70 })
@@ -91,7 +92,7 @@ public sealed class BradixPerformanceRegressionTests : BunitContext
     }
 
     [Test]
-    public async Task Slider_buffer_paths_match_existing_sort_gap_and_equality_semantics()
+    public async Task Slider_buffer_paths_match_existing_sort_gap_and_equality_semantics(CancellationToken cancellationToken)
     {
         MethodInfo method = typeof(BradixSlider).GetMethod("BuildChangedValues", BindingFlags.Static | BindingFlags.NonPublic)!;
         Type math = typeof(BradixSlider).Assembly.GetType("Soenneker.Bradix.BradixSliderMath")!;

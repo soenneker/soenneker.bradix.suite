@@ -4,6 +4,7 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -21,7 +22,7 @@ public sealed class BradixFocusGuardsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_guards_render_child_content()
+    public async ValueTask Focus_guards_render_child_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -39,7 +40,7 @@ public sealed class BradixFocusGuardsRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_guards_register_and_unregister_interop_on_lifecycle()
+    public async ValueTask Focus_guards_register_and_unregister_interop_on_lifecycle(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

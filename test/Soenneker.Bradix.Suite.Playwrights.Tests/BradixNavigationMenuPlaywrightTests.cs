@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -15,9 +16,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_demo_switches_visible_content_between_triggers()
+    public async ValueTask Navigation_menu_demo_switches_visible_content_between_triggers(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -37,9 +38,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_demo_home_and_end_keys_move_focus_between_edge_triggers()
+    public async ValueTask Navigation_menu_demo_home_and_end_keys_move_focus_between_edge_triggers(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -63,9 +64,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_demo_switches_visible_content_between_triggers_on_hover()
+    public async ValueTask Navigation_menu_demo_switches_visible_content_between_triggers_on_hover(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -91,9 +92,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_uncontrolled_demo_switches_visible_content_between_triggers()
+    public async ValueTask Navigation_menu_uncontrolled_demo_switches_visible_content_between_triggers(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenuuncontrolled"));
@@ -113,9 +114,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_minimal_demo_switches_visible_content_between_triggers()
+    public async ValueTask Navigation_menu_minimal_demo_switches_visible_content_between_triggers(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenuminimal"));
@@ -135,9 +136,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_inline_demo_switches_visible_content_between_triggers()
+    public async ValueTask Navigation_menu_inline_demo_switches_visible_content_between_triggers(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenuinline"));
@@ -158,9 +159,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_demo_closes_from_single_outside_click()
+    public async ValueTask Navigation_menu_demo_closes_from_single_outside_click(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -179,9 +180,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_demo_marks_active_link_and_direct_link_does_not_open_viewport()
+    public async ValueTask Navigation_menu_demo_marks_active_link_and_direct_link_does_not_open_viewport(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -206,9 +207,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_demo_home_and_end_keys_move_focus_between_edge_links_in_open_content()
+    public async ValueTask Navigation_menu_demo_home_and_end_keys_move_focus_between_edge_links_in_open_content(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -235,9 +236,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_demo_shared_viewport_expands_to_fit_open_content()
+    public async ValueTask Navigation_menu_demo_shared_viewport_expands_to_fit_open_content(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         await page.SetViewportSizeAsync(1400, 1000);
 
@@ -256,9 +257,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_demo_debugs_trigger_hit_target_after_open()
+    public async ValueTask Navigation_menu_demo_debugs_trigger_hit_target_after_open(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -310,9 +311,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
     [Test]
-    public async ValueTask Navigation_menu_demo_opens_overview_trigger_after_learn_is_open()
+    public async ValueTask Navigation_menu_demo_opens_overview_trigger_after_learn_is_open(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -329,9 +330,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
     [Test]
-    public async ValueTask Navigation_menu_demo_debugs_overview_state_immediately_and_after_delay()
+    public async ValueTask Navigation_menu_demo_debugs_overview_state_immediately_and_after_delay(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -352,9 +353,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
     [Test]
-    public async ValueTask Navigation_menu_demo_debugs_programmatic_click_switch_after_open()
+    public async ValueTask Navigation_menu_demo_debugs_programmatic_click_switch_after_open(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -371,9 +372,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
     [Test]
-    public async ValueTask Navigation_menu_demo_debugs_overview_trigger_identity_after_open()
+    public async ValueTask Navigation_menu_demo_debugs_overview_trigger_identity_after_open(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -421,9 +422,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
     [Test]
-    public async ValueTask Navigation_menu_demo_debugs_overview_can_open_first()
+    public async ValueTask Navigation_menu_demo_debugs_overview_can_open_first(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -437,9 +438,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
     [Test]
-    public async ValueTask Navigation_menu_demo_debugs_state_after_failed_switch_attempt()
+    public async ValueTask Navigation_menu_demo_debugs_state_after_failed_switch_attempt(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -458,9 +459,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
 [Test]
-    public async ValueTask Navigation_menu_demo_debugs_keyboard_switch_after_open()
+    public async ValueTask Navigation_menu_demo_debugs_keyboard_switch_after_open(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -479,9 +480,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
     [Test]
-    public async ValueTask Navigation_menu_demo_debugs_active_trigger_can_close_itself_after_open()
+    public async ValueTask Navigation_menu_demo_debugs_active_trigger_can_close_itself_after_open(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/navigationmenus"));
@@ -497,9 +498,9 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
     }
 
     [Test]
-    public async ValueTask Navigation_menu_demo_debugs_console_and_page_errors_after_open()
+    public async ValueTask Navigation_menu_demo_debugs_console_and_page_errors_after_open(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         List<string> consoleMessages = [];
         List<string> pageErrors = [];

@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixCollectionPlaywrightTests : BradixComponentPlaywrightT
     }
 
     [Test]
-    public async ValueTask Collection_demo_updates_active_match_and_respects_reordering()
+    public async ValueTask Collection_demo_updates_active_match_and_respects_reordering(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var consoleErrors = new System.Collections.Generic.List<string>();
         var sawPageError = false;

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Soenneker.Blazor.Interops.Floating.Abstract;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
 using Soenneker.Bradix.Configuration;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -18,7 +19,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     private static readonly IFileUtil _fileUtil = new Soenneker.Utils.File.FileUtil(NullLogger<Soenneker.Utils.File.FileUtil>.Instance, new MemoryStreamUtil());
 
     [Test]
-    public async ValueTask Shared_enum_tokens_match_radix_string_contracts()
+    public async ValueTask Shared_enum_tokens_match_radix_string_contracts(CancellationToken cancellationToken)
     {
         await Assert.That(Alignment.Start.Value).IsEqualTo("start");
         await Assert.That(Alignment.Center.Value).IsEqualTo("center");
@@ -48,7 +49,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Registrar_adds_resource_loader_and_bradix_interop_once()
+    public async ValueTask Registrar_adds_resource_loader_and_bradix_interop_once(CancellationToken cancellationToken)
     {
         Services.AddBradixSuiteAsScoped();
         Services.AddBradixSuiteAsScoped();
@@ -62,7 +63,7 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Registrar_can_configure_bradix_suite_options()
+    public async ValueTask Registrar_can_configure_bradix_suite_options(CancellationToken cancellationToken)
     {
         Services.AddBradixSuiteAsScoped(options => options.UseCdn = true);
 
@@ -70,9 +71,9 @@ public sealed class BradixInfrastructureContractTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Static_web_assets_include_required_bradix_modules()
+    public async ValueTask Static_web_assets_include_required_bradix_modules(CancellationToken cancellationToken)
     {
-        string root = Path.Combine(await FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot");
+        string root = Path.Combine(await FindRepositoryRoot(cancellationToken: cancellationToken), "src", "Soenneker.Bradix.Suite", "wwwroot");
 
         string[] requiredAssets =
         [
@@ -90,16 +91,16 @@ public sealed class BradixInfrastructureContractTests : BunitContext
         foreach (string asset in requiredAssets)
         {
             string path = Path.Combine(root, asset.Replace('/', Path.DirectorySeparatorChar));
-            await Assert.That((await _fileUtil.Exists(path))).IsTrue();
+            await Assert.That((await _fileUtil.Exists(path, cancellationToken: cancellationToken))).IsTrue();
             await Assert.That(new FileInfo(path).Length).IsGreaterThan(0);
         }
     }
 
     [Test]
-    public async ValueTask Form_invalid_capture_coalesces_dispatches_without_swallowing_callback_failures()
+    public async ValueTask Form_invalid_capture_coalesces_dispatches_without_swallowing_callback_failures(CancellationToken cancellationToken)
     {
-        string path = Path.Combine(await FindRepositoryRoot(), "src", "Soenneker.Bradix.Suite", "wwwroot", "js", "bradix", "forms.js");
-        string source = await _fileUtil.Read(path);
+        string path = Path.Combine(await FindRepositoryRoot(cancellationToken: cancellationToken), "src", "Soenneker.Bradix.Suite", "wwwroot", "js", "bradix", "forms.js");
+        string source = await _fileUtil.Read(path, cancellationToken: cancellationToken);
 
         await Assert.That(source).Contains("invalidDispatchQueued");
         await Assert.That(source).Contains("queueMicrotask(dispatchInvalidControls)");
@@ -109,13 +110,13 @@ public sealed class BradixInfrastructureContractTests : BunitContext
         await Assert.That(source).DoesNotContain(".catch(() => {})");
     }
 
-    private static async Task<string> FindRepositoryRoot()
+    private static async Task<string> FindRepositoryRoot(CancellationToken cancellationToken = default)
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
 
         while (directory is not null)
         {
-            if (await _fileUtil.Exists(Path.Combine(directory.FullName, "Soenneker.Bradix.Suite.slnx")))
+            if (await _fileUtil.Exists(Path.Combine(directory.FullName, "Soenneker.Bradix.Suite.slnx"), cancellationToken: cancellationToken))
                 return directory.FullName;
 
             directory = directory.Parent;

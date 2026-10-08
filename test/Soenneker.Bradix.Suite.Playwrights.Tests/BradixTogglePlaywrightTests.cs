@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Toggle_demo_updates_pressed_state()
+    public async ValueTask Toggle_demo_updates_pressed_state(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggles"));
@@ -28,9 +29,9 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Toggle_demo_enter_key_updates_pressed_state()
+    public async ValueTask Toggle_demo_enter_key_updates_pressed_state(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggles"));
@@ -44,9 +45,9 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Toggle_demo_space_key_updates_pressed_state()
+    public async ValueTask Toggle_demo_space_key_updates_pressed_state(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggles"));
@@ -60,9 +61,9 @@ public sealed class BradixTogglePlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Toggle_demo_controlled_buttons_and_disabled_state_stay_in_sync()
+    public async ValueTask Toggle_demo_controlled_buttons_and_disabled_state_stay_in_sync(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toggles"));

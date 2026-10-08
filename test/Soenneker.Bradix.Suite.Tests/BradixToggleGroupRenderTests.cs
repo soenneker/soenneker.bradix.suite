@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using Bunit.Rendering;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -21,7 +22,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Single_group_toggles_between_values_and_radio_semantics()
+    public async ValueTask Single_group_toggles_between_values_and_radio_semantics(CancellationToken cancellationToken)
     {
         string? requestedValue = null;
 
@@ -48,7 +49,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Multiple_group_accumulates_values_and_removes_them_independently()
+    public async ValueTask Multiple_group_accumulates_values_and_removes_them_independently(CancellationToken cancellationToken)
     {
         IReadOnlyCollection<string>? requestedValues = null;
 
@@ -69,7 +70,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Roving_focus_moves_current_tab_stop_with_arrow_keys()
+    public async ValueTask Roving_focus_moves_current_tab_stop_with_arrow_keys(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSingleGroup());
 
@@ -91,7 +92,7 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Direction_provider_flips_horizontal_navigation()
+    public async ValueTask Direction_provider_flips_horizontal_navigation(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

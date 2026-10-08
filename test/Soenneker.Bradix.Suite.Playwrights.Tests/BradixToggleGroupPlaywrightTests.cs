@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async ValueTask Toggle_group_demo_enforces_single_selection()
+    public async ValueTask Toggle_group_demo_enforces_single_selection(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));
@@ -31,9 +32,9 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async ValueTask Toggle_group_demo_vertical_navigation_skips_disabled_item()
+    public async ValueTask Toggle_group_demo_vertical_navigation_skips_disabled_item(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));
@@ -55,9 +56,9 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async ValueTask Toggle_group_demo_rtl_arrow_keys_follow_visual_direction()
+    public async ValueTask Toggle_group_demo_rtl_arrow_keys_follow_visual_direction(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));
@@ -86,9 +87,9 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async ValueTask Toggle_group_demo_disabled_group_does_not_change_pressed_state()
+    public async ValueTask Toggle_group_demo_disabled_group_does_not_change_pressed_state(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));
@@ -108,9 +109,9 @@ public sealed class BradixToggleGroupPlaywrightTests : BradixComponentPlaywright
     }
 
 [Test]
-    public async ValueTask Toggle_group_demo_preserves_multiple_selection_state()
+    public async ValueTask Toggle_group_demo_preserves_multiple_selection_state(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/togglegroups"));

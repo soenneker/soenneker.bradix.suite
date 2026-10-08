@@ -6,13 +6,14 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixSlotRenderTests : BunitContext
 {
     [Test]
-    public async ValueTask Slot_in_flight_composition_keeps_its_handler_pair_when_parameters_change()
+    public async ValueTask Slot_in_flight_composition_keeps_its_handler_pair_when_parameters_change(CancellationToken cancellationToken)
     {
         var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         List<string> calls = [];
@@ -44,7 +45,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     [Arguments("color:red;", "display:block;", "color:red; display:block;")]
     [Arguments(";;;", " display:block ", "; display:block;")]
     [Arguments("color:red", "  ", "color:red;")]
-    public async ValueTask Slot_normalizes_styles_without_changing_declaration_order(string slotStyle, string childStyle, string expected)
+    public async ValueTask Slot_normalizes_styles_without_changing_declaration_order(string slotStyle, string childStyle, string expected, CancellationToken cancellationToken)
     {
         var cut = Render<BradixSlot>(p => p
             .Add(c => c.ElementName, "div")
@@ -54,7 +55,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Slot_attribute_count_changes_preserve_child_component_identity()
+    public async ValueTask Slot_attribute_count_changes_preserve_child_component_identity(CancellationToken cancellationToken)
     {
         RenderFragment child = builder =>
         {
@@ -79,7 +80,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Slot_merges_class_style_and_child_attribute_precedence()
+    public async ValueTask Slot_merges_class_style_and_child_attribute_precedence(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -114,7 +115,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Slot_composes_child_and_slot_click_handlers_in_child_first_order()
+    public async ValueTask Slot_composes_child_and_slot_click_handlers_in_child_first_order(CancellationToken cancellationToken)
     {
         List<string> calls = [];
 
@@ -150,7 +151,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Slot_composes_typed_event_callbacks_in_child_first_order()
+    public async ValueTask Slot_composes_typed_event_callbacks_in_child_first_order(CancellationToken cancellationToken)
     {
         List<string> calls = [];
         var receiver = new object();
@@ -181,7 +182,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Slot_composes_wrapped_custom_event_callbacks_without_reflection()
+    public async ValueTask Slot_composes_wrapped_custom_event_callbacks_without_reflection(CancellationToken cancellationToken)
     {
         List<string> calls = [];
         var slotCallback = BradixEventCallback.Create<CustomEventArgs>(args => calls.Add($"slot:{args.Value}"));
@@ -208,7 +209,7 @@ public sealed class BradixSlotRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Slot_requires_non_empty_element_name()
+    public async ValueTask Slot_requires_non_empty_element_name(CancellationToken cancellationToken)
     {
         await Assert.That(() => Render(builder =>
         {

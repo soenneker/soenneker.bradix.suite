@@ -6,6 +6,7 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -30,7 +31,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Checkbox_renders_unchecked_state_by_default()
+    public async ValueTask Checkbox_renders_unchecked_state_by_default(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox());
 
@@ -43,7 +44,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Checkbox_click_cycles_indeterminate_to_checked()
+    public async ValueTask Checkbox_click_cycles_indeterminate_to_checked(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Indeterminate));
 
@@ -56,7 +57,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Checkbox_can_render_mixed_state_when_controlled()
+    public async ValueTask Checkbox_can_render_mixed_state_when_controlled(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(checkedState: BradixCheckboxCheckedState.Indeterminate));
 
@@ -67,7 +68,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Keyboard_activation_is_registered_with_delegated_bridge()
+    public async ValueTask Keyboard_activation_is_registered_with_delegated_bridge(CancellationToken cancellationToken)
     {
         _ = Render(CreateCheckbox());
 
@@ -86,7 +87,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Delegated_space_toggles_but_enter_does_not()
+    public async ValueTask Delegated_space_toggles_but_enter_does_not(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox());
         IRenderedComponent<BradixCheckbox> checkbox = cut.FindComponent<BradixCheckbox>();
@@ -99,7 +100,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Checkbox_indicator_force_mount_renders_when_unchecked()
+    public async ValueTask Checkbox_indicator_force_mount_renders_when_unchecked(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(forceMountIndicator: true));
 
@@ -110,14 +111,14 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Checkbox_with_name_outside_form_does_not_render_hidden_input()
+    public async ValueTask Checkbox_with_name_outside_form_does_not_render_hidden_input(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Checked, name: "terms"));
         await Assert.That(cut.FindAll("input[type='checkbox']")).IsEmpty();
     }
 
     [Test]
-    public async ValueTask Checkbox_with_explicit_form_renders_hidden_input_outside_form()
+    public async ValueTask Checkbox_with_explicit_form_renders_hidden_input_outside_form(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Checked, name: "terms", form: "settings-form"));
 
@@ -130,7 +131,7 @@ public sealed class BradixCheckboxRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Uncontrolled_checkbox_resets_to_initial_state()
+    public async ValueTask Uncontrolled_checkbox_resets_to_initial_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCheckbox(defaultChecked: BradixCheckboxCheckedState.Indeterminate));
         IRenderedComponent<BradixCheckbox> checkbox = cut.FindComponent<BradixCheckbox>();

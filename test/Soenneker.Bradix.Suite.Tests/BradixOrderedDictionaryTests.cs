@@ -1,11 +1,12 @@
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixOrderedDictionaryTests
 {
     [Test]
-    public async ValueTask DeleteAt_preserves_order_and_supports_negative_indices()
+    public async ValueTask DeleteAt_preserves_order_and_supports_negative_indices(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, int>();
         dictionary.Set("alpha", 1).Set("beta", 2).Set("gamma", 3).Set("delta", 4);
@@ -24,7 +25,7 @@ public sealed class BradixOrderedDictionaryTests
     }
 
     [Test]
-    public async ValueTask Set_preserves_existing_key_position()
+    public async ValueTask Set_preserves_existing_key_position(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, int>();
 
@@ -37,7 +38,7 @@ public sealed class BradixOrderedDictionaryTests
     }
 
     [Test]
-    public async ValueTask Insert_moves_existing_key_to_requested_position()
+    public async ValueTask Insert_moves_existing_key_to_requested_position(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, int>();
 
@@ -51,7 +52,7 @@ public sealed class BradixOrderedDictionaryTests
     }
 
     [Test]
-    public async ValueTask Before_after_and_from_follow_current_order()
+    public async ValueTask Before_after_and_from_follow_current_order(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, int>();
 
@@ -66,7 +67,7 @@ public sealed class BradixOrderedDictionaryTests
     }
 
     [Test]
-    public async ValueTask Before_and_after_return_null_at_boundaries_and_for_missing_keys()
+    public async ValueTask Before_and_after_return_null_at_boundaries_and_for_missing_keys(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, int>();
 

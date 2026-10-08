@@ -9,6 +9,7 @@ using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -61,7 +62,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Right_click_opens_context_menu_and_registers_virtual_anchor()
+    public async ValueTask Right_click_opens_context_menu_and_registers_virtual_anchor(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
         IElement trigger = cut.Find("[data-state='closed']");
@@ -92,7 +93,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Disabled_trigger_does_not_open_context_menu()
+    public async ValueTask Disabled_trigger_does_not_open_context_menu(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu(triggerDisabled: true));
         IElement trigger = cut.Find("[data-disabled]");
@@ -106,7 +107,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Touch_long_press_opens_context_menu_at_pointer()
+    public async ValueTask Touch_long_press_opens_context_menu_at_pointer(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
         IElement trigger = cut.Find("[data-state='closed']");
@@ -127,21 +128,21 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Touch_long_press_is_cancelled_by_pointer_move()
+    public async ValueTask Touch_long_press_is_cancelled_by_pointer_move(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
         IElement trigger = cut.Find("[data-state='closed']");
 
         await trigger.TriggerEventAsync("onpointerdown", new PointerEventArgs { PointerType = "touch", ClientX = 42, ClientY = 84 });
         await trigger.TriggerEventAsync("onpointermove", new PointerEventArgs { PointerType = "touch", ClientX = 48, ClientY = 90 });
-        await Task.Delay(800);
+        await Task.Delay(800, cancellationToken: cancellationToken);
 
         await Assert.That(cut.FindAll("[role='menu']")).IsEmpty();
         await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "registerVirtualPopperContent")).IsFalse();
     }
 
     [Test]
-    public async ValueTask Checkbox_and_radio_wrappers_render_checked_state()
+    public async ValueTask Checkbox_and_radio_wrappers_render_checked_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
         await cut.Find("[data-state='closed']").TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
@@ -157,7 +158,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Submenu_wrapper_opens_from_sub_trigger()
+    public async ValueTask Submenu_wrapper_opens_from_sub_trigger(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
         await cut.Find("[data-state='closed']").TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
@@ -173,7 +174,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Selecting_item_closes_context_menu_root()
+    public async ValueTask Selecting_item_closes_context_menu_root(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu());
         await cut.Find("[data-state='closed']").TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
@@ -187,7 +188,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Non_modal_outside_interaction_prevents_close_auto_focus()
+    public async ValueTask Non_modal_outside_interaction_prevents_close_auto_focus(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateContextMenu(modal: false));
         await cut.Find("[data-state='closed']").TriggerEventAsync("oncontextmenu", new MouseEventArgs { ClientX = 120, ClientY = 40, Button = 2 });
@@ -202,7 +203,7 @@ public sealed class BradixContextMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Detailed_close_auto_focus_can_prevent_context_menu_refocus()
+    public async ValueTask Detailed_close_auto_focus_can_prevent_context_menu_refocus(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

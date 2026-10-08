@@ -4,6 +4,7 @@ using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -21,7 +22,7 @@ public sealed class BradixPortalRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Portal_renders_child_content_inside_portal_host()
+    public async ValueTask Portal_renders_child_content_inside_portal_host(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePortal());
 
@@ -30,7 +31,7 @@ public sealed class BradixPortalRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Portal_supports_custom_container_selector_parameter()
+    public async ValueTask Portal_supports_custom_container_selector_parameter(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePortal("#custom-container"));
 
@@ -39,7 +40,7 @@ public sealed class BradixPortalRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Portal_does_not_remount_when_rerendered_without_container_change()
+    public async ValueTask Portal_does_not_remount_when_rerendered_without_container_change(CancellationToken cancellationToken)
     {
         IRenderedComponent<PortalHost> cut = Render<PortalHost>();
 
@@ -57,7 +58,7 @@ public sealed class BradixPortalRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Portal_unmounts_when_disposed()
+    public async ValueTask Portal_unmounts_when_disposed(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePortal());
 

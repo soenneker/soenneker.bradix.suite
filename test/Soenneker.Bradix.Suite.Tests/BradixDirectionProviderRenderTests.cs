@@ -3,13 +3,14 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using System.Threading.Tasks;
 using Bunit.Rendering;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixDirectionProviderRenderTests : BunitContext
 {
     [Test]
-    public async ValueTask Direction_provider_cascades_rtl_value()
+    public async ValueTask Direction_provider_cascades_rtl_value(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {
@@ -27,7 +28,7 @@ public sealed class BradixDirectionProviderRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Direction_provider_normalizes_invalid_values_to_ltr()
+    public async ValueTask Direction_provider_normalizes_invalid_values_to_ltr(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

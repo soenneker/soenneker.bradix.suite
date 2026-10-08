@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Toolbar_demo_roves_focus_across_groups_and_skips_disabled_items()
+    public async ValueTask Toolbar_demo_roves_focus_across_groups_and_skips_disabled_items(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toolbars"));
@@ -63,9 +64,9 @@ public sealed class BradixToolbarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Toolbar_demo_updates_pressed_states_for_toggle_groups()
+    public async ValueTask Toolbar_demo_updates_pressed_states_for_toggle_groups(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toolbars"));

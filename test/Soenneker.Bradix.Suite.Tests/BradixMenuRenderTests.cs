@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -59,7 +60,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_bookkeeping_does_not_render_items_and_focus_renders_once()
+    public async ValueTask Pointer_bookkeeping_does_not_render_items_and_focus_renders_once(CancellationToken cancellationToken)
     {
         var cut = Render(CreateMenu());
         var item = cut.FindComponent<BradixMenuItem>();
@@ -79,7 +80,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_callbacks_do_not_rebuild_the_menu_content()
+    public async ValueTask Focus_callbacks_do_not_rebuild_the_menu_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
         var content = cut.FindComponent<BradixMenuContent>();
@@ -96,7 +97,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Default_open_menu_renders_content_and_arrow()
+    public async ValueTask Default_open_menu_renders_content_and_arrow(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(includeArrow: true));
 
@@ -109,7 +110,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask First_enabled_item_has_tab_stop_and_arrow_navigation_updates_current_item()
+    public async ValueTask First_enabled_item_has_tab_stop_and_arrow_navigation_updates_current_item(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(disableFirstItem: true));
         IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
@@ -129,7 +130,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Character_key_typeahead_moves_to_next_match()
+    public async ValueTask Character_key_typeahead_moves_to_next_match(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
         IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
@@ -143,7 +144,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_outside_resets_typeahead_buffer()
+    public async ValueTask Focus_outside_resets_typeahead_buffer(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
         IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
@@ -179,7 +180,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Content_root_first_and_last_keys_move_focus_to_first_and_last_items()
+    public async ValueTask Content_root_first_and_last_keys_move_focus_to_first_and_last_items(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(disableFirstItem: true));
         IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
@@ -231,7 +232,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Content_root_character_key_runs_typeahead_when_content_has_focus()
+    public async ValueTask Content_root_character_key_runs_typeahead_when_content_has_focus(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
         IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
@@ -250,7 +251,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Touch_pointer_move_does_not_change_menu_tab_stop()
+    public async ValueTask Touch_pointer_move_does_not_change_menu_tab_stop(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
         IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
@@ -267,7 +268,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Disabled_item_pointer_move_does_not_take_tab_stop()
+    public async ValueTask Disabled_item_pointer_move_does_not_take_tab_stop(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(disableFirstItem: true));
         IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
@@ -283,7 +284,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_leave_clears_current_menu_item_tab_stop()
+    public async ValueTask Pointer_leave_clears_current_menu_item_tab_stop(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
         IReadOnlyList<IElement> items = cut.FindAll("[role='menuitem']");
@@ -305,7 +306,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Selecting_item_closes_menu_and_invokes_callback()
+    public async ValueTask Selecting_item_closes_menu_and_invokes_callback(CancellationToken cancellationToken)
     {
         var selected = false;
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(onSelect: () => selected = true));
@@ -320,7 +321,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_up_on_item_after_pointer_down_on_different_item_selects_it()
+    public async ValueTask Pointer_up_on_item_after_pointer_down_on_different_item_selects_it(CancellationToken cancellationToken)
     {
         var selected = false;
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(onSelect: () => selected = true));
@@ -337,7 +338,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Detailed_select_callback_can_prevent_menu_close()
+    public async ValueTask Detailed_select_callback_can_prevent_menu_close(CancellationToken cancellationToken)
     {
         var selected = false;
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu(
@@ -354,7 +355,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Detailed_focus_outside_can_prevent_submenu_close()
+    public async ValueTask Detailed_focus_outside_can_prevent_submenu_close(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu(
             onSubFocusOutsideDetailed: EventCallback.Factory.Create<BradixFocusOutsideEventArgs>(this, args => args.PreventDefault())));
@@ -372,7 +373,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Submenu_content_keydown_callback_is_invoked()
+    public async ValueTask Submenu_content_keydown_callback_is_invoked(CancellationToken cancellationToken)
     {
         string? key = null;
 
@@ -395,7 +396,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Modal_menu_registers_scroll_lock_and_hide_others()
+    public async ValueTask Modal_menu_registers_scroll_lock_and_hide_others(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateMenu());
 
@@ -405,7 +406,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Controlled_open_uses_keyboard_focus_path_when_last_input_was_keyboard()
+    public async ValueTask Controlled_open_uses_keyboard_focus_path_when_last_input_was_keyboard(CancellationToken cancellationToken)
     {
         _module.Setup<bool>("isKeyboardInteractionMode", _ => true).SetResult(true);
 
@@ -422,7 +423,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Checkbox_item_renders_checked_semantics_and_indicator()
+    public async ValueTask Checkbox_item_renders_checked_semantics_and_indicator(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelectionMenu());
 
@@ -434,7 +435,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Radio_group_can_change_selected_item_without_closing_when_configured()
+    public async ValueTask Radio_group_can_change_selected_item_without_closing_when_configured(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelectionMenu());
         IReadOnlyList<IElement> radioItems = cut.FindAll("[role='menuitemradio']");
@@ -451,7 +452,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Controlled_radio_group_reports_value_change_without_mutating_internal_state()
+    public async ValueTask Controlled_radio_group_reports_value_change_without_mutating_internal_state(CancellationToken cancellationToken)
     {
         string? changedValue = null;
         IRenderedComponent<ContainerFragment> cut = Render(CreateControlledRadioGroupMenu(value: null, valueChanged: value => changedValue = value));
@@ -467,7 +468,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Checkbox_item_select_can_prevent_close_while_still_updating_checked_state()
+    public async ValueTask Checkbox_item_select_can_prevent_close_while_still_updating_checked_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSelectionMenu(
             onCheckboxSelectDetailed: EventCallback.Factory.Create<BradixMenuItemSelectEventArgs>(this, args => args.PreventDefault())));
@@ -482,7 +483,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Sub_trigger_opens_submenu_and_exposes_expanded_state()
+    public async ValueTask Sub_trigger_opens_submenu_and_exposes_expanded_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
         IElement trigger = cut.Find("[aria-haspopup='menu']");
@@ -497,7 +498,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Keyboard_opened_submenu_focuses_content_before_first_item()
+    public async ValueTask Keyboard_opened_submenu_focuses_content_before_first_item(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
         IElement trigger = cut.Find("[aria-haspopup='menu']");
@@ -515,7 +516,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Sub_trigger_pointer_move_opens_after_delay()
+    public async ValueTask Sub_trigger_pointer_move_opens_after_delay(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
         IElement trigger = cut.Find("[aria-haspopup='menu']");
@@ -532,7 +533,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Space_does_not_open_submenu_while_typeahead_is_active()
+    public async ValueTask Space_does_not_open_submenu_while_typeahead_is_active(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
         IRenderedComponent<BradixMenuContent> content = cut.FindComponent<BradixMenuContent>();
@@ -554,7 +555,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_grace_keeps_sibling_hover_from_stealing_focus_while_moving_to_open_submenu()
+    public async ValueTask Pointer_grace_keeps_sibling_hover_from_stealing_focus_while_moving_to_open_submenu(CancellationToken cancellationToken)
     {
         _module.Setup<bool>("beginMenuSubmenuPointerGrace", _ => true).SetResult(true);
 
@@ -581,7 +582,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_grace_exit_restores_normal_parent_menu_hover_behavior()
+    public async ValueTask Pointer_grace_exit_restores_normal_parent_menu_hover_behavior(CancellationToken cancellationToken)
     {
         _module.Setup<bool>("beginMenuSubmenuPointerGrace", _ => true).SetResult(true);
 
@@ -611,7 +612,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Submenu_close_key_closes_submenu_and_returns_trigger_state()
+    public async ValueTask Submenu_close_key_closes_submenu_and_returns_trigger_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu());
         IElement trigger = cut.Find("[aria-haspopup='menu']");
@@ -635,7 +636,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Content_forwards_popper_collision_boundary_selectors_and_sticky()
+    public async ValueTask Content_forwards_popper_collision_boundary_selectors_and_sticky(CancellationToken cancellationToken)
     {
         _ = Render(CreateMenu(configureContent: content =>
         {
@@ -657,7 +658,7 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask SubContent_forwards_popper_collision_boundary_selectors_and_sticky()
+    public async ValueTask SubContent_forwards_popper_collision_boundary_selectors_and_sticky(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSubmenuMenu(configureSubContent: content =>
         {

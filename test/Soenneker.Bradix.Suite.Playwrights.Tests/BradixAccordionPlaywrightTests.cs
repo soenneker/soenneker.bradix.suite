@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
     }
 
 [Test]
-    public async ValueTask Accordion_demo_skips_disabled_items_and_honors_orientation_specific_keyboard_navigation()
+    public async ValueTask Accordion_demo_skips_disabled_items_and_honors_orientation_specific_keyboard_navigation(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordions"));
@@ -63,9 +64,9 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
     }
 
 [Test]
-    public async ValueTask Accordion_demo_unmounts_closed_content_by_default_and_keeps_force_mounted_content_in_dom()
+    public async ValueTask Accordion_demo_unmounts_closed_content_by_default_and_keeps_force_mounted_content_in_dom(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordions"));
@@ -100,9 +101,9 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
     }
 
 [Test]
-    public async ValueTask Accordion_demo_switches_visible_content_between_items()
+    public async ValueTask Accordion_demo_switches_visible_content_between_items(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordions"));
@@ -119,9 +120,9 @@ public sealed class BradixAccordionPlaywrightTests : BradixComponentPlaywrightTe
     }
 
 [Test]
-    public async ValueTask Accordion_demo_supports_multiple_items_without_closing_previous_content()
+    public async ValueTask Accordion_demo_supports_multiple_items_without_closing_previous_content(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accordions"));

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tooltip_demo_supports_nested_tooltip_inside_modal_dialog()
+    public async ValueTask Tooltip_demo_supports_nested_tooltip_inside_modal_dialog(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltips"));
@@ -34,9 +35,9 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tooltip_demo_hides_content_after_pointer_leaves_trigger_and_content()
+    public async ValueTask Tooltip_demo_hides_content_after_pointer_leaves_trigger_and_content(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltips"));
@@ -60,9 +61,9 @@ public sealed class BradixTooltipPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tooltip_demo_reveals_content_on_hover()
+    public async ValueTask Tooltip_demo_reveals_content_on_hover(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tooltips"));

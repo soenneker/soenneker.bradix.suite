@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
     }
 
     [Test]
-    public async ValueTask Hover_card_selection_restores_body_styles_after_release()
+    public async ValueTask Hover_card_selection_restores_body_styles_after_release(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hovercards"));
         await page.GetByAltText("Radix UI").HoverAsync();
@@ -37,9 +38,9 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
     }
 
 [Test]
-    public async ValueTask Hover_card_demo_supports_nested_hover_card_inside_modal_dialog()
+    public async ValueTask Hover_card_demo_supports_nested_hover_card_inside_modal_dialog(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hovercards"));
@@ -59,9 +60,9 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
     }
 
 [Test]
-    public async ValueTask Hover_card_demo_hides_profile_details_after_pointer_leaves_trigger_and_content()
+    public async ValueTask Hover_card_demo_hides_profile_details_after_pointer_leaves_trigger_and_content(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hovercards"));
@@ -78,9 +79,9 @@ public sealed class BradixHoverCardPlaywrightTests : BradixComponentPlaywrightTe
     }
 
 [Test]
-    public async ValueTask Hover_card_demo_shows_profile_details_on_hover()
+    public async ValueTask Hover_card_demo_shows_profile_details_on_hover(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/hovercards"));

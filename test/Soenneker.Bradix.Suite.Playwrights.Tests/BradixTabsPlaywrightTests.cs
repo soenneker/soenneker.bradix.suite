@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tabs_demo_rtl_reverses_horizontal_arrow_navigation()
+    public async ValueTask Tabs_demo_rtl_reverses_horizontal_arrow_navigation(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
@@ -39,9 +40,9 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tabs_demo_switches_visible_panel_content()
+    public async ValueTask Tabs_demo_switches_visible_panel_content(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
@@ -56,9 +57,9 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tabs_demo_manual_activation_keeps_selection_until_space_commits_focused_tab()
+    public async ValueTask Tabs_demo_manual_activation_keeps_selection_until_space_commits_focused_tab(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
@@ -86,9 +87,9 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tabs_demo_vertical_orientation_uses_down_arrow_to_move_selection()
+    public async ValueTask Tabs_demo_vertical_orientation_uses_down_arrow_to_move_selection(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
@@ -112,9 +113,9 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tabs_demo_controlled_buttons_sync_selected_trigger_and_panel()
+    public async ValueTask Tabs_demo_controlled_buttons_sync_selected_trigger_and_panel(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
@@ -135,9 +136,9 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tabs_demo_home_and_end_keys_move_focus_and_selection_to_edges()
+    public async ValueTask Tabs_demo_home_and_end_keys_move_focus_and_selection_to_edges(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));
@@ -180,9 +181,9 @@ public sealed class BradixTabsPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Tabs_demo_disabled_trigger_stays_inactive_while_enabled_sibling_can_activate()
+    public async ValueTask Tabs_demo_disabled_trigger_stays_inactive_while_enabled_sibling_can_activate(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/tabs"));

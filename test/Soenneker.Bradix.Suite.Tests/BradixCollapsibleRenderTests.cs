@@ -5,6 +5,7 @@ using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -24,7 +25,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Uncontrolled_toggle_updates_state_and_aria()
+    public async ValueTask Uncontrolled_toggle_updates_state_and_aria(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible());
 
@@ -48,7 +49,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Trigger_uses_root_id_prefix_for_controls_wiring()
+    public async ValueTask Trigger_uses_root_id_prefix_for_controls_wiring(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(rootId: "settings-collapse", open: true));
 
@@ -61,7 +62,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Content_allows_opt_in_region_labelling_for_accordion_composition()
+    public async ValueTask Content_allows_opt_in_region_labelling_for_accordion_composition(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(open: true, contentRole: "region", contentLabelledBy: "custom-trigger"));
 
@@ -71,7 +72,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Force_mounted_closed_content_remains_present_but_inert()
+    public async ValueTask Force_mounted_closed_content_remains_present_but_inert(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(forceMount: true));
         IElement trigger = cut.Find("button");
@@ -84,7 +85,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Disabled_trigger_does_not_toggle_uncontrolled_state()
+    public async ValueTask Disabled_trigger_does_not_toggle_uncontrolled_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateCollapsible(triggerDisabled: true));
 
@@ -98,7 +99,7 @@ public sealed class BradixCollapsibleRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Controlled_toggle_notifies_parent_without_closing_content()
+    public async ValueTask Controlled_toggle_notifies_parent_without_closing_content(CancellationToken cancellationToken)
     {
         bool? requestedOpen = null;
 

@@ -4,6 +4,7 @@ using Microsoft.Playwright;
 using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
 using Soenneker.Playwrights.Tests.Unit;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -15,9 +16,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_opens_options_and_updates_current_selection()
+    public async ValueTask Select_demo_opens_options_and_updates_current_selection(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady($"{BaseUrl}selects", static p => p.Locator("[role='combobox']")
@@ -57,9 +58,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_portals_content_and_closes_on_outside_click()
+    public async ValueTask Select_demo_portals_content_and_closes_on_outside_click(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady($"{BaseUrl}selects", static p => p.Locator("[role='combobox']")
@@ -100,9 +101,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_marks_disabled_items_and_checked_selection_correctly()
+    public async ValueTask Select_demo_marks_disabled_items_and_checked_selection_correctly(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady($"{BaseUrl}selects", static p => p.Locator("[role='combobox']")
@@ -134,9 +135,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_home_and_end_keys_move_focus_to_first_and_last_enabled_options()
+    public async ValueTask Select_demo_home_and_end_keys_move_focus_to_first_and_last_enabled_options(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
@@ -165,9 +166,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_typeahead_moves_focus_to_matching_enabled_option()
+    public async ValueTask Select_demo_typeahead_moves_focus_to_matching_enabled_option(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
@@ -191,9 +192,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_repeated_typeahead_cycles_matching_options()
+    public async ValueTask Select_demo_repeated_typeahead_cycles_matching_options(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
@@ -217,9 +218,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_typeahead_skips_disabled_matching_option()
+    public async ValueTask Select_demo_typeahead_skips_disabled_matching_option(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(
@@ -245,9 +246,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_item_aligned_content_keeps_selected_item_visible_within_viewport()
+    public async ValueTask Select_demo_item_aligned_content_keeps_selected_item_visible_within_viewport(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         await page.SetViewportSizeAsync(360, 420);
 
@@ -303,9 +304,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_mouse_wheel_overscroll_stays_at_bottom()
+    public async ValueTask Select_demo_mouse_wheel_overscroll_stays_at_bottom(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         await page.SetViewportSizeAsync(420, 420);
 
@@ -329,7 +330,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         for (var i = 0; i < 24 && !IsAtScrollBottom(metrics); i++)
         {
             await page.Mouse.WheelAsync(0, 700);
-            await Task.Delay(25);
+            await Task.Delay(25, cancellationToken: cancellationToken);
             metrics = await ReadViewportScrollMetrics(viewport);
         }
 
@@ -340,7 +341,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         for (var i = 0; i < 6; i++)
         {
             await page.Mouse.WheelAsync(0, 700);
-            await Task.Delay(25);
+            await Task.Delay(25, cancellationToken: cancellationToken);
         }
 
         double[] afterOverscrollMetrics = await ReadViewportScrollMetrics(viewport);
@@ -349,9 +350,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_supports_nested_select_inside_modal_dialog()
+    public async ValueTask Select_demo_supports_nested_select_inside_modal_dialog(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady($"{BaseUrl}selects?testScenarios=true", static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true }),
@@ -380,9 +381,9 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Select_demo_native_form_requires_selection_and_submits_selected_value()
+    public async ValueTask Select_demo_native_form_requires_selection_and_submits_selected_value(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady(

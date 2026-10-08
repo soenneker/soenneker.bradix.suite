@@ -3,6 +3,7 @@ using AwesomeAssertions;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -14,9 +15,9 @@ public sealed class BradixProgressPlaywrightTests : BradixComponentPlaywrightTes
     }
 
 [Test]
-    public async ValueTask Progress_demo_exposes_current_value()
+    public async ValueTask Progress_demo_exposes_current_value(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         List<string> consoleErrors = [];
         var sawPageError = false;

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -14,9 +15,9 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
     }
 
     [Test]
-    public async ValueTask Focus_scope_demo_loops_focus_back_to_first_item()
+    public async ValueTask Focus_scope_demo_loops_focus_back_to_first_item(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var consoleErrors = new List<string>();
         var pageErrors = new List<string>();
@@ -54,9 +55,9 @@ public sealed class BradixFocusScopePlaywrightTests : BradixComponentPlaywrightT
     }
 
     [Test]
-    public async ValueTask Focus_scope_demo_traps_programmatic_and_tab_focus()
+    public async ValueTask Focus_scope_demo_traps_programmatic_and_tab_focus(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var consoleErrors = new List<string>();
         var pageErrors = new List<string>();

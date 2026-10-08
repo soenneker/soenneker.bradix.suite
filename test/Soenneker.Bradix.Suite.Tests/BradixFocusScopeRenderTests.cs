@@ -5,6 +5,7 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -23,7 +24,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_scope_renders_with_negative_tabindex()
+    public async ValueTask Focus_scope_renders_with_negative_tabindex(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateFocusScope());
 
@@ -32,7 +33,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_scope_mount_callback_can_be_invoked()
+    public async ValueTask Focus_scope_mount_callback_can_be_invoked(CancellationToken cancellationToken)
     {
         var mounted = false;
 
@@ -45,7 +46,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_scope_unmount_callback_can_be_invoked()
+    public async ValueTask Focus_scope_unmount_callback_can_be_invoked(CancellationToken cancellationToken)
     {
         var unmounted = false;
 
@@ -58,7 +59,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_scope_disposal_invokes_unmount_callback_before_unregistering()
+    public async ValueTask Focus_scope_disposal_invokes_unmount_callback_before_unregistering(CancellationToken cancellationToken)
     {
         var unmounted = false;
 
@@ -76,7 +77,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_scope_accepts_loop_and_trapped_parameters()
+    public async ValueTask Focus_scope_accepts_loop_and_trapped_parameters(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(builder =>
         {

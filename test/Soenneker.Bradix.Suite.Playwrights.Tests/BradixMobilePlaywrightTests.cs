@@ -6,6 +6,7 @@ using AwesomeAssertions;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Extensions.TestPages;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -18,9 +19,9 @@ public sealed class BradixMobilePlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Demo_routes_render_at_mobile_viewport_without_browser_or_layout_errors()
+    public async ValueTask Demo_routes_render_at_mobile_viewport_without_browser_or_layout_errors(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var runtimeErrors = new List<string>();
         var failures = new List<string>();

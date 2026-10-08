@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixSeparatorPlaywrightTests : BradixComponentPlaywrightTe
     }
 
     [Test]
-    public async ValueTask Separator_demo_exposes_semantic_horizontal_and_decorative_vertical_metadata()
+    public async ValueTask Separator_demo_exposes_semantic_horizontal_and_decorative_vertical_metadata(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var consoleErrors = new System.Collections.Generic.List<string>();
         var sawPageError = false;

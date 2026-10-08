@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -15,9 +16,9 @@ public sealed class BradixFormPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Form_demo_surfaces_required_and_type_mismatch_messages()
+    public async ValueTask Form_demo_surfaces_required_and_type_mismatch_messages(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         List<string> consoleErrors = [];
         var sawPageError = false;

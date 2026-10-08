@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Toast_demo_shows_scheduled_notification()
+    public async ValueTask Toast_demo_shows_scheduled_notification(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
         var consoleMessages = new List<string>();
         var pageErrors = new List<string>();
@@ -41,9 +42,9 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Toast_demo_action_dismisses_the_current_notification()
+    public async ValueTask Toast_demo_action_dismisses_the_current_notification(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toasts"));
@@ -62,9 +63,9 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Toast_demo_hotkey_focuses_viewport_and_escape_closes_focused_toast()
+    public async ValueTask Toast_demo_hotkey_focuses_viewport_and_escape_closes_focused_toast(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toasts"));
@@ -88,9 +89,9 @@ public sealed class BradixToastPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Toast_demo_swipe_right_dismisses_toast()
+    public async ValueTask Toast_demo_swipe_right_dismisses_toast(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/toasts"));

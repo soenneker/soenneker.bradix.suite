@@ -6,6 +6,7 @@ using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -30,7 +31,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Switch_renders_switch_role_and_unchecked_state()
+    public async ValueTask Switch_renders_switch_role_and_unchecked_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch());
 
@@ -42,7 +43,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Switch_click_toggles_uncontrolled_state()
+    public async ValueTask Switch_click_toggles_uncontrolled_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch());
 
@@ -54,7 +55,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Controlled_switch_respects_checked_parameter()
+    public async ValueTask Controlled_switch_respects_checked_parameter(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(checkedState: true));
 
@@ -66,14 +67,14 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Switch_with_name_outside_form_does_not_render_hidden_input()
+    public async ValueTask Switch_with_name_outside_form_does_not_render_hidden_input(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(defaultChecked: true, name: "notifications"));
         await Assert.That(cut.FindAll("input[type='checkbox']")).IsEmpty();
     }
 
     [Test]
-    public async ValueTask Switch_with_explicit_form_renders_hidden_input_outside_form()
+    public async ValueTask Switch_with_explicit_form_renders_hidden_input_outside_form(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(defaultChecked: true, name: "notifications", form: "settings-form"));
 
@@ -86,7 +87,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Switch_registers_delegated_keyboard_activation()
+    public async ValueTask Switch_registers_delegated_keyboard_activation(CancellationToken cancellationToken)
     {
         _ = Render(CreateSwitch());
 
@@ -99,7 +100,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Delegated_space_toggles_switch_but_enter_does_not()
+    public async ValueTask Delegated_space_toggles_switch_but_enter_does_not(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch());
         IRenderedComponent<BradixSwitch> component = cut.FindComponent<BradixSwitch>();
@@ -112,7 +113,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Uncontrolled_switch_resets_to_default_state()
+    public async ValueTask Uncontrolled_switch_resets_to_default_state(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSwitch(defaultChecked: true));
         IRenderedComponent<BradixSwitch> component = cut.FindComponent<BradixSwitch>();

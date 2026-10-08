@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -12,9 +13,9 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
     }
 
     [Test]
-    public async ValueTask Checkbox_demo_form_reset_restores_default_checked_and_indeterminate_states()
+    public async ValueTask Checkbox_demo_form_reset_restores_default_checked_and_indeterminate_states(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkboxes"));
@@ -49,9 +50,9 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
     }
 
     [Test]
-    public async ValueTask Checkbox_demo_indeterminate_click_sets_checked_state()
+    public async ValueTask Checkbox_demo_indeterminate_click_sets_checked_state(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkboxes"));
@@ -70,9 +71,9 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
     }
 
     [Test]
-    public async ValueTask Checkbox_demo_is_checked_by_default_and_can_toggle()
+    public async ValueTask Checkbox_demo_is_checked_by_default_and_can_toggle(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkboxes"));
@@ -87,9 +88,9 @@ public sealed class BradixCheckboxPlaywrightTests : BradixComponentPlaywrightTes
     }
 
     [Test]
-    public async ValueTask Checkbox_enter_does_not_toggle_but_space_does()
+    public async ValueTask Checkbox_enter_does_not_toggle_but_space_does(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/checkboxes"));

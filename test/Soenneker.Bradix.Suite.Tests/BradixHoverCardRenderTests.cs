@@ -8,6 +8,7 @@ using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
@@ -42,7 +43,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Default_open_hover_card_renders_content()
+    public async ValueTask Default_open_hover_card_renders_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
 
@@ -50,7 +51,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Trigger_uses_non_submitting_button_semantics()
+    public async ValueTask Trigger_uses_non_submitting_button_semantics(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard());
 
@@ -58,7 +59,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Pointer_down_outside_dismisses_hover_card()
+    public async ValueTask Pointer_down_outside_dismisses_hover_card(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -73,7 +74,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Interact_outside_can_prevent_pointer_outside_dismissal()
+    public async ValueTask Interact_outside_can_prevent_pointer_outside_dismissal(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true, onInteractOutsideDetailed: args => args.PreventDefault()));
         IRenderedComponent<BradixDismissableLayer> layer = cut.FindComponent<BradixDismissableLayer>();
@@ -87,7 +88,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Document_pointerup_tracks_selection_state_and_preserves_content()
+    public async ValueTask Document_pointerup_tracks_selection_state_and_preserves_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true));
         BradixHoverCardContent content = cut.FindComponent<BradixHoverCardContent>().Instance;
@@ -104,7 +105,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Focus_outside_does_not_dismiss_hover_card()
+    public async ValueTask Focus_outside_does_not_dismiss_hover_card(CancellationToken cancellationToken)
     {
         BradixFocusOutsideEventArgs? focusOutsideArgs = null;
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true,
@@ -118,7 +119,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Touch_pointer_leave_does_not_schedule_hover_card_close()
+    public async ValueTask Touch_pointer_leave_does_not_schedule_hover_card_close(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(openDelay: 0));
         IElement trigger = cut.Find("button");
@@ -137,7 +138,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Default_open_hover_card_renders_arrow()
+    public async ValueTask Default_open_hover_card_renders_arrow(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateHoverCard(defaultOpen: true, includeArrow: true));
 
@@ -145,7 +146,7 @@ public sealed class BradixHoverCardRenderTests : BunitContext
     }
 
     [Test]
-    public async ValueTask Content_forwards_popper_collision_boundary_selectors_and_sticky()
+    public async ValueTask Content_forwards_popper_collision_boundary_selectors_and_sticky(CancellationToken cancellationToken)
     {
         _ = Render(CreateHoverCard(defaultOpen: true, configureContent: content =>
         {

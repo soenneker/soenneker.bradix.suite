@@ -2,6 +2,7 @@ using Soenneker.Playwrights.Extensions.TestPages;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Soenneker.Playwrights.Session;
+using System.Threading;
 
 namespace Soenneker.Bradix.Suite.Playwrights.Tests;
 
@@ -13,9 +14,9 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Menubar_demo_close_key_closes_submenu_before_parent_menu()
+    public async ValueTask Menubar_demo_close_key_closes_submenu_before_parent_menu(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
@@ -48,9 +49,9 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Menubar_demo_closes_from_single_outside_click()
+    public async ValueTask Menubar_demo_closes_from_single_outside_click(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
@@ -66,9 +67,9 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Menubar_demo_end_key_moves_focus_to_last_top_level_trigger()
+    public async ValueTask Menubar_demo_end_key_moves_focus_to_last_top_level_trigger(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
@@ -88,9 +89,9 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Menubar_demo_keeps_checkbox_menu_open_when_close_on_select_is_disabled()
+    public async ValueTask Menubar_demo_keeps_checkbox_menu_open_when_close_on_select_is_disabled(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
@@ -113,9 +114,9 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Menubar_demo_trigger_keeps_checkbox_menu_open_after_non_closing_selection()
+    public async ValueTask Menubar_demo_trigger_keeps_checkbox_menu_open_after_non_closing_selection(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
@@ -137,9 +138,9 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Menubar_rtl_demo_inverts_horizontal_roving_focus_between_top_level_triggers()
+    public async ValueTask Menubar_rtl_demo_inverts_horizontal_roving_focus_between_top_level_triggers(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
@@ -157,9 +158,9 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Menubar_demo_allows_radio_selection_changes()
+    public async ValueTask Menubar_demo_allows_radio_selection_changes(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
@@ -173,9 +174,9 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Menubar_demo_trigger_keeps_radio_menu_open_after_non_closing_selection()
+    public async ValueTask Menubar_demo_trigger_keeps_radio_menu_open_after_non_closing_selection(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
@@ -194,9 +195,9 @@ public sealed class BradixMenubarPlaywrightTests : BradixComponentPlaywrightTest
     }
 
 [Test]
-    public async ValueTask Menubar_demo_roves_focus_across_triggers_and_opens_adjacent_menu_with_arrow_keys()
+    public async ValueTask Menubar_demo_roves_focus_across_triggers_and_opens_adjacent_menu_with_arrow_keys(CancellationToken cancellationToken)
     {
-        await using BrowserSession session = await CreateSession();
+        await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/menubars"));
