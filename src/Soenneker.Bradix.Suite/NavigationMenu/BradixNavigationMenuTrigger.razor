@@ -83,7 +83,6 @@
                 ("data-bradix-roving-orientation", NavigationMenu?.Orientation?.Value),
                 ("data-bradix-roving-dir", NavigationMenu?.ResolvedDirection),
                 ("data-bradix-roving-loop", "true"),
-                ("data-debug-dispose-count", NavigationMenu?.GetDebugTriggerDisposeCount(Item?.ResolvedValue).ToString(System.Globalization.CultureInfo.InvariantCulture)),
                 ("aria-expanded", IsOpen ? "true" : "false"),
                 ("aria-controls", Item?.ContentId),
                 ("tabindex", null));
@@ -168,7 +167,6 @@
         if (!_disposed.TrySetTrue())
             return;
 
-        NavigationMenu?.RecordTriggerDisposed(Item?.ResolvedValue);
         if (_focusProxyRegistered && Item is not null)
             NavigationMenu?.UnregisterFocusProxy(Item.ResolvedValue);
         if (_registration is not null)

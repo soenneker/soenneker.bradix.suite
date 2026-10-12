@@ -73,6 +73,79 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Changing_item_value_replaces_registration_and_explicit_text(CancellationToken cancellationToken)
+    {
+        string value = "one";
+        string text = "First";
+        var cut = Render<BradixSelect>(p => p.AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixSelectItem>(0);
+            builder.AddAttribute(1, nameof(BradixSelectItem.Value), value);
+            builder.AddAttribute(2, nameof(BradixSelectItem.TextValue), text);
+            builder.CloseComponent();
+        }));
+        await Assert.That(cut.Find("option[value=one]").TextContent).IsEqualTo("First");
+        value = "two";
+        text = "Second";
+        cut.Render();
+        await Assert.That(cut.FindAll("option[value=one]").Count).IsEqualTo(0);
+        await Assert.That(cut.Find("option[value=two]").TextContent).IsEqualTo("Second");
+        text = "Updated";
+        cut.Render();
+        await Assert.That(cut.Find("option[value=two]").TextContent).IsEqualTo("Updated");
+        cut.Render(p => p.Add(c => c.ChildContent, (RenderFragment?)null));
+        await Assert.That(cut.FindAll("option[value=two]").Count).IsEqualTo(0);
+    }
+
+    [Test]
+    public async ValueTask Each_select_group_has_its_own_label_id(CancellationToken cancellationToken)
+    {
+        var cut = Render<BradixSelect>(p => p.AddChildContent(builder =>
+        {
+            for (var i = 0; i < 2; i++)
+            {
+                builder.OpenComponent<BradixSelectGroup>(0);
+                builder.AddAttribute(1, nameof(BradixSelectGroup.ChildContent), (RenderFragment)(child =>
+                {
+                    child.OpenComponent<BradixSelectLabel>(0);
+                    child.CloseComponent();
+                }));
+                builder.CloseComponent();
+            }
+        }));
+        var groups = cut.FindAll("[role='group']");
+        await Assert.That(groups[0].GetAttribute("aria-labelledby")).IsNotEqualTo(groups[1].GetAttribute("aria-labelledby"));
+        foreach (var group in groups)
+            await Assert.That(group.FirstElementChild!.Id).IsEqualTo(group.GetAttribute("aria-labelledby"));
+    }
+
+    [Test]
+    public async ValueTask Controlled_select_keeps_selection_and_label_until_owner_accepts_change(CancellationToken cancellationToken)
+    {
+        string? requested = null;
+        var cut = Render<BradixSelect>(p => p
+            .Add(c => c.Value, "orange")
+            .Add(c => c.ValueChanged, value => requested = value)
+            .AddChildContent(builder =>
+            {
+                RenderItem(builder, 0, "orange", "Orange");
+                RenderItem(builder, 10, "lime", "Lime");
+                builder.OpenComponent<BradixSelectValue>(20);
+                builder.CloseComponent();
+            }));
+
+        await cut.FindAll("[role=option]")[1].KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
+
+        await Assert.That(requested).IsEqualTo("lime");
+        await Assert.That(cut.FindAll("[role=option]")[0].GetAttribute("data-state")).IsEqualTo("checked");
+        await Assert.That(cut.FindComponent<BradixSelectValue>().Markup).Contains("Orange");
+
+        cut.Render(p => p.Add(c => c.Value, "lime"));
+        await Assert.That(cut.FindAll("[role=option]")[1].GetAttribute("data-state")).IsEqualTo("checked");
+        await Assert.That(cut.FindComponent<BradixSelectValue>().Markup).Contains("Lime");
+    }
+
+    [Test]
     public async ValueTask Focus_changes_do_not_render_select_or_unrelated_items(CancellationToken cancellationToken)
     {
         var cut = Render<FocusCountingSelect>(p => p.AddChildContent(builder =>

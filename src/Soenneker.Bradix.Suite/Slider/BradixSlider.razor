@@ -311,7 +311,7 @@
             return;
 
         int decimalCount = StepDecimalCount;
-        double snappedValue = BradixSliderMath.RoundValue(Math.Round((value - Min) / Step) * Step + Min, decimalCount);
+        double snappedValue = BradixSliderMath.RoundValue(BradixSliderMath.RoundToNearest((value - Min) / Step) * Step + Min, decimalCount);
         double clampedValue = BradixSliderMath.Clamp(snappedValue, Min, Max);
 
         double[]? nextValues = BuildChangedValues(CurrentValues, clampedValue, atIndex, MinStepsBetweenThumbs * Step, out int nextIndex);

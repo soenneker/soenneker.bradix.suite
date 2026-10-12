@@ -130,7 +130,7 @@ else
         ("data-bradix-roving-item-id", TabStopId),
         ("data-bradix-roving-orientation", "vertical"),
         ("data-bradix-roving-dir", Menu.ResolvedDirection),
-        ("data-bradix-roving-loop", "true"),
+        ("data-bradix-roving-loop", Content.Loop ? "true" : "false"),
         ("href", RenderAsLink ? Href : null),
         ("target", RenderAsLink ? Target : null),
         ("aria-disabled", Disabled ? "true" : null),
@@ -314,7 +314,7 @@ else
         if (Disabled || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
-        if (_rovingFocusBridgeReady && args.Key is "Home" or "End" or "PageUp" or "PageDown")
+        if (_rovingFocusBridgeReady && args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
             return;
 
         if (args.Key is " " or "Spacebar")

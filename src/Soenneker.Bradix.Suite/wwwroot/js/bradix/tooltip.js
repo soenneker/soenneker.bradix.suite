@@ -5,6 +5,7 @@ import {
   getHull,
   isPointInPolygon
 } from "./core/geometry.js";
+import { observeTextContent, unobserveTextContent } from "./core/dom.js";
 
 const tooltipTriggerHandlers = new WeakMap();
 const tooltipContentHandlers = new WeakMap();
@@ -155,6 +156,7 @@ export function registerTooltipContent(content, trigger, dotNetRef, contentId, h
   }
 
   tooltipContentHandlers.set(content, state);
+  observeTextContent(content, dotNetRef, '[role="tooltip"]');
 }
 
 export function unregisterTooltipContent(content) {
@@ -180,4 +182,5 @@ export function unregisterTooltipContent(content) {
   }
 
   tooltipContentHandlers.delete(content);
+  unobserveTextContent(content);
 }

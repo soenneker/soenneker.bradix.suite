@@ -33,6 +33,8 @@
     private ElementReference _contentElement;
     private ElementReference _exitProxyElement;
     private bool _registered;
+    private bool _wasOpen;
+    private bool _isExiting;
     private bool _focusBridgeRegistered;
     private ValueAtomicBool _disposed;
 
@@ -55,7 +57,7 @@
         !string.IsNullOrWhiteSpace(NavigationMenu.ViewportId);
 
     private bool ShouldRenderContent =>
-        (ForceMount || IsOpen) &&
+        (ForceMount || IsOpen || _isExiting) &&
         (!ShouldUseViewport || !string.IsNullOrWhiteSpace(ViewportSelector));
 
     private string? ViewportSelector => !string.IsNullOrWhiteSpace(NavigationMenu?.ViewportId)
@@ -64,30 +66,50 @@
 
     private RenderFragment? _contentBody;
 
-    private RenderFragment ContentBody => _contentBody ??= @<BradixPresence Present="ForceMount || IsOpen"
-                                                           Tag="div">
-        <BradixDismissableLayer DisableOutsidePointerEvents="false"
+    private RenderFragment ContentBody => _contentBody ??= @<BradixDismissableLayer DisableOutsidePointerEvents="false"
                                 DismissOnEscapeKeyDown="false"
                                 DismissOnPointerDownOutside="false"
                                 DismissOnFocusOutside="false"
                                 OnEscapeKeyDownDetailed="(_cachedHandleEscapeKeyDownDelegate ??= HandleEscapeKeyDown)"
                                 OnPointerDownOutsideDetailed="(_cachedHandlePointerDownOutsideDelegate ??= HandlePointerDownOutside)"
                                 OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)">
-            <div @ref="_contentElement"
-                 tabindex="-1"
-                 @attributes="ContentAttributes"
-                 @onpointerenter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
-                 @onpointerleave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)">
+            <BradixPresence Present="ForceMount || IsOpen"
+                            AdditionalAttributes="ContentAttributes"
+                            OnElementReferenceCaptured="HandleElementCaptured"
+                            OnExitComplete="HandleExitComplete"
+                            OnPointerEnter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
+                            OnPointerLeave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)">
                 <CascadingValue Name="BradixNavigationMenuInContent" Value="true" IsFixed="true">
                     @ChildContent
                 </CascadingValue>
-            </div>
+            </BradixPresence>
             <span @ref="_exitProxyElement"
                   aria-hidden="true"
                   tabindex="0"
                   style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" />
-        </BradixDismissableLayer>
-    </BradixPresence>;
+        </BradixDismissableLayer>;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (_wasOpen && !IsOpen)
+            _isExiting = true;
+        else if (IsOpen)
+            _isExiting = false;
+        _wasOpen = IsOpen;
+    }
+
+    private Task HandleElementCaptured(ElementReference element)
+    {
+        _contentElement = element;
+        return RequestRender();
+    }
+
+    private Task HandleExitComplete()
+    {
+        _isExiting = false;
+        return RequestRender();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -95,14 +117,24 @@
             return;
         if (!ShouldRenderContent)
         {
+            if (_registered && Item is not null)
+            {
+                NavigationMenu?.UnregisterContent(Item.ResolvedValue);
+                _registered = false;
+            }
+
             if (_focusBridgeRegistered)
             {
                 await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
                 _focusBridgeRegistered = false;
             }
 
+            _contentElement = default;
             return;
         }
+
+        if (_contentElement.Context is null)
+            return;
 
         if (_registered is false && NavigationMenu is not null && Item is not null)
         {
@@ -148,6 +180,7 @@
                 attributes["style"] = Style;
 
             attributes["data-state"] = IsOpen ? "open" : "closed";
+            attributes["tabindex"] = BradixAttributeValues.MinusOne;
             attributes["data-orientation"] = NavigationMenu?.Orientation?.Value ?? Orientation.Horizontal.Value;
             attributes["aria-labelledby"] = Item?.TriggerId ?? string.Empty;
 

@@ -26,6 +26,24 @@ public sealed class BradixScrollAreaRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Changing_scrollbar_orientation_releases_previous_axis(CancellationToken cancellationToken)
+    {
+        var cut = Render<BradixScrollArea>(p => p.Add(c => c.Type, ScrollAreaType.Always).AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixScrollAreaViewport>(0);
+            builder.CloseComponent();
+            builder.OpenComponent<BradixScrollAreaScrollbar>(1);
+            builder.CloseComponent();
+        }));
+        var scrollbar = cut.FindComponent<BradixScrollAreaScrollbar>();
+        scrollbar.Render(p => p.Add(c => c.Orientation, Orientation.Horizontal));
+
+        string? style = cut.Find("[data-radix-scroll-area-viewport]").GetAttribute("style");
+        await Assert.That(style).Contains("overflow-x: scroll");
+        await Assert.That(style).Contains("overflow-y: hidden");
+    }
+
+    [Test]
     public async ValueTask Always_scroll_area_renders_scrollbar_parts(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateScrollArea(type: ScrollAreaType.Always, includeHorizontal: true));

@@ -70,6 +70,15 @@ public sealed class BradixSliderRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Slider_midpoint_snaps_up_like_javascript_math_round(CancellationToken cancellationToken)
+    {
+        var cut = Render(CreateSlider(defaultValues: [20]));
+        var slider = cut.FindComponent<BradixSlider>();
+        await cut.InvokeAsync(() => slider.Instance.HandlePointerStart(0.205, 0.5, -1));
+        await Assert.That(cut.Find("[role='slider']").GetAttribute("aria-valuenow")).IsEqualTo("21");
+    }
+
+    [Test]
     public async ValueTask Slider_arrow_key_updates_value(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateSlider(defaultValues: [20]));

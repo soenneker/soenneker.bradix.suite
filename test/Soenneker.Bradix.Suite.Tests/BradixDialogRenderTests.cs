@@ -48,6 +48,22 @@ public sealed class BradixDialogRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Detailed_escape_callback_can_cancel_content_keyboard_dismissal(CancellationToken cancellationToken)
+    {
+        var cut = Render<BradixDialog>(p => p.Add(c => c.DefaultOpen, true).AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixDialogContent>(0);
+            builder.AddAttribute(1, nameof(BradixDialogContent.OnEscapeKeyDownDetailed),
+                EventCallback.Factory.Create<BradixEscapeKeyDownEventArgs>(this, args => args.PreventDefault()));
+            builder.CloseComponent();
+        }));
+
+        await cut.Find("[role=dialog]").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Escape" });
+
+        await Assert.That(cut.Instance.CurrentOpen).IsTrue();
+    }
+
+    [Test]
     public async ValueTask Trigger_click_opens_dialog_and_links_title_and_description(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDialog());

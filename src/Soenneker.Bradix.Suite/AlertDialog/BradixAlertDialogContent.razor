@@ -42,6 +42,7 @@
     private bool _hasCancelElement;
     private bool _pendingCancelFocus;
     private bool _didFocusCancelForCurrentOpen;
+    private bool _openAutoFocusHandled;
 
     [CascadingParameter]
     private BradixDialog? Dialog { get; set; }
@@ -92,6 +93,13 @@
 
     private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
     {
+        if (_openAutoFocusHandled)
+        {
+            args.PreventDefault();
+            return;
+        }
+        _openAutoFocusHandled = true;
+
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
 
@@ -99,7 +107,11 @@
             await OnOpenAutoFocusDetailed.InvokeAsync(args);
 
         if (args.DefaultPrevented)
+        {
+            _pendingCancelFocus = false;
+            _didFocusCancelForCurrentOpen = true;
             return;
+        }
 
         args.PreventDefault();
         _pendingCancelFocus = true;
@@ -127,7 +139,11 @@
         if (Dialog?.CurrentOpen == true && !_didFocusCancelForCurrentOpen)
             _ = InvokeAsync(_focusOpenCallback ??= FocusCancelForOpen);
         else if (Dialog?.CurrentOpen != true)
+        {
             _didFocusCancelForCurrentOpen = false;
+            _openAutoFocusHandled = false;
+            _pendingCancelFocus = false;
+        }
 
         if (_pendingCancelFocus)
             _ = InvokeAsync(_focusPendingCallback ??= FocusCancelIfPending);
@@ -158,16 +174,7 @@
     {
         if (Dialog?.CurrentOpen != true)
             return;
-
-        try
-        {
-            await Task.Yield();
-            if (await TryFocusCancel())
-                _didFocusCancelForCurrentOpen = true;
-        }
-        catch
-        {
-        }
+        await HandleOpenAutoFocus(new BradixAutoFocusEventArgs());
     }
 
     private async Task<bool> TryFocusCancel()

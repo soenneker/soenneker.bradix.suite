@@ -4,18 +4,15 @@
 
 @implements IBradixDialogTrigger
 <button @ref="_button"
-        @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
         @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
         @attributes="ButtonAttributes">
     @ChildContent
 </button>
 
 @code {
-    private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
     private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
 
     private ElementReference _button;
-    private bool _ignoreNextClickToggle;
 
     [CascadingParameter]
     private BradixDialog? Dialog { get; set; }
@@ -47,21 +44,13 @@
 
     private async Task HandleClick(MouseEventArgs args)
     {
-        if (_ignoreNextClickToggle)
-            _ignoreNextClickToggle = false;
-        else if (!Disabled && Dialog is not null)
-            await Dialog.ToggleOpen();
+        if (Disabled)
+            return;
 
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);
-    }
 
-    private async Task HandlePointerDown(PointerEventArgs args)
-    {
-        if (Disabled || Dialog is null || args.Button != 0 || args.CtrlKey)
-            return;
-
-        _ignoreNextClickToggle = true;
-        await Dialog.ToggleOpen();
+        if (!Disabled && Dialog is not null)
+            await Dialog.ToggleOpen();
     }
 }

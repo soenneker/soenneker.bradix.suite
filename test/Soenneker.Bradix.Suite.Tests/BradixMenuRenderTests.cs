@@ -60,6 +60,25 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Canceling_open_autofocus_prevents_fallback_focus(CancellationToken cancellationToken)
+    {
+        int callbacks = 0;
+        var cut = Render<BradixMenu>(p => p.Add(c => c.DefaultOpen, true).AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixMenuContent>(0);
+            builder.AddAttribute(1, nameof(BradixMenuContent.OnOpenAutoFocusDetailed), EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, args =>
+            {
+                callbacks++;
+                args.PreventDefault();
+            }));
+            builder.CloseComponent();
+        }));
+        cut.Render();
+        await Assert.That(callbacks).IsEqualTo(1);
+        await Assert.That(_module.Invocations.Count(i => i.Identifier is "focusElementPreventScroll" or "focusElementDeferred")).IsEqualTo(0);
+    }
+
+    [Test]
     public async ValueTask Pointer_bookkeeping_does_not_render_items_and_focus_renders_once(CancellationToken cancellationToken)
     {
         var cut = Render(CreateMenu());
@@ -93,7 +112,7 @@ public sealed class BradixMenuRenderTests : BunitContext
 
         await Assert.That(content.RenderCount).IsEqualTo(contentRenders);
         await Assert.That(menu.RenderCount).IsEqualTo(menuRenders);
-        await Assert.That(_module.Invocations.Count(call => call.Identifier == "focusElementPreventScroll")).IsGreaterThan(focusCalls);
+        await Assert.That(_module.Invocations.Count(call => call.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCalls);
     }
 
     [Test]
@@ -418,7 +437,9 @@ public sealed class BradixMenuRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             await Assert.That(cut.Find("[role='menu']").GetAttribute("data-state")).IsEqualTo("open");
-            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 1);
+            await Assert.That(focusCountBefore).IsGreaterThan(0);
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore);
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusFirstMatchingDescendant")).IsTrue();
         });
     }
 
@@ -511,7 +532,8 @@ public sealed class BradixMenuRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             await Assert.That(cut.Find("[aria-haspopup='menu']").GetAttribute("aria-expanded")).IsEqualTo("true");
-            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 2);
+            await Assert.That(_module.Invocations.Count(invocation => invocation.Identifier == "focusElementPreventScroll")).IsEqualTo(focusCountBefore + 1);
+            await Assert.That(_module.Invocations.Any(invocation => invocation.Identifier == "focusFirstMatchingDescendant")).IsTrue();
         });
     }
 

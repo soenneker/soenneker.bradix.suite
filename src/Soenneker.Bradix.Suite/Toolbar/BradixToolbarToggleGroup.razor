@@ -49,9 +49,9 @@
 
     internal bool IsSingle => Type != SelectionMode.Multiple;
 
-    private bool IsSingleControlled => Value is not null || ValueChanged.HasDelegate || OnValueChange.HasDelegate;
+    private bool IsSingleControlled => Value is not null || ValueChanged.HasDelegate;
 
-    private bool IsMultipleControlled => Values is not null || ValuesChanged.HasDelegate || OnValuesChange.HasDelegate;
+    private bool IsMultipleControlled => Values is not null || ValuesChanged.HasDelegate;
 
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("role", "group"),

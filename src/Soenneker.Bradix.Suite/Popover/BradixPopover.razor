@@ -17,8 +17,6 @@
 
     private bool _initialized;
     private bool _uncontrolledOpen;
-    private bool _pendingControlledOpen;
-    private bool _hasPendingControlledOpen;
     private int _customAnchorCount;
 
     [Parameter]
@@ -38,7 +36,7 @@
 
     public string? BaseId { get; private set; }
 
-    public bool CurrentOpen => _hasPendingControlledOpen ? _pendingControlledOpen : Open ?? _uncontrolledOpen;
+    public bool CurrentOpen => Open ?? _uncontrolledOpen;
 
     public bool HasCustomAnchor => _customAnchorCount > 0;
 
@@ -60,15 +58,7 @@
     protected override void OnParametersSet()
     {
         if (_initialized)
-        {
-            if (_hasPendingControlledOpen)
-            {
-                _hasPendingControlledOpen = false;
-                _pendingControlledOpen = false;
-            }
-
             return;
-        }
 
         _uncontrolledOpen = DefaultOpen;
         _initialized = true;
@@ -81,11 +71,6 @@
 
         if (Open is null)
             _uncontrolledOpen = open;
-        else
-        {
-            _pendingControlledOpen = open;
-            _hasPendingControlledOpen = true;
-        }
 
         if (OpenChanged.HasDelegate)
             await OpenChanged.InvokeAsync(open);

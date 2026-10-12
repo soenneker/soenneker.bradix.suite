@@ -48,6 +48,25 @@ public sealed class BradixAlertDialogRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Canceling_open_autofocus_prevents_cancel_button_fallback(CancellationToken cancellationToken)
+    {
+        int callbacks = 0;
+        var cut = Render<BradixAlertDialog>(p => p.Add(c => c.DefaultOpen, true).AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixAlertDialogContent>(0);
+            builder.AddAttribute(1, nameof(BradixAlertDialogContent.OnOpenAutoFocusDetailed), EventCallback.Factory.Create<BradixAutoFocusEventArgs>(this, args =>
+            {
+                callbacks++;
+                args.PreventDefault();
+            }));
+            builder.CloseComponent();
+        }));
+        cut.Render();
+        await Assert.That(callbacks).IsEqualTo(1);
+        await Assert.That(_module.Invocations.Count(i => i.Identifier is "focusElementPreventScroll" or "focusFirstMatchingDescendant")).IsEqualTo(0);
+    }
+
+    [Test]
     public async ValueTask Trigger_click_opens_alertdialog_with_title_and_description(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateAlertDialog());

@@ -3,6 +3,7 @@ const presenceElements = new Map();
 const pendingPresenceInvocations = new Map();
 let focusGuardsCount = 0;
 const hideOthersState = new WeakMap();
+const hiddenElements = new WeakMap();
 const removeScrollRegistrations = new Map();
 let removeScrollLegacyCount = 0;
 const removeScrollLegacyAllowPinchZoomStack = [];
@@ -143,31 +144,44 @@ export function unregisterFocusGuards() {
 }
 
 export function registerHideOthers(element) {
-  if (!element || !document.body) {
+  const ownerDocument = element?.ownerDocument || document;
+  const body = ownerDocument.body;
+  if (!element || !body || !body.contains(element)) {
     return;
   }
 
   unregisterHideOthers(element);
 
   const changed = [];
-  const branchSelector = "[data-bradix-dismissable-layer-branch]";
-
-  for (const child of document.body.children) {
-    if (child === element || child.contains(element) || element.contains(child)) {
-      continue;
+  const targets = new Set([element, ...body.querySelectorAll("[aria-live]")]);
+  const retainedAncestors = new Set();
+  for (const target of targets) {
+    for (let parent = target; parent && parent !== body; parent = parent.parentElement) {
+      retainedAncestors.add(parent);
     }
-
-    if (child.matches(branchSelector) || child.querySelector(branchSelector)) {
-      continue;
-    }
-
-    changed.push({
-      element: child,
-      previousInert: child.inert === true
-    });
-
-    child.inert = true;
   }
+
+  const hideSiblings = parent => {
+    for (const child of parent.children) {
+      if (targets.has(child)) continue;
+      if (retainedAncestors.has(child)) {
+        hideSiblings(child);
+        continue;
+      }
+
+      let state = hiddenElements.get(child);
+      if (state) {
+        state.count++;
+      } else {
+        state = { count: 1, inert: child.inert === true, ariaHidden: child.getAttribute("aria-hidden") };
+        hiddenElements.set(child, state);
+        child.inert = true;
+        child.setAttribute("aria-hidden", "true");
+      }
+      changed.push(child);
+    }
+  };
+  hideSiblings(body);
 
   hideOthersState.set(element, changed);
 }
@@ -178,8 +192,13 @@ export function unregisterHideOthers(element) {
     return;
   }
 
-  for (const entry of changed) {
-    entry.element.inert = entry.previousInert;
+  for (const child of changed) {
+    const state = hiddenElements.get(child);
+    if (!state || --state.count > 0) continue;
+    child.inert = state.inert;
+    if (state.ariaHidden === null) child.removeAttribute("aria-hidden");
+    else child.setAttribute("aria-hidden", state.ariaHidden);
+    hiddenElements.delete(child);
   }
 
   hideOthersState.delete(element);

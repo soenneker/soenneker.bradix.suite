@@ -60,6 +60,24 @@ public sealed class BradixPopoverRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Controlled_popover_waits_for_owner_to_accept_open_change(CancellationToken cancellationToken)
+    {
+        bool? requested = null;
+        var cut = Render<BradixPopover>(p => p
+            .Add(c => c.Open, false)
+            .Add(c => c.OnOpenChange, value => requested = value)
+            .AddChildContent<BradixPopoverTrigger>());
+
+        await cut.Find("button").ClickAsync();
+
+        await Assert.That(requested).IsTrue();
+        await Assert.That(cut.Instance.CurrentOpen).IsFalse();
+        await Assert.That(cut.Find("button").GetAttribute("aria-expanded")).IsEqualTo("false");
+        cut.Render(p => p.Add(c => c.Open, true));
+        await Assert.That(cut.Find("button").GetAttribute("aria-expanded")).IsEqualTo("true");
+    }
+
+    [Test]
     public async ValueTask Modal_popover_registers_modal_infra_and_sets_aria_modal(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreatePopover(defaultOpen: true, modal: true));
@@ -201,7 +219,7 @@ public sealed class BradixPopoverRenderTests : BunitContext
             content.AddAttribute(23, nameof(BradixPopoverContent.HideWhenDetached), true);
         }));
 
-        JSRuntimeInvocation invocation = _module.Invocations.Single(call => call.Identifier == "registerPopperContent");
+        JSRuntimeInvocation invocation = _module.Invocations.Last(call => call.Identifier == "registerPopperContent");
         object? options = invocation.Arguments[4];
         var selectors = ((JsonElement)options!).GetProperty("collisionBoundarySelectors").EnumerateArray().Select(item => item.GetString()!).ToArray();
         var sticky = ((JsonElement)options!).GetProperty("sticky").GetString();

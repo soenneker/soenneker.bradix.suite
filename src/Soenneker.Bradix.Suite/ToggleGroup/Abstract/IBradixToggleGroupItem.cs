@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Soenneker.Bradix;
 
@@ -28,5 +29,14 @@ public interface IBradixToggleGroupItem : IAsyncDisposable {
 
     /// <summary>Gets or sets whether this item is disabled.</summary>
     bool Disabled { get; set; }
+
+    /// <summary>Gets or sets the click callback invoked before toggling the item.</summary>
+    EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>Gets or sets the focus callback.</summary>
+    EventCallback<FocusEventArgs> OnFocus { get; set; }
+
+    /// <summary>Gets or sets the callback invoked before keyboard navigation.</summary>
+    EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
 
 }

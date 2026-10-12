@@ -43,6 +43,9 @@
 
     private ElementReference _element;
     private bool _registered;
+    private BradixSelect? _registeredSelect;
+    private string? _registeredValue;
+    private string? _registeredTextValue;
     private bool _isFocused;
     private string _pointerType = "mouse";
     private string? _resolvedTextValue;
@@ -111,13 +114,31 @@
         if (_disposed.Read())
             return;
 
-        if (firstRender && Select is not null)
+        if (Select is not null)
         {
             if (string.IsNullOrWhiteSpace(Value))
                 throw new InvalidOperationException("A BradixSelectItem value cannot be empty.");
 
-            Select.RegisterItem(this);
-            _registered = true;
+            if (!_registered || !ReferenceEquals(_registeredSelect, Select) || _registeredValue != Value)
+            {
+                _registeredSelect?.UnregisterItem(this, _registeredValue);
+                _registeredSelect = Select;
+                _registeredValue = Value;
+                _registeredTextValue = TextValue;
+                _registered = true;
+                Select.RegisterItem(this);
+            }
+            else if (_registeredTextValue != TextValue)
+            {
+                _registeredTextValue = TextValue;
+                await Select.NotifyItemTextChanged();
+            }
+        }
+        else if (_registered)
+        {
+            _registeredSelect?.UnregisterItem(this, _registeredValue);
+            _registeredSelect = null;
+            _registered = false;
         }
 
         if (TextValue is null && !_hasItemTextContent)
@@ -137,7 +158,7 @@
         if (!_disposed.TrySetTrue())
             return;
         if (_registered)
-            Select?.UnregisterItem(this);
+            _registeredSelect?.UnregisterItem(this, _registeredValue);
         if (_textObserver is not null)
             await _textObserver.DisposeAsync();
     }

@@ -349,9 +349,19 @@ ResetState:
         if (args.Key != "Escape")
             return;
 
-        await HandleEscapeKeyDown(new BradixEscapeKeyDownEventArgs(new BradixDelegatedKeyboardEvent()));
+        var escapeEvent = new BradixEscapeKeyDownEventArgs(new BradixDelegatedKeyboardEvent
+        {
+            Key = args.Key,
+            Code = args.Code,
+            CtrlKey = args.CtrlKey,
+            ShiftKey = args.ShiftKey,
+            AltKey = args.AltKey,
+            MetaKey = args.MetaKey,
+            Repeat = args.Repeat
+        });
+        await HandleEscapeKeyDown(escapeEvent);
 
-        if (CloseOnEscapeKeyDown)
+        if (CloseOnEscapeKeyDown && !escapeEvent.DefaultPrevented)
             await HandleDismiss();
     }
 

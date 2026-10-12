@@ -15,7 +15,7 @@ const selectContentKeyboardKeys = new Set([
   "PageDown"
 ]);
 
-const TYPEAHEAD_RESET_MS = 700;
+const TYPEAHEAD_RESET_MS = 1000;
 const POINTER_UP_OPTION_RETRY_COUNT = 8;
 
 function isSelectViewportScrollEvent(event, viewport) {
@@ -234,6 +234,10 @@ function focusSelectContentKeyboardTarget(content, key, registration) {
     return false;
   }
 
+  if (target === document.activeElement) {
+    return true;
+  }
+
   registration.focusedValue = target.getAttribute("data-value") || "";
   setHighlightedSelectOption(content, target);
   invokeDotNetSafely(registration.dotNetRef, "HandleDelegatedContentFocusedValueChanged", registration.focusedValue);
@@ -282,7 +286,7 @@ function indexOfSelectOption(options, current) {
 
 function getAdjacentSelectOption(options, current, delta) {
   const currentIndex = Math.max(indexOfSelectOption(options, current), 0);
-  return options[(currentIndex + delta + options.length) % options.length];
+  return options[Math.max(0, Math.min(currentIndex + delta, options.length - 1))];
 }
 
 function getTypeaheadSelectOption(options, current, key, registration) {

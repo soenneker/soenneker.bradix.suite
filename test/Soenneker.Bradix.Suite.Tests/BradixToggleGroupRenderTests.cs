@@ -85,6 +85,8 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
         await Assert.That(buttons[1].GetAttribute("tabindex")).IsEqualTo("-1");
 
         await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        // Native roving navigation is verified in the JS suite; dispatch its focus result here.
+        await buttons[1].FocusAsync();
         buttons = cut.FindAll("button");
 
         await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");
@@ -107,6 +109,8 @@ public sealed class BradixToggleGroupRenderTests : BunitContext
 
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
         await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowLeft" });
+        await Assert.That(buttons[0].GetAttribute("data-bradix-roving-dir")).IsEqualTo("rtl");
+        await buttons[1].FocusAsync();
         buttons = cut.FindAll("button");
 
         await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");

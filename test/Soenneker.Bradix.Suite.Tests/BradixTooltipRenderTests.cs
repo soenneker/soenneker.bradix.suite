@@ -47,6 +47,15 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Changed_content_updates_accessible_tooltip_text(CancellationToken cancellationToken)
+    {
+        var cut = Render(CreateTooltip(defaultOpen: true));
+        var content = cut.FindComponent<BradixTooltipContent>();
+        await cut.InvokeAsync(() => content.Instance.OnTextContentChanged("Updated description"));
+        await Assert.That(cut.Find("[role=tooltip]").TextContent).IsEqualTo("Updated description");
+    }
+
+    [Test]
     public async ValueTask Focus_opens_tooltip_and_links_trigger_to_content(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateTooltip());

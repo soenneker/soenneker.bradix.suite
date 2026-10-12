@@ -102,6 +102,38 @@ test('scrollbar metrics deduplicate frames and payloads and cancel disposed work
   assert.equal(env.calls.length, 2);
 });
 
+test('horizontal RTL wheel scrolling preserves its negative scroll range', () => {
+  const env = environment();
+  const bar = new Element(), viewport = new Element();
+  viewport.scrollLeft = -100;
+  scrollArea.registerScrollAreaScrollbar(bar, null, viewport, 'horizontal', 'rtl', env.receiver);
+  assert.equal(bar.fire('wheel', { deltaX: -30, deltaY: 0 }).prevented, true);
+  assert.equal(viewport.scrollLeft, -130);
+  bar.fire('wheel', { deltaX: -500, deltaY: 0 });
+  assert.equal(viewport.scrollLeft, -400);
+  assert.equal(bar.fire('wheel', { deltaX: -30, deltaY: 0 }).prevented, undefined);
+  bar.fire('wheel', { deltaX: 500, deltaY: 0 });
+  assert.equal(viewport.scrollLeft, 0);
+  scrollArea.unregisterScrollAreaScrollbar(bar);
+});
+
+test('a second pointer cannot move or end an active scrollbar drag', () => {
+  const env = environment();
+  const bar = new Element(), viewport = new Element();
+  scrollArea.registerScrollAreaScrollbar(bar, null, viewport, 'vertical', 'ltr', env.receiver);
+  bar.fire('pointerdown', { button: 0, pointerId: 1, clientX: 10, clientY: 20 });
+  const position = viewport.scrollTop;
+  document.fire('pointermove', { pointerId: 2, clientY: 90 });
+  document.fire('pointerup', { pointerId: 2 });
+  assert.equal(viewport.scrollTop, position);
+  assert.equal(bar.captures.has(1), true);
+  document.fire('pointermove', { pointerId: 1, clientY: 90 });
+  assert.notEqual(viewport.scrollTop, position);
+  document.fire('pointerup', { pointerId: 1 });
+  assert.equal(bar.captures.size, 0);
+  scrollArea.unregisterScrollAreaScrollbar(bar);
+});
+
 for (const ending of ['dispose', 'pointercancel', 'pointerup']) {
   test(`drag cleanup restores selection and capture on ${ending}`, () => {
     const env = environment();

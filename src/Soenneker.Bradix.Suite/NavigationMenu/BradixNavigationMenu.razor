@@ -43,7 +43,6 @@
     private readonly Dictionary<string, ElementReference> _focusProxyElements = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<IBradixNavigationMenuFocusGroupItem>> _focusGroups = new(StringComparer.Ordinal);
     private readonly Dictionary<string, BradixNavigationMenuViewportRegistration> _viewportContents = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, int> _debugTriggerDisposeCounts = new(StringComparer.Ordinal);
     private readonly HashSet<string> _escapeClosedValues = new(StringComparer.Ordinal);
     private ElementReference _rootElement;
     private ElementReference _indicatorTrackElement;
@@ -225,19 +224,6 @@
         }
 
         return false;
-    }
-
-    internal void RecordTriggerDisposed(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return;
-
-        _debugTriggerDisposeCounts[value] = _debugTriggerDisposeCounts.TryGetValue(value, out int count) ? count + 1 : 1;
-    }
-
-    internal int GetDebugTriggerDisposeCount(string? value)
-    {
-        return !string.IsNullOrWhiteSpace(value) && _debugTriggerDisposeCounts.TryGetValue(value, out int count) ? count : 0;
     }
 
     internal void RegisterTrigger(IBradixNavigationMenuRegisteredTrigger trigger)
@@ -662,16 +648,17 @@
         if (_disposed.Read())
             return;
         string nextValue = value ?? string.Empty;
-        bool isControlled = ValueChanged.HasDelegate;
+        bool isControlled = Value is not null || ValueChanged.HasDelegate;
 
         if (string.Equals(CurrentValue, nextValue, StringComparison.Ordinal))
             return;
 
-        _previousValue = CurrentValue;
-        _lastObservedValue = nextValue;
-
         if (!isControlled)
+        {
+            _previousValue = CurrentValue;
+            _lastObservedValue = nextValue;
             _uncontrolledValue = nextValue;
+        }
 
         if (!string.IsNullOrWhiteSpace(nextValue))
         {

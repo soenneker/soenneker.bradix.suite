@@ -15,6 +15,7 @@
         <button @ref="_button"
                 @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
                 @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
+                @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
                 @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
                 @attributes="ButtonAttributes">
             @ChildContent
@@ -26,6 +27,7 @@
     private Func<Task>? _focusAfterKeyboardOpen;
     private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
     private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
 
     // The root owns open state and notifies the trigger through its cascade.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
@@ -135,20 +137,9 @@
         if (!Disabled && DropdownMenu is not null && args.Button == 0 && !args.CtrlKey)
             await DropdownMenu.ToggleOpen();
 
-        if (OnClick.HasDelegate)
-        {
-            await OnClick.InvokeAsync(new MouseEventArgs
-            {
-                Button = args.Button,
-                CtrlKey = args.CtrlKey,
-                ShiftKey = args.ShiftKey,
-                AltKey = args.AltKey,
-                MetaKey = args.MetaKey,
-                PageX = args.PageX,
-                PageY = args.PageY
-            });
-        }
     }
+
+    private Task HandleClick(MouseEventArgs args) => !Disabled && OnClick.HasDelegate ? OnClick.InvokeAsync(args) : Task.CompletedTask;
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {

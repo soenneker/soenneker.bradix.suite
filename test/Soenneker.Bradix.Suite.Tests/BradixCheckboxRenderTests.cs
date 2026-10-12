@@ -5,6 +5,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
 
@@ -28,6 +29,22 @@ public sealed class BradixCheckboxRenderTests : BunitContext
         _module.SetupVoid("syncCheckboxBubbleInputState", _ => true).SetVoidResult();
 
         Services.AddBradixTestInterops();
+    }
+
+    [Test]
+    public async ValueTask Delegated_click_preserves_consumer_event_and_invokes_it_before_state_change(CancellationToken cancellationToken)
+    {
+        MouseEventArgs? received = null;
+        int clickCalls = 0;
+        int valueCalls = 0;
+        var cut = Render<BradixCheckbox>(p => p
+            .Add(c => c.OnClick, args => { received = args; clickCalls++; })
+            .Add(c => c.OnCheckedChange, _ => { if (clickCalls == 1) valueCalls++; }));
+        await cut.InvokeAsync(() => cut.Instance.HandleDelegatedClick(new BradixDelegatedMouseEvent { Detail = 2, CtrlKey = true }));
+        await Assert.That(clickCalls).IsEqualTo(1);
+        await Assert.That(valueCalls).IsEqualTo(1);
+        await Assert.That(received!.Detail).IsEqualTo(2);
+        await Assert.That(received.CtrlKey).IsTrue();
     }
 
     [Test]

@@ -19,7 +19,8 @@
 
     private ElementReference _element;
     private bool? _lastServerInvalid;
-    private bool _registeredWithForm;
+    private BradixForm? _registeredForm;
+    private string? _registeredName;
 
     [CascadingParameter]
     private BradixForm? Form { get; set; }
@@ -66,10 +67,15 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && Form is not null && !string.IsNullOrWhiteSpace(ResolvedName))
+        if (!ReferenceEquals(_registeredForm, Form) || !string.Equals(_registeredName, ResolvedName, StringComparison.Ordinal))
         {
-            Form.RegisterControl(ResolvedName, _element);
-            _registeredWithForm = true;
+            if (_registeredForm is not null && _registeredName is not null)
+                _registeredForm.UnregisterControl(_registeredName, _element);
+
+            _registeredForm = Form;
+            _registeredName = ResolvedName;
+            if (Form is not null && !string.IsNullOrWhiteSpace(_registeredName))
+                Form.RegisterControl(_registeredName, _element);
         }
 
         bool serverInvalid = Field?.ServerInvalid == true;
@@ -82,8 +88,11 @@
 
     public ValueTask DisposeAsync()
     {
-        if (_registeredWithForm && Form is not null && !string.IsNullOrWhiteSpace(ResolvedName))
-            Form.UnregisterControl(ResolvedName, _element);
+        if (_registeredForm is not null && _registeredName is not null)
+            _registeredForm.UnregisterControl(_registeredName, _element);
+
+        _registeredForm = null;
+        _registeredName = null;
 
         return ValueTask.CompletedTask;
     }

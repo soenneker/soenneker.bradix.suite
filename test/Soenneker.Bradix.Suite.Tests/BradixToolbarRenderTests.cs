@@ -110,6 +110,27 @@ public sealed class BradixToolbarRenderTests : BunitContext
     }
 
     [Test]
+    [Arguments(false)]
+    [Arguments(true)]
+    public async ValueTask Toolbar_toggle_group_change_observers_do_not_make_it_controlled(bool multiple, CancellationToken cancellationToken)
+    {
+        var notifications = 0;
+        var cut = Render<BradixToolbar>(p => p.AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixToolbarToggleGroup>(0);
+            builder.AddAttribute(1, nameof(BradixToolbarToggleGroup.Type), (object)(multiple ? SelectionMode.Multiple : SelectionMode.Single));
+            builder.AddAttribute(2, nameof(BradixToolbarToggleGroup.OnValueChange), EventCallback.Factory.Create<string?>(this, _ => notifications++));
+            builder.AddAttribute(3, nameof(BradixToolbarToggleGroup.OnValuesChange), EventCallback.Factory.Create<IReadOnlyCollection<string>>(this, _ => notifications++));
+            builder.AddAttribute(4, nameof(BradixToolbarToggleGroup.ChildContent), (RenderFragment)(items => RenderToggleItem(items, 0, "bold")));
+            builder.CloseComponent();
+        }));
+
+        await cut.Find("button").ClickAsync();
+        await Assert.That(notifications).IsEqualTo(1);
+        await Assert.That(cut.Find("button").GetAttribute("data-state")).IsEqualTo("on");
+    }
+
+    [Test]
     public async ValueTask Controlled_toolbar_toggle_group_with_null_value_does_not_mutate_internal_state(CancellationToken cancellationToken)
     {
         string? reported = null;

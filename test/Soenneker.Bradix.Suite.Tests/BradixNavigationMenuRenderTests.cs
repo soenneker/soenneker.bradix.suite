@@ -47,9 +47,25 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         _module.SetupVoid("updateNavigationMenuViewport", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterNavigationMenuViewport", _ => true).SetVoidResult();
         _module.Setup<JsonElement?>("getPresenceState", _ => true)
-            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
+            .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
         Services.AddBradixTestInterops();
+    }
+
+    [Test]
+    public async ValueTask Closing_menu_keeps_animated_content_indicator_and_viewport_until_exit(CancellationToken cancellationToken)
+    {
+        _module.Setup<JsonElement?>("getPresenceState", _ => true).SetResult(JsonSerializer.SerializeToElement(
+            new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
+        var cut = Render(CreateNavigationMenu(includeIndicator: true, includeViewport: true));
+        var trigger = cut.FindAll("button").First(button => button.TextContent.Contains("Docs"));
+        await trigger.ClickAsync();
+        await trigger.ClickAsync();
+        await Assert.That(cut.Markup).Contains("Getting started");
+        await Assert.That(cut.FindAll("[data-state=closed]").Count).IsGreaterThanOrEqualTo(2);
+        foreach (var presence in cut.FindComponents<BradixPresence>().Where(c => !c.Instance.Present).ToArray())
+            await cut.InvokeAsync(() => presence.Instance.HandleAnimationEnd("fade-out", "fade-out"));
+        await Assert.That(cut.Markup).DoesNotContain("Getting started");
     }
 
     [Test]
@@ -490,6 +506,8 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     [Test]
     public async ValueTask Viewport_switch_keeps_previous_content_mounted_for_exit_motion(CancellationToken cancellationToken)
     {
+        _module.Setup<JsonElement?>("getPresenceState", _ => true).SetResult(JsonSerializer.SerializeToElement(
+            new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
         IRenderedComponent<ContainerFragment> cut = Render(CreateNavigationMenu(includeViewport: true));
         await cut.FindAll("button").First(button => button.TextContent.Contains("Products")).ClickAsync();
 
@@ -500,7 +518,8 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
         await cut.WaitForAssertionAsync(async () =>
         {
             await Assert.That(cut.Markup).Contains("Getting started");
-            await Assert.That(cut.FindAll("[data-motion]").Count).IsEqualTo(1);
+            await Assert.That(cut.FindAll("[data-motion]").Count).IsEqualTo(2);
+            await Assert.That(cut.Markup).Contains("Buttons");
         });
     }
 

@@ -27,8 +27,11 @@
 }
 
 @code {
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
     private BradixAttributeDictionary? _bubbleAttributes;
-    private System.Func<Task>? _cachedHandleClickDelegate;
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
 
     private static readonly string[] ToggleKeys = ["Enter", " ", "Spacebar"];
 
@@ -268,18 +271,38 @@
         return RequestRender();
     }
 
-    private Task HandleClick()
+    private async Task HandleClick(MouseEventArgs args)
     {
-        return Disabled || _delegatedInteractionReady ? Task.CompletedTask : SetChecked(GetNextState(CurrentChecked));
+        if (Disabled || _delegatedInteractionReady || _disposed.Read())
+            return;
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
+        if (!Disabled && !_disposed.Read())
+            await SetChecked(GetNextState(CurrentChecked));
     }
 
     [JSInvokable(nameof(HandleDelegatedClick))]
     public Task HandleDelegatedClickFromJson(JsonElement payload) =>
         HandleDelegatedClick(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedMouseEvent)!);
 
-    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
+    public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
     {
-        return Disabled ? Task.CompletedTask : SetChecked(GetNextState(CurrentChecked));
+        if (Disabled || _disposed.Read())
+            return;
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(new MouseEventArgs
+            {
+                Detail = args.Detail,
+                Button = args.Button,
+                CtrlKey = args.CtrlKey,
+                ShiftKey = args.ShiftKey,
+                AltKey = args.AltKey,
+                MetaKey = args.MetaKey,
+                PageX = args.PageX,
+                PageY = args.PageY
+            });
+        if (!Disabled && !_disposed.Read())
+            await SetChecked(GetNextState(CurrentChecked));
     }
 
     [JSInvokable(nameof(HandleDelegatedKeyDown))]

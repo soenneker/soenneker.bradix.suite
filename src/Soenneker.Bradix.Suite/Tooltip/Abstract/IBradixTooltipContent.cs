@@ -100,4 +100,9 @@ public interface IBradixTooltipContent : IAsyncDisposable {
     /// <param name="inTransit">Whether in transit.</param>
     /// <returns>A task that completes when the handle pointer grace area changed operation is complete.</returns>
     Task HandlePointerGraceAreaChanged(bool inTransit);
+
+    /// <summary>Updates the accessible description after visible descendant text changes.</summary>
+    /// <param name="text">The visible text excluding the accessible copy.</param>
+    /// <returns>A task representing the description update.</returns>
+    Task OnTextContentChanged(string text);
 }

@@ -4,8 +4,7 @@
 
 @implements IBradixTabsList
 <CascadingValue Value="this">
-    <div @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
-         @attributes="ListAttributes">
+    <div @attributes="ListAttributes">
         @ChildContent
     </div>
 </CascadingValue>
@@ -45,8 +44,6 @@
         _subscribedOwner = null;
     }
 
-    private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
-
     // State changes render through the owning context or the explicit focus handlers.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 
@@ -59,11 +56,6 @@
     private Dictionary<string, object> ListAttributes => BuildAttributes(
         ("role", "tablist"),
         ("aria-orientation", Tabs.RovingOrientationValue),
-        ("data-orientation", Tabs.RovingOrientationValue),
-        ("tabindex", BradixAttributeValues.Zero));
+        ("data-orientation", Tabs.RovingOrientationValue));
 
-    private Task HandleKeyDown(KeyboardEventArgs args)
-    {
-        return Tabs.HandleListKeyDown(Loop, args);
-    }
 }

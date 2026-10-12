@@ -92,9 +92,9 @@
         var transform = content.PlacedSide switch
         {
             "top" => " transform: translateY(100%);",
-            "bottom" => " transform: translateY(-100%);",
-            "left" => " transform: translateX(100%);",
-            "right" => " transform: translateX(-100%);",
+            "bottom" => " transform-origin: center 0; transform: rotate(180deg);",
+            "left" => " transform-origin: 100% 0; transform: translateY(50%) rotate(-90deg) translateX(50%);",
+            "right" => " transform-origin: 0 0; transform: translateY(50%) rotate(90deg) translateX(-50%);",
             _ => string.Empty
         };
 

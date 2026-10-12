@@ -135,7 +135,13 @@ internal static class BradixSliderMath
         if (!double.IsFinite(scaledValue))
             return value;
 
-        return Math.Round(scaledValue) / rounder;
+        return RoundToNearest(scaledValue) / rounder;
+    }
+
+    public static double RoundToNearest(double value)
+    {
+        double lower = Math.Floor(value);
+        return value - lower >= 0.5 ? lower + 1 : lower;
     }
 
     public static string? GetThumbLabel(int index, int totalValues)

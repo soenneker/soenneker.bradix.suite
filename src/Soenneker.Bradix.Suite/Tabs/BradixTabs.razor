@@ -99,6 +99,14 @@
             return;
 
         _triggers.Add(trigger);
+
+        if (!trigger.IsDisabled && trigger.IsSelected)
+        {
+            CurrentTabStopId = trigger.TabStopId;
+            _ = NotifyStateChanged();
+            return;
+        }
+
         RefreshTabStopIfChanged();
     }
 
@@ -216,34 +224,23 @@
 
     private void EnsureCurrentTabStopId()
     {
-        var hasFocusableTrigger = false;
-        var hasCurrentTabStop = false;
+        BradixTabsTrigger? first = null;
+        BradixTabsTrigger? selected = null;
 
         foreach (BradixTabsTrigger trigger in _triggers)
         {
             if (trigger.IsDisabled)
                 continue;
 
-            hasFocusableTrigger = true;
+            first ??= trigger;
+            if (trigger.IsSelected)
+                selected = trigger;
 
             if (CurrentTabStopId is not null && string.Equals(trigger.TabStopId, CurrentTabStopId, StringComparison.Ordinal))
-            {
-                hasCurrentTabStop = true;
-                break;
-            }
+                return;
         }
 
-        if (!hasFocusableTrigger)
-        {
-            CurrentTabStopId = null;
-            return;
-        }
-
-        if (hasCurrentTabStop)
-            return;
-
-        if (CurrentTabStopId is not null)
-            CurrentTabStopId = null;
+        CurrentTabStopId = (selected ?? first)?.TabStopId;
     }
 
     private int CountFocusableTriggers(out int selectedIndex, out int tabStopIndex)

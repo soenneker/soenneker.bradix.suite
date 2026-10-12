@@ -312,6 +312,15 @@
     }
 
     [JSInvokable]
+    public Task OnTextContentChanged(string text)
+    {
+        if (_disposed.Read() || AriaLabel is not null || string.Equals(_accessibleLabel, text, StringComparison.Ordinal))
+            return Task.CompletedTask;
+        _accessibleLabel = text;
+        return RequestRender();
+    }
+
+    [JSInvokable]
     public Task HandleTooltipOpenFromOutside()
     {
         return Tooltip?.Close() ?? Task.CompletedTask;

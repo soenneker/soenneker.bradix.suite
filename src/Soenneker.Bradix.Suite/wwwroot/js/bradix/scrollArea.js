@@ -237,7 +237,8 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
   };
 
   const isScrollingWithinScrollbarBounds = (scrollPos, maxScrollPos) => {
-    return scrollPos > 0 && scrollPos < maxScrollPos;
+    const offset = Math.abs(scrollPos);
+    return offset > 0 && offset < maxScrollPos;
   };
 
   let activePointerOffset = 0;
@@ -294,6 +295,10 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     }
 
     const pointermove = (moveEvent) => {
+      if (activePointerId !== null && moveEvent.pointerId !== activePointerId) {
+        return;
+      }
+
       const movePosition = orientation === "horizontal"
         ? moveEvent.clientX - scrollbarRect.left
         : moveEvent.clientY - scrollbarRect.top;
@@ -306,7 +311,11 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
       }
     };
 
-    const pointerup = () => {
+    const pointerup = (event) => {
+      if (event && typeof event.pointerId === "number" && event.pointerId !== activePointerId) {
+        return;
+      }
+
       document.removeEventListener("pointermove", pointermove);
       document.removeEventListener("pointerup", pointerup);
       document.removeEventListener("pointercancel", pointerup);
@@ -356,7 +365,9 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     const nextScrollPos = orientation === "horizontal"
       ? viewport.scrollLeft + delta
       : viewport.scrollTop + delta;
-    const clampedScrollPos = Math.min(Math.max(nextScrollPos, 0), Math.max(maxScrollPos, 0));
+    const range = Math.max(maxScrollPos, 0);
+    const isRtl = orientation === "horizontal" && dir === "rtl";
+    const clampedScrollPos = Math.min(Math.max(nextScrollPos, isRtl ? -range : 0), isRtl ? 0 : range);
 
     const previousScrollPos = orientation === "horizontal"
       ? viewport.scrollLeft

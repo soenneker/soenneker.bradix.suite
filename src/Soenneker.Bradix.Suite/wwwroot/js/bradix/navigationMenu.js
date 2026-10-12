@@ -263,6 +263,7 @@ export function registerNavigationMenuViewport(viewport, content, dotNetRef) {
     height: undefined
   };
   const notify = () => {
+    if (navigationMenuViewportHandlers.get(viewport) !== handlers) return;
     const width = handlers.content.offsetWidth || 0;
     const height = handlers.content.offsetHeight || 0;
     if (handlers.width === width && handlers.height === height) {
@@ -277,9 +278,8 @@ export function registerNavigationMenuViewport(viewport, content, dotNetRef) {
   handlers.notify = notify;
   handlers.contentResizeObserver = contentResizeObserver;
   contentResizeObserver.observe(content);
-  notify();
-
   navigationMenuViewportHandlers.set(viewport, handlers);
+  notify();
 }
 
 export function updateNavigationMenuViewport(viewport, content) {

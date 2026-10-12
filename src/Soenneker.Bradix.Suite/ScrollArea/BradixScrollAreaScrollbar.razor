@@ -34,6 +34,7 @@
     private bool _registered;
     private ValueAtomicBool _disposed;
     private bool _registrationDirty = true;
+    private string? _contextOrientation;
     private string? _registeredOrientation;
     private string? _registeredDirection;
 
@@ -46,13 +47,12 @@
     [Parameter]
     public bool ForceMount { get; set; }
 
-    protected override void OnInitialized()
-    {
-        ScrollArea.RegisterScrollbar(Orientation.Value, ForceMount);
-    }
-
     protected override void OnParametersSet()
     {
+        if (_contextOrientation is not null && _contextOrientation != Orientation.Value)
+            ScrollArea.UnregisterScrollbar(_contextOrientation);
+
+        _contextOrientation = Orientation.Value;
         ScrollArea.RegisterScrollbar(Orientation.Value, ForceMount);
 
         if (!string.Equals(_registeredOrientation, Orientation.Value, StringComparison.Ordinal) ||
@@ -102,7 +102,8 @@
     {
         if (!_disposed.TrySetTrue())
             return;
-        ScrollArea.UnregisterScrollbar(Orientation.Value);
+        if (_contextOrientation is not null)
+            ScrollArea.UnregisterScrollbar(_contextOrientation);
 
         try
         {

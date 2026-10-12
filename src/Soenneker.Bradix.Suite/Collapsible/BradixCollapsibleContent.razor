@@ -27,6 +27,8 @@
     private bool _observing;
     private bool _wasPresent;
     private bool _shouldRenderChildren;
+    private bool _disposed;
+    private Task _observationTask = Task.CompletedTask;
 
     [CascadingParameter]
     internal BradixCollapsible Collapsible { get; set; } = null!;
@@ -104,8 +106,16 @@
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        await _observationTask;
         if (_observing)
+        {
             await CollapsibleInterop.UnobserveCollapsibleContent(_element);
+            _observing = false;
+        }
     }
 
     private async Task HandleElementCaptured(ElementReference element)
@@ -118,13 +128,14 @@
 
     private async Task HandleExitComplete()
     {
+        _hasElement = false;
+        await _observationTask;
         if (_observing)
         {
             await CollapsibleInterop.UnobserveCollapsibleContent(_element);
             _observing = false;
         }
 
-        _hasElement = false;
         _wasPresent = false;
         _shouldRenderChildren = false;
         await RequestRender();
@@ -135,9 +146,12 @@
         return BradixStringCache.MergeStyle(additionalStyle, Style, ref _mergedStyleCache0);
     }
 
-    private async Task EnsureObservation()
+    private Task EnsureObservation() => _observationTask = ObserveAfter(_observationTask);
+
+    private async Task ObserveAfter(Task previous)
     {
-        if (!_hasElement || _observing)
+        await previous;
+        if (_disposed || !_hasElement || _observing)
             return;
 
         await CollapsibleInterop.ObserveCollapsibleContent(_element);

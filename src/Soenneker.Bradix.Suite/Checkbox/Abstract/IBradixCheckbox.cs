@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Soenneker.Bradix;
 
@@ -8,6 +9,9 @@ namespace Soenneker.Bradix;
 /// Describes the public API of <see cref="BradixCheckbox"/>.
 /// </summary>
 public interface IBradixCheckbox : IAsyncDisposable {
+    /// <summary>Gets or sets the click callback invoked before changing the checked state.</summary>
+    EventCallback<MouseEventArgs> OnClick { get; set; }
+
     /// <summary>
     /// Gets or sets the controlled checked state.
     /// </summary>

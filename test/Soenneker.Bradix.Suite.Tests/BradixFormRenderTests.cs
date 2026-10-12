@@ -38,6 +38,64 @@ public sealed class BradixFormRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Messages_in_one_field_keep_distinct_ids_and_custom_matchers(CancellationToken cancellationToken)
+    {
+        var firstCalls = 0;
+        var secondCalls = 0;
+        var cut = Render<BradixForm>(p => p.AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixFormField>(0);
+            builder.AddAttribute(1, nameof(BradixFormField.Name), "email");
+            builder.AddAttribute(2, nameof(BradixFormField.ChildContent), (RenderFragment)(field =>
+            {
+                field.OpenComponent<BradixFormControl>(0);
+                field.CloseComponent();
+                field.OpenComponent<BradixFormMessage>(1);
+                field.AddAttribute(2, nameof(BradixFormMessage.ForceMatch), true);
+                field.AddAttribute(3, nameof(BradixFormMessage.Match), (Func<string?, BradixFormDataSnapshot, bool>)((_, _) => { firstCalls++; return true; }));
+                field.CloseComponent();
+                field.OpenComponent<BradixFormMessage>(4);
+                field.AddAttribute(5, nameof(BradixFormMessage.ForceMatch), true);
+                field.AddAttribute(6, nameof(BradixFormMessage.Match), (Func<string?, BradixFormDataSnapshot, bool>)((_, _) => { secondCalls++; return false; }));
+                field.CloseComponent();
+            }));
+            builder.CloseComponent();
+        }));
+        var messages = cut.FindAll("span[id]");
+        await Assert.That(messages[0].Id).IsNotEqualTo(messages[1].Id);
+        await Assert.That(cut.Find("input").GetAttribute("aria-describedby")).Contains(messages[0].Id!);
+        await Assert.That(cut.Find("input").GetAttribute("aria-describedby")).Contains(messages[1].Id!);
+
+        await cut.InvokeAsync(() => cut.FindComponent<BradixFormControl>().Instance.HandleControlStateChanged(new BradixFormControlSnapshot()));
+        await Assert.That(firstCalls).IsEqualTo(1);
+        await Assert.That(secondCalls).IsEqualTo(1);
+    }
+
+    [Test]
+    public async ValueTask Message_id_changes_replace_accessibility_registration(CancellationToken cancellationToken)
+    {
+        var cut = RenderForm();
+        var message = cut.FindComponent<BradixFormMessage>();
+        message.Render(p => p.Add(c => c.ForceMatch, true).Add(c => c.Id, "old-message"));
+        message.Render(p => p.Add(c => c.Id, "new-message"));
+
+        await Assert.That(cut.Find("input").GetAttribute("aria-describedby")).IsEqualTo("new-message");
+    }
+
+    [Test]
+    public async ValueTask Control_name_changes_retarget_invalid_control_lookup(CancellationToken cancellationToken)
+    {
+        var cut = RenderForm();
+        var control = cut.FindComponent<BradixFormControl>();
+        control.Render(p => p.Add(c => c.Name, "renamed"));
+        int before = _module.Invocations.Count(call => call.Identifier == "getFormControlState");
+
+        await cut.InvokeAsync(() => cut.Instance.HandleInvalidControls(["email", "renamed"]));
+
+        await Assert.That(_module.Invocations.Count(call => call.Identifier == "getFormControlState") - before).IsEqualTo(1);
+    }
+
+    [Test]
     public async ValueTask Field_label_and_control_share_generated_relationship_attributes(CancellationToken cancellationToken)
     {
         IRenderedComponent<BradixForm> cut = RenderForm();

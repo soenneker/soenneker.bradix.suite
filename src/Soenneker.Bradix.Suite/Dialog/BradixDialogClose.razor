@@ -35,7 +35,7 @@ else
 }
 
 @code {
-    private System.Func<Task>? _cachedHandleClickDelegate;
+    private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
 
     private object? _cachedHandleChildClickCallback;
 
@@ -146,28 +146,25 @@ else
             await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
     }
 
-    private async Task HandleClick()
+    private Task HandleClick(MouseEventArgs args)
     {
-        if (!Disabled && Dialog is not null && !_delegatedInteractionReady)
-        {
-            await ControlsInterop.FocusElementByIdDeferred(Dialog.ResolvedTriggerId);
-            await Dialog.SetOpen(false);
-        }
-
-        if (OnClick.HasDelegate)
-            await OnClick.InvokeAsync();
+        return _delegatedInteractionReady ? Task.CompletedTask : HandleChildClick(args);
     }
 
     private async Task HandleChildClick(MouseEventArgs args)
     {
-        if (!Disabled && Dialog is not null)
+        if (Disabled || _disposed.Read())
+            return;
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(args);
+
+        if (!Disabled && !_disposed.Read() && Dialog is not null)
         {
             await ControlsInterop.FocusElementByIdDeferred(Dialog.ResolvedTriggerId);
             await Dialog.SetOpen(false);
         }
 
-        if (OnClick.HasDelegate)
-            await OnClick.InvokeAsync(args);
     }
 
     public async ValueTask DisposeAsync()
@@ -197,17 +194,12 @@ else
     public Task HandleDelegatedClickFromJson(JsonElement payload) =>
         HandleDelegatedClick(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedMouseEvent)!);
 
-    public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
+    public Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
     {
-        if (!Disabled && Dialog is not null)
-        {
-            await ControlsInterop.FocusElementByIdDeferred(Dialog.ResolvedTriggerId);
-            await Dialog.SetOpen(false);
-        }
+        if (Disabled || _disposed.Read())
+            return Task.CompletedTask;
 
-        if (OnClick.HasDelegate)
-        {
-            await OnClick.InvokeAsync(new MouseEventArgs
+        return HandleChildClick(new MouseEventArgs
             {
                 Detail = args.Detail,
                 Button = args.Button,
@@ -218,6 +210,5 @@ else
                 PageX = args.PageX,
                 PageY = args.PageY
             });
-        }
     }
 }

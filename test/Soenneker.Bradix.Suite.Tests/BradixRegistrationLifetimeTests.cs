@@ -21,6 +21,21 @@ public sealed class BradixRegistrationLifetimeTests : BunitContext
     }
 
     [Test]
+    public async Task Collapsible_disposal_waits_for_observation_then_unregisters_once(CancellationToken cancellationToken)
+    {
+        var pending = _module.SetupVoid("observeCollapsibleContent", _ => true);
+        var cut = Render<BradixCollapsible>(p => p.Add(c => c.DefaultOpen, true).AddChildContent<BradixCollapsibleContent>());
+        var content = cut.FindComponent<BradixCollapsibleContent>();
+        await cut.WaitForAssertionAsync(async () => await Assert.That(Count("observeCollapsibleContent")).IsEqualTo(1));
+        Task disposal = content.Instance.DisposeAsync().AsTask();
+        await Assert.That(disposal.IsCompleted).IsFalse();
+        pending.SetVoidResult();
+        await disposal;
+        await content.Instance.DisposeAsync();
+        await Assert.That(Count("unobserveCollapsibleContent")).IsEqualTo(1);
+    }
+
+    [Test]
     public async Task Tooltip_disposal_waits_for_registration_then_unregisters_once(CancellationToken cancellationToken)
     {
         var pending = _module.SetupVoid("registerTooltipTrigger", _ => true);

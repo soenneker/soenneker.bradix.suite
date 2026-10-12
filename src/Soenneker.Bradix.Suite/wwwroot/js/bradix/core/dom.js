@@ -50,13 +50,13 @@ export function getTextContent(element) {
 
 const textObservers = new WeakMap();
 
-export function observeTextContent(element, receiver) {
+export function observeTextContent(element, receiver, excludeSelector) {
   unobserveTextContent(element);
-  let text = getTextContent(element);
+  let text = getTextContentExcluding(element, excludeSelector);
   if (!element) return text;
 
   const observer = new MutationObserver(() => {
-    const nextText = getTextContent(element);
+    const nextText = getTextContentExcluding(element, excludeSelector);
     if (nextText === text) return;
     text = nextText;
     // The element or circuit may be disposed while a notification is in flight.

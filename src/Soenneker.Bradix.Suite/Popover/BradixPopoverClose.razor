@@ -30,10 +30,13 @@
 
     private async Task HandleClick(MouseEventArgs args)
     {
-        if (!Disabled && Popover is not null)
-            await Popover.SetOpen(false);
+        if (Disabled)
+            return;
 
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);
+
+        if (!Disabled && Popover is not null)
+            await Popover.SetOpen(false);
     }
 }

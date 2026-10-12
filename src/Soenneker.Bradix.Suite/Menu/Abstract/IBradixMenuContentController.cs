@@ -5,6 +5,7 @@ namespace Soenneker.Bradix;
 
 internal interface IBradixMenuContentController
 {
+    bool Loop { get; }
     Task HandleItemKeyDown(IBradixMenuRovingItem item, KeyboardEventArgs args);
     Task HandleTypeaheadKey(IBradixMenuRovingItem item, string key);
     Task HandlePointerMove(IBradixMenuRovingItem item, string? pointerType);

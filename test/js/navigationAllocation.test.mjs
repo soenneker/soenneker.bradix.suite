@@ -67,6 +67,11 @@ test('roving navigation skips disabled entries, wraps, and observes live mutatio
   move(0, 'ArrowRight'); assert.equal(document.activeElement, entries[1]);
   move(1, 'End'); assert.equal(document.activeElement, entries[3]);
   move(3, 'Home'); assert.equal(document.activeElement, entries[0]);
+  entries[0].setAttribute('data-bradix-roving-dir', 'rtl');
+  entries[1].setAttribute('disabled', '');
+  move(0, 'ArrowLeft'); assert.equal(document.activeElement, entries[2]);
+  entries[0].setAttribute('data-bradix-roving-dir', 'ltr');
+  move(0, 'ArrowRight'); assert.equal(document.activeElement, entries[2]);
 });
 
 test('select keyboard navigation works with a NodeList and retains selection priority and typeahead', t => {
@@ -81,7 +86,11 @@ test('select keyboard navigation works with a NodeList and retains selection pri
   select.registerSelectContentKeyboard(content, env.receiver);
   t.after(() => select.unregisterSelectContentKeyboard(content));
   content.fire('keydown', { key: 'ArrowDown' }); assert.equal(document.activeElement, entries[2]);
+  const callsAtEnd = env.calls.length;
+  content.fire('keydown', { key: 'ArrowDown' }); assert.equal(document.activeElement, entries[2]);
+  assert.equal(env.calls.length, callsAtEnd);
   content.fire('keydown', { key: 'Home' }); assert.equal(document.activeElement, entries[0]);
+  content.fire('keydown', { key: 'ArrowUp' }); assert.equal(document.activeElement, entries[0]);
   content.fire('keydown', { key: 'b' }); assert.equal(document.activeElement, entries[1]);
   content.fire('keydown', { key: 'b' }); assert.equal(document.activeElement, entries[2]);
   assert.equal(env.timers.size, 1);

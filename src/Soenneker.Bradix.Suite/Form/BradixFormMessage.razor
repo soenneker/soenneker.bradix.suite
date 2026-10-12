@@ -34,6 +34,10 @@
     private RenderFragment? _defaultContent;
     private string? _registeredCustomMatcherFieldName;
     private string? _registeredMessageFieldName;
+    private string? _registeredCustomMatcherId;
+    private string? _registeredMessageId;
+    private BradixForm? _customMatcherForm;
+    private BradixForm? _messageForm;
 
     [CascadingParameter]
     private BradixForm? Form { get; set; }
@@ -72,14 +76,14 @@
 
     protected override void OnInitialized()
     {
-        AutoId ??= Field is not null && !string.IsNullOrEmpty(Field.FieldId)
-            ? BlazorIdGenerator.Child(Field.FieldId, "message")
-            : BlazorIdGenerator.New("bradix-form-message");
+        AutoId ??= BlazorIdGenerator.New("bradix-form-message");
     }
 
     protected override void OnParametersSet()
     {
-        if (!string.Equals(_registeredCustomMatcherFieldName, ResolvedName, StringComparison.Ordinal))
+        if (!string.Equals(_registeredCustomMatcherFieldName, ResolvedName, StringComparison.Ordinal) ||
+            !string.Equals(_registeredCustomMatcherId, MessageId, StringComparison.Ordinal) ||
+            !ReferenceEquals(_customMatcherForm, Form))
             UnregisterCustomMatcher();
 
         if (TryCreateCustomMatcher(out Func<string?, BradixFormDataSnapshot, ValueTask<bool>>? matcher))
@@ -91,6 +95,8 @@
                 Form?.RegisterFieldCustomMatcher(ResolvedName, _matcherEntry);
 
                 _registeredCustomMatcherFieldName = ResolvedName;
+                _registeredCustomMatcherId = MessageId;
+                _customMatcherForm = Form;
             }
         }
         else
@@ -109,13 +115,10 @@
     {
         bool shouldRegister = ShouldDisplay && !string.IsNullOrWhiteSpace(ResolvedName);
 
-        if (_registered && !string.Equals(_registeredMessageFieldName, ResolvedName, StringComparison.Ordinal))
+        if (_registered && (!string.Equals(_registeredMessageFieldName, ResolvedName, StringComparison.Ordinal) ||
+            !string.Equals(_registeredMessageId, MessageId, StringComparison.Ordinal) || !ReferenceEquals(_messageForm, Form)))
         {
-            if (!string.IsNullOrWhiteSpace(_registeredMessageFieldName))
-                Form?.UnregisterFieldMessageId(_registeredMessageFieldName, MessageId);
-
-            _registered = false;
-            _registeredMessageFieldName = null;
+            UnregisterMessage();
         }
 
         if (shouldRegister && !_registered)
@@ -123,16 +126,14 @@
             Form?.RegisterFieldMessageId(ResolvedName, MessageId);
             _registered = true;
             _registeredMessageFieldName = ResolvedName;
+            _registeredMessageId = MessageId;
+            _messageForm = Form;
             return;
         }
 
         if (!shouldRegister && _registered)
         {
-            if (!string.IsNullOrWhiteSpace(_registeredMessageFieldName))
-                Form?.UnregisterFieldMessageId(_registeredMessageFieldName, MessageId);
-
-            _registered = false;
-            _registeredMessageFieldName = null;
+            UnregisterMessage();
         }
     }
 
@@ -140,8 +141,7 @@
     {
         UnregisterCustomMatcher();
 
-        if (_registered && !string.IsNullOrWhiteSpace(_registeredMessageFieldName))
-            Form?.UnregisterFieldMessageId(_registeredMessageFieldName, MessageId);
+        UnregisterMessage();
     }
 
     private bool MatchesCurrentState()
@@ -224,11 +224,24 @@
 
     private void UnregisterCustomMatcher()
     {
-        if (!string.IsNullOrWhiteSpace(_registeredCustomMatcherFieldName))
+        if (!string.IsNullOrWhiteSpace(_registeredCustomMatcherFieldName) && _registeredCustomMatcherId is not null)
         {
-            Form?.UnregisterFieldCustomMatcher(_registeredCustomMatcherFieldName, MessageId);
+            _customMatcherForm?.UnregisterFieldCustomMatcher(_registeredCustomMatcherFieldName, _registeredCustomMatcherId);
             _registeredCustomMatcherFieldName = null;
+            _registeredCustomMatcherId = null;
+            _customMatcherForm = null;
         }
+    }
+
+    private void UnregisterMessage()
+    {
+        if (_registered && !string.IsNullOrWhiteSpace(_registeredMessageFieldName) && _registeredMessageId is not null)
+            _messageForm?.UnregisterFieldMessageId(_registeredMessageFieldName, _registeredMessageId);
+
+        _registered = false;
+        _registeredMessageFieldName = null;
+        _registeredMessageId = null;
+        _messageForm = null;
     }
 
     private static bool HasBuiltInError(BradixFormValiditySnapshot validity)

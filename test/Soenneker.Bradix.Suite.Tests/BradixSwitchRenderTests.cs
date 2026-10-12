@@ -21,8 +21,8 @@ public sealed class BradixSwitchRenderTests : BunitContext
                 invocation.Arguments.Count > 1 && invocation.Arguments[1] is string formId && !string.IsNullOrWhiteSpace(formId))
             .SetResult(true);
         _module.Setup<bool>("isFormControl", _ => true).SetResult(false);
-        _module.SetupVoid("registerCheckboxRoot", _ => true).SetVoidResult();
-        _module.SetupVoid("unregisterCheckboxRoot", _ => true).SetVoidResult();
+        _module.SetupVoid("registerAssociatedFormReset", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterAssociatedFormReset", _ => true).SetVoidResult();
         _module.SetupVoid("registerDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("syncCheckboxBubbleInputState", _ => true).SetVoidResult();
@@ -81,7 +81,7 @@ public sealed class BradixSwitchRenderTests : BunitContext
         IElement input = cut.Find("input[type='checkbox']");
         await Assert.That(input.GetAttribute("form")).IsEqualTo("settings-form");
         await Assert.That(_module.Invocations.Any(invocation =>
-            invocation.Identifier == "registerCheckboxRoot" &&
+            invocation.Identifier == "registerAssociatedFormReset" &&
             invocation.Arguments.Count > 2 &&
             Equals(invocation.Arguments[2], "settings-form"))).IsTrue();
     }
@@ -97,6 +97,27 @@ public sealed class BradixSwitchRenderTests : BunitContext
 
         await Assert.That(click).IsNotNull();
         await Assert.That(keydown).IsNotNull();
+        await Assert.That(keydown.GetProperty("keys").EnumerateArray().Any(key => key.GetString() == "Enter")).IsFalse();
+    }
+
+    [Test]
+    public async ValueTask Delegated_click_invokes_consumer_callback_before_changing_state(CancellationToken cancellationToken)
+    {
+        bool checkedDuringCallback = true;
+        var clicks = 0;
+        var cut = Render<BradixSwitch>(p => p.Add(c => c.OnClick, _ => clicks++));
+        cut.Render(p => p.Add(c => c.OnClick, _ =>
+        {
+            clicks++;
+            checkedDuringCallback = cut.Find("button").GetAttribute("aria-checked") == "true";
+        }));
+
+        await cut.InvokeAsync(() => cut.Instance.HandleDelegatedInteractionReady());
+        await cut.InvokeAsync(() => cut.Instance.HandleDelegatedClick(new BradixDelegatedMouseEvent()));
+
+        await Assert.That(clicks).IsEqualTo(1);
+        await Assert.That(checkedDuringCallback).IsFalse();
+        await Assert.That(cut.Find("button").GetAttribute("aria-checked")).IsEqualTo("true");
     }
 
     [Test]

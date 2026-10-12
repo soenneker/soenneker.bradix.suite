@@ -14,6 +14,7 @@
               Pressed="@IsPressed"
               Disabled="@IsDisabled"
               RenderAriaPressed="@(!IsSingle)"
+              OnClick="@OnClick"
               OnPressedChange="(_cachedHandlePressedChangeDelegate ??= HandlePressedChange)"
               OnMouseDown="(_cachedHandleMouseDownDelegate ??= HandleMouseDown)"
               OnFocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
@@ -41,6 +42,15 @@
 
     [Parameter]
     public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter]
+    public EventCallback<FocusEventArgs> OnFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
 
     internal string? TabStopId { get; private set; }
 
@@ -91,19 +101,27 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _disposed.Read())
+        if (_disposed.Read())
             return;
 
-        Group.RegisterItem(this);
-        _registered = true;
+        if (!_registered)
+        {
+            Group.RegisterItem(this);
+            _registered = true;
+        }
 
-        if (Group.RovingFocus && _toggle is not null)
+        if (Group.RovingFocus && !_rovingRegistered && _toggle is not null)
         {
             await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_toggle.Element);
             if (_disposed.Read())
                 await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
             else
                 _rovingRegistered = true;
+        }
+        else if (!Group.RovingFocus && _rovingRegistered && _toggle is not null)
+        {
+            _rovingRegistered = false;
+            await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_toggle.Element);
         }
     }
 
@@ -136,17 +154,20 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleFocus(FocusEventArgs _)
+    private async Task HandleFocus(FocusEventArgs args)
     {
+        if (OnFocus.HasDelegate)
+            await OnFocus.InvokeAsync(args);
         if (IsFocusable)
             Group.SetCurrentTabStop(TabStopId);
-
-        return Task.CompletedTask;
     }
 
-    private Task HandleKeyDown(KeyboardEventArgs args)
+    private async Task HandleKeyDown(KeyboardEventArgs args)
     {
-        return Group.HandleItemKeyDown(this, args);
+        if (OnKeyDown.HasDelegate)
+            await OnKeyDown.InvokeAsync(args);
+        if (!_rovingRegistered || !BradixRovingFocusNavigator.IsNavigationKey(args.Key))
+            await Group.HandleItemKeyDown(this, args);
     }
 
     private Task HandlePressedChange(bool pressed)

@@ -8,7 +8,7 @@
 
 @inject IHoverCardAvatarInterop HoverCardAvatarInterop
 
-@if (IsPresent)
+@if (IsPresent || _isExiting)
 {
     <BradixDismissableLayer DisableOutsidePointerEvents="false"
                             DismissOnEscapeKeyDown="false"
@@ -41,7 +41,8 @@
                             OnElementReferenceCaptured="(_cachedHandleContentReferenceCapturedDelegate ??= HandleContentReferenceCaptured)"
                             OnPointerEnter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
                             OnPointerLeave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
-                            OnPointerDown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)">
+                            OnPointerDown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
+                            OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
                 @ChildContent
             </BradixPresence>
         </BradixPopperContent>
@@ -58,6 +59,7 @@
     private System.Func<PointerEventArgs, Task>? _cachedHandlePointerEnterDelegate;
     private System.Func<PointerEventArgs, Task>? _cachedHandlePointerLeaveDelegate;
     private System.Func<PointerEventArgs, Task>? _cachedHandlePointerDownDelegate;
+    private System.Func<Task>? _cachedHandleExitCompleteDelegate;
 
     private ElementReference _contentElement;
     private bool _hasContentElement;
@@ -67,6 +69,8 @@
     private bool _pointerDownOutsidePrevented;
     private string? _placedSide;
     private string? _placedAlign;
+    private bool _wasPresent;
+    private bool _isExiting;
 
     [CascadingParameter]
     private BradixHoverCard? HoverCard { get; set; }
@@ -162,6 +166,22 @@
 
     private ValueAtomicBool _disposed;
     private Task _afterRenderTask = Task.CompletedTask;
+
+    protected override void OnParametersSet()
+    {
+        bool present = IsPresent;
+        if (_wasPresent && !present)
+            _isExiting = true;
+        else if (present)
+            _isExiting = false;
+        _wasPresent = present;
+    }
+
+    private Task HandleExitComplete()
+    {
+        _isExiting = false;
+        return RequestRender();
+    }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {

@@ -45,6 +45,9 @@ test('navigation viewport measures replacement content and suppresses unchanged 
     navigation.unregisterNavigationMenuViewport(viewport);
   }
   assert.equal(env.observers[0].elements.size, 0);
+  second.offsetWidth = 300;
+  env.observers[0].callback();
+  assert.equal(env.calls.length, 3);
 });
 
 test('one indicator observer tracks both elements without duplicate notifications', () => {

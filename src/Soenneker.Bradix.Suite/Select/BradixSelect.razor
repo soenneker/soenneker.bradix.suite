@@ -58,8 +58,6 @@
     private bool _focusOpenItemQueued;
     private bool _uncontrolledOpen;
     private string? _uncontrolledValue;
-    private bool _hasPendingControlledValue;
-    private string? _pendingControlledValue;
     private ElementReference _bubbleSelectElement;
     private bool _hasBubbleSelectElement;
     private bool _bubbleSelectRegistered;
@@ -124,7 +122,7 @@
 
     internal bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    internal string? CurrentValue => _hasPendingControlledValue ? _pendingControlledValue : Value ?? _uncontrolledValue;
+    internal string? CurrentValue => Value ?? _uncontrolledValue;
 
     internal bool HasActiveTypeahead => !string.IsNullOrEmpty(_typeahead.CurrentSearch);
 
@@ -192,20 +190,6 @@
             _uncontrolledOpen = DefaultOpen;
             _uncontrolledValue = DefaultValue;
             _initialized = true;
-        }
-
-        if (_hasPendingControlledValue)
-        {
-            if (string.Equals(Value, _pendingControlledValue, StringComparison.Ordinal))
-            {
-                _hasPendingControlledValue = false;
-                _pendingControlledValue = null;
-            }
-            else
-            {
-                _hasPendingControlledValue = false;
-                _pendingControlledValue = null;
-            }
         }
 
         UpdateCurrentText();
@@ -286,14 +270,18 @@
         QueueOpenItemFocusIfNeeded();
     }
 
-    internal void UnregisterItem(IBradixSelectCollectionItem item)
+    internal void UnregisterItem(IBradixSelectCollectionItem item, string? registeredValue = null)
     {
-        _items.Unregister(item.Value);
+        string value = registeredValue ?? item.Value;
+        if (!_items.TryGet(value, out var registeredItem) || !ReferenceEquals(registeredItem, item))
+            return;
 
-        if (string.Equals(CurrentFocusedItemValue, item.Value, StringComparison.Ordinal))
+        _items.Unregister(value);
+
+        if (string.Equals(CurrentFocusedItemValue, value, StringComparison.Ordinal))
             CurrentFocusedItemValue = null;
 
-        if (ShouldRenderBubbleSelect || string.Equals(CurrentValue, item.Value, StringComparison.Ordinal))
+        if (ShouldRenderBubbleSelect || string.Equals(CurrentValue, value, StringComparison.Ordinal))
             QueueRefresh();
     }
 
@@ -334,16 +322,10 @@
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;
 
-        UpdateCurrentText(GetItemText(value));
-
-        bool isControlled = ValueChanged.HasDelegate;
-
-        if (!isControlled)
-            _uncontrolledValue = value;
-        else
+        if (Value is null && !ValueChanged.HasDelegate)
         {
-            _pendingControlledValue = value;
-            _hasPendingControlledValue = true;
+            _uncontrolledValue = value;
+            UpdateCurrentText(GetItemText(value));
         }
 
         if (ValueChanged.HasDelegate)
@@ -505,7 +487,7 @@
         if (enabledCount == 0 || currentIndex < 0)
             return;
 
-        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledCount, true, out int targetIndex))
+        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledCount, false, out int targetIndex))
             return;
 
         IBradixSelectCollectionItem? target = GetEnabledItemAt(targetIndex);

@@ -58,6 +58,7 @@
     private bool _delegatedInteractionRegistered;
     private bool _pendingOpenAutoFocus;
     private bool _openAutoFocusApplied;
+    private bool _openAutoFocusHandled;
     private bool _pendingFirstItemFocusAfterOpen;
     private string? _placedSide;
     private string? _placedAlign;
@@ -216,6 +217,7 @@
         if (!open)
         {
             _openAutoFocusApplied = false;
+            _openAutoFocusHandled = false;
             await ReleaseHideOthers();
         }
         else if (_layerElement.Id is not null)
@@ -225,7 +227,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!_openAutoFocusApplied && Menu?.CurrentOpen == true && _contentElementCaptured)
-            await ApplyOpenAutoFocus();
+            await HandleOpenAutoFocus(new BradixAutoFocusEventArgs());
 
         if (!_pendingFirstItemFocusAfterOpen || Menu?.CurrentOpen != true)
             return;
@@ -307,6 +309,13 @@
 
     private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
     {
+        if (_openAutoFocusHandled)
+        {
+            args.PreventDefault();
+            return;
+        }
+        _openAutoFocusHandled = true;
+
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
 
@@ -314,7 +323,12 @@
             await OnOpenAutoFocusDetailed.InvokeAsync(args);
 
         if (args.DefaultPrevented)
+        {
+            _openAutoFocusApplied = true;
+            _pendingOpenAutoFocus = false;
+            _pendingFirstItemFocusAfterOpen = false;
             return;
+        }
 
         if (Menu is null)
             return;
@@ -544,6 +558,7 @@
         _delegatedInteractionRegistered = false;
         _pendingOpenAutoFocus = false;
         _openAutoFocusApplied = false;
+        _openAutoFocusHandled = false;
         _pendingFirstItemFocusAfterOpen = false;
         _submenuPointerGraceItems.Clear();
 

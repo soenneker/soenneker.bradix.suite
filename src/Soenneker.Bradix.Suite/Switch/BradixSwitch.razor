@@ -29,7 +29,7 @@
 @code {
     private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
 
-    private static readonly string[] ToggleKeys = ["Enter", " ", "Spacebar"];
+    private static readonly string[] ToggleKeys = [" ", "Spacebar"];
 
     private BradixAttributeDictionary? _bubbleAttributes;
     private bool _initialized;
@@ -145,10 +145,10 @@
         if (firstRender)
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await FormInterop.RegisterCheckboxRoot(_buttonElement, _dotNetReference, Form);
+            await FormInterop.RegisterAssociatedFormReset(_buttonElement, _dotNetReference, Form);
             if (_disposed.Read())
             {
-                await FormInterop.UnregisterCheckboxRoot(_buttonElement);
+                await FormInterop.UnregisterAssociatedFormReset(_buttonElement);
                 return;
             }
             _formRegistered = true;
@@ -238,7 +238,7 @@
                 if (_formRegistered)
                 {
                     _formRegistered = false;
-                    await FormInterop.UnregisterCheckboxRoot(_buttonElement);
+                    await FormInterop.UnregisterAssociatedFormReset(_buttonElement);
                 }
             }
             finally
@@ -268,14 +268,11 @@
 
     private async Task HandleClick(MouseEventArgs args)
     {
-        if (Disabled)
+        if (Disabled || _delegatedInteractionReady)
             return;
 
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);
-
-        if (_delegatedInteractionReady)
-            return;
 
         await SetChecked(!CurrentChecked);
     }
@@ -284,9 +281,26 @@
     public Task HandleDelegatedClickFromJson(JsonElement payload) =>
         HandleDelegatedClick(JsonSerializer.Deserialize(payload, BradixInteropJsonContext.Default.BradixDelegatedMouseEvent)!);
 
-    public Task HandleDelegatedClick(BradixDelegatedMouseEvent _)
+    public async Task HandleDelegatedClick(BradixDelegatedMouseEvent args)
     {
-        return Disabled ? Task.CompletedTask : SetChecked(!CurrentChecked);
+        if (Disabled || _disposed.Read())
+            return;
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(new MouseEventArgs
+            {
+                Detail = args.Detail,
+                Button = args.Button,
+                CtrlKey = args.CtrlKey,
+                ShiftKey = args.ShiftKey,
+                AltKey = args.AltKey,
+                MetaKey = args.MetaKey,
+                PageX = args.PageX,
+                PageY = args.PageY
+            });
+
+        if (!Disabled && !_disposed.Read())
+            await SetChecked(!CurrentChecked);
     }
 
     [JSInvokable(nameof(HandleDelegatedKeyDown))]

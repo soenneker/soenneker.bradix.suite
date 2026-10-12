@@ -10,8 +10,6 @@
 
 @inject INavigationMenuInterop NavigationMenuInterop
 
-@if (ForceMount || NavigationMenu?.HasOpenItem == true)
-{
     <BradixPresence Present="ForceMount || NavigationMenu?.HasOpenItem == true"
                     Tag="div"
                     Class="@Class"
@@ -20,7 +18,6 @@
                     OnElementReferenceCaptured="(_cachedHandleElementCapturedDelegate ??= HandleElementCaptured)">
         @ChildContent
     </BradixPresence>
-}
 
 @code {
     private string? _mergedStyleCache0;

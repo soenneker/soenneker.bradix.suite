@@ -29,6 +29,20 @@ public sealed class BradixTabsRenderTests : BunitContext
     }
 
     [Test]
+    [Arguments("tab1", 0)]
+    [Arguments("tab3", 2)]
+    [Arguments(null, 0)]
+    public async ValueTask Tab_entry_targets_selected_or_first_enabled_trigger(string? value, int expectedIndex, CancellationToken cancellationToken)
+    {
+        var cut = Render(CreateTabs(defaultValue: value));
+        var buttons = cut.FindAll("button");
+
+        await Assert.That(buttons[expectedIndex].GetAttribute("tabindex")).IsEqualTo("0");
+        await Assert.That(cut.FindAll("button[tabindex='0']")).HasSingleItem();
+        await Assert.That(cut.Find("[role='tablist']").HasAttribute("tabindex")).IsFalse();
+    }
+
+    [Test]
     public async ValueTask Selection_only_refreshes_affected_tabs(CancellationToken cancellationToken)
     {
         int contentRenders = 0;
@@ -143,6 +157,9 @@ public sealed class BradixTabsRenderTests : BunitContext
 
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
         await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowLeft" });
+        await Assert.That(buttons[0].GetAttribute("data-bradix-roving-dir")).IsEqualTo("rtl");
+        // The browser bridge performs navigation; bUnit supplies its resulting focus event.
+        await buttons[2].FocusAsync();
         buttons = cut.FindAll("button");
 
         await Assert.That(buttons[0].GetAttribute("tabindex")).IsEqualTo("-1");
@@ -165,6 +182,8 @@ public sealed class BradixTabsRenderTests : BunitContext
 
         IReadOnlyList<IElement> buttons = cut.FindAll("button");
         await buttons[0].KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+        await Assert.That(buttons[0].GetAttribute("data-bradix-roving-dir")).IsEqualTo("ltr");
+        await buttons[2].FocusAsync();
         buttons = cut.FindAll("button");
 
         await Assert.That(cut.Find("[role='tablist']").ParentElement?.GetAttribute("dir")).IsEqualTo("ltr");

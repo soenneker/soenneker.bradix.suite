@@ -10,13 +10,14 @@
 
 @inject INavigationMenuInterop NavigationMenuInterop
 
-@if (ShouldRenderViewport)
+@if (NavigationMenu?.IsRootMenu == true)
 {
-    <div @ref="_viewportElement"
-         class="@Class"
-         style="@ComputedStyle"
-         @attributes="ViewportAttributes">
-    </div>
+    <BradixPresence Present="ShouldRenderViewport"
+                    Class="@Class"
+                    Style="@ComputedStyle"
+                    AdditionalAttributes="@ViewportAttributes"
+                    OnElementReferenceCaptured="HandleElementCaptured"
+                    OnExitComplete="HandleExitComplete" />
 }
 
 @code {
@@ -28,6 +29,7 @@
     private (long Width, long Height) _sizeStyleKey;
     private ElementReference _viewportElement;
     private bool _viewportRegisteredWithRoot;
+    private bool _hasViewportElement;
     private DotNetObjectReference<BradixNavigationMenuViewport>? _dotNetReference;
     private string? _observedContentValue;
     private string? _pendingContentRetryValue;
@@ -102,7 +104,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed.Read() || NavigationMenu is null)
+        if (_disposed.Read() || NavigationMenu is null || !_hasViewportElement)
             return;
 
         string? contentValue = NavigationMenu.HasOpenItem ? NavigationMenu.CurrentValue : null;
@@ -203,6 +205,19 @@
         _width = width;
         _height = height;
         return RequestRender();
+    }
+
+    private Task HandleElementCaptured(ElementReference element)
+    {
+        _viewportElement = element;
+        _hasViewportElement = true;
+        return RequestRender();
+    }
+
+    private Task HandleExitComplete()
+    {
+        _hasViewportElement = false;
+        return Task.CompletedTask;
     }
 
     private static bool ShouldIgnoreInteropException(Exception ex)

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { registerTooltipTrigger, unregisterTooltipTrigger } from '../../src/Soenneker.Bradix.Suite/wwwroot/js/bradix/tooltip.js';
+import { registerTooltipTrigger, unregisterTooltipTrigger, registerTooltipContent, unregisterTooltipContent } from '../../src/Soenneker.Bradix.Suite/wwwroot/js/bradix/tooltip.js';
 
 function target() {
   const listeners = new Map();
@@ -50,4 +50,28 @@ test('tooltip pointer cancellation and disposal clear temporary document listene
   assert.equal(calls.length, 1);
   assert.equal(document.listeners.get('pointerup').size, 0);
   assert.equal(document.listeners.get('pointercancel').size, 0);
+});
+
+test('open tooltip observes changed text once and disconnects on close', () => {
+  const observers = [], calls = [];
+  globalThis.document = target();
+  globalThis.window = target();
+  globalThis.HTMLElement = class {
+    constructor() { Object.assign(this, target()); this.textContent = 'Initial'; }
+    querySelectorAll() { return []; }
+  };
+  globalThis.MutationObserver = class {
+    constructor(callback) { this.callback = callback; observers.push(this); }
+    observe() {}
+    disconnect() { this.disconnected = true; }
+  };
+  const content = new HTMLElement(), trigger = new HTMLElement();
+  const receiver = { invokeMethodAsync(...args) { calls.push(args); return Promise.resolve(); } };
+  registerTooltipContent(content, trigger, receiver, 'tooltip', false);
+  content.textContent = 'Changed';
+  observers[0].callback();
+  observers[0].callback();
+  assert.deepEqual(calls, [['OnTextContentChanged', 'Changed']]);
+  unregisterTooltipContent(content);
+  assert.equal(observers[0].disconnected, true);
 });

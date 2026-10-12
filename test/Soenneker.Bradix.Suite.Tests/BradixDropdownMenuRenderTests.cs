@@ -57,6 +57,34 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Trigger_click_callback_runs_on_click_once_and_never_while_disabled(CancellationToken cancellationToken)
+    {
+        var clicks = 0;
+        var cut = Render<BradixDropdownMenuTrigger>(p => p.Add(c => c.OnClick, () => clicks++));
+        await cut.Find("button").TriggerEventAsync("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs { Button = 0 });
+        await Assert.That(clicks).IsEqualTo(0);
+        await cut.Find("button").ClickAsync();
+        await Assert.That(clicks).IsEqualTo(1);
+        cut.Render(p => p.Add(c => c.Disabled, true));
+        await cut.Find("button").ClickAsync();
+        await Assert.That(clicks).IsEqualTo(1);
+    }
+
+    [Test]
+    public async ValueTask Outside_pointer_callback_runs_once(CancellationToken cancellationToken)
+    {
+        var callbacks = 0;
+        var cut = Render<BradixDropdownMenu>(p => p.Add(c => c.DefaultOpen, true).AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixDropdownMenuContent>(0);
+            builder.AddAttribute(1, nameof(BradixDropdownMenuContent.OnPointerDownOutside), EventCallback.Factory.Create(this, () => callbacks++));
+            builder.CloseComponent();
+        }));
+        await cut.InvokeAsync(() => cut.FindComponent<BradixDismissableLayer>().Instance.HandlePointerDownOutside());
+        await Assert.That(callbacks).IsEqualTo(1);
+    }
+
+    [Test]
     public async ValueTask Trigger_arrow_down_opens_content_and_links_ids(CancellationToken cancellationToken)
     {
         IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu());

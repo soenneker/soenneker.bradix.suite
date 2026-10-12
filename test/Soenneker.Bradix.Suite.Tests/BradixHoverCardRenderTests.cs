@@ -66,6 +66,10 @@ public sealed class BradixHoverCardRenderTests : BunitContext
 
         await cut.InvokeAsync(() => layer.Instance.HandlePointerDownOutside());
 
+        await Assert.That(cut.Find(".hover-card-content").GetAttribute("data-state")).IsEqualTo("closed");
+        await Assert.That(cut.Markup).Contains("Hover card body");
+        await cut.InvokeAsync(() => cut.FindComponent<BradixPresence>().Instance.HandleAnimationEnd("fade-out", "fade-out"));
+
         await cut.WaitForAssertionAsync(async () =>
         {
             await Assert.That(cut.Markup).DoesNotContain("Hover card body");

@@ -26,6 +26,29 @@ public sealed class BradixPopperRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Replaced_anchor_is_registered_without_changing_position_options(CancellationToken cancellationToken)
+    {
+        _module.SetupVoid("registerPopperContent", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterPopperContent", _ => true).SetVoidResult();
+        var cut = Render<BradixPopperContent>(p => p.Add(c => c.UseAnchor, true).Add(c => c.Anchor, new ElementReference("first")));
+        cut.Render(p => p.Add(c => c.Anchor, new ElementReference("second")));
+        await Assert.That(_module.Invocations.Count(i => i.Identifier == "registerPopperContent")).IsEqualTo(2);
+        await Assert.That(((ElementReference)_module.Invocations.Last(i => i.Identifier == "registerPopperContent").Arguments[0]!).Id).IsEqualTo("second");
+    }
+
+    [Test]
+    public async ValueTask Initial_origin_position_becomes_visible_and_notifies_once(CancellationToken cancellationToken)
+    {
+        var placed = 0;
+        var cut = Render<BradixPopperContent>(p => p.Add(c => c.OnPlaced, () => placed++));
+        await cut.InvokeAsync(() => cut.Instance.HandlePositionChanged("bottom", "center", 0, 0, 0, 0, 0, 0, null, null, false, false, "50%", "50%"));
+        await Assert.That(cut.Find("div").GetAttribute("style")).DoesNotContain("visibility: hidden");
+        await Assert.That(placed).IsEqualTo(1);
+        await cut.InvokeAsync(() => cut.Instance.HandlePositionChanged("bottom", "center", 0, 0, 0, 0, 0, 0, null, null, false, false, "50%", "50%"));
+        await Assert.That(placed).IsEqualTo(1);
+    }
+
+    [Test]
     public async ValueTask Popper_disposal_releases_callback_reference_without_a_retention_timer(CancellationToken cancellationToken)
     {
         _module.SetupVoid("registerPopperContent", _ => true).SetVoidResult();

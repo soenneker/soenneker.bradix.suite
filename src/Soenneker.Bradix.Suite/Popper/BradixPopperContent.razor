@@ -43,6 +43,8 @@
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir)? _lastOptions;
     private bool _lastHadArrow;
     private bool _lastHadElementAnchor;
+    private ElementReference _lastElementAnchor;
+    private ElementReference _lastArrow;
     private (double X, double Y)? _lastVirtualAnchor;
     private string? _lastAnchorSelector;
 
@@ -141,15 +143,17 @@
         bool virtualAnchorChanged = hasVirtualAnchor && _lastVirtualAnchor != (Popper!.VirtualAnchorX, Popper.VirtualAnchorY);
         bool anchorSelectorChanged = !string.Equals(_lastAnchorSelector, AnchorSelector, StringComparison.Ordinal);
         bool elementAnchorBecameAvailable = hasElementAnchor && !_lastHadElementAnchor;
+        ElementReference currentAnchor = hasExplicitAnchor ? Anchor : Popper?.AnchorElement ?? default;
+        bool elementAnchorChanged = hasElementAnchor && !_lastElementAnchor.Equals(currentAnchor);
 
-        if (_lastOptions != options || _lastHadArrow != hasArrow || virtualAnchorChanged || anchorSelectorChanged || elementAnchorBecameAvailable)
+        if (_lastOptions != options || _lastHadArrow != hasArrow || !_lastArrow.Equals(_arrow) || virtualAnchorChanged || anchorSelectorChanged || elementAnchorBecameAvailable || elementAnchorChanged)
         {
             if (hasVirtualAnchor)
             {
                 await PopperInterop.UpdateVirtualPopperContent(_element, _arrow, Popper!.VirtualAnchorX, Popper.VirtualAnchorY, CreateOptionsPayload(options));
                 _lastVirtualAnchor = (Popper.VirtualAnchorX, Popper.VirtualAnchorY);
             }
-            else if (elementAnchorBecameAvailable)
+            else if (elementAnchorBecameAvailable || elementAnchorChanged)
             {
                 ElementReference anchor = hasExplicitAnchor ? Anchor : Popper!.AnchorElement;
                 await PopperInterop.RegisterPopperContent(anchor, _element, _arrow, _dotNetReference!, CreateOptionsPayload(options));
@@ -172,6 +176,8 @@
             _lastOptions = options;
             _lastHadArrow = hasArrow;
             _lastHadElementAnchor = hasElementAnchor;
+            _lastElementAnchor = currentAnchor;
+            _lastArrow = _arrow;
             _lastAnchorSelector = AnchorSelector;
         }
     }
@@ -234,6 +240,8 @@
         _lastOptions = options;
         _lastHadArrow = hasArrow;
         _lastHadElementAnchor = hasExplicitAnchor || Popper?.HasAnchor == true;
+        _lastElementAnchor = hasExplicitAnchor ? Anchor : Popper?.AnchorElement ?? default;
+        _lastArrow = _arrow;
         _lastAnchorSelector = AnchorSelector;
     }
 
@@ -252,12 +260,12 @@
         if (_disposed.Read())
             return;
 
-        bool unchanged = _left == left && _top == top && _placedSide == side && _placedAlign == align && _availableWidth == availableWidth && _availableHeight == availableHeight && _anchorWidth == anchorWidth && _anchorHeight == anchorHeight && _arrowX == arrowX && _arrowY == arrowY && _hideArrow == shouldHideArrow && _hidden == hidden && _transformOriginX == transformOriginX && _transformOriginY == transformOriginY && _zIndex == zIndex;
+        bool unchanged = _isPositioned && _left == left && _top == top && _placedSide == side && _placedAlign == align && _availableWidth == availableWidth && _availableHeight == availableHeight && _anchorWidth == anchorWidth && _anchorHeight == anchorHeight && _arrowX == arrowX && _arrowY == arrowY && _hideArrow == shouldHideArrow && _hidden == hidden && _transformOriginX == transformOriginX && _transformOriginY == transformOriginY && _zIndex == zIndex;
 
         if (unchanged)
             return;
 
-        bool newlyPlaced = _left != left || _top != top || _placedSide != side || _placedAlign != align;
+        bool newlyPlaced = !_isPositioned || _left != left || _top != top || _placedSide != side || _placedAlign != align;
 
         _placedSide = side;
         _placedAlign = align;
