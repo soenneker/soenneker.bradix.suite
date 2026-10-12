@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -15,7 +16,7 @@
     private string? _childIdCache0;
     private string? _childIdCache1;
 
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private bool _uncontrolledOpen;
     private string? _generatedBaseId;
 
@@ -53,11 +54,11 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (_initialized.Value)
             return;
 
         _uncontrolledOpen = DefaultOpen;
-        _initialized = true;
+        _initialized.Value = true;
     }
 
     public Task Toggle()

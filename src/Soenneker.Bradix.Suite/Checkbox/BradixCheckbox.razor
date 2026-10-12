@@ -35,14 +35,14 @@
 
     private static readonly string[] ToggleKeys = ["Enter", " ", "Spacebar"];
 
-    private bool _initialized;
-    private bool _delegatedInteractionReady;
+    private ValueAtomicBool _initialized;
+    private ValueAtomicBool _delegatedInteractionReady;
     private bool _isFormControl = true;
-    private bool _registered;
-    private bool _formRegistered;
+    private ValueAtomicBool _registered;
+    private ValueAtomicBool _formRegistered;
     private ValueAtomicBool _disposed;
-    private bool _formControlStateResolved;
-    private bool _hasSyncedBubbleInput;
+    private ValueAtomicBool _formControlStateResolved;
+    private ValueAtomicBool _hasSyncedBubbleInput;
     private bool _hasUserInteracted;
     private BradixCheckboxCheckedState _initialUncheckedState = BradixCheckboxCheckedState.Unchecked;
     private BradixCheckboxCheckedState _uncontrolledChecked = BradixCheckboxCheckedState.Unchecked;
@@ -125,12 +125,12 @@
 
     protected override void OnParametersSet()
     {
-        if (!_initialized)
+        if (!_initialized.Value)
         {
             _initialUncheckedState = DefaultChecked;
             _uncontrolledChecked = DefaultChecked;
             _lastRenderedState = CurrentChecked;
-            _initialized = true;
+            _initialized.Value = true;
             return;
         }
 
@@ -156,7 +156,7 @@
                 await FormInterop.UnregisterCheckboxRoot(_buttonElement);
                 return;
             }
-            _formRegistered = true;
+            _formRegistered.Value = true;
             await DelegatedInteractionInterop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new BradixDelegatedInteractionOptions
             {
                 ReadyMethod = nameof(HandleDelegatedInteractionReady),
@@ -178,7 +178,7 @@
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_buttonElement);
                 return;
             }
-            _registered = true;
+            _registered.Value = true;
         }
 
         if (Checked is null && !_hasUserInteracted && !StatesEqual(_uncontrolledChecked, DefaultChecked))
@@ -190,12 +190,12 @@
             return;
         }
 
-        if (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
+        if (!_formControlStateResolved.Value || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
         {
             bool isFormControl = await FormInterop.IsFormControl(_buttonElement, Form);
             if (_disposed.Read())
                 return;
-            _formControlStateResolved = true;
+            _formControlStateResolved.Value = true;
             _lastResolvedForm = Form;
 
             if (_isFormControl != isFormControl)
@@ -208,17 +208,17 @@
 
         if (ShouldRenderBubbleInput)
         {
-            if (!_hasSyncedBubbleInput || _lastRenderedState != CurrentChecked)
+            if (!_hasSyncedBubbleInput.Value || _lastRenderedState != CurrentChecked)
             {
-                bool dispatchEvent = _hasSyncedBubbleInput;
+                bool dispatchEvent = _hasSyncedBubbleInput.Value;
                 await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, IsIndeterminate, dispatchEvent);
             }
 
-            _hasSyncedBubbleInput = true;
+            _hasSyncedBubbleInput.Value = true;
         }
         else
         {
-            _hasSyncedBubbleInput = false;
+            _hasSyncedBubbleInput.Value = false;
         }
 
         _lastRenderedState = CurrentChecked;
@@ -230,9 +230,9 @@
             return;
         try
         {
-            if (_registered)
+            if (_registered.Value)
             {
-                _registered = false;
+                _registered.Value = false;
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_buttonElement);
             }
         }
@@ -240,9 +240,9 @@
         {
             try
             {
-                if (_formRegistered)
+                if (_formRegistered.Value)
                 {
-                    _formRegistered = false;
+                    _formRegistered.Value = false;
                     await FormInterop.UnregisterCheckboxRoot(_buttonElement);
                 }
             }
@@ -257,7 +257,7 @@
     [JSInvokable]
     public Task HandleDelegatedInteractionReady()
     {
-        _delegatedInteractionReady = true;
+        _delegatedInteractionReady.Value = true;
         return Task.CompletedTask;
     }
 
@@ -273,7 +273,7 @@
 
     private async Task HandleClick(MouseEventArgs args)
     {
-        if (Disabled || _delegatedInteractionReady || _disposed.Read())
+        if (Disabled || _delegatedInteractionReady.Value || _disposed.Read())
             return;
         if (OnClick.HasDelegate)
             await OnClick.InvokeAsync(args);

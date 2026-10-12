@@ -26,9 +26,9 @@
     private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
 
     private ElementReference _element;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private ValueAtomicBool _disposed;
-    private bool _rovingFocusBridgeReady;
+    private ValueAtomicBool _rovingFocusBridgeReady;
 
     [CascadingParameter]
     internal BradixToolbar Toolbar { get; set; } = null!;
@@ -67,23 +67,23 @@
             return;
 
         Toolbar.RegisterItem(this);
-        _registered = true;
+        _registered.Value = true;
         await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element);
         if (_disposed.Read())
         {
             await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
             return;
         }
-        _rovingFocusBridgeReady = true;
+        _rovingFocusBridgeReady.Value = true;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (!_disposed.TrySetTrue())
             return;
-        if (_registered)
+        if (_registered.Value)
         {
-            _registered = false;
+            _registered.Value = false;
             Toolbar.UnregisterItem(this);
         }
         await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
@@ -112,7 +112,7 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
-        if (_rovingFocusBridgeReady && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
+        if (_rovingFocusBridgeReady.Value && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return Task.CompletedTask;
 
         return Disabled ? Task.CompletedTask : Toolbar.HandleItemKeyDown(this, args);
@@ -121,7 +121,7 @@
     [JSInvokable]
     public Task HandleRovingFocusBridgeReady()
     {
-        _rovingFocusBridgeReady = true;
+        _rovingFocusBridgeReady.Value = true;
         return Task.CompletedTask;
     }
 }

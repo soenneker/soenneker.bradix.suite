@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits LeptonContent
@@ -10,23 +11,23 @@
 </BradixDismissableLayerBranch>
 
 @code {
-    private bool _customAnchorRegistered;
+    private ValueAtomicBool _customAnchorRegistered;
 
     [CascadingParameter]
     private BradixPopover? Popover { get; set; }
 
     protected override void OnParametersSet()
     {
-        if (!_customAnchorRegistered && Popover is not null)
+        if (!_customAnchorRegistered.Value && Popover is not null)
         {
             Popover.AddCustomAnchor();
-            _customAnchorRegistered = true;
+            _customAnchorRegistered.Value = true;
         }
     }
 
     public ValueTask DisposeAsync()
     {
-        if (_customAnchorRegistered)
+        if (_customAnchorRegistered.Value)
             Popover?.RemoveCustomAnchor();
 
         return ValueTask.CompletedTask;

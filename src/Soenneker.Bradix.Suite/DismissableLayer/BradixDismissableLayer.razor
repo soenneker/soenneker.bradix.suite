@@ -17,7 +17,7 @@
 @code {
     private ElementReference _element;
     private DotNetObjectReference<BradixDismissableLayer>? _dotNetReference;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private Task? _registrationTask;
     private bool? _lastDisableOutsidePointerEvents;
     private ValueAtomicBool _disposed;
@@ -65,7 +65,7 @@
     public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
 
     private Dictionary<string, object> LayerAttributes => BuildAttributes(
-        ("data-bradix-dismissable-layer-ready", _registered ? "true" : null));
+        ("data-bradix-dismissable-layer-ready", _registered.Value ? "true" : null));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -82,7 +82,7 @@
                 await _registrationTask;
                 if (_disposed.Read())
                     return;
-                _registered = true;
+                _registered.Value = true;
                 _lastDisableOutsidePointerEvents = DisableOutsidePointerEvents;
                 await RequestRender();
             }
@@ -122,7 +122,7 @@
             if (_registrationTask is not null)
             {
                 await _registrationTask;
-                _registered = false;
+                _registered.Value = false;
                 await DismissableLayerInterop.UnregisterDismissableLayer(_element);
             }
         }

@@ -62,13 +62,13 @@ else
     private static readonly string[] SelectKeys = [" ", "Spacebar", "Enter"];
 
     private ElementReference _element;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private bool _isFocused;
-    private bool _isPointerDown;
+    private ValueAtomicBool _isPointerDown;
     private string? _resolvedTextValue;
-    private bool _delegatedInteractionRegistered;
-    private bool _rovingFocusRegistered;
-    private bool _rovingFocusBridgeReady;
+    private ValueAtomicBool _delegatedInteractionRegistered;
+    private ValueAtomicBool _rovingFocusRegistered;
+    private ValueAtomicBool _rovingFocusBridgeReady;
     private ValueAtomicBool _disposed;
     private Task? _initializationTask;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -148,7 +148,7 @@ else
         if (firstRender)
         {
             Menu.RegisterItem(this);
-            _registered = true;
+            _registered.Value = true;
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
             _initializationTask = InitializeItemInterop();
         }
@@ -163,9 +163,9 @@ else
         if (!_disposed.TrySetTrue())
             return;
 
-        if (_registered)
+        if (_registered.Value)
         {
-            _registered = false;
+            _registered.Value = false;
             Menu.UnregisterItem(this);
         }
         try
@@ -177,14 +177,14 @@ else
         {
             try
             {
-                if (_delegatedInteractionRegistered)
+                if (_delegatedInteractionRegistered.Value)
                     await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
             }
             finally
             {
                 try
                 {
-                    if (_rovingFocusRegistered)
+                    if (_rovingFocusRegistered.Value)
                         await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
                 }
                 finally
@@ -204,7 +204,7 @@ else
                 return;
 
             await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
-            _rovingFocusRegistered = true;
+            _rovingFocusRegistered.Value = true;
 
             if (_disposed.Read())
                 return;
@@ -217,7 +217,7 @@ else
                     PreventDefaultKeys = SelectKeys
                 }
             });
-            _delegatedInteractionRegistered = true;
+            _delegatedInteractionRegistered.Value = true;
 
             if (TextValue is null)
                 await ResolveTextValue();
@@ -272,7 +272,7 @@ else
         if (Disabled || args.Button != 0)
             return;
 
-        _isPointerDown = true;
+        _isPointerDown.Value = true;
     }
 
     private async Task HandlePointerUp(PointerEventArgs args)
@@ -280,8 +280,8 @@ else
         if (Disabled || args.Button != 0)
             return;
 
-        bool shouldSelectOnPointerUp = !_isPointerDown;
-        _isPointerDown = false;
+        bool shouldSelectOnPointerUp = !_isPointerDown.Value;
+        _isPointerDown.Value = false;
 
         if (shouldSelectOnPointerUp)
             await HandleClick();
@@ -314,7 +314,7 @@ else
         if (Disabled || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
-        if (_rovingFocusBridgeReady && args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
+        if (_rovingFocusBridgeReady.Value && args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
             return;
 
         if (args.Key is " " or "Spacebar")
@@ -358,7 +358,7 @@ else
     [JSInvokable]
     public Task HandleRovingFocusBridgeReady()
     {
-        _rovingFocusBridgeReady = true;
+        _rovingFocusBridgeReady.Value = true;
         return Task.CompletedTask;
     }
 

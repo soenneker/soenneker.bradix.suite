@@ -15,11 +15,11 @@
 @inject IToastInterop ToastInterop
 @inject IControlsInterop ControlsInterop
 
-@if (_announceVisible)
+@if (_announceVisible.Value)
 {
     <BradixPortal>
         <BradixVisuallyHidden AdditionalAttributes="@AnnounceAttributes">
-            @if (_renderAnnounceText)
+            @if (_renderAnnounceText.Value)
             {
                 @Provider?.Label
                 @(" ")
@@ -82,15 +82,15 @@
     private string? _swipeStyle;
     private (long MoveX, long MoveY, long EndX, long EndY) _swipeStyleKey;
     private Func<Task>? _closeCallback;
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private bool _uncontrolledOpen = true;
-    private bool _registered;
-    private bool _portalMounted;
-    private bool _announceVisible;
-    private bool _renderAnnounceText;
-    private bool _announceRenderScheduled;
-    private bool _announceDismissScheduled;
-    private bool _timerPaused;
+    private ValueAtomicBool _registered;
+    private ValueAtomicBool _portalMounted;
+    private ValueAtomicBool _announceVisible;
+    private ValueAtomicBool _renderAnnounceText;
+    private ValueAtomicBool _announceRenderScheduled;
+    private ValueAtomicBool _announceDismissScheduled;
+    private ValueAtomicBool _timerPaused;
     private DateTime _timerStartedUtc;
     private double _remainingDuration;
     private CancellationTokenSource? _closeTimerCts;
@@ -106,13 +106,13 @@
     private double _swipeEndY;
     private bool _lastKnownOpen;
     private long? _activePointerId;
-    private bool _delegatedInteractionRegistered;
-    private bool _swipeRegistered;
-    private bool _swipeRegistrationUnavailable;
+    private ValueAtomicBool _delegatedInteractionRegistered;
+    private ValueAtomicBool _swipeRegistered;
+    private ValueAtomicBool _swipeRegistrationUnavailable;
     private string? _registeredSwipeDirection;
     private double _registeredSwipeThreshold;
-    private bool _registeredSwipeStartCallback;
-    private bool _registeredSwipeMoveCallback;
+    private ValueAtomicBool _registeredSwipeStartCallback;
+    private ValueAtomicBool _registeredSwipeMoveCallback;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -220,7 +220,7 @@
 
             // Native JS owns the high-frequency path in a browser. These handlers are a
             // compatibility fallback for prerendering and JS runtimes that cannot register it.
-            if (!_swipeRegistered)
+            if (!_swipeRegistered.Value)
             {
                 attributes["onpointerdown"] = (_cachedHandlePointerDownCallback ??= EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerDown));
                 attributes["onpointermove"] = (_cachedHandlePointerMoveCallback ??= EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove));
@@ -236,12 +236,12 @@
 
     protected override void OnParametersSet()
     {
-        if (!_initialized)
+        if (!_initialized.Value)
         {
             _uncontrolledOpen = DefaultOpen;
             _remainingDuration = ResolvedDuration;
             _lastKnownOpen = CurrentOpen;
-            _initialized = true;
+            _initialized.Value = true;
             return;
         }
 
@@ -252,10 +252,10 @@
             if (CurrentOpen)
             {
                 _remainingDuration = ResolvedDuration;
-                _timerPaused = false;
+                _timerPaused.Value = false;
                 ResetAnnouncement();
 
-                if (_registered && !(Provider?.IsClosePaused ?? false))
+                if (_registered.Value && !(Provider?.IsClosePaused ?? false))
                     StartCloseTimer();
             }
             else
@@ -271,25 +271,23 @@
         if (_disposed.Read())
             return;
 
-        if (_registered)
+        if (_registered.Value)
             await SyncSwipeRegistration();
 
-        if (_announceVisible && !_renderAnnounceText && !_announceRenderScheduled)
+        if (_announceVisible.Value && !_renderAnnounceText.Value && _announceRenderScheduled.TrySetTrue())
         {
-            _announceRenderScheduled = true;
             await Task.Yield();
             if (_disposed.Read())
                 return;
 
-            _renderAnnounceText = true;
-            _announceRenderScheduled = false;
+            _renderAnnounceText.Value = true;
+            _announceRenderScheduled.Value = false;
             await RequestRender();
             return;
         }
 
-        if (_announceVisible && _renderAnnounceText && !_announceDismissScheduled)
+        if (_announceVisible.Value && _renderAnnounceText.Value && _announceDismissScheduled.TrySetTrue())
         {
-            _announceDismissScheduled = true;
             CancelAnnouncementTimer();
             _announceCts = new CancellationTokenSource();
             _ = CompleteAnnouncement(_announceCts.Token);
@@ -302,12 +300,12 @@
             return;
         CancelCloseTimer();
         CancelAnnouncement();
-        if (_registered)
+        if (_registered.Value)
             Provider?.UnregisterToast(this);
 
         try
         {
-            if (_delegatedInteractionRegistered)
+            if (_delegatedInteractionRegistered.Value)
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_toastElement);
         }
         finally
@@ -320,7 +318,7 @@
             {
                 try
                 {
-                    if (_portalMounted)
+                    if (_portalMounted.Value)
                         await PortalInterop.UnmountPortal(_toastElement);
                 }
                 finally
@@ -334,10 +332,10 @@
 
     internal Task Pause()
     {
-        if (!CurrentOpen || _timerPaused || ResolvedDuration == int.MaxValue)
+        if (!CurrentOpen || _timerPaused.Value || ResolvedDuration == int.MaxValue)
             return Task.CompletedTask;
 
-        _timerPaused = true;
+        _timerPaused.Value = true;
 
         if (_closeTimerCts is not null)
         {
@@ -352,10 +350,10 @@
 
     internal Task Resume()
     {
-        if (!CurrentOpen || !_timerPaused)
+        if (!CurrentOpen || !_timerPaused.Value)
             return Task.CompletedTask;
 
-        _timerPaused = false;
+        _timerPaused.Value = false;
         StartCloseTimer();
         return OnResume.HasDelegate ? OnResume.InvokeAsync() : Task.CompletedTask;
     }
@@ -382,7 +380,7 @@
         _toastElement = element;
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
 
-        if (!PortalDisabled && !_portalMounted && Provider?.HasViewport == true)
+        if (!PortalDisabled && !_portalMounted.Value && Provider?.HasViewport == true)
         {
             await PortalInterop.MountPortal(_toastElement, $"#{Provider.ViewportId}");
             if (_disposed.Read())
@@ -391,10 +389,10 @@
                 return;
             }
 
-            _portalMounted = true;
+            _portalMounted.Value = true;
         }
 
-        if (!_delegatedInteractionRegistered)
+        if (!_delegatedInteractionRegistered.Value)
         {
             await DelegatedInteractionInterop.RegisterDelegatedInteraction(_toastElement, _dotNetReference, new BradixDelegatedInteractionOptions
             {
@@ -410,13 +408,13 @@
                 return;
             }
 
-            _delegatedInteractionRegistered = true;
+            _delegatedInteractionRegistered.Value = true;
         }
 
-        if (!_registered)
+        if (!_registered.Value)
         {
             Provider?.RegisterToast(this);
-            _registered = true;
+            _registered.Value = true;
         }
 
         await SyncSwipeRegistration();
@@ -431,24 +429,24 @@
     {
         CancelCloseTimer();
 
-        if (_registered)
+        if (_registered.Value)
         {
             Provider?.UnregisterToast(this);
-            _registered = false;
+            _registered.Value = false;
         }
 
-        if (_delegatedInteractionRegistered)
+        if (_delegatedInteractionRegistered.Value)
         {
             await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_toastElement);
-            _delegatedInteractionRegistered = false;
+            _delegatedInteractionRegistered.Value = false;
         }
 
         await UnregisterSwipe();
 
-        if (_portalMounted)
+        if (_portalMounted.Value)
         {
             await PortalInterop.UnmountPortal(_toastElement);
-            _portalMounted = false;
+            _portalMounted.Value = false;
         }
     }
 
@@ -463,7 +461,7 @@
         if (open)
         {
             _remainingDuration = ResolvedDuration;
-            _timerPaused = false;
+            _timerPaused.Value = false;
             StartCloseTimer();
         }
         else
@@ -487,7 +485,7 @@
 
         CancelCloseTimer();
 
-        if (!CurrentOpen || _timerPaused || ResolvedDuration <= 0)
+        if (!CurrentOpen || _timerPaused.Value || ResolvedDuration <= 0)
             return;
 
         if (ResolvedDuration == int.MaxValue || double.IsInfinity(_remainingDuration))
@@ -789,16 +787,16 @@
         if (_disposed.Read())
             return;
 
-        if (Provider is null || _swipeRegistrationUnavailable)
+        if (Provider is null || _swipeRegistrationUnavailable.Value)
             return;
 
         string direction = Provider.SwipeDirection.Value;
         double threshold = Provider.SwipeThreshold;
         bool hasStartCallback = OnSwipeStart.HasDelegate;
         bool hasMoveCallback = OnSwipeMove.HasDelegate;
-        if (_swipeRegistered && string.Equals(_registeredSwipeDirection, direction, StringComparison.Ordinal) &&
-            _registeredSwipeThreshold.Equals(threshold) && _registeredSwipeStartCallback == hasStartCallback &&
-            _registeredSwipeMoveCallback == hasMoveCallback)
+        if (_swipeRegistered.Value && string.Equals(_registeredSwipeDirection, direction, StringComparison.Ordinal) &&
+            _registeredSwipeThreshold.Equals(threshold) && _registeredSwipeStartCallback.Value == hasStartCallback &&
+            _registeredSwipeMoveCallback.Value == hasMoveCallback)
             return;
 
         try
@@ -819,22 +817,22 @@
 
             _registeredSwipeDirection = direction;
             _registeredSwipeThreshold = threshold;
-            _registeredSwipeStartCallback = hasStartCallback;
-            _registeredSwipeMoveCallback = hasMoveCallback;
-            _swipeRegistered = true;
+            _registeredSwipeStartCallback.Value = hasStartCallback;
+            _registeredSwipeMoveCallback.Value = hasMoveCallback;
+            _swipeRegistered.Value = true;
             await RequestRender();
         }
         catch (Exception)
         {
             // Native swipe is an optimization. Preserve the Blazor event path when JS is
             // unavailable (including prerendering and strict test runtimes).
-            _swipeRegistrationUnavailable = true;
+            _swipeRegistrationUnavailable.Value = true;
         }
     }
 
     private async Task UnregisterSwipe()
     {
-        if (!_swipeRegistered)
+        if (!_swipeRegistered.Value)
             return;
 
         try
@@ -848,7 +846,7 @@
         }
 
         _registeredSwipeDirection = null;
-        _swipeRegistered = false;
+        _swipeRegistered.Value = false;
     }
 
     private async Task UpdateAnnounceText()
@@ -873,9 +871,9 @@
             return;
         }
 
-        _announceVisible = true;
-        _renderAnnounceText = false;
-        _announceDismissScheduled = false;
+        _announceVisible.Value = true;
+        _renderAnnounceText.Value = false;
+        _announceDismissScheduled.Value = false;
         CancelAnnouncementTimer();
         await RequestRender();
     }
@@ -888,9 +886,9 @@
             if (_disposed.Read())
                 return;
 
-            _announceVisible = false;
-            _renderAnnounceText = false;
-            _announceDismissScheduled = false;
+            _announceVisible.Value = false;
+            _renderAnnounceText.Value = false;
+            _announceDismissScheduled.Value = false;
             await RequestRender();
         }
         catch (OperationCanceledException)
@@ -900,10 +898,10 @@
 
     private void ResetAnnouncement()
     {
-        _announceVisible = false;
-        _renderAnnounceText = false;
-        _announceRenderScheduled = false;
-        _announceDismissScheduled = false;
+        _announceVisible.Value = false;
+        _renderAnnounceText.Value = false;
+        _announceRenderScheduled.Value = false;
+        _announceDismissScheduled.Value = false;
         _announceTextSegments = [];
         CancelAnnouncementTimer();
     }

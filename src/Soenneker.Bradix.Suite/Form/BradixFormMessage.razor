@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -30,7 +31,7 @@
         ["valueMissing"] = "This value is missing"
     };
 
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private RenderFragment? _defaultContent;
     private string? _registeredCustomMatcherFieldName;
     private string? _registeredMessageFieldName;
@@ -115,23 +116,23 @@
     {
         bool shouldRegister = ShouldDisplay && !string.IsNullOrWhiteSpace(ResolvedName);
 
-        if (_registered && (!string.Equals(_registeredMessageFieldName, ResolvedName, StringComparison.Ordinal) ||
+        if (_registered.Value && (!string.Equals(_registeredMessageFieldName, ResolvedName, StringComparison.Ordinal) ||
             !string.Equals(_registeredMessageId, MessageId, StringComparison.Ordinal) || !ReferenceEquals(_messageForm, Form)))
         {
             UnregisterMessage();
         }
 
-        if (shouldRegister && !_registered)
+        if (shouldRegister && !_registered.Value)
         {
             Form?.RegisterFieldMessageId(ResolvedName, MessageId);
-            _registered = true;
+            _registered.Value = true;
             _registeredMessageFieldName = ResolvedName;
             _registeredMessageId = MessageId;
             _messageForm = Form;
             return;
         }
 
-        if (!shouldRegister && _registered)
+        if (!shouldRegister && _registered.Value)
         {
             UnregisterMessage();
         }
@@ -235,10 +236,10 @@
 
     private void UnregisterMessage()
     {
-        if (_registered && !string.IsNullOrWhiteSpace(_registeredMessageFieldName) && _registeredMessageId is not null)
+        if (_registered.Value && !string.IsNullOrWhiteSpace(_registeredMessageFieldName) && _registeredMessageId is not null)
             _messageForm?.UnregisterFieldMessageId(_registeredMessageFieldName, _registeredMessageId);
 
-        _registered = false;
+        _registered.Value = false;
         _registeredMessageFieldName = null;
         _registeredMessageId = null;
         _messageForm = null;

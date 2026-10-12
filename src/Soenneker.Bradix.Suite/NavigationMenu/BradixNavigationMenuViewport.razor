@@ -28,8 +28,8 @@
     private string? _sizeStyle;
     private (long Width, long Height) _sizeStyleKey;
     private ElementReference _viewportElement;
-    private bool _viewportRegisteredWithRoot;
-    private bool _hasViewportElement;
+    private ValueAtomicBool _viewportRegisteredWithRoot;
+    private ValueAtomicBool _hasViewportElement;
     private DotNetObjectReference<BradixNavigationMenuViewport>? _dotNetReference;
     private string? _observedContentValue;
     private string? _pendingContentRetryValue;
@@ -95,16 +95,16 @@
 
     protected override void OnParametersSet()
     {
-        if (!_viewportRegisteredWithRoot && NavigationMenu is not null)
+        if (!_viewportRegisteredWithRoot.Value && NavigationMenu is not null)
         {
             NavigationMenu.RegisterViewport(ResolvedViewportId);
-            _viewportRegisteredWithRoot = true;
+            _viewportRegisteredWithRoot.Value = true;
         }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed.Read() || NavigationMenu is null || !_hasViewportElement)
+        if (_disposed.Read() || NavigationMenu is null || !_hasViewportElement.Value)
             return;
 
         string? contentValue = NavigationMenu.HasOpenItem ? NavigationMenu.CurrentValue : null;
@@ -170,9 +170,9 @@
         if (!_disposed.TrySetTrue())
             return;
 
-        if (_viewportRegisteredWithRoot)
+        if (_viewportRegisteredWithRoot.Value)
         {
-            _viewportRegisteredWithRoot = false;
+            _viewportRegisteredWithRoot.Value = false;
             NavigationMenu?.UnregisterViewport(ResolvedViewportId);
         }
         try
@@ -210,13 +210,13 @@
     private Task HandleElementCaptured(ElementReference element)
     {
         _viewportElement = element;
-        _hasViewportElement = true;
+        _hasViewportElement.Value = true;
         return RequestRender();
     }
 
     private Task HandleExitComplete()
     {
-        _hasViewportElement = false;
+        _hasViewportElement.Value = false;
         return Task.CompletedTask;
     }
 

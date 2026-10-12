@@ -34,10 +34,10 @@
     private System.Func<Task>? _cachedHandleExitCompleteDelegate;
 
     private bool _wasPresent;
-    private bool _isExiting;
-    private bool _hasInteractedOutside;
-    private bool _hasPointerDownOutside;
-    private bool _hideOthersRegistered;
+    private ValueAtomicBool _isExiting;
+    private ValueAtomicBool _hasInteractedOutside;
+    private ValueAtomicBool _hasPointerDownOutside;
+    private ValueAtomicBool _hideOthersRegistered;
     private ValueAtomicBool _disposed;
     private RenderFragment? _contentTree;
     private ElementReference _contentElement;
@@ -107,7 +107,7 @@
 
     private bool IsPresent => ForceMount || PortalForceMount || Dialog?.CurrentOpen == true;
 
-    private bool ShouldRenderContainer => IsPresent || _isExiting;
+    private bool ShouldRenderContainer => IsPresent || _isExiting.Value;
 
     private bool ShouldTrapFocus => Dialog?.Modal == true && Dialog.CurrentOpen;
 
@@ -141,9 +141,9 @@
         bool present = IsPresent;
 
         if (_wasPresent && !present)
-            _isExiting = true;
+            _isExiting.Value = true;
         else if (present)
-            _isExiting = false;
+            _isExiting.Value = false;
 
         _wasPresent = present;
     }
@@ -151,9 +151,9 @@
     {
         if (!_disposed.TrySetTrue())
             return;
-        if (_hideOthersRegistered)
+        if (_hideOthersRegistered.Value)
         {
-            _hideOthersRegistered = false;
+            _hideOthersRegistered.Value = false;
             await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
         }
     }
@@ -164,7 +164,7 @@
             return;
         _contentElement = element;
 
-        if (Dialog?.Modal == true && !_hideOthersRegistered)
+        if (Dialog?.Modal == true && !_hideOthersRegistered.Value)
         {
             await PresenceOverlayInterop.RegisterHideOthers(_contentElement);
             if (_disposed.Read())
@@ -172,7 +172,7 @@
                 await PresenceOverlayInterop.UnregisterHideOthers(element);
                 return;
             }
-            _hideOthersRegistered = true;
+            _hideOthersRegistered.Value = true;
         }
 
         if (OnElementReferenceCaptured.HasDelegate)
@@ -206,15 +206,15 @@
         }
         else if (!args.DefaultPrevented)
         {
-            if (Dialog is not null && !_hasInteractedOutside)
+            if (Dialog is not null && !_hasInteractedOutside.Value)
                 await Dialog.FocusTrigger();
 
             args.PreventDefault();
         }
 
 ResetState:
-        _hasInteractedOutside = false;
-        _hasPointerDownOutside = false;
+        _hasInteractedOutside.Value = false;
+        _hasPointerDownOutside.Value = false;
     }
 
     private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs args)
@@ -272,13 +272,13 @@ ResetState:
 
         if (!args.DefaultPrevented)
         {
-            _hasInteractedOutside = true;
+            _hasInteractedOutside.Value = true;
 
             if (args.OriginalEventType == "pointerdown")
-                _hasPointerDownOutside = true;
+                _hasPointerDownOutside.Value = true;
         }
 
-        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside)
+        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside.Value)
             args.PreventDefault();
     }
 
@@ -302,12 +302,12 @@ ResetState:
 
     private async Task HandleExitComplete()
     {
-        _isExiting = false;
+        _isExiting.Value = false;
 
-        if (_hideOthersRegistered)
+        if (_hideOthersRegistered.Value)
         {
             await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
-            _hideOthersRegistered = false;
+            _hideOthersRegistered.Value = false;
         }
 
         await RequestRender();

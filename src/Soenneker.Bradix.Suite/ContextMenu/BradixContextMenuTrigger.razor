@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Threading
@@ -27,7 +28,7 @@
 
     private const int _longPressDelayMs = 700;
     private ElementReference _element;
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
     private CancellationTokenSource? _longPressCancellationTokenSource;
 
     [CascadingParameter]
@@ -49,21 +50,19 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _disposed)
+        if (!firstRender || _disposed.Value)
             return;
 
         Menu?.RegisterTrigger(_element);
         await ControlsInterop.RegisterContextMenuKeyboard(_element);
-        if (_disposed)
+        if (_disposed.Value)
             await ControlsInterop.UnregisterContextMenuKeyboard(_element);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (!_disposed.TrySetTrue())
             return;
-
-        _disposed = true;
         ClearLongPress();
         await ControlsInterop.UnregisterContextMenuKeyboard(_element);
     }

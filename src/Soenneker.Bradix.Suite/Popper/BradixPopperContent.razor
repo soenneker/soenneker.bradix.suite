@@ -22,7 +22,7 @@
     private ElementReference _arrow;
     private DotNetObjectReference<object>? _dotNetReference;
     private Task? _registrationTask;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private ValueAtomicBool _disposed;
     private string _placedSide = "bottom";
     private string _placedAlign = "center";
@@ -133,7 +133,7 @@
         (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options = CurrentOptions;
         bool hasArrow = !string.IsNullOrEmpty(_arrow.Id);
 
-        if (!_registered)
+        if (!_registered.Value)
         {
             _registrationTask ??= Register(hasExplicitAnchor, hasAnchorSelector, hasVirtualAnchor, options, hasArrow);
             await _registrationTask;
@@ -192,7 +192,7 @@
             if (_registrationTask is not null)
                 await _registrationTask;
 
-            if (_registered)
+            if (_registered.Value)
                 await PopperInterop.UnregisterPopperContent(_element);
         }
         catch (JSDisconnectedException)
@@ -200,7 +200,7 @@
         }
         finally
         {
-            _registered = false;
+            _registered.Value = false;
             // Unregistration cancels scheduled work and drains dispatched callbacks.
             _dotNetReference?.Dispose();
             _dotNetReference = null;
@@ -236,7 +236,7 @@
             return;
         }
 
-        _registered = true;
+        _registered.Value = true;
         _lastOptions = options;
         _lastHadArrow = hasArrow;
         _lastHadElementAnchor = hasExplicitAnchor || Popper?.HasAnchor == true;

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -24,7 +25,7 @@
     private System.Func<Task>? _cachedHandleSelectDelegate;
     private System.Func<BradixMenuItemSelectEventArgs, Task>? _cachedHandleSelectDetailedDelegate;
 
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private BradixCheckboxCheckedState _uncontrolledChecked = BradixCheckboxCheckedState.Unchecked;
     private BradixMenuItemIndicatorContext? _indicatorContext;
 
@@ -86,11 +87,11 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (_initialized.Value)
             return;
 
         _uncontrolledChecked = DefaultChecked;
-        _initialized = true;
+        _initialized.Value = true;
     }
 
     private async Task HandleSelect()

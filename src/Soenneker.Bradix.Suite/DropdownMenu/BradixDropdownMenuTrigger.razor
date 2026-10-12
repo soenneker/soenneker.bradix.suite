@@ -35,7 +35,7 @@
     private static readonly string[] PreventDefaultKeys = ["Enter", " ", "Spacebar", "ArrowDown"];
 
     private ElementReference _button;
-    private bool _delegatedInteractionRegistered;
+    private ValueAtomicBool _delegatedInteractionRegistered;
     private ValueAtomicBool _disposed;
     private DotNetObjectReference<object>? _dotNetReference;
 
@@ -103,7 +103,7 @@
             if (_disposed.Read())
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
             else
-                _delegatedInteractionRegistered = true;
+                _delegatedInteractionRegistered.Value = true;
 
             // Load the positioning dependency while the trigger is available,
             // rather than making the first open wait for its scripts.
@@ -117,9 +117,9 @@
             return;
         try
         {
-            if (_delegatedInteractionRegistered)
+            if (_delegatedInteractionRegistered.Value)
             {
-                _delegatedInteractionRegistered = false;
+                _delegatedInteractionRegistered.Value = false;
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
             }
         }

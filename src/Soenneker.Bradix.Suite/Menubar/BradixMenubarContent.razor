@@ -35,15 +35,15 @@
     private readonly HashSet<string> _submenuPointerGraceItems = [];
     private bool _wasPresent;
     private ValueAtomicBool _disposed;
-    private bool _keyboardFocusApplied;
+    private ValueAtomicBool _keyboardFocusApplied;
     private RenderFragment? _contentTree;
-    private bool _isExiting;
-    private bool _hasInteractedOutside;
+    private ValueAtomicBool _isExiting;
+    private ValueAtomicBool _hasInteractedOutside;
     private ElementReference _contentElement;
     private DotNetObjectReference<BradixMenubarContent>? _dotNetReference;
-    private bool _delegatedInteractionRegistered;
-    private bool _contentElementCaptured;
-    private bool _pendingOpenAutoFocus;
+    private ValueAtomicBool _delegatedInteractionRegistered;
+    private ValueAtomicBool _contentElementCaptured;
+    private ValueAtomicBool _pendingOpenAutoFocus;
     private string? _placedSide;
     private string? _placedAlign;
 
@@ -136,7 +136,7 @@
 
     private bool IsPresent => ForceMount || PortalForceMount || MenubarMenu?.IsOpen == true;
 
-    private bool ShouldRenderContainer => IsPresent || _isExiting;
+    private bool ShouldRenderContainer => IsPresent || _isExiting.Value;
 
     private string? ResolvedContentId => MenubarMenu?.ContentId;
 
@@ -173,20 +173,20 @@
         bool present = IsPresent;
 
         if (_wasPresent && !present)
-            _isExiting = true;
+            _isExiting.Value = true;
         else if (present)
-            _isExiting = false;
+            _isExiting.Value = false;
 
         _wasPresent = present;
         if (!present)
-            _keyboardFocusApplied = false;
+            _keyboardFocusApplied.Value = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_disposed.Read() && !_keyboardFocusApplied && IsPresent && MenubarMenu?.WasKeyboardTriggerOpen == true && Menu is not null)
+        if (!_disposed.Read() && !_keyboardFocusApplied.Value && IsPresent && MenubarMenu?.WasKeyboardTriggerOpen == true && Menu is not null)
         {
-            _keyboardFocusApplied = true;
+            _keyboardFocusApplied.Value = true;
             await Task.Delay(50);
             if (!_disposed.Read() && IsPresent && MenubarMenu?.WasKeyboardTriggerOpen == true)
                 await Menu.FocusFirstItem();
@@ -200,9 +200,9 @@
         _submenuPointerGraceItems.Clear();
         try
         {
-            if (_delegatedInteractionRegistered)
+            if (_delegatedInteractionRegistered.Value)
             {
-                _delegatedInteractionRegistered = false;
+                _delegatedInteractionRegistered.Value = false;
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
             }
         }
@@ -227,9 +227,9 @@
         if (Menu is null)
             return;
 
-        if (!_contentElementCaptured)
+        if (!_contentElementCaptured.Value)
         {
-            _pendingOpenAutoFocus = true;
+            _pendingOpenAutoFocus.Value = true;
             return;
         }
 
@@ -247,12 +247,12 @@
         if (MenubarMenu is not null)
             MenubarMenu.ResetKeyboardTriggerOpen();
 
-        if (!args.DefaultPrevented && Menu is not null && MenubarMenu is not null && Menubar?.HasOpenMenu != true && !_hasInteractedOutside)
+        if (!args.DefaultPrevented && Menu is not null && MenubarMenu is not null && Menubar?.HasOpenMenu != true && !_hasInteractedOutside.Value)
             await Menu.FocusTrigger();
 
         args.PreventDefault();
 
-        _hasInteractedOutside = false;
+        _hasInteractedOutside.Value = false;
     }
 
     private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs args)
@@ -306,7 +306,7 @@
             await OnInteractOutsideDetailed.InvokeAsync(args);
 
         if (!args.DefaultPrevented)
-            _hasInteractedOutside = true;
+            _hasInteractedOutside.Value = true;
     }
 
     private Task HandleDismiss()
@@ -389,16 +389,16 @@
 
     private async Task HandleExitComplete()
     {
-        if (_delegatedInteractionRegistered)
+        if (_delegatedInteractionRegistered.Value)
         {
             await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
-            _delegatedInteractionRegistered = false;
+            _delegatedInteractionRegistered.Value = false;
         }
 
         _submenuPointerGraceItems.Clear();
-        _contentElementCaptured = false;
-        _pendingOpenAutoFocus = false;
-        _isExiting = false;
+        _contentElementCaptured.Value = false;
+        _pendingOpenAutoFocus.Value = false;
+        _isExiting.Value = false;
         await RequestRender();
     }
 
@@ -407,9 +407,9 @@
         if (_disposed.Read())
             return;
         _contentElement = element;
-        _contentElementCaptured = true;
+        _contentElementCaptured.Value = true;
 
-        if (!_delegatedInteractionRegistered)
+        if (!_delegatedInteractionRegistered.Value)
         {
             _dotNetReference ??= DotNetObjectReference.Create(this);
             await DelegatedInteractionInterop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new BradixDelegatedInteractionOptions
@@ -426,15 +426,15 @@
                     PreventDefaultKeys = ContentPreventDefaultKeys
                 }
             });
-            if (_disposed.Read() || !_contentElementCaptured || !element.Equals(_contentElement))
+            if (_disposed.Read() || !_contentElementCaptured.Value || !element.Equals(_contentElement))
             {
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(element);
                 return;
             }
-            _delegatedInteractionRegistered = true;
+            _delegatedInteractionRegistered.Value = true;
         }
 
-        if (_pendingOpenAutoFocus && Menu?.CurrentOpen == true)
+        if (_pendingOpenAutoFocus.Value && Menu?.CurrentOpen == true)
             await ApplyOpenAutoFocus();
     }
 
@@ -443,7 +443,7 @@
         if (Menu is null)
             return;
 
-        _pendingOpenAutoFocus = false;
+        _pendingOpenAutoFocus.Value = false;
 
         if (MenubarMenu?.WasKeyboardTriggerOpen == true)
             await Menu.FocusFirstItem();

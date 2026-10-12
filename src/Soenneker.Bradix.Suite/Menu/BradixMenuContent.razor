@@ -50,16 +50,16 @@
     private readonly HashSet<string> _submenuPointerGraceItems = [];
     private bool _wasPresent;
     private ValueAtomicBool _disposed;
-    private bool _isExiting;
-    private bool _hasInteractedOutside;
-    private bool _hasPointerDownOutside;
-    private bool _hideOthersRegistered;
-    private bool _contentElementCaptured;
-    private bool _delegatedInteractionRegistered;
-    private bool _pendingOpenAutoFocus;
-    private bool _openAutoFocusApplied;
-    private bool _openAutoFocusHandled;
-    private bool _pendingFirstItemFocusAfterOpen;
+    private ValueAtomicBool _isExiting;
+    private ValueAtomicBool _hasInteractedOutside;
+    private ValueAtomicBool _hasPointerDownOutside;
+    private ValueAtomicBool _hideOthersRegistered;
+    private ValueAtomicBool _contentElementCaptured;
+    private ValueAtomicBool _delegatedInteractionRegistered;
+    private ValueAtomicBool _pendingOpenAutoFocus;
+    private ValueAtomicBool _openAutoFocusApplied;
+    private ValueAtomicBool _openAutoFocusHandled;
+    private ValueAtomicBool _pendingFirstItemFocusAfterOpen;
     private string? _placedSide;
     private string? _placedAlign;
     private ElementReference _contentElement;
@@ -165,7 +165,7 @@
 
     private bool IsPresent => ForceMount || PortalForceMount || Menu?.CurrentOpen == true;
 
-    private bool ShouldRenderContainer => IsPresent || _isExiting;
+    private bool ShouldRenderContainer => IsPresent || _isExiting.Value;
 
     private bool ShouldTrapFocus => Menu?.Modal == true && Menu.CurrentOpen;
 
@@ -208,16 +208,16 @@
         bool open = Menu?.CurrentOpen == true;
 
         if (_wasPresent && !present)
-            _isExiting = true;
+            _isExiting.Value = true;
         else if (present)
-            _isExiting = false;
+            _isExiting.Value = false;
 
         _wasPresent = present;
 
         if (!open)
         {
-            _openAutoFocusApplied = false;
-            _openAutoFocusHandled = false;
+            _openAutoFocusApplied.Value = false;
+            _openAutoFocusHandled.Value = false;
             await ReleaseHideOthers();
         }
         else if (_layerElement.Id is not null)
@@ -226,13 +226,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_openAutoFocusApplied && Menu?.CurrentOpen == true && _contentElementCaptured)
+        if (!_openAutoFocusApplied.Value && Menu?.CurrentOpen == true && _contentElementCaptured.Value)
             await HandleOpenAutoFocus(new BradixAutoFocusEventArgs());
 
-        if (!_pendingFirstItemFocusAfterOpen || Menu?.CurrentOpen != true)
+        if (!_pendingFirstItemFocusAfterOpen.Value || Menu?.CurrentOpen != true)
             return;
 
-        _pendingFirstItemFocusAfterOpen = false;
+        _pendingFirstItemFocusAfterOpen.Value = false;
         await Menu.FocusFirstItem();
     }
 
@@ -243,9 +243,9 @@
         Menu?.ClearContent(_contentElement);
         try
         {
-            if (_delegatedInteractionRegistered)
+            if (_delegatedInteractionRegistered.Value)
             {
-                _delegatedInteractionRegistered = false;
+                _delegatedInteractionRegistered.Value = false;
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);
             }
         }
@@ -309,12 +309,12 @@
 
     private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
     {
-        if (_openAutoFocusHandled)
+        if (_openAutoFocusHandled.Value)
         {
             args.PreventDefault();
             return;
         }
-        _openAutoFocusHandled = true;
+        _openAutoFocusHandled.Value = true;
 
         if (OnOpenAutoFocus.HasDelegate)
             await OnOpenAutoFocus.InvokeAsync();
@@ -324,18 +324,18 @@
 
         if (args.DefaultPrevented)
         {
-            _openAutoFocusApplied = true;
-            _pendingOpenAutoFocus = false;
-            _pendingFirstItemFocusAfterOpen = false;
+            _openAutoFocusApplied.Value = true;
+            _pendingOpenAutoFocus.Value = false;
+            _pendingFirstItemFocusAfterOpen.Value = false;
             return;
         }
 
         if (Menu is null)
             return;
 
-        if (!_contentElementCaptured)
+        if (!_contentElementCaptured.Value)
         {
-            _pendingOpenAutoFocus = true;
+            _pendingOpenAutoFocus.Value = true;
             return;
         }
 
@@ -350,15 +350,15 @@
         if (OnCloseAutoFocusDetailed.HasDelegate)
             await OnCloseAutoFocusDetailed.InvokeAsync(args);
 
-        if (!args.DefaultPrevented && Menu is not null && (Menu.Modal || !_hasInteractedOutside))
+        if (!args.DefaultPrevented && Menu is not null && (Menu.Modal || !_hasInteractedOutside.Value))
         {
             await ReleaseHideOthers();
             await Menu.FocusTrigger();
             args.PreventDefault();
         }
 
-        _hasInteractedOutside = false;
-        _hasPointerDownOutside = false;
+        _hasInteractedOutside.Value = false;
+        _hasPointerDownOutside.Value = false;
     }
 
     private async Task HandleEscapeKeyDown(BradixEscapeKeyDownEventArgs _)
@@ -468,13 +468,13 @@
 
         if (!args.DefaultPrevented && Menu is not null && !Menu.Modal)
         {
-            _hasInteractedOutside = true;
+            _hasInteractedOutside.Value = true;
 
             if (args.OriginalEventType == "pointerdown")
-                _hasPointerDownOutside = true;
+                _hasPointerDownOutside.Value = true;
         }
 
-        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside)
+        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside.Value)
             args.PreventDefault();
     }
 
@@ -485,7 +485,7 @@
 
     private async Task HandleExitComplete()
     {
-        _isExiting = false;
+        _isExiting.Value = false;
         await CleanupAfterExit();
         if (!_disposed.Read()) await RequestRender();
     }
@@ -553,13 +553,13 @@
 
     private async Task CleanupAfterExit()
     {
-        _isExiting = false;
-        _contentElementCaptured = false;
-        _delegatedInteractionRegistered = false;
-        _pendingOpenAutoFocus = false;
-        _openAutoFocusApplied = false;
-        _openAutoFocusHandled = false;
-        _pendingFirstItemFocusAfterOpen = false;
+        _isExiting.Value = false;
+        _contentElementCaptured.Value = false;
+        _delegatedInteractionRegistered.Value = false;
+        _pendingOpenAutoFocus.Value = false;
+        _openAutoFocusApplied.Value = false;
+        _openAutoFocusHandled.Value = false;
+        _pendingFirstItemFocusAfterOpen.Value = false;
         _submenuPointerGraceItems.Clear();
 
         if (_contentElement.Id is not null)
@@ -572,7 +572,7 @@
 
     private async Task RegisterHideOthersIfNeeded()
     {
-        if (_disposed.Read() || Menu?.Modal != true || _hideOthersRegistered)
+        if (_disposed.Read() || Menu?.Modal != true || _hideOthersRegistered.Value)
             return;
 
         var element = _layerElement;
@@ -582,15 +582,15 @@
             await PresenceOverlayInterop.UnregisterHideOthers(element);
             return;
         }
-        _hideOthersRegistered = true;
+        _hideOthersRegistered.Value = true;
     }
 
     private async Task ReleaseHideOthers()
     {
-        if (!_hideOthersRegistered)
+        if (!_hideOthersRegistered.Value)
             return;
 
-        _hideOthersRegistered = false;
+        _hideOthersRegistered.Value = false;
         await PresenceOverlayInterop.UnregisterHideOthers(_layerElement);
     }
 
@@ -599,8 +599,8 @@
         if (_disposed.Read() || Menu is null)
             return;
 
-        _pendingOpenAutoFocus = false;
-        _openAutoFocusApplied = true;
+        _pendingOpenAutoFocus.Value = false;
+        _openAutoFocusApplied.Value = true;
 
         bool shouldFocusContent = Menu.ConsumeFocusContentOnOpen();
         bool shouldFocusFirstItem = Menu.ConsumeFocusFirstItemOnOpen();
@@ -615,7 +615,7 @@
 
         if (shouldFocusFirstItem)
         {
-            _pendingFirstItemFocusAfterOpen = true;
+            _pendingFirstItemFocusAfterOpen.Value = true;
             await Menu.FocusFirstItem();
         }
     }
@@ -625,10 +625,10 @@
         if (_disposed.Read())
             return;
         _contentElement = element;
-        _contentElementCaptured = true;
+        _contentElementCaptured.Value = true;
         Menu?.RegisterContent(element);
 
-        if (!_delegatedInteractionRegistered)
+        if (!_delegatedInteractionRegistered.Value)
         {
             _dotNetReference ??= DotNetObjectReference.Create<object>(this);
             await DelegatedInteractionInterop.RegisterDelegatedInteraction(_contentElement, _dotNetReference, new BradixDelegatedInteractionOptions
@@ -645,15 +645,15 @@
                     PreventDefaultKeys = ContentPreventDefaultKeys
                 }
             });
-            if (_disposed.Read() || !_contentElementCaptured || !element.Equals(_contentElement))
+            if (_disposed.Read() || !_contentElementCaptured.Value || !element.Equals(_contentElement))
             {
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(element);
                 return;
             }
-            _delegatedInteractionRegistered = true;
+            _delegatedInteractionRegistered.Value = true;
         }
 
-        if (_pendingOpenAutoFocus && Menu?.CurrentOpen == true)
+        if (_pendingOpenAutoFocus.Value && Menu?.CurrentOpen == true)
             await ApplyOpenAutoFocus();
     }
 

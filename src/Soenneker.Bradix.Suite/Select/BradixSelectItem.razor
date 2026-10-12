@@ -42,7 +42,7 @@
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 
     private ElementReference _element;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private BradixSelect? _registeredSelect;
     private string? _registeredValue;
     private string? _registeredTextValue;
@@ -50,11 +50,11 @@
     private string _pointerType = "mouse";
     private string? _resolvedTextValue;
     private ElementReference _itemTextElement;
-    private bool _hasItemTextElement;
-    private bool _hasItemTextContent;
+    private ValueAtomicBool _hasItemTextElement;
+    private ValueAtomicBool _hasItemTextContent;
     private ValueAtomicBool _disposed;
     private BradixTextObserver? _textObserver;
-    private bool _pointerFocusPending;
+    private ValueAtomicBool _pointerFocusPending;
 
     [CascadingParameter]
     private BradixSelect? Select { get; set; }
@@ -85,7 +85,7 @@
 
     ElementReference IBradixSelectCollectionItem.ItemTextElement => _itemTextElement;
 
-    bool IBradixSelectCollectionItem.HasItemTextElement => _hasItemTextElement;
+    bool IBradixSelectCollectionItem.HasItemTextElement => _hasItemTextElement.Value;
 
     internal bool IsSelected => string.Equals(Select?.CurrentValue, Value, StringComparison.Ordinal);
 
@@ -119,13 +119,13 @@
             if (string.IsNullOrWhiteSpace(Value))
                 throw new InvalidOperationException("A BradixSelectItem value cannot be empty.");
 
-            if (!_registered || !ReferenceEquals(_registeredSelect, Select) || _registeredValue != Value)
+            if (!_registered.Value || !ReferenceEquals(_registeredSelect, Select) || _registeredValue != Value)
             {
                 _registeredSelect?.UnregisterItem(this, _registeredValue);
                 _registeredSelect = Select;
                 _registeredValue = Value;
                 _registeredTextValue = TextValue;
-                _registered = true;
+                _registered.Value = true;
                 Select.RegisterItem(this);
             }
             else if (_registeredTextValue != TextValue)
@@ -134,14 +134,14 @@
                 await Select.NotifyItemTextChanged();
             }
         }
-        else if (_registered)
+        else if (_registered.Value)
         {
             _registeredSelect?.UnregisterItem(this, _registeredValue);
             _registeredSelect = null;
-            _registered = false;
+            _registered.Value = false;
         }
 
-        if (TextValue is null && !_hasItemTextContent)
+        if (TextValue is null && !_hasItemTextContent.Value)
         {
             _textObserver ??= new BradixTextObserver(DomInterop, text => InvokeAsync(() => NotifyResolvedText(text)));
             await _textObserver.Observe(_element);
@@ -157,7 +157,7 @@
     {
         if (!_disposed.TrySetTrue())
             return;
-        if (_registered)
+        if (_registered.Value)
             _registeredSelect?.UnregisterItem(this, _registeredValue);
         if (_textObserver is not null)
             await _textObserver.DisposeAsync();
@@ -179,24 +179,24 @@
             await Select.NotifyItemTextChanged();
     }
 
-    internal void RegisterTextContent() => _hasItemTextContent = true;
+    internal void RegisterTextContent() => _hasItemTextContent.Value = true;
 
     internal void UnregisterTextContent()
     {
-        _hasItemTextContent = false;
-        _hasItemTextElement = false;
+        _hasItemTextContent.Value = false;
+        _hasItemTextElement.Value = false;
         _itemTextElement = default;
-        if (!_disposed.Read() && _registered)
+        if (!_disposed.Read() && _registered.Value)
             _ = RequestRender();
     }
 
     internal void RegisterTextElement(ElementReference element)
     {
-        if (_hasItemTextElement && _itemTextElement.Equals(element))
+        if (_hasItemTextElement.Value && _itemTextElement.Equals(element))
             return;
 
         _itemTextElement = element;
-        _hasItemTextElement = true;
+        _hasItemTextElement.Value = true;
         Content?.QueueOpenLayoutPass();
     }
 
@@ -306,10 +306,10 @@
             return;
         }
 
-        if (_isFocused || _pointerFocusPending)
+        if (_isFocused || _pointerFocusPending.Value)
             return;
 
-        _pointerFocusPending = true;
+        _pointerFocusPending.Value = true;
         try
         {
             Select.SetFocusedItem(Value);
@@ -317,7 +317,7 @@
         }
         finally
         {
-            _pointerFocusPending = false;
+            _pointerFocusPending.Value = false;
         }
     }
 

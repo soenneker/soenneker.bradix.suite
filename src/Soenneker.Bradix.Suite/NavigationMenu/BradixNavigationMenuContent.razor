@@ -32,10 +32,10 @@
     private string? _viewportSelector;
     private ElementReference _contentElement;
     private ElementReference _exitProxyElement;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private bool _wasOpen;
-    private bool _isExiting;
-    private bool _focusBridgeRegistered;
+    private ValueAtomicBool _isExiting;
+    private ValueAtomicBool _focusBridgeRegistered;
     private ValueAtomicBool _disposed;
 
     [CascadingParameter]
@@ -57,7 +57,7 @@
         !string.IsNullOrWhiteSpace(NavigationMenu.ViewportId);
 
     private bool ShouldRenderContent =>
-        (ForceMount || IsOpen || _isExiting) &&
+        (ForceMount || IsOpen || _isExiting.Value) &&
         (!ShouldUseViewport || !string.IsNullOrWhiteSpace(ViewportSelector));
 
     private string? ViewportSelector => !string.IsNullOrWhiteSpace(NavigationMenu?.ViewportId)
@@ -93,9 +93,9 @@
     {
         base.OnParametersSet();
         if (_wasOpen && !IsOpen)
-            _isExiting = true;
+            _isExiting.Value = true;
         else if (IsOpen)
-            _isExiting = false;
+            _isExiting.Value = false;
         _wasOpen = IsOpen;
     }
 
@@ -107,7 +107,7 @@
 
     private Task HandleExitComplete()
     {
-        _isExiting = false;
+        _isExiting.Value = false;
         return RequestRender();
     }
 
@@ -117,16 +117,16 @@
             return;
         if (!ShouldRenderContent)
         {
-            if (_registered && Item is not null)
+            if (_registered.Value && Item is not null)
             {
                 NavigationMenu?.UnregisterContent(Item.ResolvedValue);
-                _registered = false;
+                _registered.Value = false;
             }
 
-            if (_focusBridgeRegistered)
+            if (_focusBridgeRegistered.Value)
             {
                 await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
-                _focusBridgeRegistered = false;
+                _focusBridgeRegistered.Value = false;
             }
 
             _contentElement = default;
@@ -136,10 +136,10 @@
         if (_contentElement.Context is null)
             return;
 
-        if (_registered is false && NavigationMenu is not null && Item is not null)
+        if (_registered.Value is false && NavigationMenu is not null && Item is not null)
         {
             NavigationMenu.RegisterContent(Item.ResolvedValue, _contentElement);
-            _registered = true;
+            _registered.Value = true;
         }
 
         if (NavigationMenu is not null &&
@@ -147,7 +147,7 @@
             NavigationMenu.TryGetFocusProxy(Item.ResolvedValue, out ElementReference startProxy) &&
             NavigationMenu.TryGetTrigger(Item.ResolvedValue, out IBradixNavigationMenuRegisteredTrigger trigger))
         {
-            if (_focusBridgeRegistered)
+            if (_focusBridgeRegistered.Value)
             {
                 await NavigationMenuInterop.UpdateNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
             }
@@ -159,7 +159,7 @@
                     await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
                     return;
                 }
-                _focusBridgeRegistered = true;
+                _focusBridgeRegistered.Value = true;
             }
         }
     }
@@ -203,14 +203,14 @@
     {
         if (!_disposed.TrySetTrue())
             return;
-        if (_registered && Item is not null)
+        if (_registered.Value && Item is not null)
         {
-            _registered = false;
+            _registered.Value = false;
             NavigationMenu?.UnregisterContent(Item.ResolvedValue);
         }
-        if (_focusBridgeRegistered)
+        if (_focusBridgeRegistered.Value)
         {
-            _focusBridgeRegistered = false;
+            _focusBridgeRegistered.Value = false;
             await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
         }
     }

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -24,7 +25,7 @@
     private System.Action<PointerEventArgs>? _cachedHandlePointerLeaveDelegate;
     private System.Action<PointerEventArgs>? _cachedHandlePointerUpDelegate;
 
-    private bool _didNotifyContent;
+    private ValueAtomicBool _didNotifyContent;
 
     [CascadingParameter]
     private BradixSelectContent? Content { get; set; }
@@ -33,14 +34,14 @@
     {
         if (Content is null)
         {
-            _didNotifyContent = false;
+            _didNotifyContent.Value = false;
             return Task.CompletedTask;
         }
 
-        if (_didNotifyContent)
+        if (_didNotifyContent.Value)
             return Task.CompletedTask;
 
-        _didNotifyContent = true;
+        _didNotifyContent.Value = true;
         return Content.HandleScrollButtonMounted();
     }
 

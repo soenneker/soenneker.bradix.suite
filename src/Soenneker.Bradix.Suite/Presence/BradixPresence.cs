@@ -80,34 +80,34 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
     private Action<ElementReference>? _captureElementCallback;
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private Task? _registrationTask;
-    private bool _rendered;
-    private bool _initialized;
-    private bool _pendingExitEvaluation;
-    private bool _exitSuspended;
-    private bool _elementReferenceCaptured;
+    private ValueAtomicBool _rendered;
+    private ValueAtomicBool _initialized;
+    private ValueAtomicBool _pendingExitEvaluation;
+    private ValueAtomicBool _exitSuspended;
+    private ValueAtomicBool _elementReferenceCaptured;
     private ValueAtomicBool _disposed;
     private string _previousAnimationName = "none";
 
     protected override void OnParametersSet()
     {
-        if (!_initialized)
+        if (!_initialized.Value)
         {
-            _rendered = Present;
-            _initialized = true;
+            _rendered.Value = Present;
+            _initialized.Value = true;
             return;
         }
 
         if (Present)
         {
-            _rendered = true;
-            _pendingExitEvaluation = false;
-            _exitSuspended = false;
+            _rendered.Value = true;
+            _pendingExitEvaluation.Value = false;
+            _exitSuspended.Value = false;
         }
-        else if (_rendered)
+        else if (_rendered.Value)
         {
-            _pendingExitEvaluation = true;
+            _pendingExitEvaluation.Value = true;
         }
     }
 
@@ -116,11 +116,11 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
         if (_disposed.Read())
             return;
 
-        if (_rendered)
+        if (_rendered.Value)
         {
-            if (!_elementReferenceCaptured)
+            if (!_elementReferenceCaptured.Value)
             {
-                _elementReferenceCaptured = true;
+                _elementReferenceCaptured.Value = true;
 
                 if (OnElementReferenceCaptured.HasDelegate)
                     await OnElementReferenceCaptured.InvokeAsync(_element);
@@ -128,7 +128,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
 
             if (_disposed.Read())
                 return;
-            if (!_registered)
+            if (!_registered.Value)
             {
                 _dotNetReference ??= DotNetObjectReference.Create<object>(this);
                 try
@@ -137,7 +137,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
                     await _registrationTask;
                     if (_disposed.Read())
                         return;
-                    _registered = true;
+                    _registered.Value = true;
                 }
                 catch (Exception ex) when (ShouldIgnoreInteropException(ex))
                 {
@@ -145,9 +145,9 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
                 }
             }
 
-            if (_pendingExitEvaluation)
+            if (_pendingExitEvaluation.Value)
             {
-                _pendingExitEvaluation = false;
+                _pendingExitEvaluation.Value = false;
                 BradixPresenceSnapshot snapshot = await PresenceOverlayInterop.GetPresenceState(_element);
 
                 bool hasExitAnimation = snapshot.Display != "none"
@@ -157,7 +157,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
 
                 if (hasExitAnimation)
                 {
-                    _exitSuspended = true;
+                    _exitSuspended.Value = true;
                 }
                 else
                 {
@@ -165,7 +165,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
                 }
             }
         }
-        else if (_registered)
+        else if (_registered.Value)
         {
             try
             {
@@ -175,18 +175,18 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
             {
             }
 
-            _registered = false;
+            _registered.Value = false;
         }
 
-        if (!_rendered)
-            _elementReferenceCaptured = false;
+        if (!_rendered.Value)
+            _elementReferenceCaptured.Value = false;
 
         await base.OnAfterRenderAsync(firstRender);
     }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        if (!_rendered)
+        if (!_rendered.Value)
             return;
 
         builder.OpenElement(0, string.IsNullOrWhiteSpace(Tag) ? "div" : Tag);
@@ -232,7 +232,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
         }
         finally
         {
-            _registered = false;
+            _registered.Value = false;
             _dotNetReference?.Dispose();
             _dotNetReference = null;
         }
@@ -274,7 +274,7 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
             ? _previousAnimationName
             : normalizedEventAnimation;
 
-        if (!_exitSuspended || Present)
+        if (!_exitSuspended.Value || Present)
             return;
 
         await InvokeAsync(_completeUnmountCallback ??= CompleteUnmount);
@@ -284,17 +284,17 @@ public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDis
     {
         if (_disposed.Read() || Present)
             return;
-        _exitSuspended = false;
+        _exitSuspended.Value = false;
 
-        if (_registered)
+        if (_registered.Value)
         {
-            _registered = false;
+            _registered.Value = false;
             await PresenceOverlayInterop.UnregisterPresence(_element);
         }
 
         if (_disposed.Read() || Present)
             return;
-        _rendered = false;
+        _rendered.Value = false;
 
         if (OnExitComplete.HasDelegate)
             await OnExitComplete.InvokeAsync();

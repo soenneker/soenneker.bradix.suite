@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Threading
@@ -17,12 +18,12 @@
     private string? _childIdCache0;
 
     private BradixPopper? _popper;
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private bool _uncontrolledOpen;
     private CancellationTokenSource? _openDelayTokenSource;
     private CancellationTokenSource? _closeDelayTokenSource;
-    private bool _isPointerDownOnContent;
-    private bool _hasSelection;
+    private ValueAtomicBool _isPointerDownOnContent;
+    private ValueAtomicBool _hasSelection;
 
     [Parameter]
     public bool? Open { get; set; }
@@ -60,11 +61,11 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (_initialized.Value)
             return;
 
         _uncontrolledOpen = DefaultOpen;
-        _initialized = true;
+        _initialized.Value = true;
     }
 
     public ValueTask DisposeAsync()
@@ -114,23 +115,23 @@
 
     public void NotifyContentPointerDown()
     {
-        _hasSelection = false;
-        _isPointerDownOnContent = true;
+        _hasSelection.Value = false;
+        _isPointerDownOnContent.Value = true;
         CancelCloseDelay();
     }
 
     public void NotifyContentPointerUp(bool hasSelection)
     {
-        _isPointerDownOnContent = false;
-        _hasSelection = hasSelection;
+        _isPointerDownOnContent.Value = false;
+        _hasSelection.Value = hasSelection;
     }
 
     public Task Dismiss()
     {
         CancelOpenDelay();
         CancelCloseDelay();
-        _isPointerDownOnContent = false;
-        _hasSelection = false;
+        _isPointerDownOnContent.Value = false;
+        _hasSelection.Value = false;
         return SetOpen(false);
     }
 
@@ -158,7 +159,7 @@
     {
         CancelOpenDelay();
 
-        if (_hasSelection || _isPointerDownOnContent)
+        if (_hasSelection.Value || _isPointerDownOnContent.Value)
             return;
 
         CancelCloseDelay();
@@ -189,8 +190,8 @@
 
         if (!open)
         {
-            _isPointerDownOnContent = false;
-            _hasSelection = false;
+            _isPointerDownOnContent.Value = false;
+            _hasSelection.Value = false;
         }
 
         if (OpenChanged.HasDelegate)

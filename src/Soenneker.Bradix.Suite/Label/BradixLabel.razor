@@ -17,7 +17,7 @@
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
     private Task? _registrationTask;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private ValueAtomicBool _disposed;
 
     [Parameter]
@@ -48,7 +48,7 @@
             return;
         }
 
-        _registered = true;
+        _registered.Value = true;
     }
 
     public async ValueTask DisposeAsync()
@@ -61,7 +61,7 @@
             if (_registrationTask is not null)
                 await _registrationTask;
 
-            if (_registered)
+            if (_registered.Value)
                 await LabelInterop.UnregisterLabelTextSelectionGuard(_element);
         }
         catch (JSDisconnectedException)
@@ -70,7 +70,7 @@
 
         finally
         {
-            _registered = false;
+            _registered.Value = false;
             _dotNetReference?.Dispose();
             _dotNetReference = null;
         }

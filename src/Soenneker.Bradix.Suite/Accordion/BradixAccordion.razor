@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Soenneker.Blazor.Utils.Ids
@@ -23,7 +24,7 @@
     protected override Task OnAfterRenderAsync(bool firstRender) => NotifyStateChanged();
 
     private readonly List<BradixAccordionTrigger> _triggers = [];
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private string? _groupId;
     private string? _uncontrolledValue;
     private List<string> _uncontrolledValues = [];
@@ -82,13 +83,13 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (_initialized.Value)
             return;
 
         _uncontrolledValue = DefaultValue;
         _uncontrolledValues = CopyValues(DefaultValues);
 
-        _initialized = true;
+        _initialized.Value = true;
     }
 
     internal bool IsItemOpen(string value)

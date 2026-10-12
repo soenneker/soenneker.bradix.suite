@@ -33,10 +33,10 @@
     private static readonly string[] PreventDefaultKeys = [" ", "Spacebar", "Enter", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"];
 
     private ElementReference _button;
-    private bool _delegatedInteractionRegistered;
+    private ValueAtomicBool _delegatedInteractionRegistered;
     private ValueAtomicBool _disposed;
     private string _pointerType = "touch";
-    private bool _suppressClick;
+    private ValueAtomicBool _suppressClick;
     private DotNetObjectReference<object>? _dotNetReference;
 
     [CascadingParameter]
@@ -89,7 +89,7 @@
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
                 return;
             }
-            _delegatedInteractionRegistered = true;
+            _delegatedInteractionRegistered.Value = true;
         }
 
     }
@@ -100,9 +100,9 @@
             return;
         try
         {
-            if (_delegatedInteractionRegistered)
+            if (_delegatedInteractionRegistered.Value)
             {
-                _delegatedInteractionRegistered = false;
+                _delegatedInteractionRegistered.Value = false;
                 await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_button);
             }
         }
@@ -118,9 +118,9 @@
         if (IsDisabled || Select is null)
             return;
 
-        if (_suppressClick)
+        if (_suppressClick.Value)
         {
-            _suppressClick = false;
+            _suppressClick.Value = false;
             return;
         }
 
@@ -165,7 +165,7 @@
         if (string.IsNullOrWhiteSpace(value))
             return;
 
-        _suppressClick = true;
+        _suppressClick.Value = true;
         Select.ClearTriggerPointerDownPosition();
         await Select.SetValue(value);
         await Select.SetOpen(false);

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Threading
@@ -11,6 +12,8 @@
 @code {
     private CancellationTokenSource? _skipDelayTokenSource;
     private BradixTooltip? _openTooltip;
+    private ValueAtomicBool _isOpenDelayed = new(true);
+    private ValueAtomicBool _isPointerInTransit;
 
     [Parameter]
     public int DelayDuration { get; set; } = 700;
@@ -21,9 +24,17 @@
     [Parameter]
     public bool DisableHoverableContent { get; set; }
 
-    internal bool IsOpenDelayed { get; private set; } = true;
+    internal bool IsOpenDelayed
+    {
+        get => _isOpenDelayed.Read();
+        private set => _isOpenDelayed.Write(value);
+    }
 
-    internal bool IsPointerInTransit { get; private set; }
+    internal bool IsPointerInTransit
+    {
+        get => _isPointerInTransit.Read();
+        private set => _isPointerInTransit.Write(value);
+    }
 
     internal async Task NotifyOpen(BradixTooltip tooltip)
     {

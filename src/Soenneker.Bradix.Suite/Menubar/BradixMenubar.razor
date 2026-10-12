@@ -20,8 +20,8 @@
     private readonly BradixCollectionRegistry<IBradixMenubarTriggerEntry> _triggers = new();
     private ElementReference _element;
     private DotNetObjectReference<BradixMenubar>? _dotNetReference;
-    private bool _documentDismissRegistered;
-    private bool _initialized;
+    private ValueAtomicBool _documentDismissRegistered;
+    private ValueAtomicBool _initialized;
     private ValueAtomicBool _disposed;
     private string? _uncontrolledValue;
 
@@ -79,7 +79,7 @@
             await MenubarInterop.UnregisterMenubarDocumentDismiss(_element);
             return;
         }
-        _documentDismissRegistered = true;
+        _documentDismissRegistered.Value = true;
     }
 
     public async ValueTask DisposeAsync()
@@ -88,9 +88,9 @@
             return;
         try
         {
-            if (_documentDismissRegistered)
+            if (_documentDismissRegistered.Value)
             {
-                _documentDismissRegistered = false;
+                _documentDismissRegistered.Value = false;
                 await MenubarInterop.UnregisterMenubarDocumentDismiss(_element);
             }
         }
@@ -103,10 +103,10 @@
 
     protected override void OnParametersSet()
     {
-        if (!_initialized)
+        if (!_initialized.Value)
         {
             _uncontrolledValue = DefaultValue;
-            _initialized = true;
+            _initialized.Value = true;
         }
 
         EnsureCurrentTabStopId();

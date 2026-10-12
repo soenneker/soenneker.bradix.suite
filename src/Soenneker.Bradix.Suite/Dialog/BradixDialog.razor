@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits LeptonContent
@@ -16,7 +17,7 @@
     private string? _childIdCache2;
     private string? _childIdCache3;
 
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private bool _uncontrolledOpen;
 
     [Parameter]
@@ -56,11 +57,11 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (_initialized.Value)
             return;
 
         _uncontrolledOpen = DefaultOpen;
-        _initialized = true;
+        _initialized.Value = true;
     }
 
     public async Task SetOpen(bool open)

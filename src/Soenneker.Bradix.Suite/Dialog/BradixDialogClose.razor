@@ -41,7 +41,7 @@ else
 
     private BradixDialogCloseContext? _closeContext;
     private ElementReference _button;
-    private bool _delegatedInteractionReady;
+    private ValueAtomicBool _delegatedInteractionReady;
     private ValueAtomicBool _disposed;
     private DotNetObjectReference<object>? _dotNetReference;
 
@@ -148,7 +148,7 @@ else
 
     private Task HandleClick(MouseEventArgs args)
     {
-        return _delegatedInteractionReady ? Task.CompletedTask : HandleChildClick(args);
+        return _delegatedInteractionReady.Value ? Task.CompletedTask : HandleChildClick(args);
     }
 
     private async Task HandleChildClick(MouseEventArgs args)
@@ -186,7 +186,7 @@ else
     [JSInvokable]
     public Task HandleDelegatedInteractionReady()
     {
-        _delegatedInteractionReady = true;
+        _delegatedInteractionReady.Value = true;
         return Task.CompletedTask;
     }
 

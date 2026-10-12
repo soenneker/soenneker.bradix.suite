@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -30,7 +31,7 @@
     // State changes render through the owning context or the explicit focus handlers.
     Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? argument) => callback.InvokeAsync(argument);
 
-    private bool _hasMouseMoveOpened;
+    private ValueAtomicBool _hasMouseMoveOpened;
     private ElementReference _triggerElement;
 
     [CascadingParameter]
@@ -53,7 +54,7 @@
         if (args.PointerType == "touch")
             return Task.CompletedTask;
 
-        _hasMouseMoveOpened = true;
+        _hasMouseMoveOpened.Value = true;
         return HoverCard?.HandleTriggerEnter() ?? Task.CompletedTask;
     }
 
@@ -62,7 +63,7 @@
         if (args.PointerType == "touch")
             return Task.CompletedTask;
 
-        _hasMouseMoveOpened = false;
+        _hasMouseMoveOpened.Value = false;
         return HoverCard?.HandleTriggerLeave() ?? Task.CompletedTask;
     }
 
@@ -73,16 +74,16 @@
 
     private Task HandleMouseMove()
     {
-        if (_hasMouseMoveOpened)
+        if (_hasMouseMoveOpened.Value)
             return Task.CompletedTask;
 
-        _hasMouseMoveOpened = true;
+        _hasMouseMoveOpened.Value = true;
         return HoverCard?.HandleTriggerEnter() ?? Task.CompletedTask;
     }
 
     private Task HandleMouseLeave()
     {
-        _hasMouseMoveOpened = false;
+        _hasMouseMoveOpened.Value = false;
         return HoverCard?.HandleTriggerLeave() ?? Task.CompletedTask;
     }
 

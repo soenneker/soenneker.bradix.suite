@@ -40,9 +40,9 @@
 
     private ValueAtomicBool _disposed;
     private Task? _registrationTask;
-    private bool _registered;
-    private bool _hasPointerMoveOpened;
-    private bool _pointerDown;
+    private ValueAtomicBool _registered;
+    private ValueAtomicBool _hasPointerMoveOpened;
+    private ValueAtomicBool _pointerDown;
     private ElementReference _triggerElement;
     private DotNetObjectReference<BradixTooltipTrigger>? _dotNetReference;
 
@@ -65,7 +65,7 @@
     private async Task RegisterTrigger()
     {
         await TooltipInterop.RegisterTooltipTrigger(_triggerElement, _dotNetReference!);
-        _registered = true;
+        _registered.Value = true;
     }
 
     public async ValueTask DisposeAsync()
@@ -74,11 +74,11 @@
         try
         {
             if (_registrationTask is not null) await _registrationTask;
-            if (_registered) await TooltipInterop.UnregisterTooltipTrigger(_triggerElement);
+            if (_registered.Value) await TooltipInterop.UnregisterTooltipTrigger(_triggerElement);
         }
         finally
         {
-            _registered = false;
+            _registered.Value = false;
             _dotNetReference?.Dispose();
             _dotNetReference = null;
         }
@@ -86,10 +86,10 @@
 
     private Task HandlePointerMove(PointerEventArgs args)
     {
-        if (args.PointerType == "touch" || Tooltip is null || _hasPointerMoveOpened || Tooltip.ShouldBlockTriggerHoverOpen)
+        if (args.PointerType == "touch" || Tooltip is null || _hasPointerMoveOpened.Value || Tooltip.ShouldBlockTriggerHoverOpen)
             return Task.CompletedTask;
 
-        _hasPointerMoveOpened = true;
+        _hasPointerMoveOpened.Value = true;
         return Tooltip.HandleTriggerEnter();
     }
 
@@ -100,16 +100,16 @@
 
     private Task HandleMouseMove()
     {
-        if (Tooltip is null || _hasPointerMoveOpened || Tooltip.ShouldBlockTriggerHoverOpen)
+        if (Tooltip is null || _hasPointerMoveOpened.Value || Tooltip.ShouldBlockTriggerHoverOpen)
             return Task.CompletedTask;
 
-        _hasPointerMoveOpened = true;
+        _hasPointerMoveOpened.Value = true;
         return Tooltip.HandleTriggerEnter();
     }
 
     private Task HandleMouseLeave()
     {
-        _hasPointerMoveOpened = false;
+        _hasPointerMoveOpened.Value = false;
 
         if (Tooltip is null)
             return Task.CompletedTask;
@@ -119,7 +119,7 @@
 
     private Task HandlePointerLeave(PointerEventArgs args)
     {
-        _hasPointerMoveOpened = false;
+        _hasPointerMoveOpened.Value = false;
 
         if (Tooltip is null)
             return Task.CompletedTask;
@@ -129,7 +129,7 @@
 
     private void HandlePointerDown(PointerEventArgs args)
     {
-        _pointerDown = true;
+        _pointerDown.Value = true;
 
         if (Tooltip is not null)
             _ = Tooltip.Close();
@@ -137,14 +137,14 @@
 
     private void HandlePointerUp(PointerEventArgs args)
     {
-        _pointerDown = false;
+        _pointerDown.Value = false;
     }
 
     private Task HandleFocus(FocusEventArgs _)
     {
         return Tooltip is null
             ? Task.CompletedTask
-            : Tooltip.HandleTriggerFocus(_pointerDown);
+            : Tooltip.HandleTriggerFocus(_pointerDown.Value);
     }
 
     private Task HandleBlur(FocusEventArgs _)
@@ -156,7 +156,7 @@
 
     private Task HandleClick()
     {
-        _pointerDown = false;
+        _pointerDown.Value = false;
 
         return Tooltip is null
             ? Task.CompletedTask
@@ -166,7 +166,7 @@
     [JSInvokable]
     public Task HandleDocumentPointerUp()
     {
-        _pointerDown = false;
+        _pointerDown.Value = false;
         return Task.CompletedTask;
     }
 }

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -12,8 +13,8 @@
     private string? _mergedStyleCache0;
 
     private ElementReference _element;
-    private bool _popperRegistered;
-    private bool _popoverRegistered;
+    private ValueAtomicBool _popperRegistered;
+    private ValueAtomicBool _popoverRegistered;
 
     [CascadingParameter]
     private BradixPopper? Popper { get; set; }
@@ -26,16 +27,16 @@
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_popperRegistered && Popper is not null)
+        if (!_popperRegistered.Value && Popper is not null)
         {
             Popper.RegisterAnchor(_element);
-            _popperRegistered = true;
+            _popperRegistered.Value = true;
         }
 
-        if (!_popoverRegistered && Popover is not null)
+        if (!_popoverRegistered.Value && Popover is not null)
         {
             Popover.RegisterAnchor(_element);
-            _popoverRegistered = true;
+            _popoverRegistered.Value = true;
         }
 
         return Task.CompletedTask;

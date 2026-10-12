@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixElement
@@ -16,8 +17,8 @@
     private System.Func<Task>? _cachedHandleImageLoadDelegate;
     private System.Func<Task>? _cachedHandleImageErrorDelegate;
 
-    private bool _pendingStatusReset = true;
-    private bool _hasRendered;
+    private ValueAtomicBool _pendingStatusReset = new(true);
+    private ValueAtomicBool _hasRendered;
     private string? _lastSrc;
     private string? _lastCrossOrigin;
     private string? _lastReferrerPolicy;
@@ -53,7 +54,7 @@
 
     protected override void OnParametersSet()
     {
-        if (!_hasRendered)
+        if (!_hasRendered.Value)
             return;
 
         if (string.Equals(_lastSrc, Src, StringComparison.Ordinal) &&
@@ -63,17 +64,17 @@
             return;
         }
 
-        _pendingStatusReset = true;
+        _pendingStatusReset.Value = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _hasRendered = true;
+        _hasRendered.Value = true;
 
-        if (!_pendingStatusReset)
+        if (!_pendingStatusReset.Value)
             return;
 
-        _pendingStatusReset = false;
+        _pendingStatusReset.Value = false;
         _lastSrc = Src;
         _lastCrossOrigin = CrossOrigin;
         _lastReferrerPolicy = ReferrerPolicy;

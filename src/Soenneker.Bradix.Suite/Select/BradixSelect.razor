@@ -53,19 +53,19 @@
     private Func<Task>? _focusOpenItemCallback;
     private readonly BradixCollectionRegistry<IBradixSelectCollectionItem> _items = new();
     private readonly BradixTypeaheadBuffer _typeahead = new();
-    private bool _initialized;
-    private bool _refreshQueued;
-    private bool _focusOpenItemQueued;
+    private ValueAtomicBool _initialized;
+    private ValueAtomicBool _refreshQueued;
+    private ValueAtomicBool _focusOpenItemQueued;
     private bool _uncontrolledOpen;
     private string? _uncontrolledValue;
     private ElementReference _bubbleSelectElement;
-    private bool _hasBubbleSelectElement;
-    private bool _bubbleSelectRegistered;
-    private bool _bubbleSelectValueInitialized;
-    private bool _suppressNextMousePointerUpSelection;
+    private ValueAtomicBool _hasBubbleSelectElement;
+    private ValueAtomicBool _bubbleSelectRegistered;
+    private ValueAtomicBool _bubbleSelectValueInitialized;
+    private ValueAtomicBool _suppressNextMousePointerUpSelection;
     private string? _lastBubbleSelectValue;
     private bool _isFormControl = true;
-    private bool _formControlStateResolved;
+    private ValueAtomicBool _formControlStateResolved;
     private string? _lastResolvedForm;
     private (double X, double Y)? _triggerPointerDownPosition;
     private string? _currentText;
@@ -185,11 +185,11 @@
 
     protected override void OnParametersSet()
     {
-        if (!_initialized)
+        if (!_initialized.Value)
         {
             _uncontrolledOpen = DefaultOpen;
             _uncontrolledValue = DefaultValue;
-            _initialized = true;
+            _initialized.Value = true;
         }
 
         UpdateCurrentText();
@@ -200,14 +200,14 @@
         if (_disposed.Read())
             return;
 
-        if (HasTrigger && (!_formControlStateResolved || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal)))
+        if (HasTrigger && (!_formControlStateResolved.Value || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal)))
         {
             bool isFormControl = await FormInterop.IsFormControl(TriggerElement, Form);
 
             if (_disposed.Read())
                 return;
 
-            _formControlStateResolved = true;
+            _formControlStateResolved.Value = true;
             _lastResolvedForm = Form;
 
             if (_isFormControl != isFormControl)
@@ -226,14 +226,14 @@
         }
         else
         {
-            if (_bubbleSelectRegistered)
+            if (_bubbleSelectRegistered.Value)
             {
                 await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
-                _bubbleSelectRegistered = false;
+                _bubbleSelectRegistered.Value = false;
             }
 
-            _hasBubbleSelectElement = false;
-            _bubbleSelectValueInitialized = false;
+            _hasBubbleSelectElement.Value = false;
+            _bubbleSelectValueInitialized.Value = false;
             _lastBubbleSelectValue = null;
         }
     }
@@ -247,7 +247,7 @@
             if (_bubbleSelectRegistrationTask is not null)
                 await _bubbleSelectRegistrationTask;
 
-            if (_bubbleSelectRegistered)
+            if (_bubbleSelectRegistered.Value)
                 await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
         }
         finally
@@ -300,7 +300,7 @@
     internal void RegisterBubbleSelect(ElementReference element)
     {
         _bubbleSelectElement = element;
-        _hasBubbleSelectElement = true;
+        _hasBubbleSelectElement.Value = true;
     }
 
     internal void SetValueNodeHasChildren(bool hasChildren)
@@ -384,14 +384,12 @@
 
     internal void SetSuppressNextMousePointerUpSelection(bool suppress)
     {
-        _suppressNextMousePointerUpSelection = suppress;
+        _suppressNextMousePointerUpSelection.Value = suppress;
     }
 
     internal bool ConsumeSuppressNextMousePointerUpSelection()
     {
-        bool suppress = _suppressNextMousePointerUpSelection;
-        _suppressNextMousePointerUpSelection = false;
-        return suppress;
+        return _suppressNextMousePointerUpSelection.Exchange(false);
     }
 
     internal void SetFocusedItem(string? value)
@@ -595,10 +593,8 @@
         if (_disposed.Read())
             return;
 
-        if (_refreshQueued)
+        if (!_refreshQueued.TrySetTrue())
             return;
-
-        _refreshQueued = true;
 
         _ = InvokeAsync(_refreshCallback ??= RefreshQueued);
     }
@@ -606,16 +602,14 @@
     private void RefreshQueued()
     {
         if (_disposed.Read()) return;
-        _refreshQueued = false;
+        _refreshQueued.Value = false;
         StateHasChanged();
     }
 
     private void QueueOpenItemFocusIfNeeded()
     {
-        if (_disposed.Read() || !CurrentOpen || CurrentFocusedItemValue is not null || _focusOpenItemQueued)
+        if (_disposed.Read() || !CurrentOpen || CurrentFocusedItemValue is not null || !_focusOpenItemQueued.TrySetTrue())
             return;
-
-        _focusOpenItemQueued = true;
 
         _ = InvokeAsync(_focusOpenItemCallback ??= FocusOpenItemQueued);
     }
@@ -624,7 +618,7 @@
     {
         if (_disposed.Read()) return;
         await Task.Yield();
-        _focusOpenItemQueued = false;
+        _focusOpenItemQueued.Value = false;
         if (_disposed.Read() || !CurrentOpen || CurrentFocusedItemValue is not null) return;
         await FocusSelectedOrFirstItem();
     }
@@ -772,7 +766,7 @@
 
     private async Task EnsureBubbleSelectRegistration()
     {
-        if (_disposed.Read() || !_hasBubbleSelectElement || _bubbleSelectRegistered)
+        if (_disposed.Read() || !_hasBubbleSelectElement.Value || _bubbleSelectRegistered.Value)
             return;
 
         if (_bubbleSelectRegistrationTask is not null)
@@ -798,23 +792,23 @@
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await ControlsInterop.RegisterSelectBubbleInput(_bubbleSelectElement, _dotNetReference);
 
-        _bubbleSelectRegistered = true;
+        _bubbleSelectRegistered.Value = true;
     }
 
     private async Task SyncBubbleSelectValue()
     {
-        if (_disposed.Read() || !_hasBubbleSelectElement)
+        if (_disposed.Read() || !_hasBubbleSelectElement.Value)
             return;
 
         string? nextValue = CurrentValue;
         bool valueChanged = !string.Equals(_lastBubbleSelectValue, nextValue, StringComparison.Ordinal);
 
-        if (_bubbleSelectValueInitialized && !valueChanged)
+        if (_bubbleSelectValueInitialized.Value && !valueChanged)
             return;
 
-        await ControlsInterop.SyncSelectBubbleInputValue(_bubbleSelectElement, nextValue, _bubbleSelectValueInitialized);
+        await ControlsInterop.SyncSelectBubbleInputValue(_bubbleSelectElement, nextValue, _bubbleSelectValueInitialized.Value);
 
         _lastBubbleSelectValue = nextValue;
-        _bubbleSelectValueInitialized = true;
+        _bubbleSelectValueInitialized.Value = true;
     }
 }

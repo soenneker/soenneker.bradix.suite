@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -13,7 +14,7 @@
 
 @code {
     private readonly List<BradixRadioGroupItem> _items = [];
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private string? _uncontrolledValue;
 
     [CascadingParameter(Name = "BradixDirection")]
@@ -72,14 +73,14 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (_initialized.Value)
         {
             EnsureCurrentTabStopId();
             return;
         }
 
         _uncontrolledValue = DefaultValue;
-        _initialized = true;
+        _initialized.Value = true;
         EnsureCurrentTabStopId();
     }
 

@@ -23,11 +23,11 @@
     private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
 
     private ElementReference _element;
-    private bool _registered;
-    private bool _rovingFocusBridgeReady;
+    private ValueAtomicBool _registered;
+    private ValueAtomicBool _rovingFocusBridgeReady;
     private ValueAtomicBool _disposed;
     private BradixNavigationMenuRootLinkRegistration? _rootRegistration;
-    private bool _focusGroupRegistered;
+    private ValueAtomicBool _focusGroupRegistered;
 
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
@@ -74,13 +74,13 @@
             NavigationMenu.RegisterTrigger(_rootRegistration);
         }
 
-        if (!_focusGroupRegistered &&
+        if (!_focusGroupRegistered.Value &&
             IsInContent &&
             NavigationMenu is not null &&
             !string.IsNullOrWhiteSpace(FocusGroupId))
         {
             NavigationMenu.RegisterFocusGroupItem(FocusGroupId, this);
-            _focusGroupRegistered = true;
+            _focusGroupRegistered.Value = true;
         }
 
         try
@@ -91,8 +91,8 @@
                 await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
                 return;
             }
-            _registered = true;
-            _rovingFocusBridgeReady = true;
+            _registered.Value = true;
+            _rovingFocusBridgeReady.Value = true;
         }
         catch (Exception ex) when (ShouldIgnoreInteropException(ex))
         {
@@ -107,14 +107,14 @@
         if (_rootRegistration is not null)
             NavigationMenu?.UnregisterTrigger(_rootRegistration);
 
-        if (_focusGroupRegistered &&
+        if (_focusGroupRegistered.Value &&
             NavigationMenu is not null &&
             !string.IsNullOrWhiteSpace(FocusGroupId))
         {
             NavigationMenu.UnregisterFocusGroupItem(FocusGroupId, this);
         }
 
-        if (_registered)
+        if (_registered.Value)
         {
             try
             {
@@ -158,7 +158,7 @@
         if (string.IsNullOrWhiteSpace(RovingGroupId))
             return;
 
-        if (_rovingFocusBridgeReady &&
+        if (_rovingFocusBridgeReady.Value &&
             BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 
@@ -172,7 +172,7 @@
     [JSInvokable]
     public Task HandleRovingFocusBridgeReady()
     {
-        _rovingFocusBridgeReady = true;
+        _rovingFocusBridgeReady.Value = true;
         return Task.CompletedTask;
     }
 

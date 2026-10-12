@@ -43,14 +43,14 @@
 
     private ElementReference _button;
     private ElementReference _focusProxy;
-    private bool _hasPointerMoveOpened;
-    private bool _openedByPointerMove;
-    private bool _rovingFocusBridgeReady;
-    private bool _rovingFocusRegistered;
-    private bool _triggerInteractionRegistered;
-    private bool _wasClickClose;
-    private bool _ignoreNextClick;
-    private bool _focusProxyRegistered;
+    private ValueAtomicBool _hasPointerMoveOpened;
+    private ValueAtomicBool _openedByPointerMove;
+    private ValueAtomicBool _rovingFocusBridgeReady;
+    private ValueAtomicBool _rovingFocusRegistered;
+    private ValueAtomicBool _triggerInteractionRegistered;
+    private ValueAtomicBool _wasClickClose;
+    private ValueAtomicBool _ignoreNextClick;
+    private ValueAtomicBool _focusProxyRegistered;
     private ValueAtomicBool _disposed;
     private string? _pointerOpenClickSuppressedValue;
     private DotNetObjectReference<BradixNavigationMenuTrigger>? _dotNetReference;
@@ -87,7 +87,7 @@
                 ("aria-controls", Item?.ContentId),
                 ("tabindex", null));
 
-            if (!_hasPointerMoveOpened)
+            if (!_hasPointerMoveOpened.Value)
                 attributes["onpointermove"] = (_cachedHandlePointerMoveCallback ??= EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove));
 
             return attributes;
@@ -109,7 +109,7 @@
 
             _dotNetReference ??= DotNetObjectReference.Create(this);
 
-            if (!_rovingFocusRegistered)
+            if (!_rovingFocusRegistered.Value)
             {
                 try
                 {
@@ -119,7 +119,7 @@
                         await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_button);
                         return;
                     }
-                    _rovingFocusRegistered = true;
+                    _rovingFocusRegistered.Value = true;
                 }
                 catch (Exception ex) when (ShouldIgnoreInteropException(ex))
                 {
@@ -127,7 +127,7 @@
                 }
             }
 
-            if (!_triggerInteractionRegistered)
+            if (!_triggerInteractionRegistered.Value)
             {
                 try
                 {
@@ -137,7 +137,7 @@
                         await NavigationMenuInterop.UnregisterNavigationMenuTriggerInteraction(_button);
                         return;
                     }
-                    _triggerInteractionRegistered = true;
+                    _triggerInteractionRegistered.Value = true;
                 }
                 catch (Exception ex) when (ShouldIgnoreInteropException(ex))
                 {
@@ -151,12 +151,12 @@
             if (IsOpen)
             {
                 NavigationMenu.RegisterFocusProxy(Item.ResolvedValue, _focusProxy);
-                _focusProxyRegistered = true;
+                _focusProxyRegistered.Value = true;
             }
-            else if (_focusProxyRegistered)
+            else if (_focusProxyRegistered.Value)
             {
                 NavigationMenu.UnregisterFocusProxy(Item.ResolvedValue);
-                _focusProxyRegistered = false;
+                _focusProxyRegistered.Value = false;
             }
         }
 
@@ -167,7 +167,7 @@
         if (!_disposed.TrySetTrue())
             return;
 
-        if (_focusProxyRegistered && Item is not null)
+        if (_focusProxyRegistered.Value && Item is not null)
             NavigationMenu?.UnregisterFocusProxy(Item.ResolvedValue);
         if (_registration is not null)
             NavigationMenu?.UnregisterTrigger(_registration);
@@ -175,7 +175,7 @@
         {
             try
             {
-                if (_rovingFocusRegistered)
+                if (_rovingFocusRegistered.Value)
                     await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_button);
             }
             catch (Exception ex) when (ShouldIgnoreInteropException(ex))
@@ -186,7 +186,7 @@
         {
             try
             {
-                if (_triggerInteractionRegistered)
+                if (_triggerInteractionRegistered.Value)
                     await NavigationMenuInterop.UnregisterNavigationMenuTriggerInteraction(_button);
             }
             catch (Exception ex) when (ShouldIgnoreInteropException(ex))
@@ -212,14 +212,14 @@
             Disabled ||
             NavigationMenu is null ||
             Item is null ||
-            _hasPointerMoveOpened ||
+            _hasPointerMoveOpened.Value ||
             !NavigationMenu.HasOpenItem ||
             IsOpen)
             return;
 
         await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
-        _hasPointerMoveOpened = true;
-        _openedByPointerMove = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
+        _hasPointerMoveOpened.Value = true;
+        _openedByPointerMove.Value = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
     }
 
     private async Task HandlePointerMove(PointerEventArgs args)
@@ -228,14 +228,14 @@
             Disabled ||
             NavigationMenu is null ||
             Item is null ||
-            _wasClickClose ||
+            _wasClickClose.Value ||
             NavigationMenu.WasEscapeClosed(Item.ResolvedValue) ||
-            _hasPointerMoveOpened)
+            _hasPointerMoveOpened.Value)
             return;
 
         await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
-        _hasPointerMoveOpened = true;
-        _openedByPointerMove = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
+        _hasPointerMoveOpened.Value = true;
+        _openedByPointerMove.Value = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
     }
 
     private async Task HandlePointerLeave(PointerEventArgs args)
@@ -259,7 +259,7 @@
 
         if (NavigationMenu is null ||
             Item is null ||
-            _hasPointerMoveOpened ||
+            _hasPointerMoveOpened.Value ||
             !NavigationMenu.HasOpenItem ||
             IsOpen)
         {
@@ -267,7 +267,7 @@
         }
 
         await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
-        _hasPointerMoveOpened = true;
+        _hasPointerMoveOpened.Value = true;
     }
 
     private async Task HandleHoverMove()
@@ -275,13 +275,13 @@
         if (Disabled ||
             NavigationMenu is null ||
             Item is null ||
-            _wasClickClose ||
+            _wasClickClose.Value ||
             NavigationMenu.WasEscapeClosed(Item.ResolvedValue) ||
-            _hasPointerMoveOpened)
+            _hasPointerMoveOpened.Value)
             return;
 
         await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
-        _hasPointerMoveOpened = true;
+        _hasPointerMoveOpened.Value = true;
     }
 
     private async Task HandleHoverLeave()
@@ -289,17 +289,16 @@
         if (Disabled || NavigationMenu is null)
             return;
 
-        _hasPointerMoveOpened = false;
-        _openedByPointerMove = false;
-        _wasClickClose = false;
+        _hasPointerMoveOpened.Value = false;
+        _openedByPointerMove.Value = false;
+        _wasClickClose.Value = false;
         await NavigationMenu.HandleTriggerPointerLeave();
     }
 
     private Task HandleClick()
     {
-        if (_ignoreNextClick)
+        if (_ignoreNextClick.Exchange(false))
         {
-            _ignoreNextClick = false;
             return Task.CompletedTask;
         }
 
@@ -312,19 +311,19 @@
             return;
 
         if (IsOpen &&
-            _openedByPointerMove &&
+            _openedByPointerMove.Value &&
             !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal))
         {
-            _openedByPointerMove = false;
-            _wasClickClose = false;
+            _openedByPointerMove.Value = false;
+            _wasClickClose.Value = false;
             _pointerOpenClickSuppressedValue = Item.ResolvedValue;
             return;
         }
 
         bool wasOpen = IsOpen;
-        _openedByPointerMove = false;
+        _openedByPointerMove.Value = false;
         await NavigationMenu.ToggleItem(Item.ResolvedValue);
-        _wasClickClose = wasOpen;
+        _wasClickClose.Value = wasOpen;
 
         if (wasOpen || !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal))
             _pointerOpenClickSuppressedValue = null;
@@ -365,7 +364,7 @@
 
         if (key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown" or "Home" or "End")
         {
-            if (_rovingFocusBridgeReady && key is "ArrowLeft" or "ArrowRight")
+            if (_rovingFocusBridgeReady.Value && key is "ArrowLeft" or "ArrowRight")
                 return;
 
             if (_registration is not null)
@@ -381,14 +380,14 @@
     [JSInvokable]
     public Task HandleRovingFocusBridgeReady()
     {
-        _rovingFocusBridgeReady = true;
+        _rovingFocusBridgeReady.Value = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
     public Task HandleDirectClick()
     {
-        _ignoreNextClick = true;
+        _ignoreNextClick.Value = true;
         return ProcessClick();
     }
 

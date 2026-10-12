@@ -27,8 +27,8 @@
     private string? _positionStyle;
     private (bool Vertical, long Size, long Offset) _positionStyleKey;
     private ElementReference _element;
-    private bool _hasElement;
-    private bool _registered;
+    private ValueAtomicBool _hasElement;
+    private ValueAtomicBool _registered;
     private ValueAtomicBool _disposed;
     private DotNetObjectReference<BradixNavigationMenuIndicator>? _dotNetReference;
     private double? _size;
@@ -83,16 +83,16 @@
             return;
         BradixNavigationMenu? navigationMenu = NavigationMenu;
 
-        if (!_hasElement ||
+        if (!_hasElement.Value ||
             navigationMenu is null ||
             !navigationMenu.HasIndicatorTrack ||
             !navigationMenu.HasOpenItem ||
             !navigationMenu.TryGetOpenTrigger(out IBradixNavigationMenuRegisteredTrigger trigger))
         {
-            if (_registered)
+            if (_registered.Value)
             {
                 await NavigationMenuInterop.UnregisterNavigationMenuIndicator(_element);
-                _registered = false;
+                _registered.Value = false;
             }
 
             return;
@@ -100,7 +100,7 @@
 
         _dotNetReference ??= DotNetObjectReference.Create(this);
 
-        if (_registered)
+        if (_registered.Value)
         {
             await NavigationMenuInterop.UpdateNavigationMenuIndicator(_element, trigger.TriggerElement, navigationMenu.IndicatorTrackElement, navigationMenu.Orientation.Value);
         }
@@ -113,7 +113,7 @@
                 await NavigationMenuInterop.UnregisterNavigationMenuIndicator(_element);
                 return;
             }
-            _registered = true;
+            _registered.Value = true;
         }
     }
 
@@ -123,9 +123,9 @@
             return;
         try
         {
-            if (_registered)
+            if (_registered.Value)
             {
-                _registered = false;
+                _registered.Value = false;
                 await NavigationMenuInterop.UnregisterNavigationMenuIndicator(_element);
             }
         }
@@ -139,7 +139,7 @@
     private Task HandleElementCaptured(ElementReference element)
     {
         _element = element;
-        _hasElement = true;
+        _hasElement.Value = true;
         return Task.CompletedTask;
     }
 

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -20,7 +21,7 @@
 
     private ElementReference _element;
     private ElementReference _content;
-    private bool _registered;
+    private ValueAtomicBool _registered;
 
     [CascadingParameter]
     private BradixSelectContent? Content { get; set; }
@@ -29,17 +30,17 @@
     {
         if (Content is null)
         {
-            _registered = false;
+            _registered.Value = false;
             return;
         }
 
         Content.RegisterViewportContent(_content);
 
-        if (_registered)
+        if (_registered.Value)
             return;
 
         await Content.RegisterViewport(_element);
-        _registered = true;
+        _registered.Value = true;
     }
 
     private Dictionary<string, object> ViewportAttributes => BuildAttributes(

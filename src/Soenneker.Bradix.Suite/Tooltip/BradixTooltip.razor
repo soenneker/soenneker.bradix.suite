@@ -19,9 +19,9 @@
     private string? _childIdCache0;
 
     private ValueAtomicBool _disposed;
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private bool _uncontrolledOpen;
-    private bool _openedWithDelay;
+    private ValueAtomicBool _openedWithDelay;
     private CancellationTokenSource? _openDelayTokenSource;
 
     [CascadingParameter]
@@ -54,7 +54,7 @@
     public string ContentId => BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache0);
 
     public string StateAttribute => CurrentOpen
-        ? (_openedWithDelay ? "delayed-open" : "instant-open")
+        ? (_openedWithDelay.Value ? "delayed-open" : "instant-open")
         : "closed";
 
     public bool EffectiveDisableHoverableContent => DisableHoverableContent ?? Provider?.DisableHoverableContent ?? false;
@@ -82,11 +82,11 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (_initialized.Value)
             return;
 
         _uncontrolledOpen = DefaultOpen;
-        _initialized = true;
+        _initialized.Value = true;
     }
 
     public ValueTask DisposeAsync()
@@ -189,7 +189,7 @@
         if (_disposed.Read() || CurrentOpen == open)
         {
             if (open)
-                _openedWithDelay = delayed;
+                _openedWithDelay.Value = delayed;
 
             return;
         }
@@ -203,7 +203,7 @@
         if (Open is null)
             _uncontrolledOpen = open;
 
-        _openedWithDelay = open && delayed;
+        _openedWithDelay.Value = open && delayed;
 
         if (open)
             await TooltipInterop.DispatchTooltipOpen(ContentId);

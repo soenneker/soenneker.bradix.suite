@@ -38,7 +38,7 @@
     private long _scrollEndYDeadline;
     private CancellationTokenSource? _hideXTokenSource;
     private CancellationTokenSource? _hideYTokenSource;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private ValueAtomicBool _disposed;
 
     [CascadingParameter(Name = "BradixDirection")]
@@ -104,7 +104,7 @@
             await ScrollAreaInterop.UnregisterScrollAreaRoot(_element);
             return;
         }
-        _registered = true;
+        _registered.Value = true;
     }
 
     public async ValueTask DisposeAsync()
@@ -118,9 +118,9 @@
         CancelToken(ref _hideYTokenSource);
         try
         {
-            if (_registered)
+            if (_registered.Value)
             {
-                _registered = false;
+                _registered.Value = false;
                 await ScrollAreaInterop.UnregisterScrollAreaRoot(_element);
             }
         }

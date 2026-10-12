@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -10,7 +11,7 @@
 </CascadingValue>
 
 @code {
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private string _uncontrolledValue = string.Empty;
     private List<string> _uncontrolledValues = [];
 
@@ -60,12 +61,12 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (_initialized.Value)
             return;
 
         _uncontrolledValue = NormalizeSingleValue(DefaultValue);
         _uncontrolledValues = BradixStringCollection.CopyValues(DefaultValues);
-        _initialized = true;
+        _initialized.Value = true;
     }
 
     internal bool IsItemPressed(string value)

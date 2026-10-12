@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -39,7 +40,7 @@
     private System.Func<BradixAutoFocusEventArgs, Task>? _cachedHandleCloseAutoFocusDelegate;
     private System.Func<BradixInteractOutsideEventArgs, Task>? _cachedHandleInteractOutsideDelegate;
 
-    private bool _hasInteractedOutside;
+    private ValueAtomicBool _hasInteractedOutside;
 
     [CascadingParameter]
     private BradixContextMenu? ContextMenu { get; set; }
@@ -141,10 +142,10 @@
         if (OnCloseAutoFocusDetailed.HasDelegate)
             await OnCloseAutoFocusDetailed.InvokeAsync(args);
 
-        if (!args.DefaultPrevented && _hasInteractedOutside && ContextMenu?.Modal == false)
+        if (!args.DefaultPrevented && _hasInteractedOutside.Value && ContextMenu?.Modal == false)
             args.PreventDefault();
 
-        _hasInteractedOutside = false;
+        _hasInteractedOutside.Value = false;
     }
 
     private async Task HandleInteractOutside(BradixInteractOutsideEventArgs args)
@@ -156,6 +157,6 @@
             await OnInteractOutsideDetailed.InvokeAsync(args);
 
         if (!args.DefaultPrevented && ContextMenu?.Modal == false)
-            _hasInteractedOutside = true;
+            _hasInteractedOutside.Value = true;
     }
 }

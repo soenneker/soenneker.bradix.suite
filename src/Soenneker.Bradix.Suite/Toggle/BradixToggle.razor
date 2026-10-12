@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -18,7 +19,7 @@
     private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
     private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
 
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private bool _uncontrolledPressed;
     private ElementReference _element;
 
@@ -64,11 +65,11 @@
 
     protected override void OnParametersSet()
     {
-        if (_initialized)
+        if (_initialized.Value)
             return;
 
         _uncontrolledPressed = DefaultPressed;
-        _initialized = true;
+        _initialized.Value = true;
     }
 
     internal ValueTask Focus()

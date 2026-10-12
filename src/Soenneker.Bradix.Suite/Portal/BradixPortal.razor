@@ -15,7 +15,7 @@
     private string? _mergedStyleCache0;
 
     private ElementReference _element;
-    private bool _mounted;
+    private ValueAtomicBool _mounted;
     private ValueAtomicBool _disposed;
     private ElementReference _lastContainer;
     private bool _lastContainerCaptured;
@@ -36,7 +36,7 @@
             return;
         bool containerChanged = !_lastContainerCaptured || !EqualityComparer<ElementReference>.Default.Equals(_lastContainer, Container);
 
-        if (_mounted && !firstRender && !containerChanged && string.Equals(_lastContainerSelector, ContainerSelector, StringComparison.Ordinal))
+        if (_mounted.Value && !firstRender && !containerChanged && string.Equals(_lastContainerSelector, ContainerSelector, StringComparison.Ordinal))
             return;
 
         await PortalInterop.MountPortal(_element, ContainerSelector, Container);
@@ -45,7 +45,7 @@
             await PortalInterop.UnmountPortal(_element);
             return;
         }
-        _mounted = true;
+        _mounted.Value = true;
         _lastContainer = Container;
         _lastContainerCaptured = true;
         _lastContainerSelector = ContainerSelector;
@@ -55,9 +55,9 @@
     {
         if (!_disposed.TrySetTrue())
             return;
-        if (_mounted)
+        if (_mounted.Value)
         {
-            _mounted = false;
+            _mounted.Value = false;
             await PortalInterop.UnmountPortal(_element);
         }
     }

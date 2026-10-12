@@ -19,8 +19,8 @@
 @code {
     private readonly List<BradixSliderThumb> _thumbs = [];
     private ValueAtomicBool _disposed;
-    private bool _initialized;
-    private bool _registered;
+    private ValueAtomicBool _initialized;
+    private ValueAtomicBool _registered;
     private readonly List<double> _valuesBeforeSlideStart = [];
     private string? _multipleInputName;
     private bool _hasStepDecimalCount;
@@ -96,11 +96,11 @@
         Step = Step <= 0 ? 1 : Step;
         MinStepsBetweenThumbs = Math.Max(0, MinStepsBetweenThumbs);
 
-        if (_initialized)
+        if (_initialized.Value)
             return;
 
         _uncontrolledValues = BradixSliderMath.NormalizeValues(DefaultValues, Min, Max);
-        _initialized = true;
+        _initialized.Value = true;
         CaptureValuesBeforeSlideStart();
     }
 
@@ -117,7 +117,7 @@
             return;
         }
 
-        _registered = true;
+        _registered.Value = true;
         await RequestRender();
     }
 
@@ -127,7 +127,7 @@
             return;
         try
         {
-            if (_registered)
+            if (_registered.Value)
                 await ControlsInterop.UnregisterSliderPointerBridge(_element);
         }
         finally

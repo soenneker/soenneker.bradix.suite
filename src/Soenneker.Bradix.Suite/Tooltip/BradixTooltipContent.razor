@@ -68,11 +68,11 @@
     };
 
     private bool _wasPresent;
-    private bool _isExiting;
+    private ValueAtomicBool _isExiting;
     private ElementReference _contentElement;
-    private bool _hasContentElement;
+    private ValueAtomicBool _hasContentElement;
     private DotNetObjectReference<BradixTooltipContent>? _dotNetReference;
-    private bool _contentRegistered;
+    private ValueAtomicBool _contentRegistered;
     private string? _accessibleLabel;
     private bool? _lastHoverableContent;
     private string? _lastTriggerId;
@@ -137,7 +137,7 @@
     public EventCallback<BradixPointerDownOutsideEventArgs> OnPointerDownOutsideDetailed { get; set; }
 
     private bool IsPresent => ForceMount || PortalForceMount || Tooltip?.CurrentOpen == true;
-    private bool ShouldRenderContainer => IsPresent || _isExiting;
+    private bool ShouldRenderContainer => IsPresent || _isExiting.Value;
     private ElementReference TooltipTriggerAnchor => Tooltip?.TriggerElement ?? default;
     private bool HasTooltipTriggerAnchor => TooltipTriggerAnchor.Context is not null;
 
@@ -167,9 +167,9 @@
         bool present = IsPresent;
 
         if (_wasPresent && !present)
-            _isExiting = true;
+            _isExiting.Value = true;
         else if (present)
-            _isExiting = false;
+            _isExiting.Value = false;
 
         _wasPresent = present;
     }
@@ -181,24 +181,24 @@
 
         if (!IsPresent || Tooltip is null)
         {
-            if (_contentRegistered)
+            if (_contentRegistered.Value)
             {
                 await TooltipInterop.UnregisterTooltipContent(_contentElement);
-                _contentRegistered = false;
+                _contentRegistered.Value = false;
             }
 
-            _hasContentElement = false;
+            _hasContentElement.Value = false;
             return;
         }
 
-        if (!_hasContentElement)
+        if (!_hasContentElement.Value)
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create(this);
 
         bool hoverableContent = !Tooltip.EffectiveDisableHoverableContent;
         string triggerId = Tooltip.TriggerElement.Id;
-        bool shouldRegister = !_contentRegistered ||
+        bool shouldRegister = !_contentRegistered.Value ||
                               _lastHoverableContent != hoverableContent ||
                               !string.Equals(_lastTriggerId, triggerId, StringComparison.Ordinal);
 
@@ -212,7 +212,7 @@
                 return;
             }
 
-            _contentRegistered = true;
+            _contentRegistered.Value = true;
             _lastHoverableContent = hoverableContent;
             _lastTriggerId = triggerId;
         }
@@ -235,7 +235,7 @@
             return;
         try
         {
-            if (_contentRegistered)
+            if (_contentRegistered.Value)
                 await TooltipInterop.UnregisterTooltipContent(_contentElement);
         }
         finally
@@ -301,13 +301,13 @@
     private Task HandleContentElementCaptured(ElementReference element)
     {
         _contentElement = element;
-        _hasContentElement = true;
+        _hasContentElement.Value = true;
         return Task.CompletedTask;
     }
 
     private Task HandleExitComplete()
     {
-        _isExiting = false;
+        _isExiting.Value = false;
         return RequestRender();
     }
 

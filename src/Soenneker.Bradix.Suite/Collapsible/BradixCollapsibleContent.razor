@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -23,11 +24,11 @@
     private System.Func<Task>? _cachedHandleExitCompleteDelegate;
 
     private ElementReference _element;
-    private bool _hasElement;
-    private bool _observing;
+    private ValueAtomicBool _hasElement;
+    private ValueAtomicBool _observing;
     private bool _wasPresent;
     private bool _shouldRenderChildren;
-    private bool _disposed;
+    private ValueAtomicBool _disposed;
     private Task _observationTask = Task.CompletedTask;
 
     [CascadingParameter]
@@ -106,34 +107,32 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (!_disposed.TrySetTrue())
             return;
-
-        _disposed = true;
         await _observationTask;
-        if (_observing)
+        if (_observing.Value)
         {
             await CollapsibleInterop.UnobserveCollapsibleContent(_element);
-            _observing = false;
+            _observing.Value = false;
         }
     }
 
     private async Task HandleElementCaptured(ElementReference element)
     {
         _element = element;
-        _hasElement = true;
-        _observing = false;
+        _hasElement.Value = true;
+        _observing.Value = false;
         await EnsureObservation();
     }
 
     private async Task HandleExitComplete()
     {
-        _hasElement = false;
+        _hasElement.Value = false;
         await _observationTask;
-        if (_observing)
+        if (_observing.Value)
         {
             await CollapsibleInterop.UnobserveCollapsibleContent(_element);
-            _observing = false;
+            _observing.Value = false;
         }
 
         _wasPresent = false;
@@ -151,10 +150,10 @@
     private async Task ObserveAfter(Task previous)
     {
         await previous;
-        if (_disposed || !_hasElement || _observing)
+        if (_disposed.Value || !_hasElement.Value || _observing.Value)
             return;
 
         await CollapsibleInterop.ObserveCollapsibleContent(_element);
-        _observing = true;
+        _observing.Value = true;
     }
 }

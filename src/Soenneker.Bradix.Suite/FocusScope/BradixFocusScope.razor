@@ -16,7 +16,7 @@
 @code {
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private bool? _lastLoop;
     private bool? _lastTrapped;
     private bool? _lastPreventMountAutoFocus;
@@ -82,7 +82,7 @@
                 return;
             }
 
-            _registered = true;
+            _registered.Value = true;
             _lastLoop = Loop;
             _lastTrapped = Trapped;
             _lastPreventMountAutoFocus = PreventMountAutoFocus;
@@ -123,7 +123,7 @@
         try
         {
             if (_disposeCts is not null) await _disposeCts.CancelAsync();
-            if (_registered && Trapped)
+            if (_registered.Value && Trapped)
                 await FocusScopeInterop.UpdateFocusScope(_element, Loop, false, PreventMountAutoFocus, PreventUnmountAutoFocus);
             if (OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate)
                 unmountAutoFocusPrevented = await HandleUnmountAutoFocusCore(new BradixAutoFocusEventArgs()) || unmountAutoFocusPrevented;
@@ -132,9 +132,9 @@
         {
             try
             {
-                if (_registered || _dotNetReference is not null)
+                if (_registered.Value || _dotNetReference is not null)
                 {
-                    _registered = false;
+                    _registered.Value = false;
                     await FocusScopeInterop.UnregisterFocusScope(_element, unmountAutoFocusPrevented);
                 }
             }

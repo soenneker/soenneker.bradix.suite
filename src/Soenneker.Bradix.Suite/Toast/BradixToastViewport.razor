@@ -39,9 +39,9 @@
     private ElementReference _headFocusProxy;
     private ElementReference _tailFocusProxy;
     private DotNetObjectReference<object>? _dotNetReference;
-    private bool _lastRegisteredHasToasts;
+    private ValueAtomicBool _lastRegisteredHasToasts;
     private string[]? _lastRegisteredHotkey;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private string _hotkeyLabel = "F8";
     private string[]? _hotkeySnapshot;
     private string? _lastLabel;
@@ -114,8 +114,8 @@
         bool hasToasts = Provider?.ToastCount > 0;
 
         if (!firstRender &&
-            _registered &&
-            _lastRegisteredHasToasts == hasToasts &&
+            _registered.Value &&
+            _lastRegisteredHasToasts.Value == hasToasts &&
             ReferenceEquals(_lastRegisteredHotkey, _hotkeySnapshot))
         {
             return;
@@ -130,8 +130,8 @@
             return;
         }
 
-        _registered = true;
-        _lastRegisteredHasToasts = hasToasts;
+        _registered.Value = true;
+        _lastRegisteredHasToasts.Value = hasToasts;
         _lastRegisteredHotkey = hotkey;
     }
 
@@ -142,7 +142,7 @@
         Provider?.UnregisterViewport();
         try
         {
-            if (_registered)
+            if (_registered.Value)
                 await ToastInterop.UnregisterToastViewport(_viewportElement);
         }
         finally

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixIdentifiableContentElement
@@ -54,8 +55,8 @@
     [CascadingParameter]
     private BradixMenu? Menu { get; set; }
 
-    private bool _hasInteractedOutside;
-    private bool _hasPointerDownOutside;
+    private ValueAtomicBool _hasInteractedOutside;
+    private ValueAtomicBool _hasPointerDownOutside;
 
     [Parameter]
     public bool ForceMount { get; set; }
@@ -169,11 +170,11 @@
         if (OnCloseAutoFocusDetailed.HasDelegate)
             await OnCloseAutoFocusDetailed.InvokeAsync(args);
 
-        if (!args.DefaultPrevented && !_hasInteractedOutside && Menu is not null)
+        if (!args.DefaultPrevented && !_hasInteractedOutside.Value && Menu is not null)
             await Menu.FocusTrigger();
 
-        _hasInteractedOutside = false;
-        _hasPointerDownOutside = false;
+        _hasInteractedOutside.Value = false;
+        _hasPointerDownOutside.Value = false;
         args.PreventDefault();
     }
 
@@ -196,12 +197,12 @@
 
         if (!args.DefaultPrevented && (DropdownMenu?.Modal == false || IsRightClick(args.PointerDownOutsideEvent)))
         {
-            _hasInteractedOutside = true;
+            _hasInteractedOutside.Value = true;
             if (args.OriginalEventType == "pointerdown")
-                _hasPointerDownOutside = true;
+                _hasPointerDownOutside.Value = true;
         }
 
-        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside)
+        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside.Value)
             args.PreventDefault();
     }
 

@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -22,7 +23,7 @@
     private System.Func<Task>? _cachedHandleExitCompleteDelegate;
 
     private bool _wasPresent;
-    private bool _isExiting;
+    private ValueAtomicBool _isExiting;
 
     [CascadingParameter]
     private BradixDialog? Dialog { get; set; }
@@ -35,7 +36,7 @@
 
     private bool IsPresent => Dialog?.CurrentOpen == true || ForceMount || PortalForceMount;
 
-    private bool ShouldRenderOverlay => Dialog?.Modal == true && (IsPresent || _isExiting);
+    private bool ShouldRenderOverlay => Dialog?.Modal == true && (IsPresent || _isExiting.Value);
 
     private string? OverlayStyle => BradixStringCache.MergeStyle("pointer-events:auto;", Style, ref _mergedStyleCache0);
 
@@ -55,16 +56,16 @@
         bool present = IsPresent;
 
         if (_wasPresent && !present)
-            _isExiting = true;
+            _isExiting.Value = true;
         else if (present)
-            _isExiting = false;
+            _isExiting.Value = false;
 
         _wasPresent = present;
     }
 
     private Task HandleExitComplete()
     {
-        _isExiting = false;
+        _isExiting.Value = false;
         return RequestRender();
     }
 }

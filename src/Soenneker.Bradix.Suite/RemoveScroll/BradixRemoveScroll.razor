@@ -11,7 +11,7 @@
 @code {
     private readonly string _registrationId = BlazorIdGenerator.New("bradix-remove-scroll");
     private ValueAtomicBool _disposed;
-    private bool _registered;
+    private ValueAtomicBool _registered;
 
     [Parameter]
     public bool AllowPinchZoom { get; set; }
@@ -22,7 +22,7 @@
             return;
 
         await PresenceOverlayInterop.RegisterRemoveScroll(_registrationId, AllowPinchZoom);
-        _registered = true;
+        _registered.Value = true;
 
         if (_disposed.Read())
             await Unregister();
@@ -37,10 +37,10 @@
 
     private async ValueTask Unregister()
     {
-        if (!_registered)
+        if (!_registered.Value)
             return;
 
         await PresenceOverlayInterop.UnregisterRemoveScroll(_registrationId);
-        _registered = false;
+        _registered.Value = false;
     }
 }

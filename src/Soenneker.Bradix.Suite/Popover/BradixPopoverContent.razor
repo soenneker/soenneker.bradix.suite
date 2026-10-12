@@ -35,10 +35,10 @@
     private bool _wasPresent;
     private ValueAtomicBool _disposed;
     private RenderFragment? _contentTree;
-    private bool _isExiting;
-    private bool _hasInteractedOutside;
-    private bool _hasPointerDownOutside;
-    private bool _hideOthersRegistered;
+    private ValueAtomicBool _isExiting;
+    private ValueAtomicBool _hasInteractedOutside;
+    private ValueAtomicBool _hasPointerDownOutside;
+    private ValueAtomicBool _hideOthersRegistered;
     private bool _isRightClickOutside;
     private ElementReference _contentElement;
     private string? _placedSide;
@@ -139,7 +139,7 @@
 
     private bool IsPresent => ForceMount || PortalForceMount || Popover?.CurrentOpen == true;
 
-    private bool ShouldRenderContainer => IsPresent || _isExiting;
+    private bool ShouldRenderContainer => IsPresent || _isExiting.Value;
 
     private bool ShouldTrapFocus => Popover?.Modal == true && Popover.CurrentOpen;
 
@@ -190,9 +190,9 @@
         bool present = IsPresent;
 
         if (_wasPresent && !present)
-            _isExiting = true;
+            _isExiting.Value = true;
         else if (present)
-            _isExiting = false;
+            _isExiting.Value = false;
 
         _wasPresent = present;
     }
@@ -200,9 +200,9 @@
     {
         if (!_disposed.TrySetTrue())
             return;
-        if (_hideOthersRegistered)
+        if (_hideOthersRegistered.Value)
         {
-            _hideOthersRegistered = false;
+            _hideOthersRegistered.Value = false;
             await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
         }
     }
@@ -236,15 +236,15 @@
         }
         else if (!args.DefaultPrevented)
         {
-            if (Popover is not null && !_hasInteractedOutside)
+            if (Popover is not null && !_hasInteractedOutside.Value)
                 await Popover.FocusTrigger();
 
             args.PreventDefault();
         }
 
 ResetState:
-        _hasInteractedOutside = false;
-        _hasPointerDownOutside = false;
+        _hasInteractedOutside.Value = false;
+        _hasPointerDownOutside.Value = false;
         _isRightClickOutside = false;
     }
 
@@ -303,13 +303,13 @@ ResetState:
 
         if (!args.DefaultPrevented)
         {
-            _hasInteractedOutside = true;
+            _hasInteractedOutside.Value = true;
 
             if (args.OriginalEventType == "pointerdown")
-                _hasPointerDownOutside = true;
+                _hasPointerDownOutside.Value = true;
         }
 
-        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside)
+        if (args.OriginalEventType == "focusin" && _hasPointerDownOutside.Value)
             args.PreventDefault();
     }
 
@@ -333,7 +333,7 @@ ResetState:
 
     private Task HandleExitComplete()
     {
-        _isExiting = false;
+        _isExiting.Value = false;
         return CleanupAfterExit();
     }
 
@@ -389,7 +389,7 @@ ResetState:
             return;
         _contentElement = element;
 
-        if (Popover?.Modal == true && !_hideOthersRegistered)
+        if (Popover?.Modal == true && !_hideOthersRegistered.Value)
         {
             await PresenceOverlayInterop.RegisterHideOthers(element);
             if (_disposed.Read() || !element.Equals(_contentElement))
@@ -397,17 +397,17 @@ ResetState:
                 await PresenceOverlayInterop.UnregisterHideOthers(element);
                 return;
             }
-            _hideOthersRegistered = true;
+            _hideOthersRegistered.Value = true;
         }
     }
 
     private async Task CleanupAfterExit()
     {
-        _isExiting = false;
+        _isExiting.Value = false;
 
-        if (_hideOthersRegistered)
+        if (_hideOthersRegistered.Value)
         {
-            _hideOthersRegistered = false;
+            _hideOthersRegistered.Value = false;
             await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
         }
 

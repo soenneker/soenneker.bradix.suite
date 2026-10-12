@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using Soenneker.Blazor.Utils.Ids
@@ -22,9 +23,9 @@
     private readonly BradixCollectionRegistry<IBradixMenuRovingItem> _items = new();
     private readonly BradixTypeaheadBuffer _typeahead = new();
     private BradixPopper? _popper;
-    private bool _initialized;
-    private bool _focusFirstItemOnOpen;
-    private bool _focusContentOnOpen = true;
+    private ValueAtomicBool _initialized;
+    private ValueAtomicBool _focusFirstItemOnOpen;
+    private ValueAtomicBool _focusContentOnOpen = new(true);
     private bool? _lastControlledOpen;
     private bool _uncontrolledOpen;
     private Func<Task>? _focusFirstItemCallback;
@@ -82,10 +83,10 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!_initialized)
+        if (!_initialized.Value)
         {
             _uncontrolledOpen = DefaultOpen;
-            _initialized = true;
+            _initialized.Value = true;
         }
 
         if (!Open.HasValue)
@@ -99,14 +100,14 @@
         if (_lastControlledOpen == controlledOpen)
             return;
 
-        if (controlledOpen && !_focusFirstItemOnOpen && _focusContentOnOpen)
-            _focusFirstItemOnOpen = await KeyboardModeInterop.IsKeyboardInteractionMode();
+        if (controlledOpen && !_focusFirstItemOnOpen.Value && _focusContentOnOpen.Value)
+            _focusFirstItemOnOpen.Value = await KeyboardModeInterop.IsKeyboardInteractionMode();
 
         if (!controlledOpen)
         {
             ResetTypeahead();
-            _focusFirstItemOnOpen = false;
-            _focusContentOnOpen = true;
+            _focusFirstItemOnOpen.Value = false;
+            _focusContentOnOpen.Value = true;
         }
 
         _lastControlledOpen = controlledOpen;
@@ -131,7 +132,7 @@
         _items.Register(item.TabStopId, item);
         EnsureCurrentTabStopId();
 
-        if (CurrentOpen && _focusFirstItemOnOpen)
+        if (CurrentOpen && _focusFirstItemOnOpen.Value)
             _ = InvokeAsync(_focusFirstItemCallback ??= FocusFirstItem);
     }
 
@@ -194,25 +195,25 @@
 
     public void SetFocusFirstItemOnOpen(bool value)
     {
-        _focusFirstItemOnOpen = value;
+        _focusFirstItemOnOpen.Value = value;
     }
 
     public void SetFocusContentOnOpen(bool value)
     {
-        _focusContentOnOpen = value;
+        _focusContentOnOpen.Value = value;
     }
 
     internal bool ConsumeFocusFirstItemOnOpen()
     {
-        bool shouldFocusFirstItemOnOpen = _focusFirstItemOnOpen;
-        _focusFirstItemOnOpen = false;
+        bool shouldFocusFirstItemOnOpen = _focusFirstItemOnOpen.Value;
+        _focusFirstItemOnOpen.Value = false;
         return shouldFocusFirstItemOnOpen;
     }
 
     internal bool ConsumeFocusContentOnOpen()
     {
-        bool shouldFocusContentOnOpen = _focusContentOnOpen;
-        _focusContentOnOpen = true;
+        bool shouldFocusContentOnOpen = _focusContentOnOpen.Value;
+        _focusContentOnOpen.Value = true;
         return shouldFocusContentOnOpen;
     }
 
@@ -221,12 +222,12 @@
         IBradixMenuRovingItem? first = GetFirstEnabledItem();
         if (first is null)
         {
-            _focusFirstItemOnOpen = true;
+            _focusFirstItemOnOpen.Value = true;
             return;
         }
 
         CurrentTabStopId = first.TabStopId;
-        _focusFirstItemOnOpen = false;
+        _focusFirstItemOnOpen.Value = false;
         await FocusItem(first);
     }
 
@@ -237,7 +238,7 @@
             return;
 
         CurrentTabStopId = last.TabStopId;
-        _focusFirstItemOnOpen = false;
+        _focusFirstItemOnOpen.Value = false;
         await FocusItem(last);
     }
 
@@ -320,8 +321,8 @@
         if (CurrentOpen == open)
             return;
 
-        if (open && !_focusFirstItemOnOpen && _focusContentOnOpen)
-            _focusFirstItemOnOpen = await KeyboardModeInterop.IsKeyboardInteractionMode();
+        if (open && !_focusFirstItemOnOpen.Value && _focusContentOnOpen.Value)
+            _focusFirstItemOnOpen.Value = await KeyboardModeInterop.IsKeyboardInteractionMode();
 
         if (Open is null)
             _uncontrolledOpen = open;
@@ -329,8 +330,8 @@
         if (!open)
         {
             ResetTypeahead();
-            _focusFirstItemOnOpen = false;
-            _focusContentOnOpen = true;
+            _focusFirstItemOnOpen.Value = false;
+            _focusContentOnOpen.Value = true;
         }
 
         if (OpenChanged.HasDelegate)

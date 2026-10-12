@@ -32,7 +32,7 @@
     private readonly Dictionary<string, ElementReference> _controlsByField = new(StringComparer.Ordinal);
     private Dictionary<string, string>? _fieldDescriptions;
     private ElementReference _formElement;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private ValueAtomicBool _disposed;
     private long _nextValidationVersion;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -63,7 +63,7 @@
             await FormInterop.UnregisterFormRoot(_formElement);
             return;
         }
-        _registered = true;
+        _registered.Value = true;
     }
 
     public async ValueTask DisposeAsync()
@@ -72,9 +72,9 @@
             return;
         try
         {
-            if (_registered)
+            if (_registered.Value)
             {
-                _registered = false;
+                _registered.Value = false;
                 await FormInterop.UnregisterFormRoot(_formElement);
             }
         }

@@ -39,8 +39,8 @@
 
     private ElementReference _contentElement;
     private ElementReference _exitProxyElement;
-    private bool _contentCaptured;
-    private bool _focusBridgeRegistered;
+    private ValueAtomicBool _contentCaptured;
+    private ValueAtomicBool _focusBridgeRegistered;
     private ValueAtomicBool _disposed;
 
     [CascadingParameter]
@@ -98,10 +98,10 @@
     {
         if (_disposed.Read())
             return;
-        if (!_contentCaptured)
+        if (!_contentCaptured.Value)
         {
             NavigationMenu?.RegisterContent(Registration.Value, _contentElement);
-            _contentCaptured = true;
+            _contentCaptured.Value = true;
         }
 
         if (OnContentElementCaptured.HasDelegate)
@@ -113,7 +113,7 @@
             NavigationMenu.TryGetFocusProxy(Registration.Value, out ElementReference startProxy) &&
             NavigationMenu.TryGetTrigger(Registration.Value, out IBradixNavigationMenuRegisteredTrigger trigger))
         {
-            if (_focusBridgeRegistered)
+            if (_focusBridgeRegistered.Value)
             {
                 await NavigationMenuInterop.UpdateNavigationMenuContentFocusBridge(_contentElement, trigger.TriggerElement, startProxy, _exitProxyElement);
             }
@@ -125,7 +125,7 @@
                     await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
                     return;
                 }
-                _focusBridgeRegistered = true;
+                _focusBridgeRegistered.Value = true;
             }
         }
     }
@@ -135,9 +135,9 @@
         if (!_disposed.TrySetTrue())
             return;
         NavigationMenu?.UnregisterContent(Registration.Value);
-        if (_focusBridgeRegistered)
+        if (_focusBridgeRegistered.Value)
         {
-            _focusBridgeRegistered = false;
+            _focusBridgeRegistered.Value = false;
             await NavigationMenuInterop.UnregisterNavigationMenuContentFocusBridge(_contentElement);
         }
     }

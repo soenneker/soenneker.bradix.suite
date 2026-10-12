@@ -42,17 +42,17 @@
     private static readonly string[] PreventDefaultKeys = ["ArrowLeft", "ArrowRight", "Enter", " ", "Spacebar"];
 
     private ElementReference _element;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private bool _isFocused;
-    private bool _pointerGraceActive;
+    private ValueAtomicBool _pointerGraceActive;
     private ValueAtomicBool _disposed;
     private string? _resolvedTextValue;
     private CancellationTokenSource? _openPointerMoveCts;
     private DotNetObjectReference<object>? _dotNetReference;
-    private bool _delegatedInteractionRegistered;
+    private ValueAtomicBool _delegatedInteractionRegistered;
     private Task? _initializationTask;
-    private bool _rovingFocusRegistered;
-    private bool _rovingFocusBridgeReady;
+    private ValueAtomicBool _rovingFocusRegistered;
+    private ValueAtomicBool _rovingFocusBridgeReady;
 
     [CascadingParameter]
     internal BradixMenu SubMenu { get; set; } = null!;
@@ -114,7 +114,7 @@
             SubMenu.RegisterAnchor(_element);
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             _initializationTask = InitializeTriggerInterop();
-            _registered = true;
+            _registered.Value = true;
         }
         else if (TextValue is null)
             _ = ResolveTextValue();
@@ -130,9 +130,9 @@
         CancelOpenPointerMove();
         ClearPointerGraceState();
 
-        if (_registered)
+        if (_registered.Value)
         {
-            _registered = false;
+            _registered.Value = false;
             ParentMenu.UnregisterItem(this);
         }
         try
@@ -144,7 +144,7 @@
         {
             try
             {
-                if (_delegatedInteractionRegistered)
+                if (_delegatedInteractionRegistered.Value)
                     await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_element);
             }
             finally
@@ -157,7 +157,7 @@
                 {
                     try
                     {
-                        if (_rovingFocusRegistered)
+                        if (_rovingFocusRegistered.Value)
                             await RovingFocusInterop.UnregisterRovingFocusNavigationKeys(_element);
                     }
                     finally
@@ -178,7 +178,7 @@
                 return;
 
             await RovingFocusInterop.RegisterRovingFocusNavigationKeys(_element, _dotNetReference);
-            _rovingFocusRegistered = true;
+            _rovingFocusRegistered.Value = true;
             if (_disposed.Read())
                 return;
 
@@ -190,7 +190,7 @@
                     PreventDefaultKeys = PreventDefaultKeys
                 }
             });
-            _delegatedInteractionRegistered = true;
+            _delegatedInteractionRegistered.Value = true;
 
             if (TextValue is null)
                 await ResolveTextValue();
@@ -276,7 +276,7 @@
             return;
         }
 
-        if (_rovingFocusBridgeReady && args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
+        if (_rovingFocusBridgeReady.Value && args.Key is "ArrowUp" or "ArrowDown" or "Home" or "End" or "PageUp" or "PageDown")
             return;
 
         if (args.Key.Length == 1)
@@ -295,7 +295,7 @@
 
         if (Disabled)
         {
-            if (!_pointerGraceActive)
+            if (!_pointerGraceActive.Value)
                 await ParentContent.HandleItemLeave();
             return;
         }
@@ -348,14 +348,14 @@
     [JSInvokable]
     public Task HandleRovingFocusBridgeReady()
     {
-        _rovingFocusBridgeReady = true;
+        _rovingFocusBridgeReady.Value = true;
         return Task.CompletedTask;
     }
 
     [JSInvokable]
     public Task HandlePointerGraceChanged(bool active)
     {
-        _pointerGraceActive = active;
+        _pointerGraceActive.Value = active;
         ParentContent.SetSubmenuPointerGrace(TabStopId, active);
         return Task.CompletedTask;
     }
@@ -365,7 +365,7 @@
         if (!SubMenu.CurrentOpen || !SubMenu.HasContentElement || _dotNetReference is null)
             return false;
 
-        _pointerGraceActive = true;
+        _pointerGraceActive.Value = true;
         ParentContent.SetSubmenuPointerGrace(TabStopId, true);
 
         bool started;
@@ -388,7 +388,7 @@
 
     private async Task CancelPointerGrace()
     {
-        if (!_pointerGraceActive)
+        if (!_pointerGraceActive.Value)
             return;
 
         await MenuInterop.CancelMenuSubmenuPointerGrace(_element);
@@ -397,7 +397,7 @@
 
     private void ClearPointerGraceState()
     {
-        _pointerGraceActive = false;
+        _pointerGraceActive.Value = false;
         ParentContent.SetSubmenuPointerGrace(TabStopId, false);
     }
 

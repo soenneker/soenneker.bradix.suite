@@ -112,20 +112,20 @@ else
 
     private ValueAtomicBool _disposed;
     private bool _wasPresent;
-    private bool _isExiting;
-    private bool _didFocusOpenItem;
-    private bool _pendingOpenAutoFocus;
-    private bool _hasContentElement;
-    private bool _hasViewportElement;
-    private bool _itemAlignedRegistered;
-    private bool _openLayoutPassQueued;
+    private ValueAtomicBool _isExiting;
+    private ValueAtomicBool _didFocusOpenItem;
+    private ValueAtomicBool _pendingOpenAutoFocus;
+    private ValueAtomicBool _hasContentElement;
+    private ValueAtomicBool _hasViewportElement;
+    private ValueAtomicBool _itemAlignedRegistered;
+    private ValueAtomicBool _openLayoutPassQueued;
     private Func<Task>? _openLayoutPassCallback;
-    private bool _viewportRegistered;
-    private bool _shouldRepositionOnScrollButton = true;
-    private bool _pointerTrackerRegistered;
-    private bool _keyboardRegistered;
-    private bool _windowDismissRegistered;
-    private bool _hideOthersRegistered;
+    private ValueAtomicBool _viewportRegistered;
+    private ValueAtomicBool _shouldRepositionOnScrollButton = new(true);
+    private ValueAtomicBool _pointerTrackerRegistered;
+    private ValueAtomicBool _keyboardRegistered;
+    private ValueAtomicBool _windowDismissRegistered;
+    private ValueAtomicBool _hideOthersRegistered;
     private double _viewportScrollTop;
     private double _viewportScrollHeight;
     private double _viewportHeight;
@@ -204,12 +204,12 @@ else
     [Parameter]
     public EventCallback OnPlaced { get; set; }
 
-    internal bool CanScrollUp => _viewportRegistered && _viewportScrollTop > 0;
+    internal bool CanScrollUp => _viewportRegistered.Value && _viewportScrollTop > 0;
 
-    internal bool CanScrollDown => _viewportRegistered && Math.Ceiling(_viewportScrollTop) < Math.Max(_viewportScrollHeight - _viewportHeight, 0);
+    internal bool CanScrollDown => _viewportRegistered.Value && Math.Ceiling(_viewportScrollTop) < Math.Max(_viewportScrollHeight - _viewportHeight, 0);
 
     private bool IsPresent => Select?.CurrentOpen == true || ForceMount;
-    private bool ShouldRenderContainer => Select is not null && (IsPresent || _isExiting);
+    private bool ShouldRenderContainer => Select is not null && (IsPresent || _isExiting.Value);
     private bool UseItemAlignedPosition => Position != SelectPosition.Popper;
 
     private bool ShouldDisableOutsidePointerEvents => Select?.CurrentOpen == true;
@@ -246,7 +246,7 @@ else
             if (UseItemAlignedPosition)
                 await UpdateItemAlignedPosition();
 
-            if (_pendingOpenAutoFocus)
+            if (_pendingOpenAutoFocus.Value)
                 await ApplyOpenAutoFocus();
 
             await EnsurePointerTracker();
@@ -256,52 +256,52 @@ else
         }
         else
         {
-            _didFocusOpenItem = false;
-            _pendingOpenAutoFocus = false;
-            _openLayoutPassQueued = false;
-            _shouldRepositionOnScrollButton = true;
+            _didFocusOpenItem.Value = false;
+            _pendingOpenAutoFocus.Value = false;
+            _openLayoutPassQueued.Value = false;
+            _shouldRepositionOnScrollButton.Value = true;
             _lastItemAlignedPositionValue = null;
 
             StopAutoScroll();
 
-            if (_itemAlignedRegistered)
+            if (_itemAlignedRegistered.Value)
             {
                 await SelectInterop.UnregisterSelectItemAlignedPosition(_wrapperElement);
-                _itemAlignedRegistered = false;
+                _itemAlignedRegistered.Value = false;
             }
 
-            if (_viewportRegistered)
+            if (_viewportRegistered.Value)
             {
                 await SelectInterop.UnregisterSelectViewport(_viewportElement);
-                _viewportRegistered = false;
+                _viewportRegistered.Value = false;
             }
 
-            if (_pointerTrackerRegistered)
+            if (_pointerTrackerRegistered.Value)
             {
                 await SelectInterop.UnregisterSelectContentPointerTracker(_contentElement);
-                _pointerTrackerRegistered = false;
+                _pointerTrackerRegistered.Value = false;
             }
 
-            if (_keyboardRegistered)
+            if (_keyboardRegistered.Value)
             {
                 await SelectInterop.UnregisterSelectContentKeyboard(_contentElement);
-                _keyboardRegistered = false;
+                _keyboardRegistered.Value = false;
             }
 
-            if (_windowDismissRegistered)
+            if (_windowDismissRegistered.Value)
             {
                 await SelectInterop.UnregisterSelectWindowDismiss(_contentElement);
-                _windowDismissRegistered = false;
+                _windowDismissRegistered.Value = false;
             }
 
-            if (_hideOthersRegistered)
+            if (_hideOthersRegistered.Value)
             {
                 await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
-                _hideOthersRegistered = false;
+                _hideOthersRegistered.Value = false;
             }
 
-            _hasContentElement = false;
-            _hasViewportElement = false;
+            _hasContentElement.Value = false;
+            _hasViewportElement.Value = false;
             _contentElement = default;
             _viewportElement = default;
             _wrapperElement = default;
@@ -316,9 +316,9 @@ else
         StopAutoScroll();
         try
         {
-            if (_itemAlignedRegistered)
+            if (_itemAlignedRegistered.Value)
             {
-                _itemAlignedRegistered = false;
+                _itemAlignedRegistered.Value = false;
                 await SelectInterop.UnregisterSelectItemAlignedPosition(_wrapperElement);
             }
         }
@@ -326,9 +326,9 @@ else
         {
             try
             {
-                if (_viewportRegistered)
+                if (_viewportRegistered.Value)
                 {
-                    _viewportRegistered = false;
+                    _viewportRegistered.Value = false;
                     await SelectInterop.UnregisterSelectViewport(_viewportElement);
                 }
             }
@@ -336,9 +336,9 @@ else
             {
                 try
                 {
-                    if (_pointerTrackerRegistered)
+                    if (_pointerTrackerRegistered.Value)
                     {
-                        _pointerTrackerRegistered = false;
+                        _pointerTrackerRegistered.Value = false;
                         await SelectInterop.UnregisterSelectContentPointerTracker(_contentElement);
                     }
                 }
@@ -346,9 +346,9 @@ else
                 {
                     try
                     {
-                        if (_keyboardRegistered)
+                        if (_keyboardRegistered.Value)
                         {
-                            _keyboardRegistered = false;
+                            _keyboardRegistered.Value = false;
                             await SelectInterop.UnregisterSelectContentKeyboard(_contentElement);
                         }
                     }
@@ -356,9 +356,9 @@ else
                     {
                         try
                         {
-                            if (_windowDismissRegistered)
+                            if (_windowDismissRegistered.Value)
                             {
-                                _windowDismissRegistered = false;
+                                _windowDismissRegistered.Value = false;
                                 await SelectInterop.UnregisterSelectWindowDismiss(_contentElement);
                             }
                         }
@@ -366,9 +366,9 @@ else
                         {
                             try
                             {
-                                if (_hideOthersRegistered)
+                                if (_hideOthersRegistered.Value)
                                 {
-                                    _hideOthersRegistered = false;
+                                    _hideOthersRegistered.Value = false;
                                     await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
                                 }
                             }
@@ -390,7 +390,7 @@ else
             return;
 
         _viewportElement = element;
-        _hasViewportElement = true;
+        _hasViewportElement.Value = true;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         ElementReference registeredElement = _viewportElement;
@@ -401,7 +401,7 @@ else
             return;
         }
 
-        _viewportRegistered = true;
+        _viewportRegistered.Value = true;
 
         await CompleteOpenLayoutPass();
     }
@@ -418,16 +418,15 @@ else
 
     internal void QueueOpenLayoutPass()
     {
-        if (_disposed.Read() || !UseItemAlignedPosition || Select?.CurrentOpen != true || _openLayoutPassQueued)
+        if (_disposed.Read() || !UseItemAlignedPosition || Select?.CurrentOpen != true || !_openLayoutPassQueued.TrySetTrue())
             return;
 
-        _openLayoutPassQueued = true;
         _ = InvokeAsync(_openLayoutPassCallback ??= RunQueuedOpenLayoutPass);
     }
 
     internal async Task FocusContent()
     {
-        if (!_hasContentElement)
+        if (!_hasContentElement.Value)
             return;
 
         Select?.SetFocusedItem(null);
@@ -458,10 +457,10 @@ else
 
     internal async Task HandleScrollButtonMounted()
     {
-        if (!UseItemAlignedPosition || !_shouldRepositionOnScrollButton)
+        if (!UseItemAlignedPosition || !_shouldRepositionOnScrollButton.Value)
             return;
 
-        _shouldRepositionOnScrollButton = false;
+        _shouldRepositionOnScrollButton.Value = false;
         await UpdateItemAlignedPosition(force: true);
         await FocusViewport();
     }
@@ -495,7 +494,7 @@ else
         if (shouldClose && Select is not null)
             await Select.SetOpen(false);
 
-        _pointerTrackerRegistered = false;
+        _pointerTrackerRegistered.Value = false;
     }
 
     protected override void OnParametersSet()
@@ -503,9 +502,9 @@ else
         bool present = IsPresent;
 
         if (_wasPresent && !present)
-            _isExiting = true;
+            _isExiting.Value = true;
         else if (present)
-            _isExiting = false;
+            _isExiting.Value = false;
 
         _wasPresent = present;
     }
@@ -536,7 +535,7 @@ else
             return Task.CompletedTask;
 
         _contentElement = element;
-        _hasContentElement = true;
+        _hasContentElement.Value = true;
         return HandleContentElementCapturedInternal();
     }
 
@@ -573,10 +572,10 @@ else
 
     private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
     {
-        if (_didFocusOpenItem || Select is null || args.DefaultPrevented)
+        if (_didFocusOpenItem.Value || Select is null || args.DefaultPrevented)
             return;
 
-        _pendingOpenAutoFocus = true;
+        _pendingOpenAutoFocus.Value = true;
         await ApplyOpenAutoFocus();
     }
 
@@ -602,7 +601,7 @@ else
 
     private Task HandleExitComplete()
     {
-        _isExiting = false;
+        _isExiting.Value = false;
         return RequestRender();
     }
 
@@ -654,7 +653,7 @@ else
         if (_disposed.Read())
             return;
 
-        if (Select is null || !UseItemAlignedPosition || !_hasContentElement || !_hasViewportElement || !Select.HasTrigger || !Select.HasValueNode)
+        if (Select is null || !UseItemAlignedPosition || !_hasContentElement.Value || !_hasViewportElement.Value || !Select.HasTrigger || !Select.HasValueNode)
             return;
 
         IBradixSelectCollectionItem? selectedItem = Select.GetSelectedOrFirstEnabledItem();
@@ -662,10 +661,10 @@ else
         if (selectedItem is null || !selectedItem.HasItemTextElement)
             return;
 
-        if (_itemAlignedRegistered && !force && string.Equals(_lastItemAlignedPositionValue, selectedItem.Value, StringComparison.Ordinal))
+        if (_itemAlignedRegistered.Value && !force && string.Equals(_lastItemAlignedPositionValue, selectedItem.Value, StringComparison.Ordinal))
             return;
 
-        if (_itemAlignedRegistered)
+        if (_itemAlignedRegistered.Value)
         {
             await SelectInterop.UpdateSelectItemAlignedPosition(_wrapperElement, _contentElement, _viewportElement, Select.TriggerElement, Select.ValueNodeElement,
                 selectedItem.ItemElement, selectedItem.ItemTextElement, Select.ResolvedDirection);
@@ -681,7 +680,7 @@ else
                 return;
             }
 
-            _itemAlignedRegistered = true;
+            _itemAlignedRegistered.Value = true;
 
             if (OnPlaced.HasDelegate)
                 await OnPlaced.InvokeAsync();
@@ -717,7 +716,7 @@ else
         if (_disposed.Read())
             return;
 
-        if (Select is null || !_hasContentElement || _pointerTrackerRegistered || !Select.HasTriggerPointerDownPosition)
+        if (Select is null || !_hasContentElement.Value || _pointerTrackerRegistered.Value || !Select.HasTriggerPointerDownPosition)
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
@@ -729,7 +728,7 @@ else
             return;
         }
 
-        _pointerTrackerRegistered = true;
+        _pointerTrackerRegistered.Value = true;
     }
 
     private async Task EnsureKeyboard()
@@ -737,7 +736,7 @@ else
         if (_disposed.Read())
             return;
 
-        if (!_hasContentElement || _keyboardRegistered)
+        if (!_hasContentElement.Value || _keyboardRegistered.Value)
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
@@ -749,7 +748,7 @@ else
             return;
         }
 
-        _keyboardRegistered = true;
+        _keyboardRegistered.Value = true;
     }
 
     private async Task EnsureWindowDismiss()
@@ -757,7 +756,7 @@ else
         if (_disposed.Read())
             return;
 
-        if (!_hasContentElement || _windowDismissRegistered)
+        if (!_hasContentElement.Value || _windowDismissRegistered.Value)
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
@@ -769,7 +768,7 @@ else
             return;
         }
 
-        _windowDismissRegistered = true;
+        _windowDismissRegistered.Value = true;
     }
 
     private async Task EnsureHideOthers()
@@ -777,7 +776,7 @@ else
         if (_disposed.Read())
             return;
 
-        if (!_hasContentElement || _hideOthersRegistered)
+        if (!_hasContentElement.Value || _hideOthersRegistered.Value)
             return;
 
         ElementReference registeredElement = _contentElement;
@@ -788,7 +787,7 @@ else
             return;
         }
 
-        _hideOthersRegistered = true;
+        _hideOthersRegistered.Value = true;
     }
 
     private async Task HandleContentElementCapturedInternal()
@@ -809,14 +808,14 @@ else
         if (UseItemAlignedPosition)
             await UpdateItemAlignedPosition(force: true);
 
-        if (!_didFocusOpenItem)
+        if (!_didFocusOpenItem.Value)
             await ApplyOpenAutoFocus();
     }
 
     private async Task RunQueuedOpenLayoutPass()
     {
         await Task.Yield();
-        _openLayoutPassQueued = false;
+        _openLayoutPassQueued.Value = false;
         await CompleteOpenLayoutPass();
     }
 
@@ -825,14 +824,14 @@ else
         if (_disposed.Read())
             return;
 
-        if (_didFocusOpenItem || !_hasContentElement || Select is null)
+        if (_didFocusOpenItem.Value || !_hasContentElement.Value || Select is null)
             return;
 
         if (Select.GetSelectedOrFirstEnabledItem() is null)
             return;
 
-        _pendingOpenAutoFocus = false;
-        _didFocusOpenItem = true;
+        _pendingOpenAutoFocus.Value = false;
+        _didFocusOpenItem.Value = true;
         await Select.FocusSelectedOrFirstItem();
     }
 

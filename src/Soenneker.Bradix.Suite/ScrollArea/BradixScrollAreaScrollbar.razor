@@ -31,9 +31,9 @@
     private ElementReference _thumb;
     private bool _hasThumb;
     private DotNetObjectReference<object>? _dotNetReference;
-    private bool _registered;
+    private ValueAtomicBool _registered;
     private ValueAtomicBool _disposed;
-    private bool _registrationDirty = true;
+    private ValueAtomicBool _registrationDirty = new(true);
     private string? _contextOrientation;
     private string? _registeredOrientation;
     private string? _registeredDirection;
@@ -58,7 +58,7 @@
         if (!string.Equals(_registeredOrientation, Orientation.Value, StringComparison.Ordinal) ||
             !string.Equals(_registeredDirection, ScrollArea.ResolvedDirection, StringComparison.Ordinal))
         {
-            _registrationDirty = true;
+            _registrationDirty.Value = true;
         }
     }
 
@@ -71,16 +71,16 @@
 
         if (!shouldRender || !ScrollArea.HasViewport)
         {
-            if (_registered)
+            if (_registered.Value)
             {
                 await ScrollAreaInterop.UnregisterScrollAreaScrollbar(_scrollbar);
-                _registered = false;
+                _registered.Value = false;
             }
 
             return;
         }
 
-        if (_registered && !_registrationDirty)
+        if (_registered.Value && !_registrationDirty.Value)
             return;
 
         if (_dotNetReference is null)
@@ -92,8 +92,8 @@
             await ScrollAreaInterop.UnregisterScrollAreaScrollbar(_scrollbar);
             return;
         }
-        _registered = true;
-        _registrationDirty = false;
+        _registered.Value = true;
+        _registrationDirty.Value = false;
         _registeredOrientation = orientation;
         _registeredDirection = ScrollArea.ResolvedDirection;
     }
@@ -107,9 +107,9 @@
 
         try
         {
-            if (_registered)
+            if (_registered.Value)
             {
-                _registered = false;
+                _registered.Value = false;
                 await ScrollAreaInterop.UnregisterScrollAreaScrollbar(_scrollbar);
             }
         }
@@ -127,7 +127,7 @@
 
         _thumb = thumb;
         _hasThumb = true;
-        _registrationDirty = true;
+        _registrationDirty.Value = true;
         _ = RequestRender();
     }
 

@@ -46,7 +46,7 @@
     private readonly HashSet<string> _escapeClosedValues = new(StringComparer.Ordinal);
     private ElementReference _rootElement;
     private ElementReference _indicatorTrackElement;
-    private bool _initialized;
+    private ValueAtomicBool _initialized;
     private ValueAtomicBool _disposed;
     private bool _hasViewport;
     private bool _hasIndicatorTrack;
@@ -57,8 +57,8 @@
     private CancellationTokenSource? _openDelayTokenSource;
     private CancellationTokenSource? _closeDelayTokenSource;
     private CancellationTokenSource? _skipDelayTokenSource;
-    private bool _isOpenDelayed = true;
-    private bool _pointerOverTrigger;
+    private ValueAtomicBool _isOpenDelayed = new(true);
+    private ValueAtomicBool _pointerOverTrigger;
 
     [CascadingParameter(Name = "BradixDirection")]
     private string? CascadedDirection { get; set; }
@@ -133,11 +133,11 @@
 
     protected override void OnParametersSet()
     {
-        if (!_initialized)
+        if (!_initialized.Value)
         {
             _uncontrolledValue = DefaultValue;
             _lastObservedValue = CurrentValue;
-            _initialized = true;
+            _initialized.Value = true;
         }
 
         if (!string.Equals(_lastObservedValue, CurrentValue, StringComparison.Ordinal))
@@ -451,13 +451,13 @@
 
     internal void HandleTriggerPointerEnter()
     {
-        _pointerOverTrigger = true;
+        _pointerOverTrigger.Value = true;
         CancelCloseDelay();
     }
 
     internal async Task HandleTriggerPointerMove(string value)
     {
-        _pointerOverTrigger = true;
+        _pointerOverTrigger.Value = true;
 
         if (!IsRootMenu)
         {
@@ -467,7 +467,7 @@
 
         CancelCloseDelay();
 
-        if (_isOpenDelayed && DelayDuration != 0)
+        if (_isOpenDelayed.Value && DelayDuration != 0)
         {
             CancelOpenDelay();
             _openDelayTokenSource = new CancellationTokenSource();
@@ -480,7 +480,7 @@
 
     internal Task HandleTriggerPointerLeave()
     {
-        _pointerOverTrigger = false;
+        _pointerOverTrigger.Value = false;
 
         if (!IsRootMenu)
             return Task.CompletedTask;
@@ -498,7 +498,7 @@
 
     internal Task HandleContentPointerLeave()
     {
-        if (_pointerOverTrigger)
+        if (_pointerOverTrigger.Value)
             return Task.CompletedTask;
 
         if (!IsRootMenu)
@@ -664,7 +664,7 @@
         {
             CancelSkipDelay();
             if (SkipDelayDuration > 0)
-                _isOpenDelayed = false;
+                _isOpenDelayed.Value = false;
         }
         else
         {
@@ -793,7 +793,7 @@
         CancelSkipDelay();
         if (SkipDelayDuration == 0)
         {
-            _isOpenDelayed = true;
+            _isOpenDelayed.Value = true;
             return;
         }
         _skipDelayTokenSource = new CancellationTokenSource();
@@ -805,7 +805,7 @@
         try
         {
             await Task.Delay(SkipDelayDuration, cancellationToken);
-            _isOpenDelayed = true;
+            _isOpenDelayed.Value = true;
         }
         catch (TaskCanceledException)
         {

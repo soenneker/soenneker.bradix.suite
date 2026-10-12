@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @inherits BradixContentElement
@@ -22,7 +23,7 @@ else
 
 @code {
     private ElementReference _trackElement;
-    private bool _trackRegistered;
+    private ValueAtomicBool _trackRegistered;
 
     [CascadingParameter]
     private BradixNavigationMenu? NavigationMenu { get; set; }
@@ -32,10 +33,10 @@ else
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        if (NavigationMenu?.IsRootMenu == true && !_trackRegistered)
+        if (NavigationMenu?.IsRootMenu == true && !_trackRegistered.Value)
         {
             NavigationMenu.RegisterIndicatorTrack(_trackElement);
-            _trackRegistered = true;
+            _trackRegistered.Value = true;
         }
 
         return Task.CompletedTask;
@@ -43,7 +44,7 @@ else
 
     public void Dispose()
     {
-        if (_trackRegistered)
+        if (_trackRegistered.Value)
             NavigationMenu?.UnregisterIndicatorTrack();
     }
 }

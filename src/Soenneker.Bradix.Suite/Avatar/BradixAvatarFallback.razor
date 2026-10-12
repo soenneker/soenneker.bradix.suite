@@ -1,3 +1,4 @@
+@using Soenneker.Atomics.ValueBools
 @namespace Soenneker.Bradix
 
 @using System.Threading
@@ -16,8 +17,8 @@
 @code {
     private CancellationTokenSource? _delayTokenSource;
     private int? _lastDelayMs;
-    private bool _canRender;
-    private bool _delayInitialized;
+    private ValueAtomicBool _canRender;
+    private ValueAtomicBool _delayInitialized;
 
     [CascadingParameter]
     private BradixAvatar? Avatar { get; set; }
@@ -25,16 +26,16 @@
     [Parameter]
     public int? DelayMs { get; set; }
 
-    private bool CanRenderFallback => _canRender && Avatar?.ImageLoadingStatus != BradixAvatarImageLoadingStatus.Loaded;
+    private bool CanRenderFallback => _canRender.Value && Avatar?.ImageLoadingStatus != BradixAvatarImageLoadingStatus.Loaded;
 
     private Dictionary<string, object> FallbackAttributes => BuildAttributes();
 
     protected override void OnParametersSet()
     {
-        if (_delayInitialized && _lastDelayMs == DelayMs)
+        if (_delayInitialized.Value && _lastDelayMs == DelayMs)
             return;
 
-        _delayInitialized = true;
+        _delayInitialized.Value = true;
         _lastDelayMs = DelayMs;
         ResetDelay();
     }
@@ -54,11 +55,11 @@
 
         if (DelayMs is null)
         {
-            _canRender = true;
+            _canRender.Value = true;
             return;
         }
 
-        _canRender = false;
+        _canRender.Value = false;
         _delayTokenSource = new CancellationTokenSource();
         _ = EnableAfterDelay(_delayTokenSource.Token);
     }
@@ -68,7 +69,7 @@
         try
         {
             await Task.Delay(DelayMs!.Value, cancellationToken);
-            _canRender = true;
+            _canRender.Value = true;
             await RequestRender();
         }
         catch (TaskCanceledException)

@@ -8,7 +8,7 @@
 
 @inject IHoverCardAvatarInterop HoverCardAvatarInterop
 
-@if (IsPresent || _isExiting)
+@if (IsPresent || _isExiting.Value)
 {
     <BradixDismissableLayer DisableOutsidePointerEvents="false"
                             DismissOnEscapeKeyDown="false"
@@ -62,15 +62,15 @@
     private System.Func<Task>? _cachedHandleExitCompleteDelegate;
 
     private ElementReference _contentElement;
-    private bool _hasContentElement;
-    private bool _selectionContainmentRegistered;
-    private bool _tabNavigationDisabled;
+    private ValueAtomicBool _hasContentElement;
+    private ValueAtomicBool _selectionContainmentRegistered;
+    private ValueAtomicBool _tabNavigationDisabled;
     private DotNetObjectReference<object>? _dotNetReference;
-    private bool _pointerDownOutsidePrevented;
+    private ValueAtomicBool _pointerDownOutsidePrevented;
     private string? _placedSide;
     private string? _placedAlign;
     private bool _wasPresent;
-    private bool _isExiting;
+    private ValueAtomicBool _isExiting;
 
     [CascadingParameter]
     private BradixHoverCard? HoverCard { get; set; }
@@ -171,15 +171,15 @@
     {
         bool present = IsPresent;
         if (_wasPresent && !present)
-            _isExiting = true;
+            _isExiting.Value = true;
         else if (present)
-            _isExiting = false;
+            _isExiting.Value = false;
         _wasPresent = present;
     }
 
     private Task HandleExitComplete()
     {
-        _isExiting = false;
+        _isExiting.Value = false;
         return RequestRender();
     }
 
@@ -194,32 +194,32 @@
         if (_disposed.Read()) return;
         if (!IsPresent)
         {
-            if (_selectionContainmentRegistered)
+            if (_selectionContainmentRegistered.Value)
             {
                 await HoverCardAvatarInterop.UnregisterHoverCardSelectionContainment(_contentElement);
-                _selectionContainmentRegistered = false;
+                _selectionContainmentRegistered.Value = false;
             }
 
-            _hasContentElement = false;
-            _tabNavigationDisabled = false;
+            _hasContentElement.Value = false;
+            _tabNavigationDisabled.Value = false;
             return;
         }
 
-        if (!_hasContentElement)
+        if (!_hasContentElement.Value)
             return;
 
-        if (!_tabNavigationDisabled)
+        if (!_tabNavigationDisabled.Value)
         {
             await HoverCardAvatarInterop.DisableHoverCardContentTabNavigation(_contentElement);
-            _tabNavigationDisabled = true;
+            _tabNavigationDisabled.Value = true;
         }
 
-        if (_disposed.Read() || _selectionContainmentRegistered)
+        if (_disposed.Read() || _selectionContainmentRegistered.Value)
             return;
 
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await HoverCardAvatarInterop.RegisterHoverCardSelectionContainment(_contentElement, _dotNetReference);
-        _selectionContainmentRegistered = true;
+        _selectionContainmentRegistered.Value = true;
     }
 
     public async ValueTask DisposeAsync()
@@ -228,12 +228,12 @@
         try
         {
             await _afterRenderTask;
-            if (_selectionContainmentRegistered)
+            if (_selectionContainmentRegistered.Value)
                 await HoverCardAvatarInterop.UnregisterHoverCardSelectionContainment(_contentElement);
         }
         finally
         {
-            _selectionContainmentRegistered = false;
+            _selectionContainmentRegistered.Value = false;
             _dotNetReference?.Dispose();
             _dotNetReference = null;
         }
@@ -242,8 +242,8 @@
     private Task HandleContentReferenceCaptured(ElementReference element)
     {
         _contentElement = element;
-        _hasContentElement = true;
-        _tabNavigationDisabled = false;
+        _hasContentElement.Value = true;
+        _tabNavigationDisabled.Value = false;
         return Task.CompletedTask;
     }
 
@@ -267,7 +267,7 @@
         if (OnPointerDownOutsideDetailed.HasDelegate)
             await OnPointerDownOutsideDetailed.InvokeAsync(args);
 
-        _pointerDownOutsidePrevented = args.DefaultPrevented;
+        _pointerDownOutsidePrevented.Value = args.DefaultPrevented;
     }
 
     private async Task HandleFocusOutside(BradixFocusOutsideEventArgs args)
@@ -290,10 +290,10 @@
             await OnInteractOutsideDetailed.InvokeAsync(args);
 
         bool shouldDismiss = string.Equals(args.OriginalEventType, "pointerdown", StringComparison.Ordinal) &&
-                             !_pointerDownOutsidePrevented &&
+                             !_pointerDownOutsidePrevented.Value &&
                              !args.DefaultPrevented;
 
-        _pointerDownOutsidePrevented = false;
+        _pointerDownOutsidePrevented.Value = false;
 
         if (shouldDismiss && HoverCard is not null)
             await HoverCard.Dismiss();
@@ -317,7 +317,7 @@
 
     private async Task HandlePointerDown(PointerEventArgs _)
     {
-        if (_hasContentElement)
+        if (_hasContentElement.Value)
             await HoverCardAvatarInterop.BeginHoverCardSelectionContainment(_contentElement);
 
         HoverCard?.NotifyContentPointerDown();
