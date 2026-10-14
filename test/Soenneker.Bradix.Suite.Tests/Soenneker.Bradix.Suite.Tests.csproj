@@ -32,7 +32,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Soenneker.Utils.Test" Version="4.0.334" />
-        <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="4.0.355" />
+        <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="4.0.361" />
     </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Soenneker.Utils.File" Version="4.0.2303" />
