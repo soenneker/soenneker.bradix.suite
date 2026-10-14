@@ -31,17 +31,17 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Gen.Razor.Sitemaps" Version="4.0.150">
+        <PackageReference Include="Soenneker.Gen.Razor.Sitemaps" Version="4.0.156">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Soenneker.Serilog.Sinks.Browser.Blazor" Version="4.0.423" />
-        <PackageReference Include="Soenneker.Quark.Gen.Lucide" Version="4.0.287" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Suite" Version="4.0.1559" Condition="'$(UseLocalQuarkProject)' != 'true'" />
+        <PackageReference Include="Soenneker.Serilog.Sinks.Browser.Blazor" Version="4.0.431" />
+        <PackageReference Include="Soenneker.Quark.Gen.Lucide" Version="4.0.294" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Suite" Version="4.0.1567" Condition="'$(UseLocalQuarkProject)' != 'true'" />
         <ProjectReference Include="$(LocalQuarkProject)" Condition="'$(UseLocalQuarkProject)' == 'true'" />
-        <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="4.0.294" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="4.0.281" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="4.0.275" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="4.0.301" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="4.0.287" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="4.0.281" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
@@ -66,6 +66,6 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Utils.AutoBogus" Version="4.0.975" />
+        <PackageReference Include="Soenneker.Utils.AutoBogus" Version="4.0.984" />
     </ItemGroup>
 </Project>
