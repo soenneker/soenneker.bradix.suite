@@ -7,9 +7,8 @@
                       Style="@Style"
                       TextValue="@TextValue"
                       Disabled="@Disabled"
-                      AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixMenuSubTrigger>
+                      AdditionalAttributes="@AdditionalAttributes"
+                      ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

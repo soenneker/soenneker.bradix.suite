@@ -15,9 +15,8 @@
                         OnSelectDetailed="@OnSelectDetailed"
                         CheckedChanged="@CheckedChanged"
                         OnCheckedChange="@OnCheckedChange"
-                        AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixMenuCheckboxItem>
+                        AdditionalAttributes="@AdditionalAttributes"
+                        ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

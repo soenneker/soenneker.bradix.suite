@@ -16,11 +16,13 @@
                     Class="@Class"
                     Style="@ComputedStyle"
                     AdditionalAttributes="@ViewportAttributes"
-                    OnElementReferenceCaptured="HandleElementCaptured"
-                    OnExitComplete="HandleExitComplete" />
+                    OnElementReferenceCaptured="(_cachedHandleElementCapturedDelegate ??= HandleElementCaptured)"
+                    OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)" />
 }
 
 @code {
+    private Func<ElementReference, Task>? _cachedHandleElementCapturedDelegate;
+    private Func<Task>? _cachedHandleExitCompleteDelegate;
     private string? _mergedStyleCache0;
     private string? _mergedStyleCache1;
 

@@ -12,9 +12,8 @@
                       IsRootMenu="false"
                       Class="@Class"
                       Style="@Style"
-                      AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixNavigationMenu>
+                      AdditionalAttributes="@AdditionalAttributes"
+                      ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [CascadingParameter]

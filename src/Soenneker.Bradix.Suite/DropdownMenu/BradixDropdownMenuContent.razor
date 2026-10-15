@@ -35,9 +35,8 @@
                    OnFocusOutside="@OnFocusOutside"
                    OnFocusOutsideDetailed="@OnFocusOutsideDetailed"
                    OnInteractOutsideDetailed="(_cachedHandleInteractOutsideDelegate ??= HandleInteractOutside)"
-                   OnPlaced="@OnPlaced">
-    @ChildContent
-</BradixMenuContent>
+                   OnPlaced="@OnPlaced"
+                   ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     private string? _mergedStyleCache0;

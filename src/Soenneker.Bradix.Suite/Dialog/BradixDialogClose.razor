@@ -15,9 +15,8 @@
                 Class="@Class"
                 Style="@Style"
                 AdditionalAttributes="@SlottedButtonAttributes"
-                ChildAttributes="@ChildAttributes">
-        @ChildContent
-    </BradixSlot>
+                ChildAttributes="@ChildAttributes"
+            ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 }
 else if (AsChild)
 {

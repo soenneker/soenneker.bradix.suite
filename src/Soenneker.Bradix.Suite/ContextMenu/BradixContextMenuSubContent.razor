@@ -28,9 +28,8 @@
                       OnInteractOutside="@OnInteractOutside"
                       OnInteractOutsideDetailed="@OnInteractOutsideDetailed"
                       OnContentKeyDown="@OnContentKeyDown"
-                      OnPlaced="@OnPlaced">
-    @ChildContent
-</BradixMenuSubContent>
+                      OnPlaced="@OnPlaced"
+                      ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     private string? _mergedStyleCache0;

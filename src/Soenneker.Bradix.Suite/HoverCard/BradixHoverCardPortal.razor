@@ -4,9 +4,8 @@
 @implements IBradixHoverCardPortal
 <CascadingValue Name="BradixHoverCardPortalForceMount" Value="ForceMount">
     <BradixPortal ContainerSelector="@ContainerSelector"
-                  Container="@Container">
-        @ChildContent
-    </BradixPortal>
+                  Container="@Container"
+              ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 </CascadingValue>
 
 @code {

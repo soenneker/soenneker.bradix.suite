@@ -16,18 +16,16 @@
     {
         <nav @ref="_rootElement"
              @attributes="RootAttributes">
-            <BradixDismissableLayerBranch Style="display:contents;">
-                @ChildContent
-            </BradixDismissableLayerBranch>
+            <BradixDismissableLayerBranch Style="display:contents;"
+                              ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
         </nav>
     }
     else
     {
         <div @ref="_rootElement"
              @attributes="RootAttributes">
-            <BradixDismissableLayerBranch Style="display:contents;">
-                @ChildContent
-            </BradixDismissableLayerBranch>
+            <BradixDismissableLayerBranch Style="display:contents;"
+                              ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
         </div>
     }
 </CascadingValue>

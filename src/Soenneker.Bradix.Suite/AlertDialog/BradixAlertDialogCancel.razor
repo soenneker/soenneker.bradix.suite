@@ -8,9 +8,8 @@
                    Disabled="Disabled"
                    AdditionalAttributes="@ResolvedAttributes"
                    OnElementReferenceCaptured="(_cachedHandleElementCapturedDelegate ??= HandleElementCaptured)"
-                   OnClick="OnClick">
-    @ChildContent
-</BradixDialogClose>
+                   OnClick="OnClick"
+                   ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     private System.Func<ElementReference, Task>? _cachedHandleElementCapturedDelegate;

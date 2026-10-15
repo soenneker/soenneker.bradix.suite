@@ -6,9 +6,8 @@
                      Style="@Style"
                      Disabled="Disabled"
                      AdditionalAttributes="@AdditionalAttributes"
-                     OnClick="OnClick">
-    @ChildContent
-</BradixDialogTrigger>
+                     OnClick="OnClick"
+                     ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

@@ -5,9 +5,8 @@
 
 <BradixDialogPortal ContainerSelector="@ContainerSelector"
                     Container="@Container"
-                    ForceMount="ForceMount">
-    @ChildContent
-</BradixDialogPortal>
+                    ForceMount="ForceMount"
+                    ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

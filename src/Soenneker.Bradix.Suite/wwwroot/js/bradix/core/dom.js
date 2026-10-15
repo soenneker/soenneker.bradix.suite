@@ -49,6 +49,7 @@ export function getTextContent(element) {
 }
 
 const textObservers = new WeakMap();
+const simpleExclusionSelector = /^(?:\.[\w-]+|#[\w-]+|\[[\w-]+(?:=(?:"[^"\\]*"|'[^'\\]*'|[\w-]+))?\])$/;
 
 export function observeTextContent(element, receiver, excludeSelector) {
   unobserveTextContent(element);
@@ -81,14 +82,15 @@ export function getTextContentExcluding(element, excludeSelector) {
 
   // Complex selectors can depend on ancestors or DOM state. Preserve the detached
   // clone semantics for those; tooltip exclusion uses a simple attribute selector.
-  if (!/^(?:\.[\w-]+|#[\w-]+|\[[\w-]+(?:=(?:"[^"\\]*"|'[^'\\]*'|[\w-]+))?\])$/.test(excludeSelector)) {
+  if (!simpleExclusionSelector.test(excludeSelector)) {
     const clone = element.cloneNode(true);
     for (const node of clone.querySelectorAll(excludeSelector)) node.remove();
     return (clone.textContent || "").trim();
   }
 
-  const excluded = new Set(element.querySelectorAll(excludeSelector));
-  if (excluded.size === 0) return getTextContent(element);
+  const excludedElements = element.querySelectorAll(excludeSelector);
+  if (excludedElements.length === 0) return getTextContent(element);
+  const excluded = new Set(excludedElements);
 
   // Reject entire excluded subtrees without cloning controls, IDs, or custom elements.
   const walker = element.ownerDocument.createTreeWalker(

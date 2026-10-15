@@ -15,9 +15,8 @@
                     Class="@Class"
                     Style="@ComputedStyle"
                     AdditionalAttributes="@IndicatorAttributes"
-                    OnElementReferenceCaptured="(_cachedHandleElementCapturedDelegate ??= HandleElementCaptured)">
-        @ChildContent
-    </BradixPresence>
+                    OnElementReferenceCaptured="(_cachedHandleElementCapturedDelegate ??= HandleElementCaptured)"
+                ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     private string? _mergedStyleCache0;

@@ -7,9 +7,8 @@
                    Style="@Style"
                    Width="@Width"
                    Height="@Height"
-                   AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixPopperArrow>
+                   AdditionalAttributes="@AdditionalAttributes"
+                   ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

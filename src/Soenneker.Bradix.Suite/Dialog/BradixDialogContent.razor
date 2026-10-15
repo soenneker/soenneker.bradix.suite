@@ -337,9 +337,8 @@ ResetState:
                                 Style="@Style"
                                 AdditionalAttributes="@ContentAttributes"
                                 OnKeyDown="(_cachedHandleContentKeyDownDelegate ??= HandleContentKeyDown)"
-                                OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
-                    @ChildContent
-                </BradixPresence>
+                                OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)"
+                ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
             </BradixDismissableLayer>
         </BradixFocusScope>
     </BradixFocusGuards>;

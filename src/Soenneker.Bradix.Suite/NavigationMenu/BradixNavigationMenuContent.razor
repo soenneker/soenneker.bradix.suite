@@ -22,6 +22,8 @@
 }
 
 @code {
+    private Func<ElementReference, Task>? _cachedHandleElementCapturedDelegate;
+    private Func<Task>? _cachedHandleExitCompleteDelegate;
     private System.Func<BradixEscapeKeyDownEventArgs, Task>? _cachedHandleEscapeKeyDownDelegate;
     private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
     private System.Func<BradixFocusOutsideEventArgs, Task>? _cachedHandleFocusOutsideDelegate;
@@ -75,8 +77,8 @@
                                 OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)">
             <BradixPresence Present="ForceMount || IsOpen"
                             AdditionalAttributes="ContentAttributes"
-                            OnElementReferenceCaptured="HandleElementCaptured"
-                            OnExitComplete="HandleExitComplete"
+                            OnElementReferenceCaptured="(_cachedHandleElementCapturedDelegate ??= HandleElementCaptured)"
+                            OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)"
                             OnPointerEnter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
                             OnPointerLeave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)">
                 <CascadingValue Name="BradixNavigationMenuInContent" Value="true" IsFixed="true">

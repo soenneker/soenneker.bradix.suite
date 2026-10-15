@@ -3,9 +3,8 @@
 @implements IBradixMenubarPortal
 <BradixMenuPortal ContainerSelector="@ContainerSelector"
                   Container="@Container"
-                  ForceMount="@ForceMount">
-    @ChildContent
-</BradixMenuPortal>
+                  ForceMount="@ForceMount"
+                  ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

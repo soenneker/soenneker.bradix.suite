@@ -23,6 +23,58 @@ public sealed class BradixPerformanceRegressionTests : BunitContext
     }
 
     [Test]
+    public async Task Attribute_buffers_preserve_previous_render_and_observe_mutation(CancellationToken cancellationToken)
+    {
+        var additionalClass = new MutableAttributeText("first");
+        var additional = new Dictionary<string, object> { ["CLASS"] = additionalClass, ["role"] = "link" };
+        var probe = new BradixAttributeProbe { Id = "control", Class = "base", Style = "color:red", AdditionalAttributes = additional };
+        Dictionary<string, object> first = probe.BuildPopulated();
+        additionalClass.Value = "second";
+        additional.Remove("role");
+        Dictionary<string, object> second = probe.BuildPopulated();
+        await Assert.That(ReferenceEquals(first, second)).IsFalse();
+        await Assert.That(first["class"]).IsEqualTo("base first");
+        await Assert.That(first["role"]).IsEqualTo("link");
+        await Assert.That(second["CLASS"]).IsEqualTo("base second");
+        await Assert.That(second["role"]).IsEqualTo("button");
+        await Assert.That(second["id"]).IsEqualTo("control");
+
+        probe.Id = null;
+        probe.Class = " ";
+        probe.Style = null;
+        probe.AdditionalAttributes = null;
+        Dictionary<string, object> empty = probe.BuildEmpty();
+        await Assert.That(ReferenceEquals(first, empty)).IsTrue();
+        await Assert.That(empty.Count).IsEqualTo(0);
+        await Assert.That(second["class"]).IsEqualTo("base second");
+    }
+
+    [Test]
+    public async Task Forwarding_wrappers_reuse_fragments_and_observe_replacement(CancellationToken cancellationToken)
+    {
+        RenderFragment first = builder => builder.AddContent(0, "first");
+        RenderFragment second = builder => builder.AddContent(0, "second");
+        var cut = Render<BradixDropdownMenuLabel>(p => p.Add(c => c.ChildContent, first));
+        await Assert.That(ReferenceEquals(cut.FindComponent<BradixMenuLabel>().Instance.ChildContent, first)).IsTrue();
+        cut.Render(p => p.Add(c => c.ChildContent, second));
+        await Assert.That(ReferenceEquals(cut.FindComponent<BradixMenuLabel>().Instance.ChildContent, second)).IsTrue();
+        await Assert.That(cut.Markup).Contains("second");
+        await Assert.That(cut.Markup).DoesNotContain("first");
+    }
+
+    [Test]
+    public async Task Forwarding_wrappers_preserve_empty_content_instead_of_enabling_defaults(CancellationToken cancellationToken)
+    {
+        var cut = Render<BradixDropdownMenuArrow>();
+        BradixPopperArrow arrow = cut.FindComponent<BradixPopperArrow>().Instance;
+        await Assert.That(arrow.ChildContent).IsNotNull();
+        await Assert.That(cut.FindAll("svg").Count).IsEqualTo(0);
+        RenderFragment? content = arrow.ChildContent;
+        cut.Render();
+        await Assert.That(ReferenceEquals(arrow.ChildContent, content)).IsTrue();
+    }
+
+    [Test]
     public async Task Slot_observes_mutated_attribute_text_and_preserves_whitespace_order(CancellationToken cancellationToken)
     {
         var text = new MutableAttributeText(" child ");

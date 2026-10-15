@@ -9,9 +9,8 @@
                 CloseOnSelect="@CloseOnSelect"
                 OnSelect="@OnSelect"
                 OnSelectDetailed="@OnSelectDetailed"
-                AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixMenuItem>
+                AdditionalAttributes="@AdditionalAttributes"
+                ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

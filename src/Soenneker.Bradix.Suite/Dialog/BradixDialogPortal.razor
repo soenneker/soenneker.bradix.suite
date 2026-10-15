@@ -4,9 +4,8 @@
 @implements IBradixDialogPortal
 <CascadingValue Name="BradixDialogPortalForceMount" Value="ForceMount">
     <BradixPortal ContainerSelector="@ContainerSelector"
-                  Container="@Container">
-        @ChildContent
-    </BradixPortal>
+                  Container="@Container"
+              ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 </CascadingValue>
 
 @code {

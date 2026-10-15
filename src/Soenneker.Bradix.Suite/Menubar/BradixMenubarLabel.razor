@@ -4,9 +4,8 @@
 <BradixMenuLabel Id="@Id"
                  Class="@Class"
                  Style="@Style"
-                 AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixMenuLabel>
+                 AdditionalAttributes="@AdditionalAttributes"
+                 ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

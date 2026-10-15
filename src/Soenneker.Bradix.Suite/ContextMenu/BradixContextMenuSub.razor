@@ -6,9 +6,8 @@
                DefaultOpen="@DefaultOpen"
                OpenChanged="@OpenChanged"
                OnOpenChange="@OnOpenChange"
-               AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixMenuSub>
+               AdditionalAttributes="@AdditionalAttributes"
+               ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

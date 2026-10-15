@@ -8,9 +8,8 @@
     <BradixMenuGroup Id="@Id"
                      Class="@Class"
                      Style="@Style"
-                     AdditionalAttributes="@AdditionalAttributes">
-        @ChildContent
-    </BradixMenuGroup>
+                     AdditionalAttributes="@AdditionalAttributes"
+                 ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 </CascadingValue>
 
 @code {

@@ -13,9 +13,8 @@
                           AriaDisabled="@AriaDisabled"
                           OnClick="@OnClick"
                           OnKeyDown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
-                          AdditionalAttributes="TriggerAttributes">
-    @ChildContent
-</BradixCollapsibleTrigger>
+                          AdditionalAttributes="TriggerAttributes"
+                          ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     private BradixAccordion? _subscribedOwner;

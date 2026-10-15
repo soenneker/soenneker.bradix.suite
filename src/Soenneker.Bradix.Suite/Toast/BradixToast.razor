@@ -46,9 +46,8 @@
                         AdditionalAttributes="@ToastAttributes"
                         OnKeyDown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
                         OnElementReferenceCaptured="(_cachedHandleElementReferenceCapturedDelegate ??= HandleElementReferenceCaptured)"
-                        OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
-            @ChildContent
-        </BradixPresence>
+                        OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)"
+                ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
     </CascadingValue>
 }
 

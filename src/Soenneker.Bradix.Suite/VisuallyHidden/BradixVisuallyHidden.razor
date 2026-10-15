@@ -11,9 +11,8 @@
                 Class="@Class"
                 Style="@ResolvedStyle"
                 AdditionalAttributes="@AdditionalAttributes"
-                ChildAttributes="@ChildAttributes">
-        @ChildContent
-    </BradixSlot>
+                ChildAttributes="@ChildAttributes"
+            ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 }
 else
 {

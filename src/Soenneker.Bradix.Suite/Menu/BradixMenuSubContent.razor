@@ -30,9 +30,8 @@
                        OnFocusOutsideDetailed="(_cachedHandleFocusOutsideDelegate ??= HandleFocusOutside)"
                        OnInteractOutside="OnInteractOutside"
                        OnInteractOutsideDetailed="OnInteractOutsideDetailed"
-                       OnPlaced="OnPlaced">
-        @ChildContent
-    </BradixMenuContent>
+                       OnPlaced="OnPlaced"
+                   ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 </BradixDismissableLayerBranch>
 
 @code {

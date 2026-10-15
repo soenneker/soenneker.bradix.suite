@@ -42,9 +42,8 @@
                             OnPointerEnter="(_cachedHandlePointerEnterDelegate ??= HandlePointerEnter)"
                             OnPointerLeave="(_cachedHandlePointerLeaveDelegate ??= HandlePointerLeave)"
                             OnPointerDown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
-                            OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)">
-                @ChildContent
-            </BradixPresence>
+                            OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)"
+                ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
         </BradixPopperContent>
     </BradixDismissableLayer>
 }

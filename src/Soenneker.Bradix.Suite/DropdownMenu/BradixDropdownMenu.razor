@@ -11,9 +11,8 @@
 <BradixMenu Open="@CurrentOpen"
             OpenChanged="(_cachedHandleMenuOpenChangedDelegate ??= HandleMenuOpenChanged)"
             Dir="@Dir"
-            Modal="@Modal">
-        @ChildContent
-</BradixMenu>
+            Modal="@Modal"
+            ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 </CascadingValue>
 
 @code {

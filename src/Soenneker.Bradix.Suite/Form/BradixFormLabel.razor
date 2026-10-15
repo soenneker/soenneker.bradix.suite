@@ -8,9 +8,8 @@
              Class="@LabelClass"
              Style="@Style"
              OnMouseDown="@OnMouseDown"
-             AdditionalAttributes="@LabelAdditionalAttributes">
-    @ChildContent
-</BradixLabel>
+             AdditionalAttributes="@LabelAdditionalAttributes"
+             ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [CascadingParameter]

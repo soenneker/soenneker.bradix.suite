@@ -6,9 +6,8 @@
                  Style="@Style"
                  Width="@Width"
                  Height="@Height"
-                 AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixMenuArrow>
+                 AdditionalAttributes="@AdditionalAttributes"
+                 ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

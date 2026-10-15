@@ -15,9 +15,8 @@
                     CloseOnSelect="CloseOnSelect"
                     OnSelect="(_cachedHandleSelectDelegate ??= HandleSelect)"
                     OnSelectDetailed="(_cachedHandleSelectDetailedDelegate ??= HandleSelectDetailed)"
-                    AdditionalAttributes="@AdditionalAttributes">
-        @ChildContent
-    </BradixMenuItem>
+                    AdditionalAttributes="@AdditionalAttributes"
+                ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 </CascadingValue>
 
 @code {

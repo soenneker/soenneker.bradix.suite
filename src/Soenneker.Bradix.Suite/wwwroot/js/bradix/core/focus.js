@@ -52,27 +52,20 @@ function isHidden(node, upTo) {
   return false;
 }
 
-function findVisible(elements, container) {
-  for (const element of elements) {
-    if (!isHidden(element, container)) {
-      return element;
-    }
-  }
-
-  return null;
-}
-
 export function getTabbableEdges(container) {
-  const candidates = getTabbableCandidates(container);
-  const first = findVisible(candidates, container);
-  let last = null;
-  for (let index = candidates.length - 1; index >= 0; index--) {
-    const candidate = candidates[index];
-    if (!isHidden(candidate, container)) {
-      last = candidate;
-      break;
-    }
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, tabbableFilter);
+  let first;
+  while ((first = walker.nextNode())) {
+    if (!isHidden(first, container)) break;
   }
+  if (!first) return [null, null];
+
+  // Walk directly to the final accepted descendant. Large menus and dialogs
+  // need only their edges, not an array containing every focusable control.
+  walker.currentNode = container;
+  let last = walker.lastChild();
+  while (walker.lastChild()) last = walker.currentNode;
+  while (last && last !== first && isHidden(last, container)) last = walker.previousNode();
   return [first, last];
 }
 

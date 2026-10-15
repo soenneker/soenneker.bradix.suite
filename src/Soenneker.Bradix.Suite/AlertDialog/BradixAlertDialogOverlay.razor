@@ -5,9 +5,8 @@
 <BradixDialogOverlay Class="@Class"
                      Style="@Style"
                      AdditionalAttributes="@AdditionalAttributes"
-                     ForceMount="ForceMount">
-    @ChildContent
-</BradixDialogOverlay>
+                     ForceMount="ForceMount"
+                     ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

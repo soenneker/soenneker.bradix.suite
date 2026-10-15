@@ -6,9 +6,8 @@
 @implements IBradixAccordionItem
 
 <CascadingValue Value="this" >
-    <BradixCollapsible Id="@BaseId" Class="@Class" Style="@Style" Open="@IsOpen" Disabled="@IsDisabled" OnOpenChange="(_cachedHandleOpenChangeDelegate ??= HandleOpenChange)" AdditionalAttributes="ItemAttributes" >
-        @ChildContent
-    </BradixCollapsible>
+    <BradixCollapsible Id="@BaseId" Class="@Class" Style="@Style" Open="@IsOpen" Disabled="@IsDisabled" OnOpenChange="(_cachedHandleOpenChangeDelegate ??= HandleOpenChange)" AdditionalAttributes="ItemAttributes"
+                   ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 </CascadingValue>
 
 @implements IDisposable

@@ -2,9 +2,8 @@
 
 @inherits LeptonContent
 @implements IBradixAlertDialog
-<BradixDialog Open="Open" DefaultOpen="DefaultOpen" OpenChanged="OpenChanged" OnOpenChange="OnOpenChange" Modal="true" >
-    @ChildContent
-</BradixDialog>
+<BradixDialog Open="Open" DefaultOpen="DefaultOpen" OpenChanged="OpenChanged" OnOpenChange="OnOpenChange" Modal="true"
+              ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
 

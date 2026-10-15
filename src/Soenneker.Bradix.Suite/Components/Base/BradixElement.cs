@@ -31,14 +31,14 @@ public abstract class BradixElement : LeptonElement
 
     protected override Dictionary<string, object> BuildAttributes(string key, object? value)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes(value is null ? 0 : 1);
         SetAttribute(attributes, key, value);
         return CompleteAttributes(attributes);
     }
 
     protected override Dictionary<string, object> BuildAttributes(string key1, object? value1, string key2, object? value2)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes((value1 is null ? 0 : 1) + (value2 is null ? 0 : 1));
         SetAttribute(attributes, key1, value1);
         SetAttribute(attributes, key2, value2);
         return CompleteAttributes(attributes);
@@ -46,7 +46,7 @@ public abstract class BradixElement : LeptonElement
 
     protected override Dictionary<string, object> BuildAttributes(ReadOnlySpan<KeyValuePair<string, object?>> values)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes(values.Length);
 
         foreach (KeyValuePair<string, object?> pair in values)
             SetAttribute(attributes, pair.Key, pair.Value);
@@ -59,7 +59,7 @@ public abstract class BradixElement : LeptonElement
     protected new Dictionary<string, object> BuildAttributes(params ReadOnlySpan<(string Key, object? Value)> values)
 #pragma warning restore CS0109
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes(values.Length);
         foreach (var value in values)
             SetAttribute(attributes, value.Key, value.Value);
         return CompleteAttributes(attributes);
@@ -67,7 +67,7 @@ public abstract class BradixElement : LeptonElement
 
     protected override Dictionary<string, object> BuildAttributes(params (string Key, object? Value)[] values)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes(values.Length);
 
         for (var i = 0; i < values.Length; i++)
             SetAttribute(attributes, values[i].Key, values[i].Value);
@@ -77,14 +77,14 @@ public abstract class BradixElement : LeptonElement
 
     protected new Dictionary<string, object> BuildAttributes((string Key, object? Value) value1)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes((value1.Value is null ? 0 : 1));
         SetAttribute(attributes, value1.Key, value1.Value);
         return CompleteAttributes(attributes);
     }
 
     protected new Dictionary<string, object> BuildAttributes((string Key, object? Value) value1, (string Key, object? Value) value2)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes((value1.Value is null ? 0 : 1) + (value2.Value is null ? 0 : 1));
         SetAttribute(attributes, value1.Key, value1.Value);
         SetAttribute(attributes, value2.Key, value2.Value);
         return CompleteAttributes(attributes);
@@ -93,7 +93,7 @@ public abstract class BradixElement : LeptonElement
     protected Dictionary<string, object> BuildAttributes((string Key, object? Value) value1, (string Key, object? Value) value2,
         (string Key, object? Value) value3)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes((value1.Value is null ? 0 : 1) + (value2.Value is null ? 0 : 1) + (value3.Value is null ? 0 : 1));
         SetAttribute(attributes, value1.Key, value1.Value);
         SetAttribute(attributes, value2.Key, value2.Value);
         SetAttribute(attributes, value3.Key, value3.Value);
@@ -103,7 +103,7 @@ public abstract class BradixElement : LeptonElement
     protected Dictionary<string, object> BuildAttributes((string Key, object? Value) value1, (string Key, object? Value) value2,
         (string Key, object? Value) value3, (string Key, object? Value) value4)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes((value1.Value is null ? 0 : 1) + (value2.Value is null ? 0 : 1) + (value3.Value is null ? 0 : 1) + (value4.Value is null ? 0 : 1));
         SetAttribute(attributes, value1.Key, value1.Value);
         SetAttribute(attributes, value2.Key, value2.Value);
         SetAttribute(attributes, value3.Key, value3.Value);
@@ -114,7 +114,7 @@ public abstract class BradixElement : LeptonElement
     protected Dictionary<string, object> BuildAttributes((string Key, object? Value) value1, (string Key, object? Value) value2,
         (string Key, object? Value) value3, (string Key, object? Value) value4, (string Key, object? Value) value5)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes((value1.Value is null ? 0 : 1) + (value2.Value is null ? 0 : 1) + (value3.Value is null ? 0 : 1) + (value4.Value is null ? 0 : 1) + (value5.Value is null ? 0 : 1));
         SetAttribute(attributes, value1.Key, value1.Value);
         SetAttribute(attributes, value2.Key, value2.Value);
         SetAttribute(attributes, value3.Key, value3.Value);
@@ -127,7 +127,7 @@ public abstract class BradixElement : LeptonElement
         (string Key, object? Value) value3, (string Key, object? Value) value4, (string Key, object? Value) value5,
         (string Key, object? Value) value6)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes((value1.Value is null ? 0 : 1) + (value2.Value is null ? 0 : 1) + (value3.Value is null ? 0 : 1) + (value4.Value is null ? 0 : 1) + (value5.Value is null ? 0 : 1) + (value6.Value is null ? 0 : 1));
         SetAttribute(attributes, value1.Key, value1.Value);
         SetAttribute(attributes, value2.Key, value2.Value);
         SetAttribute(attributes, value3.Key, value3.Value);
@@ -141,7 +141,7 @@ public abstract class BradixElement : LeptonElement
         (string Key, object? Value) value3, (string Key, object? Value) value4, (string Key, object? Value) value5,
         (string Key, object? Value) value6, (string Key, object? Value) value7)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes((value1.Value is null ? 0 : 1) + (value2.Value is null ? 0 : 1) + (value3.Value is null ? 0 : 1) + (value4.Value is null ? 0 : 1) + (value5.Value is null ? 0 : 1) + (value6.Value is null ? 0 : 1) + (value7.Value is null ? 0 : 1));
         SetAttribute(attributes, value1.Key, value1.Value);
         SetAttribute(attributes, value2.Key, value2.Value);
         SetAttribute(attributes, value3.Key, value3.Value);
@@ -156,7 +156,7 @@ public abstract class BradixElement : LeptonElement
         (string Key, object? Value) value3, (string Key, object? Value) value4, (string Key, object? Value) value5,
         (string Key, object? Value) value6, (string Key, object? Value) value7, (string Key, object? Value) value8)
     {
-        Dictionary<string, object> attributes = BeginAttributes();
+        Dictionary<string, object> attributes = BeginAttributes((value1.Value is null ? 0 : 1) + (value2.Value is null ? 0 : 1) + (value3.Value is null ? 0 : 1) + (value4.Value is null ? 0 : 1) + (value5.Value is null ? 0 : 1) + (value6.Value is null ? 0 : 1) + (value7.Value is null ? 0 : 1) + (value8.Value is null ? 0 : 1));
         SetAttribute(attributes, value1.Key, value1.Value);
         SetAttribute(attributes, value2.Key, value2.Value);
         SetAttribute(attributes, value3.Key, value3.Value);
@@ -185,14 +185,20 @@ public abstract class BradixElement : LeptonElement
         return _additionalAttributeDictionaries.Create(attributes, extraCapacity);
     }
 
-    private Dictionary<string, object> BeginAttributes()
+    private Dictionary<string, object> BeginAttributes(int extraCapacity = 0)
     {
         _useAttributesA = !_useAttributesA;
         ref Dictionary<string, object>? buffer = ref (_useAttributesA ? ref _attributesA : ref _attributesB);
-        Dictionary<string, object> attributes = buffer ??= new(StringComparer.OrdinalIgnoreCase);
+        bool hasClass = !string.IsNullOrWhiteSpace(Class);
+        bool hasStyle = !string.IsNullOrWhiteSpace(Style);
+        // Size the initial buffers before filling them instead of growing through
+        // 3/7/17. Empty elements keep dictionaries without allocated backing arrays.
+        Dictionary<string, object> attributes = buffer ??= new(
+            extraCapacity + (AdditionalAttributes?.Count ?? 0) + (hasClass ? 1 : 0) + (hasStyle ? 1 : 0) + (AttributeId is null ? 0 : 1),
+            StringComparer.OrdinalIgnoreCase);
         attributes.Clear();
-        MergeClassAttribute(attributes, Class);
-        MergeStyleAttribute(attributes, Style);
+        if (hasClass) attributes["class"] = Class!;
+        if (hasStyle) attributes["style"] = Style!;
         return attributes;
     }
 

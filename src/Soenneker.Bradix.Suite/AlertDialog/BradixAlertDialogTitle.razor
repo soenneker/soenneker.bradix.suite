@@ -5,6 +5,5 @@
 <BradixDialogTitle Class="@Class"
                    Style="@Style"
                    Id="@Id"
-                   AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixDialogTitle>
+                   AdditionalAttributes="@AdditionalAttributes"
+                   ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />

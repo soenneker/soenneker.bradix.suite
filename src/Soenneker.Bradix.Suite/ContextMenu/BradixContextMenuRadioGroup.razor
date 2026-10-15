@@ -10,9 +10,8 @@
                       Disabled="@Disabled"
                       ValueChanged="@ValueChanged"
                       OnValueChange="@OnValueChange"
-                      AdditionalAttributes="@AdditionalAttributes">
-    @ChildContent
-</BradixMenuRadioGroup>
+                      AdditionalAttributes="@AdditionalAttributes"
+                      ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     [Parameter]

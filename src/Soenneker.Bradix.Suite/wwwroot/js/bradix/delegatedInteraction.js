@@ -1,9 +1,15 @@
 import { createDelegatedEventSnapshot } from "./core/eventSnapshots.js";
 
 const delegatedInteractionHandlers = new WeakMap();
-let delegatedInteractionListenersRegistered = false;
-let delegatedInteractionRegistrationCount = 0;
-let delegatedInteractionListeners = null;
+const delegatedInteractionListeners = [
+  "click", "mousedown", "pointerdown", "mouseover", "mouseenter",
+  "pointermove", "pointerover", "keydown", "focusin", "focusout"
+].map(type => ({
+  type,
+  capture: type === "click" || type === "mouseenter" || type === "keydown",
+  handler: event => dispatchDelegatedInteraction(type, event),
+  registrations: 0
+}));
 
 export function registerDelegatedInteraction(element, dotNetRef, options) {
   if (!element || !dotNetRef) {
@@ -11,11 +17,9 @@ export function registerDelegatedInteraction(element, dotNetRef, options) {
   }
 
   const resolvedOptions = options || {};
-  if (!delegatedInteractionHandlers.has(element)) {
-    delegatedInteractionRegistrationCount++;
-  }
-  delegatedInteractionHandlers.set(element, { dotNetRef, options: resolvedOptions });
-  ensureDelegatedInteractionListeners();
+  const previous = delegatedInteractionHandlers.get(element);
+  const eventMask = updateDelegatedInteractionListeners(previous?.eventMask || 0, resolvedOptions);
+  delegatedInteractionHandlers.set(element, { dotNetRef, options: resolvedOptions, eventMask });
 
   if (typeof options?.readyMethod === "string" && options.readyMethod) {
     dotNetRef.invokeMethodAsync(options.readyMethod).catch(() => {});
@@ -27,36 +31,34 @@ export function unregisterDelegatedInteraction(element) {
     return;
   }
 
-  if (!delegatedInteractionHandlers.delete(element)) {
+  const registration = delegatedInteractionHandlers.get(element);
+  if (!registration) {
     return;
   }
 
-  delegatedInteractionRegistrationCount--;
-  if (delegatedInteractionRegistrationCount === 0 && delegatedInteractionListenersRegistered) {
-    for (const listener of delegatedInteractionListeners) {
-      document.removeEventListener(listener.type, listener.handler, listener.capture);
-    }
-    delegatedInteractionListenersRegistered = false;
-  }
+  delegatedInteractionHandlers.delete(element);
+  updateDelegatedInteractionListeners(registration.eventMask, null);
 }
 
-function ensureDelegatedInteractionListeners() {
-  if (delegatedInteractionListenersRegistered) {
-    return;
-  }
-
-  delegatedInteractionListenersRegistered = true;
-  delegatedInteractionListeners ??= [
-    "click", "mousedown", "pointerdown", "mouseover", "mouseenter",
-    "pointermove", "pointerover", "keydown", "focusin", "focusout"
-  ].map(type => ({
-    type,
-    capture: type === "click" || type === "mouseenter" || type === "keydown",
-    handler: event => dispatchDelegatedInteraction(type, event)
-  }));
+function updateDelegatedInteractionListeners(previousMask, next) {
+  let eventMask = 0;
+  let flag = 1;
   for (const listener of delegatedInteractionListeners) {
-    document.addEventListener(listener.type, listener.handler, listener.capture);
+    const wasRegistered = (previousMask & flag) !== 0;
+    const isRegistered = !!next?.[listener.type];
+    if (isRegistered) eventMask |= flag;
+    flag <<= 1;
+    if (wasRegistered === isRegistered) continue;
+
+    if (isRegistered) {
+      if (listener.registrations++ === 0) {
+        document.addEventListener(listener.type, listener.handler, listener.capture);
+      }
+    } else if (--listener.registrations === 0) {
+      document.removeEventListener(listener.type, listener.handler, listener.capture);
+    }
   }
+  return eventMask;
 }
 
 function dispatchDelegatedInteraction(type, event) {

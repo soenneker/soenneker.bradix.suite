@@ -6,9 +6,8 @@
                       Style="@Style"
                       TextValue="@TextValue"
                       Disabled="@Disabled"
-                      AdditionalAttributes="@MergedAttributes">
-    @ChildContent
-</BradixMenuSubTrigger>
+                      AdditionalAttributes="@MergedAttributes"
+                      ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
 
 @code {
     private readonly BradixAttributeDictionary _attributeDictionaries = new();
