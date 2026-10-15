@@ -35,7 +35,7 @@
         <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="4.0.362" />
     </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Soenneker.Utils.File" Version="4.0.2318" />
+    <PackageReference Include="Soenneker.Utils.File" Version="4.0.2319" />
   </ItemGroup>
 </Project>
 
