@@ -27,7 +27,8 @@ public sealed class BradixPerformanceRegressionTests : BunitContext
     {
         var additionalClass = new MutableAttributeText("first");
         var additional = new Dictionary<string, object> { ["CLASS"] = additionalClass, ["role"] = "link" };
-        var probe = new BradixAttributeProbe { Id = "control", Class = "base", Style = "color:red", AdditionalAttributes = additional };
+        var probe = new BradixAttributeProbe();
+        probe.Configure("control", "base", "color:red", additional);
         Dictionary<string, object> first = probe.BuildPopulated();
         additionalClass.Value = "second";
         additional.Remove("role");
@@ -39,10 +40,7 @@ public sealed class BradixPerformanceRegressionTests : BunitContext
         await Assert.That(second["role"]).IsEqualTo("button");
         await Assert.That(second["id"]).IsEqualTo("control");
 
-        probe.Id = null;
-        probe.Class = " ";
-        probe.Style = null;
-        probe.AdditionalAttributes = null;
+        probe.Configure(cssClass: " ");
         Dictionary<string, object> empty = probe.BuildEmpty();
         await Assert.That(ReferenceEquals(first, empty)).IsTrue();
         await Assert.That(empty.Count).IsEqualTo(0);

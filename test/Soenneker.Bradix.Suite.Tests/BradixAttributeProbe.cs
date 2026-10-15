@@ -4,6 +4,15 @@ namespace Soenneker.Bradix.Suite.Tests;
 
 public sealed class BradixAttributeProbe : BradixIdentifiableElement
 {
+    public void Configure(string? id = null, string? cssClass = null, string? style = null,
+        IReadOnlyDictionary<string, object>? additionalAttributes = null)
+    {
+        Id = id;
+        Class = cssClass;
+        Style = style;
+        AdditionalAttributes = additionalAttributes;
+    }
+
     public Dictionary<string, object> BuildEmpty() => BuildAttributes();
 
     public Dictionary<string, object> BuildPopulated() => BuildAttributes(
