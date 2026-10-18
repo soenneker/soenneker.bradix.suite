@@ -1,6 +1,13 @@
 import { createDelegatedEventSnapshot } from "./core/eventSnapshots.js";
 
 const delegatedInteractionHandlers = new WeakMap();
+const delegatedInteractionElements = new Map();
+
+function blockDisabledPointerDown(event) {
+  // Native disabled buttons still receive pointer events. Stop them before
+  // Blazor's document listener, honoring the first-legend fieldset exception.
+  if (event.currentTarget.matches(":disabled")) event.stopImmediatePropagation();
+}
 const delegatedInteractionListeners = [
   "click", "mousedown", "pointerdown", "mouseover", "mouseenter",
   "pointermove", "pointerover", "keydown", "focusin", "focusout"
@@ -11,12 +18,15 @@ const delegatedInteractionListeners = [
   registrations: 0
 }));
 
-export function registerDelegatedInteraction(element, dotNetRef, options) {
+export function registerDelegatedInteraction(element, dotNetRef, options, registrationId) {
   if (!element || !dotNetRef) {
     return;
   }
 
+  if (registrationId) delegatedInteractionElements.set(registrationId, element);
   const resolvedOptions = options || {};
+  if (resolvedOptions.pointerdown) element.addEventListener("pointerdown", blockDisabledPointerDown, true);
+  else element.removeEventListener("pointerdown", blockDisabledPointerDown, true);
   const previous = delegatedInteractionHandlers.get(element);
   const eventMask = updateDelegatedInteractionListeners(previous?.eventMask || 0, resolvedOptions);
   delegatedInteractionHandlers.set(element, { dotNetRef, options: resolvedOptions, eventMask });
@@ -26,7 +36,9 @@ export function registerDelegatedInteraction(element, dotNetRef, options) {
   }
 }
 
-export function unregisterDelegatedInteraction(element) {
+export function unregisterDelegatedInteraction(element, registrationId) {
+  element = delegatedInteractionElements.get(registrationId) || element;
+  if (registrationId) delegatedInteractionElements.delete(registrationId);
   if (!element) {
     return;
   }
@@ -36,6 +48,7 @@ export function unregisterDelegatedInteraction(element) {
     return;
   }
 
+  element.removeEventListener("pointerdown", blockDisabledPointerDown, true);
   delegatedInteractionHandlers.delete(element);
   updateDelegatedInteractionListeners(registration.eventMask, null);
 }
@@ -75,6 +88,10 @@ function dispatchDelegatedInteraction(type, event) {
       continue;
     }
 
+    if (node.matches(":disabled")) {
+      node = node.parentNode;
+      continue;
+    }
     const config = registration.options && registration.options[type];
 
     if (!config) {

@@ -1,25 +1,23 @@
 const collapsibleObservers = new WeakMap();
 
 function updateCollapsibleSize(element) {
-  if (!element || element.hidden) {
+  if (!element || element.hidden || element.getClientRects().length === 0) {
     return;
   }
 
   const height = element.scrollHeight;
   const width = element.scrollWidth;
 
-  if (height > 0) {
-    const value = `${height}px`;
-    if (element.style.getPropertyValue("--radix-collapsible-content-height") !== value) {
-      element.style.setProperty("--radix-collapsible-content-height", value);
-    }
+  // Empty content needs its own zero value instead of inheriting a parent's
+  // dimensions. Only unrendered content retains its previous measurements.
+  const heightValue = `${height}px`;
+  if (element.style.getPropertyValue("--radix-collapsible-content-height") !== heightValue) {
+    element.style.setProperty("--radix-collapsible-content-height", heightValue);
   }
 
-  if (width > 0) {
-    const value = `${width}px`;
-    if (element.style.getPropertyValue("--radix-collapsible-content-width") !== value) {
-      element.style.setProperty("--radix-collapsible-content-width", value);
-    }
+  const widthValue = `${width}px`;
+  if (element.style.getPropertyValue("--radix-collapsible-content-width") !== widthValue) {
+    element.style.setProperty("--radix-collapsible-content-width", widthValue);
   }
 }
 

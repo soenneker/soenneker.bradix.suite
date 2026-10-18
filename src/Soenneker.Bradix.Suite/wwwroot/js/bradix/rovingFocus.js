@@ -1,6 +1,7 @@
 import { cssEscape, readBooleanDataAttribute } from "./core/dom.js";
 
 const rovingFocusElements = new WeakSet();
+const rovingFocusRegistrations = new Map();
 let rovingFocusRegistrationCount = 0;
 const rovingFocusKeys = new Set([
   "ArrowLeft",
@@ -19,11 +20,12 @@ const rovingFocusSelectionKeys = new Set([
   "ArrowDown"
 ]);
 
-export function registerRovingFocusNavigationKeys(element, dotNetRef) {
+export function registerRovingFocusNavigationKeys(element, dotNetRef, registrationId) {
   if (!element) {
     return;
   }
 
+  if (registrationId) rovingFocusRegistrations.set(registrationId, element);
   if (!rovingFocusElements.has(element)) {
     rovingFocusElements.add(element);
     rovingFocusRegistrationCount += 1;
@@ -39,7 +41,9 @@ export function registerRovingFocusNavigationKeys(element, dotNetRef) {
   }
 }
 
-export function unregisterRovingFocusNavigationKeys(element) {
+export function unregisterRovingFocusNavigationKeys(element, registrationId) {
+  element = rovingFocusRegistrations.get(registrationId) || element;
+  if (registrationId) rovingFocusRegistrations.delete(registrationId);
   if (!element || !rovingFocusElements.has(element)) {
     return;
   }
@@ -57,7 +61,7 @@ function handleRovingFocusKeydown(event) {
   if (event.isComposing || event.keyCode === 229) return;
   const element = event.target instanceof HTMLElement ? event.target : null;
 
-  if (!element || !rovingFocusElements.has(element)) {
+  if (!element || !rovingFocusElements.has(element) || !isRovingFocusableElement(element)) {
     return;
   }
 
@@ -95,13 +99,11 @@ function handleRovingFocusKeydown(event) {
   event.preventDefault();
   const clickOnFocus = readBooleanDataAttribute(element, "bradixRovingClickOnFocus");
 
-  setTimeout(() => {
-    target.focus();
-
-    if (clickOnFocus && rovingFocusSelectionKeys.has(event.key)) {
-      target.click();
-    }
-  }, 0);
+  // Keep sequential keypresses ordered without waiting for a timer or .NET render.
+  target.focus();
+  if (target.ownerDocument.activeElement === target && clickOnFocus && rovingFocusSelectionKeys.has(event.key)) {
+    target.click();
+  }
 }
 
 function handleRovingFocusMousedown(event) {
@@ -132,7 +134,7 @@ function isRovingFocusableElement(element) {
 
   const ignoreAriaDisabled = element.getAttribute("data-bradix-roving-ignore-aria-disabled") === "true";
 
-  if (element.hasAttribute("disabled")) {
+  if (element.matches(":disabled") || element.closest("[inert], [hidden]")) {
     return false;
   }
 

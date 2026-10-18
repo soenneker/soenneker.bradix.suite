@@ -147,6 +147,11 @@
     {
         if (Disabled) return;
         if (OnClick.HasDelegate) await OnClick.InvokeAsync(args);
+        if (DropdownMenu is not null && args.Detail == 0)
+        {
+            await OpenFromKeyboard(toggle: true);
+            return;
+        }
         if (DropdownMenu is not null && (_pointerType == "touch" || _pointerType == "pen"))
         {
             Menu?.SetFocusFirstItemOnOpen(false);
