@@ -14,7 +14,6 @@
     <BradixMenuAnchor>
         <button @ref="_button"
                 @onpointerdown="(_cachedHandlePointerDownDelegate ??= HandlePointerDown)"
-                @onpointerdown:preventDefault="PreventTriggerFocusOnOpen"
                 @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
                 @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
                 @attributes="ButtonAttributes">
@@ -35,6 +34,7 @@
     private static readonly string[] PreventDefaultKeys = ["Enter", " ", "Spacebar", "ArrowDown"];
 
     private ElementReference _button;
+    private string _pointerType = string.Empty;
     private ValueAtomicBool _delegatedInteractionRegistered;
     private ValueAtomicBool _disposed;
     private DotNetObjectReference<object>? _dotNetReference;
@@ -53,10 +53,6 @@
 
     [Parameter]
     public EventCallback<ElementReference> OnElementReferenceCaptured { get; set; }
-
-    // Match Radix trigger semantics: when opening from pointerdown, keep focus
-    // off the trigger so the menu content can claim it without competition.
-    private bool PreventTriggerFocusOnOpen => !Disabled && DropdownMenu?.CurrentOpen != true;
 
     private Dictionary<string, object> ButtonAttributes => BuildAttributes(
         ("type", "button"),
@@ -88,6 +84,12 @@
             {
                 await DelegatedInteractionInterop.RegisterDelegatedInteraction(_button, _dotNetReference, new BradixDelegatedInteractionOptions
                 {
+                    Pointerdown = new BradixDelegatedEventOptions
+                    {
+                        CurrentTargetOnly = false,
+                        Filter = "primaryMousePointerDown",
+                        PreventDefault = true
+                    },
                     Keydown = new BradixDelegatedEventOptions
                     {
                         CurrentTargetOnly = true,
@@ -132,17 +134,29 @@
 
     private async Task HandlePointerDown(PointerEventArgs args)
     {
+        _pointerType = args.PointerType ?? string.Empty;
         Menu?.SetFocusFirstItemOnOpen(false);
 
-        if (!Disabled && DropdownMenu is not null && args.Button == 0 && !args.CtrlKey)
+        if (!Disabled && DropdownMenu is not null && args.Button == 0 && !args.CtrlKey
+            && (_pointerType.Length == 0 || _pointerType == "mouse"))
             await DropdownMenu.ToggleOpen();
 
     }
 
-    private Task HandleClick(MouseEventArgs args) => !Disabled && OnClick.HasDelegate ? OnClick.InvokeAsync(args) : Task.CompletedTask;
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (Disabled) return;
+        if (OnClick.HasDelegate) await OnClick.InvokeAsync(args);
+        if (DropdownMenu is not null && (_pointerType == "touch" || _pointerType == "pen"))
+        {
+            Menu?.SetFocusFirstItemOnOpen(false);
+            await DropdownMenu.ToggleOpen();
+        }
+    }
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return Task.CompletedTask;
         if (Disabled || DropdownMenu is null)
             return Task.CompletedTask;
 
@@ -158,6 +172,7 @@
 
     private async Task OpenFromKeyboard(bool toggle)
     {
+        _pointerType = string.Empty;
         Menu?.SetFocusFirstItemOnOpen(true);
 
         if (toggle)

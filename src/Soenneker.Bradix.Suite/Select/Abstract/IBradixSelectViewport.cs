@@ -8,6 +8,9 @@ namespace Soenneker.Bradix;
 /// </summary>
 public interface IBradixSelectViewport
 {
+    /// <summary>Content Security Policy nonce for the viewport stylesheet.</summary>
+    string? Nonce { get; set; }
+
 /// <summary>Gets or sets the CSS class.</summary>
     string? Class { get; set; }
 

@@ -172,6 +172,7 @@
 
     internal async Task HandleItemKeyDown(BradixToggleGroupItem item, KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (!RovingFocus || args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey || !BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 

@@ -37,10 +37,10 @@ public sealed class ControlsInterop : IControlsInterop
         await module.InvokeVoidAsync("clickElement", cancellationToken, element);
     }
 
-    public async ValueTask RegisterContextMenuKeyboard(ElementReference element, CancellationToken cancellationToken = default)
+    public async ValueTask RegisterContextMenuKeyboard(ElementReference element, DotNetObjectReference<object>? dotNetReference = null, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerContextMenuKeyboard", cancellationToken, element);
+        await module.InvokeVoidAsync("registerContextMenuKeyboard", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterContextMenuKeyboard(ElementReference element, CancellationToken cancellationToken = default)

@@ -3,26 +3,52 @@ import { focusElement } from "./core/focus.js";
 const sliderPointerHandlers = new WeakMap();
 const contextMenuKeyboardHandlers = new WeakMap();
 
-export function registerContextMenuKeyboard(element) {
+export function registerContextMenuKeyboard(element, dotNetRef = null) {
   if (!element) return;
   unregisterContextMenuKeyboard(element);
-  const handler = event => {
-    if (event.defaultPrevented || element.hasAttribute("data-disabled") || event.ctrlKey || event.altKey || event.metaKey) return;
+  const abort = new AbortController();
+  let timer = 0;
+  const clear = () => { clearTimeout(timer); timer = 0; };
+  const owns = event => !element.hasAttribute("data-disabled") &&
+    event.target?.closest?.("[data-bradix-context-menu-trigger]:not([data-disabled])") === element;
+  element.setAttribute("data-bradix-context-menu-trigger", "");
+  element.addEventListener("keydown", event => {
+    if (!owns(event) || event.isComposing || event.keyCode === 229 || event.defaultPrevented || event.ctrlKey || event.altKey || event.metaKey) return;
     if (event.key !== "ContextMenu" && !(event.key === "F10" && event.shiftKey)) return;
     event.preventDefault();
     const rect = element.getBoundingClientRect();
     element.dispatchEvent(new MouseEvent("contextmenu", {
-      bubbles: true, cancelable: true, button: 2,
-      clientX: rect.left, clientY: rect.bottom
+      bubbles: true, cancelable: true, button: 2, clientX: rect.left, clientY: rect.bottom
     }));
-  };
-  element.addEventListener("keydown", handler);
-  contextMenuKeyboardHandlers.set(element, handler);
+  }, { signal: abort.signal });
+  if (dotNetRef) {
+    const open = (x, y) => {
+      clear();
+      dotNetRef.invokeMethodAsync("HandleNativeContextMenu", x, y).catch(() => {});
+    };
+    element.addEventListener("contextmenu", event => {
+      if (!owns(event) || event.defaultPrevented) return;
+      event.preventDefault();
+      event.stopPropagation();
+      open(event.clientX, event.clientY);
+    }, { signal: abort.signal });
+    element.addEventListener("pointerdown", event => {
+      if (!owns(event) || event.pointerType === "mouse" || event.defaultPrevented) return;
+      event.stopPropagation();
+      clear();
+      timer = setTimeout(() => open(event.clientX, event.clientY), 700);
+    }, { signal: abort.signal });
+    for (const type of ["pointermove", "pointerup", "pointercancel"])
+      element.addEventListener(type, clear, { signal: abort.signal, passive: true });
+  }
+  contextMenuKeyboardHandlers.set(element, { abort, clear });
 }
 
 export function unregisterContextMenuKeyboard(element) {
-  const handler = contextMenuKeyboardHandlers.get(element);
-  if (handler) element.removeEventListener("keydown", handler);
+  const state = contextMenuKeyboardHandlers.get(element);
+  state?.abort.abort();
+  state?.clear();
+  element?.removeAttribute("data-bradix-context-menu-trigger");
   contextMenuKeyboardHandlers.delete(element);
 }
 const oneTimePasswordInputHandlers = new WeakMap();
@@ -586,6 +612,7 @@ export function registerOneTimePasswordInput(element, dotNetRef) {
   };
 
   const keydown = async (event) => {
+  if (event.isComposing || event.keyCode === 229) return;
     if (event.target !== element) {
       return;
     }
@@ -667,4 +694,94 @@ export function unregisterOneTimePasswordInput(element) {
   element.removeEventListener("focus", handlers.focus);
   element.removeEventListener("blur", handlers.blur);
   oneTimePasswordInputHandlers.delete(element);
+}
+
+// Password values never cross this bridge. Only visibility changes notify Blazor.
+const passwordInputs = new WeakMap();
+const passwordToggles = new WeakMap();
+
+export function registerPasswordInput(input, dotNetRef) {
+  unregisterPasswordInput(input);
+  const abort = new AbortController();
+  const state = { abort, start: null, end: null, direction: null, restoreSelection: false };
+  input.dataset.bradixPasswordReady = "true";
+  passwordInputs.set(input, state);
+  state.observer = new MutationObserver(() => {
+    if (!state.restoreSelection) return;
+    state.restoreSelection = false;
+    if (input.ownerDocument.activeElement === input && state.start !== null)
+      input.setSelectionRange(state.start, state.end, state.direction);
+  });
+  state.observer.observe(input, { attributes: true, attributeFilter: ["type"] });
+  input.addEventListener("blur", () => {
+    state.start = input.selectionStart;
+    state.end = input.selectionEnd;
+    state.direction = input.selectionDirection;
+  }, { signal: abort.signal });
+  const hide = event => {
+    if (event.type === "reset" && event.defaultPrevented) return;
+    // Synchronous masking precedes native submission, including on Blazor Server.
+    input.type = "password";
+    dotNetRef.invokeMethodAsync("HidePassword").catch(() => {});
+  };
+  input.form?.addEventListener("submit", hide, { signal: abort.signal });
+  input.form?.addEventListener("reset", event => queueMicrotask(() => {
+    if (!abort.signal.aborted) hide(event);
+  }), { signal: abort.signal });
+}
+
+export function unregisterPasswordInput(input) {
+  passwordInputs.get(input)?.abort.abort();
+  passwordInputs.get(input)?.observer.disconnect();
+  passwordInputs.delete(input);
+  input?.removeAttribute("data-bradix-password-ready");
+}
+
+export function registerPasswordToggle(button) {
+  unregisterPasswordToggle(button);
+  const abort = new AbortController();
+  let pointer = false;
+  let automaticLabel = null;
+  const label = () => {
+    const current = button.getAttribute("aria-label");
+    if (current !== null && current !== automaticLabel) return;
+    if (button.textContent?.trim()) {
+      if (automaticLabel !== null) button.removeAttribute("aria-label");
+      automaticLabel = null;
+    } else {
+      automaticLabel = button.dataset.state === "visible" ? "Hide password" : "Show password";
+      if (current !== automaticLabel) button.setAttribute("aria-label", automaticLabel);
+    }
+  };
+  const observer = new MutationObserver(label);
+  observer.observe(button, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["data-state", "aria-label"] });
+  label();
+  button.addEventListener("pointerdown", () => { pointer = true; }, { signal: abort.signal });
+  button.addEventListener("pointercancel", () => { pointer = false; }, { signal: abort.signal });
+  button.addEventListener("keydown", () => { pointer = false; }, { signal: abort.signal });
+  button.addEventListener("click", event => {
+    const restore = pointer;
+    pointer = false;
+    if (!restore || event.defaultPrevented || button.disabled) return;
+    const input = button.ownerDocument.getElementById(button.getAttribute("aria-controls"));
+    const state = input && passwordInputs.get(input);
+    if (!state) return;
+    state.restoreSelection = true;
+    input.focus({ preventScroll: true });
+    if (state.start !== null) {
+      const { start, end, direction } = state;
+      input.ownerDocument.defaultView.requestAnimationFrame(() => {
+        if (!abort.signal.aborted && input.ownerDocument.activeElement === input)
+          input.setSelectionRange(start, end, direction);
+      });
+    }
+  }, { signal: abort.signal });
+  passwordToggles.set(button, { abort, observer });
+}
+
+export function unregisterPasswordToggle(button) {
+  const state = passwordToggles.get(button);
+  state?.abort.abort();
+  state?.observer.disconnect();
+  passwordToggles.delete(button);
 }

@@ -163,6 +163,7 @@
 
     internal async Task HandleTriggerKeyDown(IBradixMenubarTriggerEntry trigger, KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey ||
             args.Key is not ("ArrowLeft" or "ArrowRight" or "Home" or "End" or "PageUp" or "PageDown"))
             return;

@@ -128,6 +128,7 @@ export function registerNavigationMenuContentFocusBridge(content, trigger, start
   };
 
   const handleContentKeydown = (event) => {
+  if (event.isComposing || event.keyCode === 229) return;
     const isMetaKey = event.altKey || event.ctrlKey || event.metaKey;
     const isTabKey = event.key === "Tab" && !isMetaKey;
     if (!isTabKey) {
@@ -216,6 +217,7 @@ export function registerNavigationMenuTriggerInteraction(trigger, dotNetRef) {
   };
 
   const handleKeyDown = (event) => {
+  if (event.isComposing || event.keyCode === 229) return;
     if (navigationTriggerKeys.has(event.key)) {
       event.preventDefault();
     }

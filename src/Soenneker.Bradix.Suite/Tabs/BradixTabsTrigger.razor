@@ -170,6 +170,7 @@
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (OnKeyDown.HasDelegate)
             await OnKeyDown.InvokeAsync(args);
 

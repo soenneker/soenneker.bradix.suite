@@ -6,6 +6,12 @@ namespace Soenneker.Bradix;
 /// <summary>Defines the public API for <see cref="BradixContextMenu"/>.</summary>
 public interface IBradixContextMenu
 {
+    /// <summary>Gets or sets the controlled open state. Open through user interaction to establish the pointer anchor.</summary>
+    bool? Open { get; set; }
+
+    /// <summary>Gets or sets the callback for two-way binding of the open state.</summary>
+    EventCallback<bool> OpenChanged { get; set; }
+
     /// <summary>Gets or sets the callback invoked when the open state changes.</summary>
     EventCallback<bool> OnOpenChange { get; set; }
 

@@ -27,6 +27,7 @@ export function registerCheckboxRoot(element, dotNetRef, formId = null) {
   element.setAttribute("data-bradix-checkbox-root", "");
 
   const preventEnterActivation = (event) => {
+  if (event.isComposing || event.keyCode === 229) return;
     if (event.key === "Enter") {
       event.preventDefault();
     }
@@ -40,8 +41,8 @@ export function registerCheckboxRoot(element, dotNetRef, formId = null) {
   let reset = null;
 
   if (form && dotNetRef) {
-    reset = () => {
-      dotNetRef.invokeMethodAsync("HandleFormReset");
+    reset = event => {
+      queueMicrotask(() => { if (!event.defaultPrevented) dotNetRef.invokeMethodAsync("HandleFormReset").catch(error => { if (!isDisposedDotNetReferenceError(error)) throw error; }); });
     };
 
     form.addEventListener("reset", reset);
@@ -225,8 +226,8 @@ export function registerAssociatedFormReset(element, dotNetRef, formId = null) {
     return;
   }
 
-  const reset = () => {
-    dotNetRef.invokeMethodAsync("HandleFormReset");
+  const reset = event => {
+    queueMicrotask(() => { if (!event.defaultPrevented) dotNetRef.invokeMethodAsync("HandleFormReset").catch(error => { if (!isDisposedDotNetReferenceError(error)) throw error; }); });
   };
 
   form.addEventListener("reset", reset);

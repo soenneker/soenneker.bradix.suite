@@ -12,6 +12,8 @@
 @inject IRadioGroupInterop RadioGroupInterop
 @inject IFormInterop FormInterop
 @inject IControlsInterop ControlsInterop
+@if (RenderDefaultParts)
+{
 <CascadingValue Value="this">
     <button @ref="_element"
             @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
@@ -28,8 +30,36 @@
     <input @ref="_bubbleInputElement"
            @attributes="BubbleInputAttributes" />
 }
+}
+else
+{
+    <CascadingValue Value="this">@ChildContent</CascadingValue>
+}
 
 @code {
+    protected virtual bool RenderDefaultParts => true;
+    internal void ClearBubbleInput()
+    {
+        _bubbleInputElement = default;
+        _hasSyncedBubbleInput.Value = false;
+    }
+    internal RenderFragment RenderTrigger(RenderFragment? content, IReadOnlyDictionary<string, object>? attributes = null) => @<button @ref="_element"
+            @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+            @onclick:stopPropagation="ShouldRenderBubbleInput"
+            @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+            @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
+            @attributes="MergePartAttributes(ItemAttributes, attributes)">
+        @content
+    </button>;
+    internal RenderFragment RenderBubbleInput(IReadOnlyDictionary<string, object>? attributes = null) => @<input @ref="_bubbleInputElement" @attributes="MergePartAttributes(BubbleInputAttributes, attributes)" />;
+
+    private static Dictionary<string, object> MergePartAttributes(Dictionary<string, object> defaults, IReadOnlyDictionary<string, object>? attributes)
+    {
+        if (attributes is not null)
+            foreach (var pair in attributes) defaults[pair.Key] = pair.Value;
+        return defaults;
+    }
+
     private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
     private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
     private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
@@ -78,7 +108,9 @@
 
     internal bool IsChecked => Group.IsChecked(Value);
 
-    private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(Form);
+    private string? ResolvedForm => Form ?? Group.Form;
+
+    private bool ShouldRenderBubbleInput => _isFormControl || !string.IsNullOrWhiteSpace(ResolvedForm);
 
     private string ResolvedInputValue => InputValue ?? Value;
 
@@ -115,8 +147,8 @@
                 attributes["aria-hidden"] = "true";
                 attributes["style"] = "position:absolute;width:0;height:0;padding:0;border:0;pointer-events:none;opacity:0;margin:0;transform:translateX(-100%);";
 
-            if (!string.IsNullOrWhiteSpace(Form))
-                attributes["form"] = Form;
+            if (!string.IsNullOrWhiteSpace(ResolvedForm))
+                attributes["form"] = ResolvedForm;
 
             return attributes;
         }
@@ -131,7 +163,7 @@
     {
         if (_disposed.Read())
             return;
-        if (firstRender)
+        if (!_registered.Value && !string.IsNullOrEmpty(_element.Id))
         {
             Group.RegisterItem(this);
             _registered.Value = true;
@@ -153,13 +185,13 @@
             _lastRenderedChecked = IsChecked;
         }
 
-        if (!_formControlStateResolved.Value || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
+        if (!_formControlStateResolved.Value || !string.Equals(_lastResolvedForm, ResolvedForm, StringComparison.Ordinal))
         {
-            bool isFormControl = await FormInterop.IsFormControl(_element, Form);
+            bool isFormControl = await FormInterop.IsFormControl(_element, ResolvedForm);
             if (_disposed.Read())
                 return;
             _formControlStateResolved.Value = true;
-            _lastResolvedForm = Form;
+            _lastResolvedForm = ResolvedForm;
 
             if (_isFormControl != isFormControl)
             {
@@ -169,11 +201,11 @@
             }
         }
 
-        if (ShouldRenderBubbleInput)
+        if (ShouldRenderBubbleInput && !string.IsNullOrEmpty(_bubbleInputElement.Id))
         {
             if (!_hasSyncedBubbleInput.Value || _lastRenderedChecked != IsChecked)
             {
-                bool dispatchEvent = _hasSyncedBubbleInput.Value;
+                bool dispatchEvent = _hasSyncedBubbleInput.Value && IsChecked && Group.ConsumeUserChange(Value);
                 await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, false, dispatchEvent);
             }
 
@@ -246,6 +278,7 @@
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (OnKeyDown.HasDelegate)
             await OnKeyDown.InvokeAsync(args);
 

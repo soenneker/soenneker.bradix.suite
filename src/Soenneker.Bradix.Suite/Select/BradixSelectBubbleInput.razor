@@ -1,0 +1,7 @@
+@namespace Soenneker.Bradix
+@implements IBradixSelectBubbleInput
+@Owner.RenderBubbleInput()
+@code {
+    public ValueTask DisposeAsync() => Owner.ClearBubbleInput();
+    [CascadingParameter] private BradixSelect Owner { get; set; } = null!;
+}

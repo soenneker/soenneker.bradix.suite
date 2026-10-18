@@ -9,6 +9,7 @@
 @implements IBradixSlider
 
 @inject IControlsInterop ControlsInterop
+@inject IFormInterop FormInterop
 <CascadingValue Value="this">
     <span @ref="_element"
           @attributes="RootAttributes">
@@ -21,12 +22,19 @@
     private ValueAtomicBool _disposed;
     private ValueAtomicBool _initialized;
     private ValueAtomicBool _registered;
+    private bool _formRegistered;
     private readonly List<double> _valuesBeforeSlideStart = [];
     private string? _multipleInputName;
     private bool _hasStepDecimalCount;
     private long _stepBits;
     private int _stepDecimalCount;
     private IReadOnlyList<double> _uncontrolledValues = [];
+    private IReadOnlyList<double> _initialValues = [];
+    private IReadOnlyList<double>? _pendingUserValues;
+    internal long UserChangeVersion { get; private set; }
+
+    internal bool IsUserValue(double value, int index) => _pendingUserValues is not null &&
+        index >= 0 && index < _pendingUserValues.Count && _pendingUserValues[index] == value;
     private ElementReference _element;
     private DotNetObjectReference<object>? _dotNetReference;
 
@@ -73,6 +81,9 @@
     public EventCallback<IReadOnlyList<double>> OnValueCommit { get; set; }
 
     [Parameter]
+    public bool PreserveThumbOrder { get; set; }
+
+    [Parameter]
     public bool Inverted { get; set; }
 
     [Parameter]
@@ -87,7 +98,7 @@
     private Dictionary<string, object> RootAttributes => BuildAttributes(
         ("data-orientation", Orientation.Value),
         ("data-disabled", Disabled ? string.Empty : null),
-        ("aria-disabled", Disabled ? "true" : "false"),
+        ("aria-disabled", Disabled ? "true" : null),
         ("dir", ResolvedDirection));
 
     protected override void OnParametersSet()
@@ -100,6 +111,7 @@
             return;
 
         _uncontrolledValues = BradixSliderMath.NormalizeValues(DefaultValues, Min, Max);
+        _initialValues = CopyValues(CurrentValues);
         _initialized.Value = true;
         CaptureValuesBeforeSlideStart();
     }
@@ -117,6 +129,14 @@
             return;
         }
 
+        await FormInterop.RegisterAssociatedFormReset(_element, _dotNetReference, Form);
+        if (_disposed.Read())
+        {
+            await FormInterop.UnregisterAssociatedFormReset(_element);
+            await ControlsInterop.UnregisterSliderPointerBridge(_element);
+            return;
+        }
+        _formRegistered = true;
         _registered.Value = true;
         await RequestRender();
     }
@@ -132,9 +152,26 @@
         }
         finally
         {
-            _dotNetReference?.Dispose();
-            _dotNetReference = null;
+            try
+            {
+                if (_formRegistered) await FormInterop.UnregisterAssociatedFormReset(_element);
+            }
+            finally
+            {
+                _dotNetReference?.Dispose();
+                _dotNetReference = null;
+            }
         }
+    }
+
+    [JSInvokable]
+    public async Task HandleFormReset()
+    {
+        _pendingUserValues = null;
+        if (Values is null) _uncontrolledValues = CopyValues(_initialValues);
+        if (ValuesChanged.HasDelegate) await ValuesChanged.InvokeAsync(CopyValues(_initialValues));
+        if (OnValuesChange.HasDelegate) await OnValuesChange.InvokeAsync(CopyValues(_initialValues));
+        await RequestRender();
     }
 
     internal void RegisterThumb(BradixSliderThumb thumb)
@@ -210,6 +247,7 @@
 
     internal async Task HandleThumbKeyDown(int index, KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (_disposed.Read() || Disabled || index < 0 || index >= CurrentValues.Count)
             return;
 
@@ -234,7 +272,11 @@
         double multiplier = isSkipKey ? 10 : 1;
         int direction = IsBackKey(args.Key) ? -1 : 1;
         double currentValue = CurrentValues[index];
-        await UpdateValue(currentValue + (Step * multiplier * direction), index, commit: true);
+        double stepIndex = (currentValue - Min) / Step;
+        double nearestStep = Math.Round(stepIndex);
+        // Decimal steps can land a few floating-point bits below an exact grid point.
+        if (Math.Abs(stepIndex - nearestStep) <= 1e-9) stepIndex = nearestStep;
+        await UpdateValue(Min + ((direction > 0 ? Math.Floor(stepIndex) : Math.Ceiling(stepIndex)) + multiplier * direction) * Step, index, commit: true);
     }
 
     [JSInvokable]
@@ -274,10 +316,7 @@
         if (_disposed.Read() || Disabled || CurrentThumbIndex < 0 || CurrentThumbIndex >= CurrentValues.Count)
             return;
 
-        double previousValue = _valuesBeforeSlideStart.Count > CurrentThumbIndex ? _valuesBeforeSlideStart[CurrentThumbIndex] : CurrentValues[CurrentThumbIndex];
-        double nextValue = CurrentValues[CurrentThumbIndex];
-
-        if (previousValue != nextValue && OnValueCommit.HasDelegate)
+        if (!ValuesEqual(_valuesBeforeSlideStart, CurrentValues) && OnValueCommit.HasDelegate)
             await OnValueCommit.InvokeAsync(CopyValues(CurrentValues));
     }
 
@@ -314,11 +353,20 @@
         double snappedValue = BradixSliderMath.RoundValue(BradixSliderMath.RoundToNearest((value - Min) / Step) * Step + Min, decimalCount);
         double clampedValue = BradixSliderMath.Clamp(snappedValue, Min, Max);
 
+        if (PreserveThumbOrder)
+        {
+            double gap = MinStepsBetweenThumbs * Step;
+            double lower = atIndex > 0 ? CurrentValues[atIndex - 1] + gap : Min;
+            double upper = atIndex + 1 < CurrentValues.Count ? CurrentValues[atIndex + 1] - gap : Max;
+            clampedValue = BradixSliderMath.Clamp(clampedValue, lower, upper);
+        }
         double[]? nextValues = BuildChangedValues(CurrentValues, clampedValue, atIndex, MinStepsBetweenThumbs * Step, out int nextIndex);
         if (nextValues is null)
             return;
 
-        CurrentThumbIndex = nextIndex;
+        _pendingUserValues = nextValues;
+        UserChangeVersion++;
+        CurrentThumbIndex = PreserveThumbOrder ? atIndex : nextIndex;
 
         if (Values is null)
             _uncontrolledValues = nextValues;

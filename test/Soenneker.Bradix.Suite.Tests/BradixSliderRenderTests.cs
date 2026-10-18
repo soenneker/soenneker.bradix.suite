@@ -30,6 +30,8 @@ public sealed class BradixSliderRenderTests : BunitContext
         _module.SetupVoid("unregisterDelegatedInteraction", _ => true).SetVoidResult();
         _module.SetupVoid("syncSliderBubbleInputValue", _ => true).SetVoidResult();
 
+        _module.SetupVoid("registerAssociatedFormReset", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterAssociatedFormReset", _ => true).SetVoidResult();
         Services.AddBradixTestInterops();
     }
 
@@ -42,7 +44,7 @@ public sealed class BradixSliderRenderTests : BunitContext
         IElement thumb = cut.Find("[role='slider']");
         IElement range = cut.Find(".range");
 
-        await Assert.That(root.GetAttribute("aria-disabled")).IsEqualTo("false");
+        await Assert.That(root.HasAttribute("aria-disabled")).IsFalse();
         await Assert.That(thumb.GetAttribute("aria-valuenow")).IsEqualTo("20");
         await Assert.That(thumb.GetAttribute("aria-orientation")).IsEqualTo("horizontal");
         await Assert.That(range.GetAttribute("style")).Contains("left:");

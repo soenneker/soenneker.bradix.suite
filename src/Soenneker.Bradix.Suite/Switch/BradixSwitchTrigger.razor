@@ -1,0 +1,9 @@
+@namespace Soenneker.Bradix
+@implements IBradixSwitchTrigger
+@inherits BradixIdentifiableContentElement
+
+@Owner.RenderTrigger(ChildContent, BuildAttributes())
+
+@code {
+    [CascadingParameter] private BradixSwitch Owner { get; set; } = null!;
+}

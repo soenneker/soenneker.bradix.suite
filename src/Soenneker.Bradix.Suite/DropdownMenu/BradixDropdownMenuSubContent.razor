@@ -7,6 +7,7 @@
 <BradixMenuSubContent ForceMount="@ForceMount"
                       Loop="@Loop"
                       SideOffset="@SideOffset"
+                      Align="@Align"
                       AlignOffset="@AlignOffset"
                       ArrowPadding="@ArrowPadding"
                       AvoidCollisions="@AvoidCollisions"
@@ -14,6 +15,7 @@
                       CollisionBoundarySelector="@CollisionBoundarySelector"
                       CollisionBoundarySelectors="@CollisionBoundarySelectors"
                       Sticky="@Sticky"
+                      UpdatePositionStrategy="@UpdatePositionStrategy"
                       HideWhenDetached="@HideWhenDetached"
                       Class="@Class"
                       Style="@MergedStyle"
@@ -45,6 +47,9 @@
     public double SideOffset { get; set; }
 
     [Parameter]
+    public Alignment Align { get; set; } = Alignment.Start;
+
+    [Parameter]
     public double AlignOffset { get; set; }
 
     [Parameter]
@@ -64,6 +69,9 @@
 
     [Parameter]
     public string Sticky { get; set; } = "partial";
+
+    [Parameter]
+    public PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; } = PopperUpdatePositionStrategy.Optimized;
 
     [Parameter]
     public bool HideWhenDetached { get; set; }

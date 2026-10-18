@@ -146,6 +146,7 @@
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (NavigationMenu is null)
             return;
 

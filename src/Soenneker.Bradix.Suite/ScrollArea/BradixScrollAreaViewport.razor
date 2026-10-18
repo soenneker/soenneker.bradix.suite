@@ -14,9 +14,14 @@
 </style>
 <div @ref="_viewport"
      @attributes="ViewportAttributes">
-    <div @ref="_content" style="min-width: 100%; display: table;">
-        @ChildContent
-    </div>
+    @if (DisableImplicitContentElement)
+    {
+        <CascadingValue Value="this">@ChildContent</CascadingValue>
+    }
+    else
+    {
+        <div @ref="_content" role="presentation" style="min-width: 100%; display: table;">@ChildContent</div>
+    }
 </div>
 
 @code {
@@ -24,6 +29,27 @@
 
     private ElementReference _viewport;
     private ElementReference _content;
+    private ElementReference _registeredContent;
+
+    [Parameter] public bool DisableImplicitContentElement { get; set; }
+
+    internal Task RegisterContent(ElementReference content)
+    {
+        if (_content.Id == content.Id) return Task.CompletedTask;
+        _content = content;
+        return RequestRender();
+    }
+    internal async ValueTask UnregisterContent(ElementReference content)
+    {
+        if (_content.Id != content.Id) return;
+        _content = default;
+        ScrollArea.UnregisterContent(content);
+        if (_registered.Value)
+        {
+            _registered.Value = false;
+            await ScrollAreaInterop.UnregisterScrollAreaViewport(_viewport);
+        }
+    }
     private DotNetObjectReference<object>? _dotNetReference;
     private ValueAtomicBool _registered;
     private ValueAtomicBool _disposed;
@@ -38,10 +64,12 @@
     {
         if (_disposed.Read())
             return;
+        if (string.IsNullOrEmpty(_content.Id)) return;
         ScrollArea.RegisterViewport(_viewport, _content);
 
-        if (_registered.Value)
+        if (_registered.Value && _registeredContent.Id == _content.Id)
             return;
+        if (_registered.Value) await ScrollAreaInterop.UnregisterScrollAreaViewport(_viewport);
 
         if (_dotNetReference is null)
             _dotNetReference = DotNetObjectReference.Create<object>(ScrollArea);
@@ -52,6 +80,7 @@
             await ScrollAreaInterop.UnregisterScrollAreaViewport(_viewport);
             return;
         }
+        _registeredContent = _content;
         _registered.Value = true;
     }
 

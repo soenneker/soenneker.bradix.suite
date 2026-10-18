@@ -10,6 +10,8 @@
 @inject IDelegatedInteractionInterop DelegatedInteractionInterop
 @inject IFormInterop FormInterop
 @inject IControlsInterop ControlsInterop
+@if (RenderDefaultParts)
+{
 <span style="@WrapperStyle">
     <span @ref="_element"
           @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
@@ -23,8 +25,35 @@
                @attributes="BubbleInputAttributes" />
     }
 </span>
+}
+else
+{
+    <CascadingValue Value="this">@ComposedContent</CascadingValue>
+}
 
 @code {
+    protected virtual bool RenderDefaultParts => true;
+    protected virtual RenderFragment? ComposedContent => null;
+    internal RenderFragment RenderTrigger(IReadOnlyDictionary<string, object>? attributes = null) => @<span style="@WrapperStyle">
+    <span @ref="_element"
+          @onfocus="(_cachedHandleFocusDelegate ??= HandleFocus)"
+          @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
+          @attributes="MergePartAttributes(ThumbAttributes, attributes)">
+    </span>
+</span>;
+    internal RenderFragment RenderBubbleInput(IReadOnlyDictionary<string, object>? attributes = null) => @<input @ref="_bubbleInputElement" @attributes="MergePartAttributes(BubbleInputAttributes, attributes)" />;
+    internal void ClearBubbleInput()
+    {
+        _bubbleInputElement = default;
+        _hasSyncedBubbleInput.Value = false;
+    }
+    private static Dictionary<string, object> MergePartAttributes(Dictionary<string, object> defaults, IReadOnlyDictionary<string, object>? attributes)
+    {
+        if (attributes is not null)
+            foreach (var pair in attributes) defaults[pair.Key] = pair.Value;
+        return defaults;
+    }
+
     private System.Func<FocusEventArgs, Task>? _cachedHandleFocusDelegate;
     private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
 
@@ -42,6 +71,7 @@
     private System.Globalization.CultureInfo? _defaultLabelCulture;
     private ElementReference _element;
     private ElementReference _bubbleInputElement;
+    private long _lastUserChangeVersion;
     private ValueAtomicBool _hasSyncedBubbleInput;
     private bool _isFormControl = true;
     private ValueAtomicBool _formControlStateResolved;
@@ -158,7 +188,7 @@
         }
     }
 
-    private IReadOnlyDictionary<string, object> BubbleInputAttributes
+    private Dictionary<string, object> BubbleInputAttributes
     {
         get
         {
@@ -181,7 +211,7 @@
         if (_disposed.Read())
             return;
 
-        if (firstRender)
+        if (!_registered.Value && !string.IsNullOrEmpty(_element.Id))
         {
             Slider.RegisterThumb(this);
             _registered.Value = true;
@@ -220,13 +250,15 @@
             }
         }
 
-        if (ShouldRenderBubbleInput && Value is not null)
+        if (ShouldRenderBubbleInput && Value is not null && !string.IsNullOrEmpty(_bubbleInputElement.Id))
         {
             double normalizedValue = Slider.NormalizeStepValue(Value.Value);
 
             if (!_hasSyncedBubbleInput.Value || _lastSyncedBubbleValue != normalizedValue)
             {
-                bool dispatchEvent = _hasSyncedBubbleInput.Value && _lastRenderedValue != Value;
+                bool dispatchEvent = _hasSyncedBubbleInput.Value && _lastRenderedValue != Value &&
+                    _lastUserChangeVersion != Slider.UserChangeVersion && Slider.IsUserValue(Value.Value, Slider.GetThumbIndex(this));
+                if (dispatchEvent) _lastUserChangeVersion = Slider.UserChangeVersion;
                 await ControlsInterop.SyncSliderBubbleInputValue(_bubbleInputElement, normalizedValue, dispatchEvent);
                 _lastSyncedBubbleValue = normalizedValue;
             }
@@ -270,6 +302,7 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return Task.CompletedTask;
         return Slider.HandleThumbKeyDown(Index, args);
     }
 }

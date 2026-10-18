@@ -1,0 +1,17 @@
+@namespace Soenneker.Bradix
+@inherits BradixContentElement
+@implements IBradixScrollAreaContent
+
+<div @ref="_element" @attributes="ContentAttributes">@ChildContent</div>
+
+@code {
+    public ValueTask DisposeAsync() => Viewport.UnregisterContent(_element);
+    private ElementReference _element;
+    private string? _style;
+    [CascadingParameter] private BradixScrollAreaViewport Viewport { get; set; } = null!;
+    private Dictionary<string, object> ContentAttributes => BuildAttributes(
+        ("role", "presentation"),
+        ("style", BradixStringCache.MergeStyle("min-width:100%;display:table;", Style, ref _style)));
+    protected override Task OnAfterRenderAsync(bool firstRender) =>
+        firstRender ? Viewport.RegisterContent(_element) : Task.CompletedTask;
+}

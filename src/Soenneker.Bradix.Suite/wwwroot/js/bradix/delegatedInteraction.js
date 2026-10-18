@@ -62,6 +62,7 @@ function updateDelegatedInteractionListeners(previousMask, next) {
 }
 
 function dispatchDelegatedInteraction(type, event) {
+  if (type === "keydown" && (event.isComposing || event.keyCode === 229)) return;
   let node = event.target instanceof Node ? event.target : null;
 
   while (node) {

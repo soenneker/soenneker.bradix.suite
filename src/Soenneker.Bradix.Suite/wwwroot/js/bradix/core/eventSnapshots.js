@@ -36,6 +36,7 @@ export function createDelegatedEventSnapshot(type, event) {
       : null;
 
     return {
+      isComposing: !!event.isComposing || event.keyCode === 229,
       key: event.key || "",
       code: event.code || "",
       ctrlKey: !!event.ctrlKey,

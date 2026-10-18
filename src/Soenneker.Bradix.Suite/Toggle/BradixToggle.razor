@@ -104,6 +104,7 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return Task.CompletedTask;
         return OnKeyDown.HasDelegate
             ? OnKeyDown.InvokeAsync(args)
             : Task.CompletedTask;

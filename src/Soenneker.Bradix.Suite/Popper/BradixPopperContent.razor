@@ -40,7 +40,7 @@
     private string _transformOriginX = "50%";
     private string _transformOriginY = "50%";
     private string? _zIndex;
-    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir)? _lastOptions;
+    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir, string UpdatePositionStrategy)? _lastOptions;
     private bool _lastHadArrow;
     private bool _lastHadElementAnchor;
     private ElementReference _lastElementAnchor;
@@ -83,6 +83,9 @@
 
     [Parameter]
     public string Sticky { get; set; } = "partial";
+
+    [Parameter]
+    public PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; } = PopperUpdatePositionStrategy.Optimized;
 
     [Parameter]
     public bool HideWhenDetached { get; set; }
@@ -130,7 +133,7 @@
             return;
         }
 
-        (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options = CurrentOptions;
+        (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir, string UpdatePositionStrategy) options = CurrentOptions;
         bool hasArrow = !string.IsNullOrEmpty(_arrow.Id);
 
         if (!_registered.Value)
@@ -208,7 +211,7 @@
     }
 
     private async Task Register(bool hasExplicitAnchor, bool hasAnchorSelector, bool hasVirtualAnchor,
-        (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options,
+        (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir, string UpdatePositionStrategy) options,
         bool hasArrow)
     {
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
@@ -315,7 +318,7 @@
         return baseStyle;
     }
 
-    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) CurrentOptions => (Side.Value, SideOffset, Align.Value, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, CreateBoundarySelectorKey(), NormalizeSticky(Sticky), HideWhenDetached, Direction == "rtl" ? "rtl" : "ltr");
+    private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir, string UpdatePositionStrategy) CurrentOptions => (Side.Value, SideOffset, Align.Value, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, CreateBoundarySelectorKey(), NormalizeSticky(Sticky), HideWhenDetached, Direction == "rtl" ? "rtl" : "ltr", UpdatePositionStrategy.Value);
 
     private static string NormalizeSticky(string? sticky) => string.Equals(sticky, "always", StringComparison.OrdinalIgnoreCase) ? "always" : "partial";
 
@@ -370,7 +373,7 @@
         return true;
     }
 
-    private static BradixPopperInteropOptions CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir) options)
+    private static BradixPopperInteropOptions CreateOptionsPayload((string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir, string UpdatePositionStrategy) options)
     {
         return new BradixPopperInteropOptions
         {
@@ -384,6 +387,7 @@
             CollisionBoundarySelectors = SplitBoundarySelectorKey(options.CollisionBoundarySelectors),
             Sticky = options.Sticky,
             HideWhenDetached = options.HideWhenDetached,
+            UpdatePositionStrategy = options.UpdatePositionStrategy,
             Dir = options.Dir
         };
     }

@@ -68,7 +68,7 @@
 
     private RenderFragment? _contentBody;
 
-    private RenderFragment ContentBody => _contentBody ??= @<BradixDismissableLayer DisableOutsidePointerEvents="false"
+    private RenderFragment ContentBody => _contentBody ??= @<BradixDismissableLayer DeferPointerDownOutside="true" DisableOutsidePointerEvents="false"
                                 DismissOnEscapeKeyDown="false"
                                 DismissOnPointerDownOutside="false"
                                 DismissOnFocusOutside="false"

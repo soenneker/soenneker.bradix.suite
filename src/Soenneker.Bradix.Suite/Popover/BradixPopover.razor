@@ -19,6 +19,32 @@
     private ValueAtomicBool _initialized;
     private bool _uncontrolledOpen;
     private int _customAnchorCount;
+    internal string? RegisteredTitleId { get; private set; }
+    internal string? RegisteredDescriptionId { get; private set; }
+    internal string TitleId => $"{BaseId}-title";
+    internal string DescriptionId => $"{BaseId}-description";
+
+    internal void RegisterTitle(string? id)
+    {
+        if (RegisteredTitleId == id) return;
+        RegisteredTitleId = id;
+        _ = RequestRender();
+    }
+    internal void RegisterDescription(string? id)
+    {
+        if (RegisteredDescriptionId == id) return;
+        RegisteredDescriptionId = id;
+        _ = RequestRender();
+    }
+    internal void UnregisterTitle(string? id)
+    {
+        if (RegisteredTitleId == id) RegisterTitle(null);
+    }
+    internal void UnregisterDescription(string? id)
+    {
+        if (RegisteredDescriptionId == id) RegisterDescription(null);
+    }
+
 
     [Parameter]
     public bool? Open { get; set; }

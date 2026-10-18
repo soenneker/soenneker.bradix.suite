@@ -4,7 +4,7 @@
 @inherits BradixContentElement
 
 @implements IBradixSelectViewport
-<style>
+<style nonce="@Nonce">
     [data-radix-select-viewport] { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
     [data-radix-select-viewport]::-webkit-scrollbar { display: none; }
 </style>
@@ -17,6 +17,7 @@
 </div>
 
 @code {
+    [Parameter] public string? Nonce { get; set; }
     private string? _mergedStyleCache0;
 
     private ElementReference _element;
@@ -50,7 +51,7 @@
 
     private string BuildStyle()
     {
-        const string baseStyle = "position:relative;flex:1 1 auto;min-height:0;overflow:hidden auto;";
+        const string baseStyle = "position:relative;flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;";
         return BradixStringCache.MergeStyle(baseStyle, Style, ref _mergedStyleCache0)!;
     }
 }

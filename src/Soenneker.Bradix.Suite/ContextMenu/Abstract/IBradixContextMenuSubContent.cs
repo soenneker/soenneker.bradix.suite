@@ -16,6 +16,9 @@ public interface IBradixContextMenuSubContent
     /// <summary>Gets or sets the offset from the side edge.</summary>
     double SideOffset { get; set; }
 
+    /// <summary>Gets or sets the submenu alignment relative to its trigger.</summary>
+    Alignment Align { get; set; }
+
     /// <summary>Gets or sets the alignment offset.</summary>
     double AlignOffset { get; set; }
 
@@ -39,6 +42,9 @@ public interface IBradixContextMenuSubContent
 
     /// <summary>Gets or sets a value indicating whether to hide content when detached from the anchor.</summary>
     bool HideWhenDetached { get; set; }
+
+    /// <summary>Controls positioning updates. Always tracks animated anchors each frame; optimized avoids continuous work.</summary>
+    PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; }
 
     /// <summary>Gets or sets the CSS class names.</summary>
     string? Class { get; set; }

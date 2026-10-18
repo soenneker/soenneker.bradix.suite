@@ -2,6 +2,7 @@ import { getTabbableCandidates, focusFirst, focusElement } from "./core/focus.js
 
 const toastViewportHandlers = new WeakMap();
 const toastSwipeHandlers = new WeakMap();
+const toastSwipeElements = new Map();
 
 export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, hotkey, dotNetRef) {
   if (!viewport) {
@@ -73,6 +74,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     focusFirst(getSortedCandidates(backwards), false);
   };
   const keydown = (event) => {
+  if (event.isComposing || event.keyCode === 229) return;
     let isHotkeyPressed = hotkeys.length !== 0;
     for (const key of hotkeys) {
       if (!(event[key] || event.code === key || event.key === key)) {
@@ -101,6 +103,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
     }
   };
   const documentTabKeydown = (event) => {
+  if (event.isComposing || event.keyCode === 229) return;
     const isMetaKey = event.altKey || event.ctrlKey || event.metaKey;
     if (event.key !== "Tab" || isMetaKey || document.activeElement !== viewport) {
       return;
@@ -129,6 +132,7 @@ export function registerToastViewport(wrapper, viewport, headProxy, tailProxy, h
   const windowBlur = invokePause;
   const windowFocus = invokeResume;
   const viewportKeydown = (event) => {
+  if (event.isComposing || event.keyCode === 229) return;
     const isMetaKey = event.altKey || event.ctrlKey || event.metaKey;
     if (event.key !== "Tab" || isMetaKey) {
       return;
@@ -229,12 +233,13 @@ export function unregisterToastViewport(viewport) {
   toastViewportHandlers.delete(viewport);
 }
 
-export function registerToastSwipe(toast, direction, threshold, notifyStart, notifyMove, dotNetRef) {
+export function registerToastSwipe(toast, direction, threshold, notifyStart, notifyMove, dotNetRef, registrationId) {
   if (!toast) {
     return;
   }
 
-  unregisterToastSwipe(toast);
+  unregisterToastSwipe(toast, registrationId);
+  if (registrationId) toastSwipeElements.set(registrationId, toast);
 
   const horizontal = direction === "left" || direction === "right";
   const state = {
@@ -278,6 +283,10 @@ export function registerToastSwipe(toast, direction, threshold, notifyStart, not
       return;
     }
 
+    if (event.pointerType === "mouse" && event.buttons === 0) {
+      complete(event, true);
+      return;
+    }
     const x = event.clientX - state.startX;
     const y = event.clientY - state.startY;
     const moveX = horizontal ? clampSwipeDelta(x, direction) : 0;
@@ -320,8 +329,10 @@ export function registerToastSwipe(toast, direction, threshold, notifyStart, not
       return;
     }
 
+    const pointerId = state.pointerId;
+    state.pointerId = null;
     try {
-      toast.releasePointerCapture(event.pointerId);
+      toast.releasePointerCapture(pointerId);
     } catch {
     }
 
@@ -351,14 +362,20 @@ export function registerToastSwipe(toast, direction, threshold, notifyStart, not
 
   const pointerup = event => complete(event, false);
   const pointercancel = event => complete(event, true);
+  const windowBlur = () => complete({ pointerId: state.pointerId }, true);
+  const ownerWindow = toast.ownerDocument.defaultView;
   toast.addEventListener("pointerdown", pointerdown);
   toast.addEventListener("pointermove", pointermove);
   toast.addEventListener("pointerup", pointerup);
   toast.addEventListener("pointercancel", pointercancel);
-  toastSwipeHandlers.set(toast, { pointerdown, pointermove, pointerup, pointercancel, state });
+  toast.addEventListener("lostpointercapture", pointercancel);
+  ownerWindow?.addEventListener("blur", windowBlur);
+  toastSwipeHandlers.set(toast, { pointerdown, pointermove, pointerup, pointercancel, windowBlur, ownerWindow, state });
 }
 
-export function unregisterToastSwipe(toast) {
+export function unregisterToastSwipe(toast, registrationId) {
+  toast = toastSwipeElements.get(registrationId) || toast;
+  if (registrationId) toastSwipeElements.delete(registrationId);
   const handlers = toastSwipeHandlers.get(toast);
   if (!handlers) {
     return;
@@ -368,6 +385,8 @@ export function unregisterToastSwipe(toast) {
   toast.removeEventListener("pointermove", handlers.pointermove);
   toast.removeEventListener("pointerup", handlers.pointerup);
   toast.removeEventListener("pointercancel", handlers.pointercancel);
+  toast.removeEventListener("lostpointercapture", handlers.pointercancel);
+  handlers.ownerWindow?.removeEventListener("blur", handlers.windowBlur);
   const pointerId = handlers.state.pointerId;
   handlers.state.pointerId = null;
   if (pointerId !== null) {

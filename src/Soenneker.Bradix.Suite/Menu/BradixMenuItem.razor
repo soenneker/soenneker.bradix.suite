@@ -311,6 +311,7 @@ else
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (Disabled || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 

@@ -63,6 +63,9 @@ public interface IBradixSelectContent : IAsyncDisposable {
     /// <summary>Gets or sets whether the popper content hides when detached.</summary>
     bool HideWhenDetached { get; set; }
 
+    /// <summary>Controls positioning updates. Always tracks animated anchors each frame; optimized avoids continuous work.</summary>
+    PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; }
+
     /// <summary>Gets or sets the callback invoked when escape is pressed.</summary>
     EventCallback OnEscapeKeyDown { get; set; }
 

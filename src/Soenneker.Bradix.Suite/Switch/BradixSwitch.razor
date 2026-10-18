@@ -11,6 +11,8 @@
 @inject IFormInterop FormInterop
 @inject IDelegatedInteractionInterop DelegatedInteractionInterop
 @inject IControlsInterop ControlsInterop
+@if (RenderDefaultParts)
+{
 <CascadingValue Value="this">
     <button @ref="_buttonElement"
             @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
@@ -25,8 +27,34 @@
     <input @ref="_bubbleInputElement"
            @attributes="BubbleInputAttributes" />
 }
+}
+else
+{
+    <CascadingValue Value="this">@ChildContent</CascadingValue>
+}
 
 @code {
+    protected virtual bool RenderDefaultParts => true;
+    internal void ClearBubbleInput()
+    {
+        _bubbleInputElement = default;
+        _hasSyncedBubbleInput.Value = false;
+    }
+    internal RenderFragment RenderTrigger(RenderFragment? content, IReadOnlyDictionary<string, object>? attributes = null) => @<button @ref="_buttonElement"
+            @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
+            @onclick:stopPropagation="ShouldRenderBubbleInput"
+            @attributes="MergePartAttributes(ButtonAttributes, attributes)">
+        @content
+    </button>;
+    internal RenderFragment RenderBubbleInput(IReadOnlyDictionary<string, object>? attributes = null) => @<input @ref="_bubbleInputElement" @attributes="MergePartAttributes(BubbleInputAttributes, attributes)" />;
+
+    private static Dictionary<string, object> MergePartAttributes(Dictionary<string, object> defaults, IReadOnlyDictionary<string, object>? attributes)
+    {
+        if (attributes is not null)
+            foreach (var pair in attributes) defaults[pair.Key] = pair.Value;
+        return defaults;
+    }
+
     private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
 
     private static readonly string[] ToggleKeys = [" ", "Spacebar"];
@@ -41,6 +69,7 @@
     private ValueAtomicBool _formControlStateResolved;
     private ValueAtomicBool _hasSyncedBubbleInput;
     private bool _hasUserInteracted;
+    private bool? _pendingUserValue;
     private bool _initialUncheckedState;
     private bool _uncontrolledChecked;
     private bool _lastRenderedState;
@@ -142,7 +171,7 @@
     {
         if (_disposed.Read())
             return;
-        if (firstRender)
+        if (!_registered.Value && !string.IsNullOrEmpty(_buttonElement.Id))
         {
             _dotNetReference = DotNetObjectReference.Create<object>(this);
             await FormInterop.RegisterAssociatedFormReset(_buttonElement, _dotNetReference, Form);
@@ -201,11 +230,12 @@
             }
         }
 
-        if (ShouldRenderBubbleInput)
+        if (ShouldRenderBubbleInput && !string.IsNullOrEmpty(_bubbleInputElement.Id))
         {
             if (!_hasSyncedBubbleInput.Value || _lastRenderedState != CurrentChecked)
             {
-                bool dispatchEvent = _hasSyncedBubbleInput.Value;
+                bool dispatchEvent = _hasSyncedBubbleInput.Value && _pendingUserValue == CurrentChecked;
+                if (dispatchEvent) _pendingUserValue = null;
                 await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, CurrentChecked, false, dispatchEvent);
             }
 
@@ -259,6 +289,7 @@
     [JSInvokable]
     public Task HandleFormReset()
     {
+        _pendingUserValue = null;
         if (Checked is not null)
             return Task.CompletedTask;
 
@@ -309,6 +340,7 @@
 
     public Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
     {
+        if (args.IsComposing) return Task.CompletedTask;
         if (Disabled || !IsSpaceKey(args.Key))
             return Task.CompletedTask;
 
@@ -317,6 +349,7 @@
 
     private async Task SetChecked(bool value)
     {
+        _pendingUserValue = value;
         if (Checked is null)
         {
             _uncontrolledChecked = value;

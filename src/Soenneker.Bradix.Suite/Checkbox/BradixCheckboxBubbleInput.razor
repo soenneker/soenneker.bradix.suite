@@ -1,0 +1,11 @@
+@namespace Soenneker.Bradix
+@implements IBradixCheckboxBubbleInput
+@inherits BradixElement
+@implements IDisposable
+
+@Owner.RenderBubbleInput(BuildAttributes())
+
+@code {
+    public void Dispose() => Owner.ClearBubbleInput();
+    [CascadingParameter] private BradixCheckbox Owner { get; set; } = null!;
+}

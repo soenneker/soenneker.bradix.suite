@@ -40,7 +40,7 @@ public interface IControlsInterop : IAsyncDisposable
     ValueTask ClickElement(ElementReference element, CancellationToken cancellationToken = default);
 
     /// <summary>Registers Shift+F10 and ContextMenu key handling at the trigger's rendered position.</summary>
-    ValueTask RegisterContextMenuKeyboard(ElementReference element, CancellationToken cancellationToken = default);
+    ValueTask RegisterContextMenuKeyboard(ElementReference element, DotNetObjectReference<object>? dotNetReference = null, CancellationToken cancellationToken = default);
 
     /// <summary>Removes keyboard context-menu handling from the trigger.</summary>
     ValueTask UnregisterContextMenuKeyboard(ElementReference element, CancellationToken cancellationToken = default);

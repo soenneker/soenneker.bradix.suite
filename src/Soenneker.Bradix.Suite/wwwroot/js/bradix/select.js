@@ -1,5 +1,10 @@
 import { cssEscape } from "./core/dom.js";
 
+const selectItemAlignedPositionElements = new Map();
+const selectWindowDismissElements = new Map();
+const selectContentPointerTrackerElements = new Map();
+const selectContentKeyboardElements = new Map();
+const selectViewportElements = new Map();
 const selectViewportHandlers = new WeakMap();
 const selectContentPointerTrackers = new WeakMap();
 const selectContentKeyboardHandlers = new WeakMap();
@@ -33,7 +38,7 @@ function invokeDotNetSafely(dotNetRef, methodName, ...args) {
   }
 }
 
-export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
+export function registerSelectViewport(viewport, content, wrapper, dotNetRef, registrationId) {
   if (!viewport) {
     return;
   }
@@ -42,7 +47,8 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
     ? wrapper
     : null;
 
-  unregisterSelectViewport(viewport);
+  unregisterSelectViewport(viewport, registrationId);
+  if (registrationId) selectViewportElements.set(registrationId, viewport);
 
   const registration = {
     animationFrameId: 0,
@@ -96,7 +102,9 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef) {
   queueItemAlignedPositionFromViewport(viewport, content, itemAlignedWrapper);
 }
 
-export function unregisterSelectViewport(viewport) {
+export function unregisterSelectViewport(viewport, registrationId) {
+  viewport = selectViewportElements.get(registrationId) || viewport;
+  if (registrationId) selectViewportElements.delete(registrationId);
   const handlers = selectViewportHandlers.get(viewport);
   if (!handlers) {
     return;
@@ -117,12 +125,13 @@ export function unregisterSelectViewport(viewport) {
   selectViewportHandlers.delete(viewport);
 }
 
-export function registerSelectContentKeyboard(content, dotNetRef) {
+export function registerSelectContentKeyboard(content, dotNetRef, registrationId) {
   if (!content || !dotNetRef) {
     return;
   }
 
-  unregisterSelectContentKeyboard(content);
+  unregisterSelectContentKeyboard(content, registrationId);
+  if (registrationId) selectContentKeyboardElements.set(registrationId, content);
 
   const registration = {
     search: "",
@@ -142,6 +151,7 @@ export function registerSelectContentKeyboard(content, dotNetRef) {
   });
 
   const keydown = (event) => {
+  if (event.isComposing || event.keyCode === 229) return;
     if (event.ctrlKey || event.altKey || event.metaKey || event.key === "Tab") {
       return;
     }
@@ -166,7 +176,9 @@ export function registerSelectContentKeyboard(content, dotNetRef) {
   selectContentKeyboardHandlers.set(content, registration);
 }
 
-export function unregisterSelectContentKeyboard(content) {
+export function unregisterSelectContentKeyboard(content, registrationId) {
+  content = selectContentKeyboardElements.get(registrationId) || content;
+  if (registrationId) selectContentKeyboardElements.delete(registrationId);
   if (!content) {
     return;
   }
@@ -356,12 +368,13 @@ export function scrollSelectViewportByItem(viewport, item, upward) {
   viewport.scrollTop = upward ? viewport.scrollTop - delta : viewport.scrollTop + delta;
 }
 
-export function registerSelectContentPointerTracker(content, dotNetRef, pageX, pageY) {
+export function registerSelectContentPointerTracker(content, dotNetRef, pageX, pageY, registrationId) {
   if (!content) {
     return;
   }
 
-  unregisterSelectContentPointerTracker(content);
+  unregisterSelectContentPointerTracker(content, registrationId);
+  if (registrationId) selectContentPointerTrackerElements.set(registrationId, content);
 
   const registration = {};
 
@@ -383,6 +396,7 @@ export function registerSelectContentPointerTracker(content, dotNetRef, pageX, p
 
     document.removeEventListener("pointermove", handlePointerMove);
     selectContentPointerTrackers.delete(content);
+    if (registrationId) selectContentPointerTrackerElements.delete(registrationId);
 
     const withinPointerTolerance = pointerMoveDelta.x <= 10 && pointerMoveDelta.y <= 10;
     const target = event.target;
@@ -407,7 +421,9 @@ export function registerSelectContentPointerTracker(content, dotNetRef, pageX, p
   selectContentPointerTrackers.set(content, registration);
 }
 
-export function unregisterSelectContentPointerTracker(content) {
+export function unregisterSelectContentPointerTracker(content, registrationId) {
+  content = selectContentPointerTrackerElements.get(registrationId) || content;
+  if (registrationId) selectContentPointerTrackerElements.delete(registrationId);
   const handlers = selectContentPointerTrackers.get(content);
   if (!handlers) {
     return;
@@ -451,42 +467,39 @@ export function getSelectOptionValueAtPoint(clientX, clientY) {
   });
 }
 
-export function registerSelectWindowDismiss(content, dotNetRef) {
-  if (!content || !dotNetRef) {
-    return;
-  }
-
-  unregisterSelectWindowDismiss(content);
-
+export function registerSelectWindowDismiss(content, dotNetRef, registrationId) {
+  if (!content || !dotNetRef) return;
+  unregisterSelectWindowDismiss(content, registrationId);
+  if (registrationId) selectWindowDismissElements.set(registrationId, content);
+  const ownerWindow = content.ownerDocument.defaultView;
+  if (!ownerWindow) return;
   const registration = {};
-
+  const initialWidth = ownerWindow.innerWidth;
   const dismiss = () => {
-    if (selectWindowDismissHandlers.get(content) !== registration) {
-      return;
+    if (selectWindowDismissHandlers.get(content) === registration) {
+      invokeDotNetSafely(dotNetRef, "HandleWindowDismiss");
     }
-
-    invokeDotNetSafely(dotNetRef, "HandleWindowDismiss");
   };
-
-  window.addEventListener("blur", dismiss);
-  window.addEventListener("resize", dismiss);
-
-  registration.dismiss = dismiss;
+  // Mobile keyboards and browser chrome resize height without changing layout width.
+  // Existing positioning observers handle those changes without losing the selection.
+  const resize = () => { if (ownerWindow.innerWidth !== initialWidth) dismiss(); };
+  ownerWindow.addEventListener("blur", dismiss);
+  ownerWindow.addEventListener("resize", resize);
+  Object.assign(registration, { dismiss, resize, ownerWindow });
   selectWindowDismissHandlers.set(content, registration);
 }
 
-export function unregisterSelectWindowDismiss(content) {
+export function unregisterSelectWindowDismiss(content, registrationId) {
+  content = selectWindowDismissElements.get(registrationId) || content;
+  if (registrationId) selectWindowDismissElements.delete(registrationId);
   const handlers = selectWindowDismissHandlers.get(content);
-  if (!handlers) {
-    return;
-  }
-
-  window.removeEventListener("blur", handlers.dismiss);
-  window.removeEventListener("resize", handlers.dismiss);
+  if (!handlers) return;
+  handlers.ownerWindow.removeEventListener("blur", handlers.dismiss);
+  handlers.ownerWindow.removeEventListener("resize", handlers.resize);
   selectWindowDismissHandlers.delete(content);
 }
 
-export function registerSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir) {
+export function registerSelectItemAlignedPosition(wrapper, content, viewport, trigger, valueNode, selectedItem, selectedItemText, dir, registrationId) {
   if (!(wrapper instanceof HTMLElement)
     || !(content instanceof HTMLElement)
     || !(viewport instanceof HTMLElement)
@@ -497,7 +510,8 @@ export function registerSelectItemAlignedPosition(wrapper, content, viewport, tr
     return;
   }
 
-  unregisterSelectItemAlignedPosition(wrapper);
+  unregisterSelectItemAlignedPosition(wrapper, registrationId);
+  if (registrationId) selectItemAlignedPositionElements.set(registrationId, wrapper);
 
   const state = {
     content,
@@ -600,7 +614,9 @@ export function updateSelectItemAlignedPosition(wrapper, content, viewport, trig
   handlers.updateNow();
 }
 
-export function unregisterSelectItemAlignedPosition(wrapper) {
+export function unregisterSelectItemAlignedPosition(wrapper, registrationId) {
+  wrapper = selectItemAlignedPositionElements.get(registrationId) || wrapper;
+  if (registrationId) selectItemAlignedPositionElements.delete(registrationId);
   const handlers = selectItemAlignedHandlers.get(wrapper);
   if (!handlers) {
     return;
@@ -647,7 +663,8 @@ function queueItemAlignedPositionFromViewport(viewport, content, wrapper) {
     const valueNode = trigger ? trigger.querySelector("span") : null;
     const selectedItem = content.querySelector("[role='option'][data-highlighted]")
       || content.querySelector("[role='option'][data-state='checked']")
-      || content.querySelector("[role='option']:not([data-disabled])");
+      || content.querySelector("[role='option']:not([data-disabled])")
+      || content.querySelector("[role='option']");
     const selectedItemText = selectedItem
       ? document.getElementById(selectedItem.getAttribute("aria-labelledby") || "")
       : null;

@@ -30,7 +30,6 @@
     private System.Func<BradixPointerDownOutsideEventArgs, Task>? _cachedHandlePointerDownOutsideDelegate;
     private System.Func<BradixFocusOutsideEventArgs, Task>? _cachedHandleFocusOutsideDelegate;
     private System.Func<ElementReference, Task>? _cachedHandleElementReferenceCapturedDelegate;
-    private System.Func<KeyboardEventArgs, Task>? _cachedHandleContentKeyDownDelegate;
     private System.Func<Task>? _cachedHandleExitCompleteDelegate;
 
     private bool _wasPresent;
@@ -124,11 +123,15 @@
             attributes["role"] = string.IsNullOrWhiteSpace(Role) ? "dialog" : Role;
             attributes["data-state"] = Dialog?.CurrentOpen == true ? "open" : "closed";
 
-            if (!string.IsNullOrWhiteSpace(Dialog?.RegisteredTitleId))
+            if (!attributes.ContainsKey("aria-labelledby") && !string.IsNullOrWhiteSpace(Dialog?.RegisteredTitleId))
                 attributes["aria-labelledby"] = Dialog.RegisteredTitleId;
 
             if (!string.IsNullOrWhiteSpace(Dialog?.RegisteredDescriptionId))
-                attributes["aria-describedby"] = Dialog.RegisteredDescriptionId;
+            {
+                attributes.TryGetValue("aria-describedby", out object? description);
+                attributes["aria-describedby"] = description is null ? Dialog.RegisteredDescriptionId
+                    : $"{description} {Dialog.RegisteredDescriptionId}";
+            }
 
             attributes.TryAdd("tabindex", BradixAttributeValues.MinusOne);
 
@@ -320,7 +323,7 @@ ResetState:
                           PreventUnmountAutoFocus="true"
                           OnMountAutoFocusDetailed="@OpenAutoFocusCallback"
                           OnUnmountAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)">
-            <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
+            <BradixDismissableLayer DeferPointerDownOutside="true" DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
                                     DismissOnEscapeKeyDown="CloseOnEscapeKeyDown"
                                     DismissOnPointerDownOutside="CloseOnPointerDownOutside"
                                     DismissOnFocusOutside="CloseOnFocusOutside"
@@ -336,33 +339,11 @@ ResetState:
                                 Class="@Class"
                                 Style="@Style"
                                 AdditionalAttributes="@ContentAttributes"
-                                OnKeyDown="(_cachedHandleContentKeyDownDelegate ??= HandleContentKeyDown)"
                                 OnExitComplete="(_cachedHandleExitCompleteDelegate ??= HandleExitComplete)"
                 ChildContent="@(ChildContent ?? BradixRenderFragments.Empty)" />
             </BradixDismissableLayer>
         </BradixFocusScope>
     </BradixFocusGuards>;
-
-    private async Task HandleContentKeyDown(KeyboardEventArgs args)
-    {
-        if (args.Key != "Escape")
-            return;
-
-        var escapeEvent = new BradixEscapeKeyDownEventArgs(new BradixDelegatedKeyboardEvent
-        {
-            Key = args.Key,
-            Code = args.Code,
-            CtrlKey = args.CtrlKey,
-            ShiftKey = args.ShiftKey,
-            AltKey = args.AltKey,
-            MetaKey = args.MetaKey,
-            Repeat = args.Repeat
-        });
-        await HandleEscapeKeyDown(escapeEvent);
-
-        if (CloseOnEscapeKeyDown && !escapeEvent.DefaultPrevented)
-            await HandleDismiss();
-    }
 
     private bool HasOpenAutoFocusCallback => OnOpenAutoFocus.HasDelegate || OnOpenAutoFocusDetailed.HasDelegate;
 

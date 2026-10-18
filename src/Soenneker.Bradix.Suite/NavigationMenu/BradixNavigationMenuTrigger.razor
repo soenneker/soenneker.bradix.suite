@@ -202,6 +202,7 @@
 
     private async Task HandlePointerEnter(PointerEventArgs args)
     {
+        if (NavigationMenu?.ActivationMode == NavigationMenuActivationMode.Manual) return;
         if (NavigationMenu is not null)
             NavigationMenu.HandleTriggerPointerEnter();
 
@@ -224,6 +225,7 @@
 
     private async Task HandlePointerMove(PointerEventArgs args)
     {
+        if (NavigationMenu?.ActivationMode == NavigationMenuActivationMode.Manual) return;
         if (args.PointerType == "touch" ||
             Disabled ||
             NavigationMenu is null ||
@@ -240,6 +242,7 @@
 
     private async Task HandlePointerLeave(PointerEventArgs args)
     {
+        if (NavigationMenu?.ActivationMode == NavigationMenuActivationMode.Manual) return;
         if (args.PointerType == "touch" || Disabled || NavigationMenu is null)
             return;
 
@@ -248,6 +251,7 @@
 
     private async Task HandleHoverEnter()
     {
+        if (NavigationMenu?.ActivationMode == NavigationMenuActivationMode.Manual) return;
         if (Disabled)
             return;
 
@@ -272,6 +276,7 @@
 
     private async Task HandleHoverMove()
     {
+        if (NavigationMenu?.ActivationMode == NavigationMenuActivationMode.Manual) return;
         if (Disabled ||
             NavigationMenu is null ||
             Item is null ||
@@ -286,6 +291,7 @@
 
     private async Task HandleHoverLeave()
     {
+        if (NavigationMenu?.ActivationMode == NavigationMenuActivationMode.Manual) return;
         if (Disabled || NavigationMenu is null)
             return;
 
@@ -339,7 +345,7 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleKeyDown(KeyboardEventArgs args) => ProcessKeyDown(args.Key, args.CtrlKey, args.AltKey, args.MetaKey, args.ShiftKey);
+    private Task HandleKeyDown(KeyboardEventArgs args) => args.IsComposing ? Task.CompletedTask : ProcessKeyDown(args.Key, args.CtrlKey, args.AltKey, args.MetaKey, args.ShiftKey);
 
     private async Task ProcessKeyDown(string key, bool ctrlKey, bool altKey, bool metaKey, bool shiftKey)
     {
@@ -403,6 +409,7 @@
 
     public Task HandleDirectKeyDown(BradixDelegatedKeyboardEvent args)
     {
+        if (args.IsComposing) return Task.CompletedTask;
         return ProcessKeyDown(args.Key, args.CtrlKey, args.AltKey, args.MetaKey, args.ShiftKey);
     }
 

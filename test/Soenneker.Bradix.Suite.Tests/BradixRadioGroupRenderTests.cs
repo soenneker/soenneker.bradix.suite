@@ -28,6 +28,8 @@ public sealed class BradixRadioGroupRenderTests : BunitContext
         _module.SetupVoid("registerRadioGroupItemKeys", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterRadioGroupItemKeys", _ => true).SetVoidResult();
         _module.SetupVoid("syncCheckboxBubbleInputState", _ => true).SetVoidResult();
+        _module.SetupVoid("registerAssociatedFormReset", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterAssociatedFormReset", _ => true).SetVoidResult();
         Services.AddBradixTestInterops();
     }
 

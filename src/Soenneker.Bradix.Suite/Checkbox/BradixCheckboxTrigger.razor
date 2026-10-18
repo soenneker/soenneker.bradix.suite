@@ -1,0 +1,9 @@
+@namespace Soenneker.Bradix
+@implements IBradixCheckboxTrigger
+@inherits BradixIdentifiableContentElement
+
+@Owner.RenderTrigger(ChildContent, BuildAttributes())
+
+@code {
+    [CascadingParameter] private BradixCheckbox Owner { get; set; } = null!;
+}

@@ -110,6 +110,9 @@
     public string Sticky { get; set; } = "partial";
 
     [Parameter]
+    public PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; } = PopperUpdatePositionStrategy.Optimized;
+
+    [Parameter]
     public bool HideWhenDetached { get; set; }
 
     [Parameter]
@@ -265,6 +268,7 @@
 
     internal Task HandleItemKeyDown(IBradixMenuRovingItem item, KeyboardEventArgs args)
     {
+        if (args.IsComposing) return Task.CompletedTask;
         return Menu is null
             ? Task.CompletedTask
             : Menu.HandleItemNavigation(item, args.Key, Loop);
@@ -277,7 +281,7 @@
 
     internal Task HandlePointerMove(IBradixMenuRovingItem item, string? pointerType)
     {
-        if (Menu is null || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
+        if (Menu?.CurrentOpen != true || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
             return Task.CompletedTask;
 
         if (_submenuPointerGraceItems.Count > 0)
@@ -289,6 +293,7 @@
 
     internal Task HandleItemLeave()
     {
+        if (Menu?.CurrentOpen != true) return Task.CompletedTask;
         if (_submenuPointerGraceItems.Count > 0)
             return Task.CompletedTask;
 
@@ -384,6 +389,7 @@
 
     public async Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args)
     {
+        if (args.IsComposing) return;
         if (OnContentKeyDown.HasDelegate)
             await OnContentKeyDown.InvokeAsync(CreateKeyboardEventArgs(args));
 
@@ -497,7 +503,7 @@
                               PreventUnmountAutoFocus="true"
                               OnMountAutoFocusDetailed="(_cachedHandleOpenAutoFocusDelegate ??= HandleOpenAutoFocus)"
                               OnUnmountAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)">
-                <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
+                <BradixDismissableLayer DeferPointerDownOutside="true" DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
                                         DismissOnEscapeKeyDown="true"
                                         DismissOnPointerDownOutside="true"
                                         DismissOnFocusOutside="true"
@@ -517,6 +523,7 @@
                                          CollisionBoundarySelector="@CollisionBoundarySelector"
                                          CollisionBoundarySelectors="@CollisionBoundarySelectors"
                                          Sticky="@Sticky"
+                                         UpdatePositionStrategy="@UpdatePositionStrategy"
                                          HideWhenDetached="HideWhenDetached"
                                          Anchor="@(UseAnchor ? Anchor : Menu?.TriggerElement ?? default)"
                                          UseAnchor="@(UseAnchor || Menu?.HasTrigger == true)"

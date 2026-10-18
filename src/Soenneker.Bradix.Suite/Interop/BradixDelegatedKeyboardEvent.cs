@@ -5,6 +5,9 @@ namespace Soenneker.Bradix;
 /// </summary>
 public sealed class BradixDelegatedKeyboardEvent
 {
+    /// <summary>Gets or sets whether the key event belongs to an IME composition.</summary>
+    public bool IsComposing { get; set; }
+
     /// <summary>
     /// Gets or sets key.
     /// </summary>

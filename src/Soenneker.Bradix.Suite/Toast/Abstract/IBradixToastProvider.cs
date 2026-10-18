@@ -10,6 +10,12 @@ public interface IBradixToastProvider
 {
 /// <summary>Gets or sets the child content.</summary>
     RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Gets or sets the container for screen reader announcements.</summary>
+    ElementReference AnnouncerContainer { get; set; }
+
+    /// <summary>Gets or sets a selector for the announcement container when an element reference is unavailable.</summary>
+    string? AnnouncerContainerSelector { get; set; }
 /// <summary>Gets or sets the accessible label prefix used for toast announcements.</summary>
     string Label { get; set; }
 

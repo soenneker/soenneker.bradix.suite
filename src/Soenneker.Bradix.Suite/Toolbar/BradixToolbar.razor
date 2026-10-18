@@ -78,6 +78,7 @@
 
     internal async Task HandleItemKeyDown(IBradixToolbarRovingItem item, KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (args.CtrlKey || args.AltKey || args.MetaKey || args.ShiftKey || !BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return;
 

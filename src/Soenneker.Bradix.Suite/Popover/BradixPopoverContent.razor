@@ -84,6 +84,9 @@
     public string Sticky { get; set; } = "partial";
 
     [Parameter]
+    public PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; } = PopperUpdatePositionStrategy.Optimized;
+
+    [Parameter]
     public bool HideWhenDetached { get; set; }
 
     [Parameter]
@@ -177,6 +180,14 @@
             if (!attributes.ContainsKey("aria-modal") && string.Equals(resolvedRole, "dialog", StringComparison.Ordinal) && Popover?.Modal == true)
                 attributes["aria-modal"] = "true";
 
+            if (!attributes.ContainsKey("aria-labelledby") && Popover?.RegisteredTitleId is not null)
+                attributes["aria-labelledby"] = Popover.RegisteredTitleId;
+            if (Popover?.RegisteredDescriptionId is not null)
+            {
+                attributes.TryGetValue("aria-describedby", out object? description);
+                attributes["aria-describedby"] = description is null ? Popover.RegisteredDescriptionId
+                    : $"{description} {Popover.RegisteredDescriptionId}";
+            }
             attributes["data-state"] = Popover?.CurrentOpen == true ? "open" : "closed";
             attributes["data-side"] = _placedSide ?? Side.Value;
             attributes["data-align"] = _placedAlign ?? Align.Value;
@@ -338,12 +349,12 @@ ResetState:
     }
 
     private RenderFragment RenderContentTree() => _contentTree ??= @<BradixFocusGuards>
-        <BradixFocusScope Loop
+        <BradixFocusScope Loop="ShouldTrapFocus"
                           Trapped="ShouldTrapFocus"
                           PreventUnmountAutoFocus="true"
                           OnMountAutoFocusDetailed="(_cachedHandleOpenAutoFocusDelegate ??= HandleOpenAutoFocus)"
                           OnUnmountAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)">
-            <BradixDismissableLayer DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
+            <BradixDismissableLayer DeferPointerDownOutside="true" DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
                                     DismissOnEscapeKeyDown="CloseOnEscapeKeyDown"
                                     DismissOnPointerDownOutside="CloseOnPointerDownOutside"
                                     DismissOnFocusOutside="CloseOnFocusOutside"
@@ -363,6 +374,7 @@ ResetState:
                                      CollisionBoundarySelector="@CollisionBoundarySelector"
                                      CollisionBoundarySelectors="@CollisionBoundarySelectors"
                                      Sticky="@Sticky"
+                                     UpdatePositionStrategy="@UpdatePositionStrategy"
                                      HideWhenDetached="HideWhenDetached"
                                      Anchor="@ResolvedAnchor"
                                      UseAnchor="@ShouldUseAnchor"

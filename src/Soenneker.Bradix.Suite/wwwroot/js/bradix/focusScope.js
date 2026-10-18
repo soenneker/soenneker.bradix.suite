@@ -7,6 +7,7 @@ import {
 } from "./core/focus.js";
 
 const focusScopeHandlers = new WeakMap();
+const focusScopeElements = new Map();
 const focusScopeStack = [];
 
 function invokeDotNetSafely(dotNetRef, methodName, fallbackValue, ...args) {
@@ -40,16 +41,17 @@ function removeFocusScopeFromStack(scope) {
     focusScopeStack.splice(index, 1);
   }
   if (focusScopeStack[0]) {
-    focusScopeStack[0].paused = false;
+    focusScopeStack[0].paused = focusScopeStack[0].disposed;
   }
 }
 
-export async function registerFocusScope(element, dotNetRef, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus, invokeMountAutoFocus = true) {
+export async function registerFocusScope(element, dotNetRef, loop, trapped, preventMountAutoFocus, preventUnmountAutoFocus, invokeMountAutoFocus = true, registrationId) {
   if (!element) {
     return;
   }
 
-  await unregisterFocusScope(element, true);
+  await unregisterFocusScope(element, true, registrationId);
+  if (registrationId) focusScopeElements.set(registrationId, element);
 
   const scope = {
     element,
@@ -59,6 +61,7 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
     preventMountAutoFocus: !!preventMountAutoFocus,
     preventUnmountAutoFocus: !!preventUnmountAutoFocus,
     paused: false,
+    disposed: false,
     awaitingMountAutoFocus: false,
     mountRetryFrame: 0,
     mountRetryTimeouts: null,
@@ -138,7 +141,7 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
       }
     }
 
-    if (scope.trapped) {
+    if (scope.trapped && !scope.paused) {
       const focusedElement = document.activeElement;
       if (focusedElement !== document.body) {
         return;
@@ -154,7 +157,8 @@ export async function registerFocusScope(element, dotNetRef, loop, trapped, prev
   });
 
   const keydown = (event) => {
-    if ((!scope.loop && !scope.trapped) || scope.paused) {
+  if (event.isComposing || event.keyCode === 229) return;
+    if (event.defaultPrevented || (!scope.loop && !scope.trapped) || scope.paused) {
       return;
     }
 
@@ -271,7 +275,9 @@ export function updateFocusScope(element, loop, trapped, preventMountAutoFocus, 
   handlers.scope.preventUnmountAutoFocus = !!preventUnmountAutoFocus;
 }
 
-export async function unregisterFocusScope(element, unmountAutoFocusPrevented = false) {
+export async function unregisterFocusScope(element, unmountAutoFocusPrevented = false, registrationId) {
+  element = focusScopeElements.get(registrationId) || element;
+  if (registrationId) focusScopeElements.delete(registrationId);
   const handlers = focusScopeHandlers.get(element);
 
   if (!handlers) {
@@ -284,14 +290,25 @@ export async function unregisterFocusScope(element, unmountAutoFocusPrevented = 
   handlers.mutationObserver.disconnect();
   const { scope } = handlers;
   scope.paused = true;
+  scope.disposed = true;
   cancelMountAutoFocusRetries(scope);
   focusScopeHandlers.delete(element);
 
-  setTimeout(() => {
-    if (!scope.preventUnmountAutoFocus && !unmountAutoFocusPrevented) {
-      focusElement(scope.previouslyFocusedElement || document.body, true);
+  const ownerDocument = element.ownerDocument;
+  const ownerWindow = ownerDocument.defaultView;
+  const wasActive = focusScopeStack[0] === scope;
+  if (!ownerWindow) {
+    removeFocusScopeFromStack(scope);
+    return;
+  }
+  ownerWindow.setTimeout(() => {
+    // A newer scope may have opened during a Blazor render/interop turn.
+    // An older scope must not reclaim focus or resume a disposed scope.
+    const stillActive = wasActive && focusScopeStack[0] === scope;
+    if (stillActive && !scope.preventUnmountAutoFocus && !unmountAutoFocusPrevented) {
+      const target = scope.previouslyFocusedElement;
+      focusElement(target?.isConnected ? target : ownerDocument.body, true);
     }
-
     removeFocusScopeFromStack(scope);
   }, 0);
 }

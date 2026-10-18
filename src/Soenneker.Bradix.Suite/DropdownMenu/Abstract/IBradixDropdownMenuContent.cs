@@ -45,6 +45,9 @@ public interface IBradixDropdownMenuContent
     /// <summary>Gets or sets a value indicating whether to hide content when detached from the anchor.</summary>
     bool HideWhenDetached { get; set; }
 
+    /// <summary>Controls positioning updates. Always tracks animated anchors each frame; optimized avoids continuous work.</summary>
+    PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; }
+
     /// <summary>Gets or sets the element id for the content region.</summary>
     string? Id { get; set; }
 

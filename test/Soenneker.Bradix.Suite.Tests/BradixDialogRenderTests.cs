@@ -44,6 +44,8 @@ public sealed class BradixDialogRenderTests : BunitContext
         _module.Setup<JsonElement?>("getPresenceState", _ => true)
             .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
+        _module.SetupVoid("registerDismissSurface", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterDismissSurface", _ => true).SetVoidResult();
         Services.AddBradixTestInterops();
     }
 
@@ -58,7 +60,7 @@ public sealed class BradixDialogRenderTests : BunitContext
             builder.CloseComponent();
         }));
 
-        await cut.Find("[role=dialog]").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Escape" });
+        await cut.InvokeAsync(() => cut.FindComponent<BradixDismissableLayer>().Instance.HandleEscapeKeyDown());
 
         await Assert.That(cut.Instance.CurrentOpen).IsTrue();
     }

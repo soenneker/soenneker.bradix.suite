@@ -1,0 +1,9 @@
+@namespace Soenneker.Bradix
+@implements IBradixRadioGroupItemTrigger
+@inherits BradixIdentifiableContentElement
+
+@Owner.RenderTrigger(ChildContent, BuildAttributes())
+
+@code {
+    [CascadingParameter] private BradixRadioGroupItem Owner { get; set; } = null!;
+}

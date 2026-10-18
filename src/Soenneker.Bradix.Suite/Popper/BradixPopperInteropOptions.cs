@@ -3,6 +3,9 @@ namespace Soenneker.Bradix;
 /// <summary>Options passed to the popper JavaScript module.</summary>
 public sealed class BradixPopperInteropOptions
 {
+    /// <summary>Position update strategy sent to Floating UI.</summary>
+    public string UpdatePositionStrategy { get; set; } = "optimized";
+
     /// <summary>Gets or sets the placement side.</summary>
     public string Side { get; set; } = "bottom";
 

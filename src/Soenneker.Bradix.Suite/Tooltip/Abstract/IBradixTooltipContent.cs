@@ -45,6 +45,9 @@ public interface IBradixTooltipContent : IAsyncDisposable {
     /// <summary>When true, hides the content if the anchor detaches.</summary>
     bool HideWhenDetached { get; set; }
 
+    /// <summary>Controls positioning updates. Always tracks animated anchors each frame; optimized avoids continuous work.</summary>
+    PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; }
+
     /// <summary>Explicit accessible name for the tooltip.</summary>
     string? AriaLabel { get; set; }
 

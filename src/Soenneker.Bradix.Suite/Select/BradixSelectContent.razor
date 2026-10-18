@@ -22,7 +22,7 @@
                               PreventUnmountAutoFocus="true"
                               OnMountAutoFocusDetailed="(_cachedHandleOpenAutoFocusDelegate ??= HandleOpenAutoFocus)"
                               OnUnmountAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)">
-                <BradixDismissableLayer DisableOutsidePointerEvents="@ShouldDisableOutsidePointerEvents"
+                <BradixDismissableLayer DeferPointerDownOutside="true" DisableOutsidePointerEvents="@ShouldDisableOutsidePointerEvents"
                                         DismissOnEscapeKeyDown="true"
                                         DismissOnPointerDownOutside="true"
                                         DismissOnFocusOutside="true"
@@ -63,6 +63,7 @@
                                              CollisionBoundarySelector="@CollisionBoundarySelector"
                                              CollisionBoundarySelectors="@CollisionBoundarySelectors"
                                              Sticky="@Sticky"
+                                             UpdatePositionStrategy="@UpdatePositionStrategy"
                                              HideWhenDetached="@HideWhenDetached"
                                              Style="@PositionerStyle"
                                              OnPlaced="@OnPlaced"
@@ -179,6 +180,9 @@ else
 
     [Parameter]
     public string Sticky { get; set; } = "partial";
+
+    [Parameter]
+    public PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; } = PopperUpdatePositionStrategy.Optimized;
 
     [Parameter]
     public bool HideWhenDetached { get; set; }
@@ -607,6 +611,7 @@ else
 
     private async Task HandleContentKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
@@ -626,6 +631,7 @@ else
 
     public async Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args)
     {
+        if (args.IsComposing) return;
         if (Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
@@ -656,7 +662,7 @@ else
         if (Select is null || !UseItemAlignedPosition || !_hasContentElement.Value || !_hasViewportElement.Value || !Select.HasTrigger || !Select.HasValueNode)
             return;
 
-        IBradixSelectCollectionItem? selectedItem = Select.GetSelectedOrFirstEnabledItem();
+        IBradixSelectCollectionItem? selectedItem = Select.GetPositioningItem();
 
         if (selectedItem is null || !selectedItem.HasItemTextElement)
             return;

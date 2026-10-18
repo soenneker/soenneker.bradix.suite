@@ -1,0 +1,9 @@
+@namespace Soenneker.Bradix
+@implements IBradixSliderThumbTrigger
+@inherits BradixElement
+
+@Owner.RenderTrigger(BuildAttributes())
+
+@code {
+    [CascadingParameter] private BradixSliderThumb Owner { get; set; } = null!;
+}

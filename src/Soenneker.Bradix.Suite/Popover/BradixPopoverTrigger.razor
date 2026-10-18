@@ -48,7 +48,7 @@
         ("id", ResolvedTriggerId),
         ("aria-haspopup", "dialog"),
         ("aria-expanded", Popover?.CurrentOpen == true ? "true" : "false"),
-        ("aria-controls", Popover?.ContentId),
+        ("aria-controls", Popover?.CurrentOpen == true ? Popover.ContentId : null),
         ("data-state", Popover?.CurrentOpen == true ? "open" : "closed"),
         ("data-disabled", Disabled ? string.Empty : null),
         ("disabled", Disabled ? BradixAttributeValues.True : null));

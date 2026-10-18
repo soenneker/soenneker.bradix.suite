@@ -16,6 +16,7 @@
                    CollisionBoundarySelector="@CollisionBoundarySelector"
                    CollisionBoundarySelectors="@CollisionBoundarySelectors"
                    Sticky="@Sticky"
+                   UpdatePositionStrategy="@UpdatePositionStrategy"
                    HideWhenDetached="@HideWhenDetached"
                    Class="@Class"
                    Style="@MergedStyle"
@@ -79,6 +80,9 @@
 
     [Parameter]
     public string Sticky { get; set; } = "partial";
+
+    [Parameter]
+    public PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; } = PopperUpdatePositionStrategy.Optimized;
 
     [Parameter]
     public bool HideWhenDetached { get; set; }

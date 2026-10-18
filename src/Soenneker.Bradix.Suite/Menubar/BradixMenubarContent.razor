@@ -93,6 +93,9 @@
     public string Sticky { get; set; } = "partial";
 
     [Parameter]
+    public PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; } = PopperUpdatePositionStrategy.Optimized;
+
+    [Parameter]
     public bool HideWhenDetached { get; set; }
 
     [Parameter]
@@ -320,6 +323,7 @@
 
     public async Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args)
     {
+        if (args.IsComposing) return;
         if (Menu is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 
@@ -534,6 +538,7 @@
                                          CollisionBoundarySelector="@CollisionBoundarySelector"
                                          CollisionBoundarySelectors="@CollisionBoundarySelectors"
                                          Sticky="@Sticky"
+                                         UpdatePositionStrategy="@UpdatePositionStrategy"
                                          HideWhenDetached="@HideWhenDetached"
                                          Style="@PositionerStyle"
                                          OnPlacementChanged="(_cachedHandlePlacementChangedDelegate ??= HandlePlacementChanged)"

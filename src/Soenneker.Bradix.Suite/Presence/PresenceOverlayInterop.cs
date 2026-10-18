@@ -63,13 +63,13 @@ public sealed class PresenceOverlayInterop : IPresenceOverlayInterop
     public async ValueTask RegisterHideOthers(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerHideOthers", cancellationToken, element);
+        await module.InvokeVoidAsync("registerHideOthers", cancellationToken, element, element.Id);
     }
 
     public async ValueTask UnregisterHideOthers(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterHideOthers", cancellationToken, element);
+        await module.InvokeVoidAsync("unregisterHideOthers", cancellationToken, element, element.Id);
     }
 
     public async ValueTask RegisterRemoveScroll(bool allowPinchZoom = false, CancellationToken cancellationToken = default)

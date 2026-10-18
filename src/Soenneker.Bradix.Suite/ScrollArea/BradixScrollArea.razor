@@ -139,6 +139,13 @@
         HasContent = true;
     }
 
+    internal void UnregisterContent(ElementReference content)
+    {
+        if (ContentElement.Id != content.Id) return;
+        ContentElement = default;
+        HasContent = false;
+    }
+
     internal void RegisterScrollbar(string orientation, bool forceMountThumb)
     {
         if (orientation == "horizontal")

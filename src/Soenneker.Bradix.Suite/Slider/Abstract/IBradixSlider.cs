@@ -63,6 +63,9 @@ public interface IBradixSlider : IAsyncDisposable {
     /// <summary>Gets or sets whether the value scale is inverted along the orientation axis.</summary>
     bool Inverted { get; set; }
 
+    /// <summary>Constrains thumbs to their neighbors instead of exchanging their order.</summary>
+    bool PreserveThumbOrder { get; set; }
+
     /// <summary>Gets or sets the <c>form</c> attribute for detached native inputs.</summary>
     string? Form { get; set; }
 

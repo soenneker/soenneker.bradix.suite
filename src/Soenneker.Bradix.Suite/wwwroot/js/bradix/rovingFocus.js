@@ -54,6 +54,7 @@ export function unregisterRovingFocusNavigationKeys(element) {
 }
 
 function handleRovingFocusKeydown(event) {
+  if (event.isComposing || event.keyCode === 229) return;
   const element = event.target instanceof HTMLElement ? event.target : null;
 
   if (!element || !rovingFocusElements.has(element)) {

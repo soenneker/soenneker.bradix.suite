@@ -1,0 +1,28 @@
+@namespace Soenneker.Bradix
+
+@inherits BradixIdentifiableContentElement
+
+@implements IBradixPopoverTitle
+<h2 @attributes="TitleAttributes">
+    @ChildContent
+</h2>
+
+@code {
+    [CascadingParameter]
+    private BradixPopover? Popover { get; set; }
+
+    private string ResolvedTitleId => string.IsNullOrWhiteSpace(Id) ? Popover?.TitleId ?? string.Empty : Id;
+
+    private Dictionary<string, object> TitleAttributes => BuildAttributes(
+        ("id", ResolvedTitleId));
+
+    protected override void OnParametersSet()
+    {
+        Popover?.RegisterTitle(ResolvedTitleId);
+    }
+
+    public void Dispose()
+    {
+        Popover?.UnregisterTitle(ResolvedTitleId);
+    }
+}

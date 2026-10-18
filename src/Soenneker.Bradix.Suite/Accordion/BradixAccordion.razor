@@ -163,6 +163,7 @@
 
     internal async Task HandleTriggerKeyDown(BradixAccordionTrigger trigger, KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (args.Key is not ("Home" or "End" or "ArrowDown" or "ArrowUp" or "ArrowRight" or "ArrowLeft"))
             return;
 

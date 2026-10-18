@@ -235,6 +235,7 @@
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return;
         if (Disabled || Select is null || args.CtrlKey || args.AltKey || args.MetaKey)
             return;
 

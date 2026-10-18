@@ -2,7 +2,8 @@ const presenceHandlers = new WeakMap();
 const presenceElements = new Map();
 const pendingPresenceInvocations = new Map();
 let focusGuardsCount = 0;
-const hideOthersState = new WeakMap();
+const hideOthersState = new Map();
+let accessibilityLayers = [];
 const hiddenElements = new WeakMap();
 const removeScrollRegistrations = new Map();
 let removeScrollLegacyCount = 0;
@@ -143,65 +144,74 @@ export function unregisterFocusGuards() {
   focusGuardsCount = Math.max(focusGuardsCount - 1, 0);
 }
 
-export function registerHideOthers(element) {
-  const ownerDocument = element?.ownerDocument || document;
-  const body = ownerDocument.body;
-  if (!element || !body || !body.contains(element)) {
-    return;
-  }
+export function updateAccessibilityLayers(layers) {
+  accessibilityLayers = layers;
+  for (const registration of hideOthersState.values()) applyHideOthers(registration);
+}
 
-  unregisterHideOthers(element);
+export function registerHideOthers(element, registrationId) {
+  const body = element?.ownerDocument?.body;
+  if (!element || !body?.contains(element)) return;
+  const key = registrationId || element;
+  unregisterHideOthers(element, registrationId);
+  const registration = { element, changed: new Set() };
+  hideOthersState.set(key, registration);
+  applyHideOthers(registration);
+}
 
-  const changed = [];
+function releaseHiddenElement(child) {
+  const state = hiddenElements.get(child);
+  if (!state || --state.count > 0) return;
+  child.inert = state.inert;
+  if (state.ariaHidden === null) child.removeAttribute("aria-hidden");
+  else child.setAttribute("aria-hidden", state.ariaHidden);
+  hiddenElements.delete(child);
+}
+
+function applyHideOthers(registration) {
+  const { element, changed } = registration;
+  const body = element.ownerDocument.body;
   const targets = new Set([element, ...body.querySelectorAll("[aria-live]")]);
-  const retainedAncestors = new Set();
-  for (const target of targets) {
-    for (let parent = target; parent && parent !== body; parent = parent.parentElement) {
-      retainedAncestors.add(parent);
+  const layerIndex = accessibilityLayers.findIndex(layer => layer === element || layer.contains(element) || element.contains(layer));
+  if (layerIndex >= 0) {
+    for (let index = layerIndex + 1; index < accessibilityLayers.length; index++) {
+      const layer = accessibilityLayers[index];
+      if (layer.ownerDocument === element.ownerDocument) targets.add(layer);
     }
   }
-
+  const retainedAncestors = new Set();
+  for (const target of targets) {
+    for (let parent = target; parent && parent !== body; parent = parent.parentElement) retainedAncestors.add(parent);
+  }
+  const next = new Set();
   const hideSiblings = parent => {
     for (const child of parent.children) {
       if (targets.has(child)) continue;
-      if (retainedAncestors.has(child)) {
-        hideSiblings(child);
-        continue;
-      }
-
-      let state = hiddenElements.get(child);
-      if (state) {
-        state.count++;
-      } else {
-        state = { count: 1, inert: child.inert === true, ariaHidden: child.getAttribute("aria-hidden") };
-        hiddenElements.set(child, state);
-        child.inert = true;
-        child.setAttribute("aria-hidden", "true");
-      }
-      changed.push(child);
+      if (retainedAncestors.has(child)) hideSiblings(child);
+      else next.add(child);
     }
   };
-  hideSiblings(body);
-
-  hideOthersState.set(element, changed);
+  if (element.isConnected) hideSiblings(body);
+  for (const child of changed) if (!next.has(child)) releaseHiddenElement(child);
+  for (const child of next) {
+    if (changed.has(child)) continue;
+    const state = hiddenElements.get(child);
+    if (state) state.count++;
+    else {
+      hiddenElements.set(child, { count: 1, inert: child.inert === true, ariaHidden: child.getAttribute("aria-hidden") });
+      child.inert = true;
+      child.setAttribute("aria-hidden", "true");
+    }
+  }
+  registration.changed = next;
 }
 
-export function unregisterHideOthers(element) {
-  const changed = hideOthersState.get(element);
-  if (!changed) {
-    return;
-  }
-
-  for (const child of changed) {
-    const state = hiddenElements.get(child);
-    if (!state || --state.count > 0) continue;
-    child.inert = state.inert;
-    if (state.ariaHidden === null) child.removeAttribute("aria-hidden");
-    else child.setAttribute("aria-hidden", state.ariaHidden);
-    hiddenElements.delete(child);
-  }
-
-  hideOthersState.delete(element);
+export function unregisterHideOthers(element, registrationId) {
+  const key = registrationId || element;
+  const registration = hideOthersState.get(key);
+  if (!registration) return;
+  for (const child of registration.changed) releaseHiddenElement(child);
+  hideOthersState.delete(key);
 }
 
 export function registerRemoveScroll(registrationIdOrAllowPinchZoom, maybeAllowPinchZoom) {
@@ -217,11 +227,13 @@ export function registerRemoveScroll(registrationIdOrAllowPinchZoom, maybeAllowP
     originalBodyPaddingRight = document.body.style.paddingRight || "";
     originalDocumentTouchAction = document.documentElement.style.touchAction || "";
 
-    const scrollbarWidth = Math.max(window.innerWidth - document.documentElement.clientWidth, 0);
+    const stableGutter = getComputedStyle(document.documentElement).getPropertyValue("scrollbar-gutter").includes("stable");
+    const scrollbarWidth = stableGutter ? 0 : Math.max(window.innerWidth - document.documentElement.clientWidth, 0);
+    const paddingRight = scrollbarWidth > 0 ? parseFloat(getComputedStyle(document.body).paddingRight) || 0 : 0;
     document.body.style.overflow = "hidden";
 
     if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      document.body.style.paddingRight = `${paddingRight + scrollbarWidth}px`;
     }
   }
 

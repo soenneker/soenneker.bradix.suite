@@ -1,3 +1,4 @@
+import { updateAccessibilityLayers } from "./presenceOverlay.js";
 import {
   createDismissablePointerSnapshot,
   createDismissableKeyboardSnapshot,
@@ -11,6 +12,7 @@ let dismissableLayerListenersRegistered = false;
 let dismissableLayerPointerDownListenerRegistered = false;
 let originalDismissableBodyPointerEvents = "";
 let hasStoredDismissableBodyPointerEvents = false;
+let pendingOutsideInteraction = null;
 
 function invokeDotNetSafely(layer, methodName, ...args) {
   if (!isRegisteredLayer(layer)) {
@@ -102,7 +104,30 @@ function ensureDismissableLayerListeners() {
       invokeDotNetSafely(topLayer, "HandlePointerDownOutside", snapshot);
     };
 
+    const completeOutsideInteraction = pending => {
+      if (pendingOutsideInteraction !== pending) return;
+      pendingOutsideInteraction = null;
+      if (pending.intercepted.size || pending.event.defaultPrevented ||
+          dismissableLayers[dismissableLayers.length - 1] !== pending.layer) return;
+      dispatchPointerDownOutside(pending.layer, pending.event);
+    };
+    // One listener set serves all layers; no timers or interop on pointer movement.
+    for (const type of ["pointerdown", "mousedown", "pointerup", "mouseup", "touchstart", "touchend", "click"]) {
+      if (type !== "pointerdown") document.addEventListener(type, event => {
+        const pending = pendingOutsideInteraction;
+        if (!pending) return;
+        pending.intercepted.add(type);
+        if (type === "click") setTimeout(() => {
+          if (!event.defaultPrevented) completeOutsideInteraction(pending);
+          else if (pendingOutsideInteraction === pending) pendingOutsideInteraction = null;
+        }, 0);
+      }, true);
+      document.addEventListener(type, () => pendingOutsideInteraction?.intercepted.delete(type));
+    }
+    document.addEventListener("pointercancel", () => { pendingOutsideInteraction = null; }, true);
+
     const handlePointerDownLikeEvent = (event) => {
+      pendingOutsideInteraction = null;
       const topLayer = dismissableLayers[dismissableLayers.length - 1];
 
       if (!topLayer || !event.target) {
@@ -123,7 +148,10 @@ function ensureDismissableLayerListeners() {
         return;
       }
 
-      dispatchPointerDownOutside(topLayer, event);
+      const deferred = topLayer.element.dataset.bradixDeferOutside === "true" && event.button === 0;
+      const pending = { layer: topLayer, event, deferred, intercepted: new Set(["pointerdown"]) };
+      pendingOutsideInteraction = pending;
+      if (!deferred) queueMicrotask(() => completeOutsideInteraction(pending));
       topLayer.isPointerInside = false;
     };
 
@@ -138,6 +166,8 @@ function ensureDismissableLayerListeners() {
     if (!topLayer || !event.target) {
       return;
     }
+
+    if (pendingOutsideInteraction?.layer === topLayer && pendingOutsideInteraction.deferred) return;
 
     if (!topLayer.isFocusOutsideEnabled) {
       return;
@@ -155,7 +185,8 @@ function ensureDismissableLayerListeners() {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape") {
+  if (event.isComposing || event.keyCode === 229) return;
+    if (event.key !== "Escape" || event.defaultPrevented) {
       return;
     }
 
@@ -169,7 +200,7 @@ function ensureDismissableLayerListeners() {
         event.preventDefault();
       }
     });
-  }, true);
+  });
 
   dismissableLayerListenersRegistered = true;
 }
@@ -211,6 +242,7 @@ export function registerDismissableLayer(element, dotNetRef, disableOutsidePoint
     handleFocusOutCapture
   };
   dismissableLayers.push(layer);
+  updateAccessibilityLayers(dismissableLayers.map(item => item.element));
   updateDismissableLayerPointerEvents();
 }
 
@@ -234,6 +266,8 @@ export function unregisterDismissableLayer(element, registrationId) {
   }
 
   const [layer] = dismissableLayers.splice(index, 1);
+  updateAccessibilityLayers(dismissableLayers.map(item => item.element));
+  if (pendingOutsideInteraction?.layer === layer) pendingOutsideInteraction = null;
   element = layer.element;
 
   if (element) {
@@ -270,4 +304,12 @@ export function unregisterDismissableLayerBranch(element) {
   }
 
   dismissableBranches.delete(element);
+}
+
+const dismissSurfaceClick = () => {};
+export function registerDismissSurface(element) {
+  element?.addEventListener("click", dismissSurfaceClick);
+}
+export function unregisterDismissSurface(element) {
+  element?.removeEventListener("click", dismissSurfaceClick);
 }

@@ -6,8 +6,11 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Defines the public API for <see cref="BradixRadioGroup"/>.
 /// </summary>
-public interface IBradixRadioGroup
+public interface IBradixRadioGroup : System.IAsyncDisposable
 {
+    /// <summary>Gets or sets the associated form ID.</summary>
+    string? Form { get; set; }
+
 /// <summary>Gets or sets the CSS class.</summary>
     string? Class { get; set; }
 

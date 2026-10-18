@@ -4,10 +4,13 @@
 @inherits BradixContentElement
 
 @implements IBradixDialogOverlay
+@implements IAsyncDisposable
+@using Microsoft.JSInterop
+@inject IDismissableLayerInterop DismissableLayerInterop
 
 @if (ShouldRenderOverlay)
 {
-    <BradixPresence Present="IsPresent"
+    <BradixPresence OnElementReferenceCaptured="RegisterDismissSurface" Present="IsPresent"
                     Tag="div"
                     Class="@Class"
                     Style="@OverlayStyle"
@@ -17,6 +20,28 @@
 }
 
 @code {
+    private ElementReference _surface;
+    private IJSObjectReference? _surfaceModule;
+    private bool _surfaceDisposed;
+    private async Task RegisterDismissSurface(ElementReference element)
+    {
+        if (_surfaceDisposed) return;
+        _surfaceModule ??= await DismissableLayerInterop.Initialize();
+        if (_surfaceDisposed) return;
+        if (!string.IsNullOrEmpty(_surface.Id)) await _surfaceModule.InvokeVoidAsync("unregisterDismissSurface", _surface);
+        _surface = element;
+        await _surfaceModule.InvokeVoidAsync("registerDismissSurface", element);
+    }
+    public async ValueTask DisposeAsync()
+    {
+        _surfaceDisposed = true;
+        try
+        {
+            if (_surfaceModule is not null) await _surfaceModule.InvokeVoidAsync("unregisterDismissSurface", _surface);
+        }
+        catch (JSDisconnectedException) { }
+    }
+
     private string? _mergedStyleCache0;
 
     private System.Func<Task>? _cachedHandleExitCompleteDelegate;

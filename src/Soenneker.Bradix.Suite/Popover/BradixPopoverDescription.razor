@@ -1,0 +1,28 @@
+@namespace Soenneker.Bradix
+
+@inherits BradixIdentifiableContentElement
+
+@implements IBradixPopoverDescription
+<p @attributes="DescriptionAttributes">
+    @ChildContent
+</p>
+
+@code {
+    [CascadingParameter]
+    private BradixPopover? Popover { get; set; }
+
+    private string ResolvedDescriptionId => string.IsNullOrWhiteSpace(Id) ? Popover?.DescriptionId ?? string.Empty : Id;
+
+    private Dictionary<string, object> DescriptionAttributes => BuildAttributes(
+        ("id", ResolvedDescriptionId));
+
+    protected override void OnParametersSet()
+    {
+        Popover?.RegisterDescription(ResolvedDescriptionId);
+    }
+
+    public void Dispose()
+    {
+        Popover?.UnregisterDescription(ResolvedDescriptionId);
+    }
+}

@@ -2,6 +2,7 @@
 @namespace Soenneker.Bradix
 
 @using System.Threading
+@using Microsoft.JSInterop
 
 @inherits BradixContentElement
 
@@ -28,6 +29,7 @@
 
     private const int _longPressDelayMs = 700;
     private ElementReference _element;
+    private DotNetObjectReference<object>? _reference;
     private ValueAtomicBool _disposed;
     private CancellationTokenSource? _longPressCancellationTokenSource;
 
@@ -54,7 +56,8 @@
             return;
 
         Menu?.RegisterTrigger(_element);
-        await ControlsInterop.RegisterContextMenuKeyboard(_element);
+        _reference = DotNetObjectReference.Create<object>(this);
+        await ControlsInterop.RegisterContextMenuKeyboard(_element, _reference);
         if (_disposed.Value)
             await ControlsInterop.UnregisterContextMenuKeyboard(_element);
     }
@@ -64,8 +67,13 @@
         if (!_disposed.TrySetTrue())
             return;
         ClearLongPress();
-        await ControlsInterop.UnregisterContextMenuKeyboard(_element);
+        try { await ControlsInterop.UnregisterContextMenuKeyboard(_element); }
+        finally { _reference?.Dispose(); }
     }
+
+    [JSInvokable]
+    public Task HandleNativeContextMenu(double x, double y) =>
+        _disposed.Read() || Disabled || ContextMenu is null ? Task.CompletedTask : ContextMenu.OpenAtPoint(x, y);
 
     private Task HandleContextMenu(MouseEventArgs args)
     {

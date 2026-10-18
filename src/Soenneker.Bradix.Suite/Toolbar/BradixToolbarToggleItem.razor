@@ -160,6 +160,7 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return Task.CompletedTask;
         if (_rovingFocusBridgeReady.Value && BradixRovingFocusNavigator.IsNavigationKey(args.Key))
             return Task.CompletedTask;
 

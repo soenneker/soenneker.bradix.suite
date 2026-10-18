@@ -17,9 +17,23 @@
     </CascadingValue>
 </BradixPopper>
 
-@if (ShouldRenderBubbleSelect)
-{
-    <select @ref="_bubbleSelectElement"
+@if (RenderDefaultParts && ShouldRenderBubbleSelect) { @RenderBubbleInput() }
+
+@code {
+    protected virtual bool RenderDefaultParts => true;
+    internal async ValueTask ClearBubbleInput()
+    {
+        if (_bubbleSelectRegistered.Value)
+        {
+            await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
+            await FormInterop.UnregisterAssociatedFormReset(_bubbleSelectElement);
+            _bubbleSelectRegistered.Value = false;
+        }
+        _bubbleSelectElement = default;
+        _hasBubbleSelectElement.Value = false;
+        _bubbleSelectValueInitialized.Value = false;
+    }
+    internal RenderFragment RenderBubbleInput() => @<select @ref="_bubbleSelectElement"
             @attributes="BubbleSelectAttributes">
         @if (string.IsNullOrWhiteSpace(CurrentValue))
         {
@@ -42,10 +56,8 @@
                 @CurrentText
             </option>
         }
-    </select>
-}
+    </select>;
 
-@code {
     private string? _childIdCache0;
 
     private BradixAttributeDictionary? _bubbleAttributes;
@@ -218,7 +230,7 @@
             }
         }
 
-        if (ShouldRenderBubbleSelect)
+        if (ShouldRenderBubbleSelect && !string.IsNullOrEmpty(_bubbleSelectElement.Id))
         {
             RegisterBubbleSelect(_bubbleSelectElement);
             await EnsureBubbleSelectRegistration();
@@ -229,6 +241,7 @@
             if (_bubbleSelectRegistered.Value)
             {
                 await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
+                await FormInterop.UnregisterAssociatedFormReset(_bubbleSelectElement);
                 _bubbleSelectRegistered.Value = false;
             }
 
@@ -248,7 +261,10 @@
                 await _bubbleSelectRegistrationTask;
 
             if (_bubbleSelectRegistered.Value)
+            {
                 await ControlsInterop.UnregisterSelectBubbleInput(_bubbleSelectElement);
+                await FormInterop.UnregisterAssociatedFormReset(_bubbleSelectElement);
+            }
         }
         finally
         {
@@ -317,11 +333,16 @@
         return HasTrigger ? ControlsInterop.FocusElementPreventScroll(TriggerElement).AsTask() : Task.CompletedTask;
     }
 
+    private string? _pendingUserValue;
+    private bool _hasPendingUserValue;
+
     internal async Task SetValue(string? value)
     {
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;
 
+        _pendingUserValue = value;
+        _hasPendingUserValue = true;
         if (Value is null && !ValueChanged.HasDelegate)
         {
             _uncontrolledValue = value;
@@ -575,6 +596,14 @@
         return FindEnabledItem(CurrentValue) ?? GetFirstEnabledItem();
     }
 
+    internal IBradixSelectCollectionItem? GetPositioningItem()
+    {
+        IBradixSelectCollectionItem? item = GetSelectedOrFirstEnabledItem();
+        if (item is not null) return item;
+        var items = _items.Snapshot();
+        return items.Count > 0 ? items[0].Item : null;
+    }
+
     internal IBradixSelectCollectionItem? GetSelectedItem()
     {
         return CurrentValue is not null && _items.TryGet(CurrentValue, out IBradixSelectCollectionItem? item)
@@ -792,7 +821,19 @@
         _dotNetReference ??= DotNetObjectReference.Create<object>(this);
         await ControlsInterop.RegisterSelectBubbleInput(_bubbleSelectElement, _dotNetReference);
 
+        await FormInterop.RegisterAssociatedFormReset(_bubbleSelectElement, _dotNetReference, Form);
         _bubbleSelectRegistered.Value = true;
+    }
+
+    [JSInvokable]
+    public async Task HandleFormReset()
+    {
+        _hasPendingUserValue = false;
+        if (Value is null && !ValueChanged.HasDelegate) _uncontrolledValue = DefaultValue;
+        if (ValueChanged.HasDelegate) await ValueChanged.InvokeAsync(DefaultValue);
+        if (OnValueChange.HasDelegate) await OnValueChange.InvokeAsync(DefaultValue);
+        UpdateCurrentText();
+        await RequestRender();
     }
 
     private async Task SyncBubbleSelectValue()
@@ -806,7 +847,10 @@
         if (_bubbleSelectValueInitialized.Value && !valueChanged)
             return;
 
-        await ControlsInterop.SyncSelectBubbleInputValue(_bubbleSelectElement, nextValue, _bubbleSelectValueInitialized.Value);
+        bool dispatchEvent = _bubbleSelectValueInitialized.Value && _hasPendingUserValue &&
+            string.Equals(_pendingUserValue, nextValue, StringComparison.Ordinal);
+        if (dispatchEvent) _hasPendingUserValue = false;
+        await ControlsInterop.SyncSelectBubbleInputValue(_bubbleSelectElement, nextValue, dispatchEvent);
 
         _lastBubbleSelectValue = nextValue;
         _bubbleSelectValueInitialized.Value = true;

@@ -10,7 +10,7 @@
 
 @if (IsPresent || _isExiting.Value)
 {
-    <BradixDismissableLayer DisableOutsidePointerEvents="false"
+    <BradixDismissableLayer DeferPointerDownOutside="true" DisableOutsidePointerEvents="false"
                             DismissOnEscapeKeyDown="false"
                             DismissOnPointerDownOutside="false"
                             DismissOnFocusOutside="false"
@@ -28,6 +28,7 @@
                              CollisionBoundarySelector="@CollisionBoundarySelector"
                              CollisionBoundarySelectors="@CollisionBoundarySelectors"
                              Sticky="@Sticky"
+                             UpdatePositionStrategy="@UpdatePositionStrategy"
                              HideWhenDetached="@HideWhenDetached"
                              Style="@PositionerStyle"
                              OnPlaced="@OnPlaced"
@@ -109,6 +110,9 @@
 
     [Parameter]
     public string Sticky { get; set; } = "partial";
+
+    [Parameter]
+    public PopperUpdatePositionStrategy UpdatePositionStrategy { get; set; } = PopperUpdatePositionStrategy.Optimized;
 
     [Parameter]
     public bool HideWhenDetached { get; set; }

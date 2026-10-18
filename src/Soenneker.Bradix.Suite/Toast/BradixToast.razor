@@ -17,7 +17,7 @@
 
 @if (_announceVisible.Value)
 {
-    <BradixPortal>
+    <BradixPortal Container="@(Provider?.AnnouncerContainer ?? default)" ContainerSelector="@Provider?.AnnouncerContainerSelector">
         <BradixVisuallyHidden AdditionalAttributes="@AnnounceAttributes">
             @if (_renderAnnounceText.Value)
             {
@@ -528,6 +528,7 @@
 
     public async Task HandleDelegatedKeyDown(BradixDelegatedKeyboardEvent args)
     {
+        if (args.IsComposing) return;
         if (!string.Equals(args.Key, "Escape", StringComparison.Ordinal))
             return;
 
@@ -545,6 +546,7 @@
 
     private Task HandleKeyDown(KeyboardEventArgs args)
     {
+        if (args.IsComposing) return Task.CompletedTask;
         if (!string.Equals(args.Key, "Escape", StringComparison.Ordinal))
             return Task.CompletedTask;
 
@@ -807,10 +809,10 @@
 
             await module.InvokeVoidAsync("registerToastSwipe", _toastElement, direction, threshold,
                 hasStartCallback ? BradixAttributeValues.True : BradixAttributeValues.False,
-                hasMoveCallback ? BradixAttributeValues.True : BradixAttributeValues.False, _dotNetReference);
+                hasMoveCallback ? BradixAttributeValues.True : BradixAttributeValues.False, _dotNetReference, _toastElement.Id);
             if (_disposed.Read())
             {
-                await module.InvokeVoidAsync("unregisterToastSwipe", _toastElement);
+                await module.InvokeVoidAsync("unregisterToastSwipe", _toastElement, _toastElement.Id);
                 return;
             }
 
@@ -837,7 +839,7 @@
         try
         {
             IJSObjectReference module = await ToastInterop.Initialize();
-            await module.InvokeVoidAsync("unregisterToastSwipe", _toastElement);
+            await module.InvokeVoidAsync("unregisterToastSwipe", _toastElement, _toastElement.Id);
         }
         catch (Exception)
         {

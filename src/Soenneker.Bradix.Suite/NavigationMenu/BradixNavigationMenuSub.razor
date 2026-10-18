@@ -9,6 +9,8 @@
                       OnValueChange="@OnValueChange"
                       Orientation="@Orientation"
                       Dir="@ParentNavigationMenu?.ResolvedDirection"
+                      ActivationMode="@(ActivationMode ?? ParentNavigationMenu?.ActivationMode ?? NavigationMenuActivationMode.Automatic)"
+                      DisableToggle="DisableToggle"
                       IsRootMenu="false"
                       Class="@Class"
                       Style="@Style"
@@ -18,6 +20,12 @@
 @code {
     [CascadingParameter]
     private BradixNavigationMenu? ParentNavigationMenu { get; set; }
+
+    [Parameter]
+    public NavigationMenuActivationMode? ActivationMode { get; set; }
+
+    [Parameter]
+    public bool DisableToggle { get; set; } = true;
 
     [Parameter]
     public string? Value { get; set; }

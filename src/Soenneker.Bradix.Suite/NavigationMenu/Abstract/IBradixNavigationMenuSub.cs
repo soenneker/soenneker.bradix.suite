@@ -8,6 +8,12 @@ namespace Soenneker.Bradix;
 /// </summary>
 public interface IBradixNavigationMenuSub
 {
+    /// <summary>Controls whether hovering opens content. Submenus inherit the parent when unset.</summary>
+    NavigationMenuActivationMode? ActivationMode { get; set; }
+
+    /// <summary>Prevents clicking the active trigger from closing its content.</summary>
+    bool DisableToggle { get; set; }
+
     /// <summary>Controlled value for the open item.</summary>
     string? Value { get; set; }
 

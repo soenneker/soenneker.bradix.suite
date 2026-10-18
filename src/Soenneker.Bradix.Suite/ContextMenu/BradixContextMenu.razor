@@ -4,7 +4,7 @@
 
 @implements IBradixContextMenu
 <BradixMenu @ref="_menu"
-            Open="@_open"
+            Open="@CurrentOpen"
             OpenChanged="(_cachedHandleMenuOpenChangedDelegate ??= HandleMenuOpenChanged)"
             Dir="@Dir"
             Modal="@Modal">
@@ -20,6 +20,12 @@
     private BradixMenu? _menu;
 
     [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
     public EventCallback<bool> OnOpenChange { get; set; }
 
     [Parameter]
@@ -28,13 +34,13 @@
     [Parameter]
     public bool Modal { get; set; } = true;
 
-    internal bool CurrentOpen => _open;
+    internal bool CurrentOpen => Open ?? _open;
 
     internal async Task OpenAtPoint(double x, double y)
     {
         _menu?.RegisterVirtualAnchor(x, y);
 
-        if (_open)
+        if (CurrentOpen)
         {
             await RequestRender();
             return;
@@ -50,10 +56,14 @@
 
     private async Task SetOpen(bool open)
     {
-        if (_open == open)
+        if (CurrentOpen == open)
             return;
 
-        _open = open;
+        if (Open is null)
+            _open = open;
+
+        if (OpenChanged.HasDelegate)
+            await OpenChanged.InvokeAsync(open);
 
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);

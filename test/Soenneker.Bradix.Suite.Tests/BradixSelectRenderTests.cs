@@ -69,6 +69,8 @@ public sealed class BradixSelectRenderTests : BunitContext
         _module.Setup<JsonElement?>("getPresenceState", _ => true)
             .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "fade-out", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
 
+        _module.SetupVoid("registerAssociatedFormReset", _ => true).SetVoidResult();
+        _module.SetupVoid("unregisterAssociatedFormReset", _ => true).SetVoidResult();
         Services.AddBradixTestInterops();
     }
 

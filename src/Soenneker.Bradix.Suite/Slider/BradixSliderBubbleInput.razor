@@ -1,0 +1,11 @@
+@namespace Soenneker.Bradix
+@implements IBradixSliderBubbleInput
+@inherits BradixElement
+@implements IDisposable
+
+@Owner.RenderBubbleInput(BuildAttributes())
+
+@code {
+    [CascadingParameter] private BradixSliderThumb Owner { get; set; } = null!;
+    public void Dispose() => Owner.ClearBubbleInput();
+}

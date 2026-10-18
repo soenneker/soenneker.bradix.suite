@@ -23,4 +23,7 @@ public interface IBradixScrollAreaViewport : IAsyncDisposable {
     /// <summary>Gets or sets the CSP nonce applied to injected viewport styles.</summary>
     string? Nonce { get; set; }
 
+    /// <summary>Omits the implicit measurement wrapper. Render BradixScrollAreaContent directly inside the viewport when enabled.</summary>
+    bool DisableImplicitContentElement { get; set; }
+
 }

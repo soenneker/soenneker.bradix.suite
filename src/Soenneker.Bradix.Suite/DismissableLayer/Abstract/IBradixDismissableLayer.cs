@@ -8,6 +8,9 @@ namespace Soenneker.Bradix;
 /// Describes the public API of <see cref="BradixDismissableLayer"/>.
 /// </summary>
 public interface IBradixDismissableLayer : IAsyncDisposable {
+    /// <summary>Defers primary outside pointer dismissal until click, allowing native handlers to cancel the interaction.</summary>
+    bool DeferPointerDownOutside { get; set; }
+
     /// <summary>
     /// Gets or sets whether pointer events outside the layer are disabled.
     /// </summary>
