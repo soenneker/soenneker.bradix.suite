@@ -64,7 +64,7 @@
     private Action? _refreshCallback;
     private Func<Task>? _focusOpenItemCallback;
     private readonly BradixCollectionRegistry<IBradixSelectCollectionItem> _items = new();
-    private readonly BradixTypeaheadBuffer _typeahead = new();
+    private BradixTypeaheadBuffer? _typeahead;
     private ValueAtomicBool _initialized;
     private ValueAtomicBool _refreshQueued;
     private ValueAtomicBool _focusOpenItemQueued;
@@ -136,7 +136,7 @@
 
     internal string? CurrentValue => Value ?? _uncontrolledValue;
 
-    internal bool HasActiveTypeahead => !string.IsNullOrEmpty(_typeahead.CurrentSearch);
+    internal bool HasActiveTypeahead => !string.IsNullOrEmpty(_typeahead?.CurrentSearch);
 
     internal string ContentId => BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache0);
 
@@ -368,7 +368,7 @@
 
         if (!open)
         {
-            _typeahead.Reset();
+            _typeahead?.Reset();
             _triggerPointerDownPosition = null;
         }
 
@@ -388,7 +388,7 @@
 
     internal Task OpenFromTrigger(double? pageX = null, double? pageY = null)
     {
-        _typeahead.Reset();
+        _typeahead?.Reset();
 
         if (pageX.HasValue && pageY.HasValue)
             _triggerPointerDownPosition = (pageX.Value, pageY.Value);
@@ -460,7 +460,7 @@
 
     internal async Task HandleTriggerTypeahead(string key)
     {
-        string search = _typeahead.Append(key);
+        string search = (_typeahead ??= new()).Append(key);
         IBradixSelectCollectionItem? currentItem = FindEnabledItem(CurrentValue);
         IBradixSelectCollectionItem? nextItem = FindNextTypeaheadItem(search, currentItem);
 
@@ -472,7 +472,7 @@
 
     internal async Task HandleContentTypeahead(string key)
     {
-        string search = _typeahead.Append(key);
+        string search = (_typeahead ??= new()).Append(key);
         IBradixSelectCollectionItem? currentItem = FindEnabledItem(CurrentFocusedItemValue);
         if (search.Length == 1)
             currentItem = null;

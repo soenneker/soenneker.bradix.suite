@@ -20,7 +20,7 @@
     private string? _childIdCache0;
 
     private readonly BradixCollectionRegistry<IBradixMenuRovingItem> _items = new();
-    private readonly BradixTypeaheadBuffer _typeahead = new();
+    private BradixTypeaheadBuffer? _typeahead;
     private BradixPopper? _popper;
     private ValueAtomicBool _initialized;
     private ValueAtomicBool _focusFirstItemOnOpen;
@@ -65,7 +65,7 @@
 
     internal string? CurrentTabStopId { get; private set; }
 
-    internal bool IsTypeaheadActive => !string.IsNullOrEmpty(_typeahead.CurrentSearch);
+    internal bool IsTypeaheadActive => !string.IsNullOrEmpty(_typeahead?.CurrentSearch);
 
     internal ElementReference TriggerElement { get; private set; }
 
@@ -177,7 +177,7 @@
 
     internal async Task HandleTypeahead(IBradixMenuRovingItem? currentItem, string key)
     {
-        string search = _typeahead.Append(key);
+        string search = (_typeahead ??= new()).Append(key);
         IBradixMenuRovingItem? nextItem = FindNextTypeaheadItem(search, currentItem);
 
         if (nextItem is null)
@@ -189,7 +189,7 @@
 
     internal void ResetTypeahead()
     {
-        _typeahead.Reset();
+        _typeahead?.Reset();
     }
 
     public void SetFocusFirstItemOnOpen(bool value)

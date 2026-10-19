@@ -9,6 +9,32 @@ namespace Soenneker.Bradix.Suite.Tests;
 public sealed class BradixCollectionRegistryTests
 {
     [Test]
+    public async ValueTask Empty_registry_reads_remain_allocation_free_then_accept_items()
+    {
+        var registry = new BradixCollectionRegistry<string>();
+        registry.Snapshot();
+        registry.TryGet("missing", out _);
+        registry.Unregister("missing");
+        long before = GC.GetAllocatedBytesForCurrentThread();
+        for (var i = 0; i < 1000; i++)
+        {
+            registry.Snapshot();
+            registry.TryGet("missing", out _);
+            registry.Unregister("missing");
+            registry.Clear();
+        }
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        await Assert.That(allocated).IsEqualTo(0);
+        await Assert.That(registry.Count).IsEqualTo(0);
+        await Assert.That(() => registry.Register(null!, "value")).Throws<ArgumentNullException>();
+        registry.Insert(0, "first", "value");
+        await Assert.That(registry.Snapshot()[0].Item).IsEqualTo("value");
+        registry.Clear();
+        registry.Register("second", "next");
+        await Assert.That(registry.Snapshot()[0].Key).IsEqualTo("second");
+    }
+
+    [Test]
     public async ValueTask Repeated_registration_reuses_snapshot_but_equal_replacements_do_not(CancellationToken cancellationToken)
     {
         var registry = new BradixCollectionRegistry<BradixCollectionRegistryDemoItem>();

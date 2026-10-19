@@ -8,13 +8,13 @@ namespace Soenneker.Bradix;
 /// </summary>
 public sealed class BradixCollectionRegistry<TItem>
 {
-    private readonly BradixOrderedDictionary<string, TItem> _items = new();
+    private BradixOrderedDictionary<string, TItem>? _items;
     private IReadOnlyList<BradixCollectionEntry<TItem>>? _snapshot;
 
     /// <summary>
     /// Gets or sets count.
     /// </summary>
-    public int Count => _items.Count;
+    public int Count => _items?.Count ?? 0;
 
     /// <summary>
     /// Registers a callback with the Bradix Collection Registry.
@@ -23,6 +23,8 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <param name="item">Receives the entry when the key is found.</param>
     public void Register(string key, TItem item)
     {
+        ArgumentNullException.ThrowIfNull(key);
+        _items ??= new();
         // Snapshots retain the item reference, so registering that same object again
         // does not require recreating every entry. Value equality is insufficient:
         // an equal replacement object still needs to appear in the next snapshot.
@@ -41,7 +43,8 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <param name="item">Receives the entry when the key is found.</param>
     public void Insert(int index, string key, TItem item)
     {
-        _items.Insert(index, key, item);
+        ArgumentNullException.ThrowIfNull(key);
+        (_items ??= new()).Insert(index, key, item);
         _snapshot = null;
     }
 
@@ -53,7 +56,8 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <param name="item">Receives the entry when the key is found.</param>
     public void SetBefore(string key, string newKey, TItem item)
     {
-        if (!_items.ContainsKey(key))
+        ArgumentNullException.ThrowIfNull(key);
+        if (_items is null || !_items.ContainsKey(key))
             return;
 
         _items.SetBefore(key, newKey, item);
@@ -68,7 +72,8 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <param name="item">Receives the entry when the key is found.</param>
     public void SetAfter(string key, string newKey, TItem item)
     {
-        if (!_items.ContainsKey(key))
+        ArgumentNullException.ThrowIfNull(key);
+        if (_items is null || !_items.ContainsKey(key))
             return;
 
         _items.SetAfter(key, newKey, item);
@@ -82,7 +87,8 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <returns>true if removes the callback identified by the supplied ID from the Bradix Collection Registry; otherwise, false.</returns>
     public bool Unregister(string key)
     {
-        bool removed = _items.Delete(key);
+        ArgumentNullException.ThrowIfNull(key);
+        bool removed = _items?.Delete(key) ?? false;
 
         if (removed)
             _snapshot = null;
@@ -98,7 +104,10 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <returns>true if a matching value was found and assigned to the output parameter; otherwise, false.</returns>
     public bool TryGet(string key, out TItem item)
     {
-        return _items.TryGetValue(key, out item!);
+        ArgumentNullException.ThrowIfNull(key);
+        if (_items is not null) return _items.TryGetValue(key, out item!);
+        item = default!;
+        return false;
     }
 
     /// <summary>
@@ -110,7 +119,7 @@ public sealed class BradixCollectionRegistry<TItem>
         if (_snapshot is not null)
             return _snapshot;
 
-        if (_items.Count == 0)
+        if (_items is null || _items.Count == 0)
             return _snapshot = Array.Empty<BradixCollectionEntry<TItem>>();
 
         var snapshot = new BradixCollectionEntry<TItem>[_items.Count];
@@ -131,7 +140,7 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <returns>The requested bradix Ordered Dictionary.Enumerator.</returns>
     public BradixOrderedDictionary<string, TItem>.Enumerator GetEnumerator()
     {
-        return _items.GetEnumerator();
+        return (_items ??= new()).GetEnumerator();
     }
 
     /// <summary>
@@ -139,7 +148,7 @@ public sealed class BradixCollectionRegistry<TItem>
     /// </summary>
     public void Clear()
     {
-        if (_items.Count == 0)
+        if (_items is null || _items.Count == 0)
             return;
 
         _items.Clear();
