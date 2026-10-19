@@ -103,6 +103,7 @@ export function registerSelectViewport(viewport, content, wrapper, dotNetRef, re
 }
 
 export function unregisterSelectViewport(viewport, registrationId) {
+  stopSelectAutoScroll(viewport);
   viewport = selectViewportElements.get(registrationId) || viewport;
   if (registrationId) selectViewportElements.delete(registrationId);
   const handlers = selectViewportHandlers.get(viewport);
@@ -357,6 +358,29 @@ function setHighlightedSelectOption(content, target) {
   if (target.getAttribute("data-state") === "checked") {
     target.setAttribute("aria-selected", "true");
   }
+}
+
+const autoScrollLoops = new WeakMap();
+export function stopSelectAutoScroll(viewport, generation = null) {
+  const loop = autoScrollLoops.get(viewport);
+  if (!loop || (generation !== null && loop.generation !== generation)) return;
+  clearTimeout(loop.timer);
+  loop.stopped = true;
+  if (generation === null) autoScrollLoops.delete(viewport);
+}
+export function startSelectAutoScroll(viewport, item, upward, generation) {
+  if (autoScrollLoops.get(viewport)?.generation >= generation) return;
+  stopSelectAutoScroll(viewport);
+  if (!viewport || !item) return;
+  const loop = { timer: 0, generation };
+  autoScrollLoops.set(viewport, loop);
+  const step = () => {
+    if (autoScrollLoops.get(viewport) !== loop || loop.stopped) return;
+    if (!viewport.isConnected || !item.isConnected) { stopSelectAutoScroll(viewport); return; }
+    scrollSelectViewportByItem(viewport, item, upward);
+    loop.timer = setTimeout(step, 50);
+  };
+  step();
 }
 
 export function scrollSelectViewportByItem(viewport, item, upward) {

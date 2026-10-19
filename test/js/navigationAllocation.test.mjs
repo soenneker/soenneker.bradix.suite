@@ -5,6 +5,8 @@ import * as select from '../../src/Soenneker.Bradix.Suite/wwwroot/js/bradix/sele
 import * as toast from '../../src/Soenneker.Bradix.Suite/wwwroot/js/bradix/toast.js';
 
 class Element {
+  get ownerDocument() { return globalThis.document; }
+  matches(selector) { return selector === ":disabled" && this.hasAttribute("disabled"); }
   listeners = new Map(); attributes = new Map(); style = {}; children = [];
   addEventListener(type, callback) {
     if (!this.listeners.has(type)) this.listeners.set(type, new Set());
@@ -20,7 +22,7 @@ class Element {
   hasAttribute(name) { return this.attributes.has(name); }
   removeAttribute(name) { this.attributes.delete(name); }
   contains(node) { return node === this || this.children.includes(node); }
-  closest() { return this; }
+  closest(selector) { return selector.includes("inert") ? null : this; }
   focus() { document.activeElement = this; }
   scrollIntoView() {}
 }
@@ -29,6 +31,7 @@ function fixture(t) {
   globalThis.Node = globalThis.HTMLElement = globalThis.Element = Element;
   globalThis.HTMLInputElement = class extends Element {};
   globalThis.window = new Element(); globalThis.document = new Element();
+  document.defaultView = window;
   const timers = new Map(), frames = new Map(), observers = [], calls = [];
   let next = 1;
   const originalSetTimeout = globalThis.setTimeout, originalClearTimeout = globalThis.clearTimeout;
@@ -142,4 +145,19 @@ test('toast hotkey frames coalesce and cannot steal focus after unregister', t =
   outside.focus(); stale();
   assert.equal(env.frames.size, 0);
   assert.equal(document.activeElement, outside);
+});
+
+test('select auto-scroll stays in browser and old cancellations cannot stop a replacement loop', t => {
+  const env = fixture(t), viewport = new Element(), item = new Element();
+  viewport.isConnected = item.isConnected = true; viewport.scrollTop = 100; item.offsetHeight = 20;
+  select.startSelectAutoScroll(viewport, item, false, 1);
+  assert.equal(viewport.scrollTop, 120); assert.equal(env.calls.length, 0);
+  select.startSelectAutoScroll(viewport, item, true, 2);
+  assert.equal(viewport.scrollTop, 100); assert.equal(env.timers.size, 1);
+  select.stopSelectAutoScroll(viewport, 1); assert.equal(env.timers.size, 1);
+  const next = [...env.timers.values()][0]; env.timers.clear(); next();
+  assert.equal(viewport.scrollTop, 80);
+  viewport.isConnected = false;
+  const detached = [...env.timers.values()][0]; env.timers.clear(); detached();
+  assert.equal(env.timers.size, 0); assert.equal(env.calls.length, 0);
 });

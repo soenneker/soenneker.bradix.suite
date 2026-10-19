@@ -107,6 +107,12 @@ public interface ISelectInterop : IAsyncDisposable
     /// <returns>A task that completes when the scroll select viewport by item operation is complete.</returns>
     ValueTask ScrollSelectViewportByItem(ElementReference viewport, ElementReference item, bool upward, CancellationToken cancellationToken = default);
 
+    /// <summary>Starts browser-owned item-height scrolling until stopped or the viewport is detached.</summary>
+    ValueTask StartSelectAutoScroll(ElementReference viewport, ElementReference item, bool upward, long generation, CancellationToken cancellationToken = default);
+
+    /// <summary>Stops the browser-owned scrolling loop for this viewport.</summary>
+    ValueTask StopSelectAutoScroll(ElementReference viewport, long generation);
+
     /// <summary>
     /// Registers select Content Pointer Tracker.
     /// </summary>

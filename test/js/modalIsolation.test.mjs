@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import { registerHideOthers, unregisterHideOthers } from '../../src/Soenneker.Bradix.Suite/wwwroot/js/bradix/presenceOverlay.js';
 
 class Element {
+  get ownerDocument() { return globalThis.document; }
   children = [];
   parentElement = null;
   attributes = new Map();
   inert = false;
+  get isConnected() { return document.body.contains(this); }
   append(child) { this.children.push(child); child.parentElement = this; return child; }
   contains(child) { return child === this || this.children.some(element => element.contains(child)); }
   getAttribute(name) { return this.attributes.get(name) ?? null; }

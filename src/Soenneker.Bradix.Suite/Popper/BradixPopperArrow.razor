@@ -100,13 +100,10 @@
 
         var positionStyle = $"position: absolute; {oppositeSide}: 0;{transform}";
 
-        if (content.ArrowX.HasValue)
-            positionStyle += $" left: {content.ArrowX.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px;";
-        else if (content.ArrowY.HasValue)
-            positionStyle += $" top: {content.ArrowY.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}px;";
-
-        if (content.ShouldHideArrow)
-            positionStyle += " visibility: hidden;";
+        positionStyle += content.PlacedSide is "top" or "bottom"
+            ? " left: var(--bradix-popper-arrow-x, auto);"
+            : " top: var(--bradix-popper-arrow-y, auto);";
+        positionStyle += " visibility: var(--bradix-popper-arrow-visibility, inherit);";
 
         return positionStyle;
     }

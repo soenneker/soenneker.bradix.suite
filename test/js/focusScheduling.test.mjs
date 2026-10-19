@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { registerFocusScope, unregisterFocusScope } from '../../src/Soenneker.Bradix.Suite/wwwroot/js/bradix/focusScope.js';
 
 class ElementStub {
+  get ownerDocument() { return globalThis.document; }
+  matches() { return false; }
+  closest() { return null; }
   tagName = 'BUTTON';
   children = [];
   parentElement = null;
@@ -33,6 +36,7 @@ function fixture(t) {
   const root = new ElementStub(), child = new ElementStub(), previous = new ElementStub();
   child.parentElement = root;
   globalThis.document = {
+    defaultView: { setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, HTMLElement: ElementStub, addEventListener() {}, removeEventListener() {} },
     activeElement: previous, body: previous, addEventListener() {}, removeEventListener() {},
     createTreeWalker(container) {
       let index = 0;

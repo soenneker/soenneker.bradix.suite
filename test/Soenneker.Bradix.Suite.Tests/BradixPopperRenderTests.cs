@@ -126,17 +126,17 @@ public sealed class BradixPopperRenderTests : BunitContext
         await Assert.That(cut.Markup).Contains("data-side=\"top\"");
         await Assert.That(cut.Markup).Contains("data-align=\"start\"");
         await Assert.That(cut.Find("[aria-hidden='true']").GetAttribute("aria-hidden")).IsEqualTo("true");
-        await Assert.That(cut.Find("[aria-hidden='true']").GetAttribute("style")).Contains("left: 14px");
+        await Assert.That(cut.Find("[aria-hidden='true']").GetAttribute("style")).Contains("left: var(--bradix-popper-arrow-x, auto)");
         await Assert.That(placedCount).IsEqualTo(1);
 
         await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px", "50");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: 50;");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
 
         await content.Instance.HandlePositionChanged("top", "start", 18, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px", "50");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: 50;");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
 
         await content.Instance.HandlePositionChanged("top", "start", 18, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
-        await Assert.That(content.Find("div").GetAttribute("style")!.Contains("z-index:")).IsFalse();
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
     }
 
     [Test]
@@ -174,7 +174,7 @@ public sealed class BradixPopperRenderTests : BunitContext
 
         string? style = cut.Find("[aria-hidden='true']").GetAttribute("style");
 
-        await Assert.That(style).Contains("left: 40px");
+        await Assert.That(style).Contains("left: var(--bradix-popper-arrow-x, auto)");
         await Assert.That(cut.Find("[aria-hidden='true'] svg").GetAttribute("width")).IsEqualTo("18");
         await Assert.That(cut.Find("[aria-hidden='true'] svg").GetAttribute("height")).IsEqualTo("9");
     }
@@ -219,13 +219,13 @@ public sealed class BradixPopperRenderTests : BunitContext
         await Assert.That(placedCount).IsEqualTo(1);
 
         await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px", "50");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: 50;");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
 
         await content.Instance.HandlePositionChanged("top", "start", 18, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px", "50");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: 50;");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
 
         await content.Instance.HandlePositionChanged("top", "start", 18, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
-        await Assert.That(content.Find("div").GetAttribute("style")!.Contains("z-index:")).IsFalse();
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
     }
 
     [Test]

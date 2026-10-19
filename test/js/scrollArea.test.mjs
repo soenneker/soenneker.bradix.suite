@@ -4,7 +4,7 @@ import * as scrollArea from '../../src/Soenneker.Bradix.Suite/wwwroot/js/bradix/
 
 class Element {
   listeners = new Map();
-  style = {};
+  style = { setProperty(name, value) { this[name] = value; } };
   clientWidth = 100; clientHeight = 100;
   offsetWidth = 100; offsetHeight = 100;
   scrollWidth = 500; scrollHeight = 500;
@@ -50,13 +50,14 @@ function environment() {
   };
 }
 
-test('viewport coalesces resize/scroll bursts and suppresses unchanged interop payloads', () => {
+test('viewport coalesces resize/scroll bursts and suppresses unchanged interop payloads', async () => {
   const env = environment();
   const viewport = new Element();
   scrollArea.registerScrollAreaViewport(viewport, null, env.receiver);
   for (let i = 0; i < 100; i++) env.observers[0].callback();
   assert.equal(env.frames.size, 1);
   env.flush();
+  await Promise.resolve();
   assert.equal(env.calls.length, 1);
   viewport.fire('scroll'); env.flush();
   assert.equal(env.calls.length, 1);
@@ -81,13 +82,14 @@ test('wheel interception is scoped to the scrollbar and still scrolls its viewpo
   assert.equal(bar.listeners.get('wheel').size, 0);
 });
 
-test('scrollbar metrics deduplicate frames and payloads and cancel disposed work', () => {
+test('scrollbar metrics deduplicate frames and payloads and cancel disposed work', async () => {
   const env = environment();
   const bar = new Element();
   scrollArea.registerScrollAreaScrollbar(bar, null, new Element(), 'vertical', 'ltr', env.receiver);
   for (let i = 0; i < 100; i++) env.observers[0].callback();
   assert.equal(env.frames.size, 1);
   env.flush();
+  await Promise.resolve();
   assert.equal(env.calls.length, 1);
   env.observers[0].callback(); env.flush();
   assert.equal(env.calls.length, 1);
@@ -153,3 +155,33 @@ for (const ending of ['dispose', 'pointercancel', 'pointerup']) {
     scrollArea.unregisterScrollAreaScrollbar(bar);
   });
 }
+
+test('slow viewport receiver retains only the latest metrics and drops queued work on teardown', async () => {
+  const env = environment(), viewport = new Element();
+  const calls = []; let complete;
+  const receiver = { invokeMethodAsync(...args) { calls.push(args); return new Promise(resolve => { complete = resolve; }); } };
+  scrollArea.registerScrollAreaViewport(viewport, null, receiver);
+  env.flush();
+  for (let i = 1; i <= 100; i++) { viewport.scrollTop = i; viewport.fire('scroll'); env.flush(); }
+  assert.equal(calls.length, 1);
+  complete(); await Promise.resolve();
+  assert.equal(calls.length, 2); assert.equal(calls[1][2], 100);
+  viewport.scrollTop = 101; viewport.fire('scroll'); env.flush();
+  scrollArea.unregisterScrollAreaViewport(viewport);
+  complete(); await Promise.resolve();
+  assert.equal(calls.length, 2);
+});
+
+test('thumb motion stays local during blocked metrics and handles RTL and disposal', () => {
+  const env = environment();
+  const bar = new Element(), viewport = new Element();
+  scrollArea.registerScrollAreaScrollbar(bar, null, viewport, 'horizontal', 'rtl', { invokeMethodAsync() { return new Promise(() => {}); } });
+  env.flush();
+  assert.equal(bar.style['--bradix-scroll-thumb-size'], '20px');
+  assert.equal(bar.style['--bradix-scroll-thumb-offset'], '80px');
+  viewport.scrollLeft = -200;
+  viewport.fire('scroll'); env.flush();
+  assert.equal(bar.style['--bradix-scroll-thumb-offset'], '40px');
+  scrollArea.unregisterScrollAreaScrollbar(bar);
+  assert.equal(viewport.listeners.get('scroll').size, 0);
+});

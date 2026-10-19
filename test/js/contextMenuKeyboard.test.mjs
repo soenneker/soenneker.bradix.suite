@@ -7,15 +7,16 @@ function fixture() {
   globalThis.MouseEvent = class { constructor(type, options) { this.type = type; Object.assign(this, options); } };
   const element = {
     disabled: false,
+    setAttribute() {}, removeAttribute() {}, closest() { return this; },
     hasAttribute() { return this.disabled; },
-    addEventListener(type, handler) { listeners.set(type, handler); },
+    addEventListener(type, handler, options) { listeners.set(type, handler); options?.signal?.addEventListener("abort", () => listeners.delete(type)); },
     removeEventListener(type) { listeners.delete(type); },
     getBoundingClientRect() { return { left: 40, bottom: 120 }; },
     dispatchEvent(event) { events.push(event); }
   };
   registerContextMenuKeyboard(element);
   return { element, events, listeners, key(key, shiftKey = false) {
-    const event = { key, shiftKey, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } };
+    const event = { target: element, key, shiftKey, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } };
     listeners.get('keydown')?.(event);
     return event;
   } };

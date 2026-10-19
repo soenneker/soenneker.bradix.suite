@@ -81,20 +81,21 @@ test('one indicator observer tracks both elements without duplicate notification
 
 test('delegated document listeners exist only while registrations remain', () => {
   const env = environment();
-  const first = {}, second = {};
+  const first = { removeEventListener() {} }, second = { removeEventListener() {} };
+  const options = { click: { method: "Click" } };
   try {
-    delegated.registerDelegatedInteraction(first, env.receiver, {});
-    assert.equal(env.listenerCount(), 10);
-    delegated.registerDelegatedInteraction(first, env.receiver, {});
-    delegated.registerDelegatedInteraction(second, env.receiver, {});
-    assert.equal(env.listenerCount(), 10);
+    delegated.registerDelegatedInteraction(first, env.receiver, options);
+    assert.equal(env.listenerCount(), 1);
+    delegated.registerDelegatedInteraction(first, env.receiver, options);
+    delegated.registerDelegatedInteraction(second, env.receiver, options);
+    assert.equal(env.listenerCount(), 1);
     delegated.unregisterDelegatedInteraction(first);
     delegated.unregisterDelegatedInteraction(first);
-    assert.equal(env.listenerCount(), 10);
+    assert.equal(env.listenerCount(), 1);
     delegated.unregisterDelegatedInteraction(second);
     assert.equal(env.listenerCount(), 0);
-    delegated.registerDelegatedInteraction(first, env.receiver, {});
-    assert.equal(env.listenerCount(), 10);
+    delegated.registerDelegatedInteraction(first, env.receiver, options);
+    assert.equal(env.listenerCount(), 1);
   } finally {
     delegated.unregisterDelegatedInteraction(first);
     delegated.unregisterDelegatedInteraction(second);

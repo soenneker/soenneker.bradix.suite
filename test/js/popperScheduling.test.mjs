@@ -32,7 +32,9 @@ function fixture(t) {
       return computation.promise;
     }
   };
-  const content = { style: { removeProperty() {} } };
+  globalThis.MutationObserver = class { observe() {} disconnect() {} };
+  const styles = new Map();
+  const content = { style: { removeProperty(name) { styles.delete(name); }, getPropertyValue(name) { return styles.get(name) ?? ""; }, setProperty(name, value) { styles.set(name, value); } } };
   const receiver = { invokeMethodAsync(...args) { notifications.push(args); return Promise.resolve(); } };
   const register = () => popper.registerVirtualPopperContent(content, null, receiver, 0, 0, {});
   register();
@@ -64,8 +66,8 @@ test('popper coalesces observer bursts and never overlaps positioning computatio
   const second = env.runFrame();
   env.result(1, 30);
   await second;
-  assert.equal(env.notifications.length, 2);
-  assert.equal(env.notifications[1][3], 30);
+  assert.equal(env.notifications.length, 1);
+  assert.equal(env.content.style.getPropertyValue("--bradix-popper-left"), "30px");
 });
 
 test('option updates invalidate an in-flight position and render the new placement', async t => {
@@ -151,7 +153,7 @@ test('unchanged positions do not cross the JS interop boundary again', async t =
 });
 
 
-test('position notifications retain the surface stacking order and report layer-only changes', async t => {
+test('browser positioning retains the surface stacking order without layer-only callbacks', async t => {
   const env = fixture(t);
   globalThis.getComputedStyle = () => ({ zIndex: '50' });
   const first = env.runFrame();
@@ -164,6 +166,6 @@ test('position notifications retain the surface stacking order and report layer-
   const second = env.runFrame();
   env.result(1);
   await second;
-  assert.equal(env.notifications.length, 2);
-  assert.equal(env.notifications[1].at(-1), null);
+  assert.equal(env.notifications.length, 1);
+  assert.equal(env.content.style.getPropertyValue('--bradix-popper-z-index'), 'auto');
 });

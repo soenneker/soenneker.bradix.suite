@@ -6,6 +6,23 @@ function invokeDotNetSafe(dotNetRef, methodName, ...args) {
   dotNetRef.invokeMethodAsync(methodName, ...args).catch(() => {});
 }
 
+function invokeLatest(registration, isCurrent, dotNetRef, methodName, ...args) {
+  registration.latest = args;
+  if (registration.sending) return;
+  registration.sending = true;
+  const drain = async () => {
+    try {
+      while (registration.latest && isCurrent()) {
+        const latest = registration.latest;
+        registration.latest = null;
+        await dotNetRef.invokeMethodAsync(methodName, ...latest);
+      }
+    } catch { registration.latest = null; }
+    finally { registration.sending = false; }
+  };
+  void drain();
+}
+
 export function registerScrollAreaRoot(element, dotNetRef) {
   if (!element) {
     return;
@@ -76,8 +93,8 @@ export function registerScrollAreaViewport(viewport, content, dotNetRef) {
     metrics.scrollHeight = scrollHeight;
     metrics.width = width;
     metrics.height = height;
-    invokeDotNetSafe(
-      dotNetRef,
+    invokeLatest(
+      registration, () => scrollAreaViewportHandlers.get(viewport) === registration, dotNetRef,
       "HandleViewportMetricsChanged",
       scrollLeft,
       scrollTop,
@@ -170,6 +187,20 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
 
     const width = scrollbar.clientWidth;
     const height = scrollbar.clientHeight;
+    // These variables belong to the browser; the thumb consumes them without
+    // waiting for a circuit round trip. The scrollbar's structural style is stable.
+    const horizontal = orientation === "horizontal";
+    const viewportSize = horizontal ? viewport.offsetWidth : viewport.offsetHeight;
+    const content = viewport.firstElementChild || viewport;
+    const contentSize = horizontal ? content.scrollWidth : content.scrollHeight;
+    const trackSize = (horizontal ? width : height) - paddingStart - paddingEnd;
+    const thumbSize = Math.max(contentSize > 0 ? trackSize * viewportSize / contentSize : 0, 18);
+    const range = Math.max(0, contentSize - viewportSize);
+    const raw = horizontal ? viewport.scrollLeft : viewport.scrollTop;
+    const position = horizontal && dir === "rtl" ? Math.min(0, Math.max(-range, raw)) + range : Math.min(range, Math.max(0, raw));
+    const offset = range > 0 ? position / range * (trackSize - thumbSize) : 0;
+    scrollbar.style.setProperty("--bradix-scroll-thumb-size", `${thumbSize}px`);
+    scrollbar.style.setProperty("--bradix-scroll-thumb-offset", `${offset}px`);
     const previous = registration.metrics;
     if (previous && previous.width === width && previous.height === height &&
         previous.paddingStart === paddingStart && previous.paddingEnd === paddingEnd) {
@@ -181,7 +212,7 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
     metrics.height = height;
     metrics.paddingStart = paddingStart;
     metrics.paddingEnd = paddingEnd;
-    invokeDotNetSafe(dotNetRef, "HandleScrollbarMetricsChanged", orientation, width, height, paddingStart, paddingEnd);
+    invokeLatest(registration, () => scrollAreaScrollbarHandlers.get(scrollbar) === registration, dotNetRef, "HandleScrollbarMetricsChanged", orientation, width, height, paddingStart, paddingEnd);
   };
 
   const runNotify = () => {
@@ -386,13 +417,16 @@ export function registerScrollAreaScrollbar(scrollbar, thumb, viewport, orientat
 
   const resizeObserver = new ResizeObserver(queueNotify);
   resizeObserver.observe(scrollbar);
+  resizeObserver.observe(viewport);
+  if (viewport.firstElementChild) resizeObserver.observe(viewport.firstElementChild);
   if (thumbElement) {
     resizeObserver.observe(thumbElement);
   }
 
   scrollbar.addEventListener("pointerdown", pointerdown);
   scrollbar.addEventListener("wheel", wheel, { passive: false });
-  Object.assign(registration, { pointerdown, pointermove: null, wheel, resizeObserver });
+  viewport.addEventListener("scroll", queueNotify, { passive: true });
+  Object.assign(registration, { pointerdown, pointermove: null, wheel, resizeObserver, viewport, scroll: queueNotify });
   scrollAreaScrollbarHandlers.set(scrollbar, registration);
   queueNotify();
 }
@@ -405,6 +439,7 @@ export function unregisterScrollAreaScrollbar(scrollbar) {
   }
 
   scrollbar.removeEventListener("pointerdown", handlers.pointerdown);
+  handlers.viewport.removeEventListener("scroll", handlers.scroll);
   handlers.resizeObserver.disconnect();
   scrollbar.removeEventListener("wheel", handlers.wheel);
   if (handlers.animationFrameId) {

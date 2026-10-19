@@ -280,7 +280,10 @@ async function updateRegisteredPopperContent(content, handlers) {
     return;
   }
 
+  const previous = handlers.lastPosition;
   handlers.lastPosition = nextPosition;
+  applyPositionStyles(handlers);
+  if (previous && previous.placedSide === nextPosition.placedSide && previous.placedAlign === nextPosition.placedAlign && previous.hidden === nextPosition.hidden) return;
   handlers.callback = handlers.dotNetRef.invokeMethodAsync(
     "HandlePositionChanged",
     nextPosition.placedSide,
@@ -300,6 +303,32 @@ async function updateRegisteredPopperContent(content, handlers) {
     nextPosition.zIndex
   );
   await handlers.callback;
+}
+
+function applyPositionStyles(handlers) {
+  const p = handlers.lastPosition;
+  if (!p) return;
+  const values = {
+    "--bradix-popper-left": `${p.left}px`, "--bradix-popper-top": `${p.top}px`,
+    "--radix-popper-available-width": `${p.availableWidth}px`, "--radix-popper-available-height": `${p.availableHeight}px`,
+    "--radix-popper-anchor-width": `${p.anchorWidth}px`, "--radix-popper-anchor-height": `${p.anchorHeight}px`,
+    "--radix-popper-transform-origin": `${p.transformOriginX} ${p.transformOriginY}`,
+    "--bradix-popper-visibility": p.hidden ? "hidden" : "visible",
+    "--bradix-popper-pointer-events": p.hidden ? "none" : "auto",
+    "--bradix-popper-z-index": p.zIndex ?? "auto",
+    "--bradix-popper-arrow-x": p.arrowX === null ? "auto" : `${p.arrowX}px`,
+    "--bradix-popper-arrow-y": p.arrowY === null ? "auto" : `${p.arrowY}px`,
+    "--bradix-popper-arrow-visibility": p.shouldHideArrow ? "hidden" : "inherit"
+  };
+  for (const [name, value] of Object.entries(values))
+    if (handlers.content.style.getPropertyValue(name) !== value) handlers.content.style.setProperty(name, value);
+}
+function observePositionStyles(handlers) {
+  // Blazor may replace the style attribute when consumer styles change.
+  handlers.styles = new MutationObserver(() => {
+    if (popperContentHandlers.get(handlers.content) === handlers) applyPositionStyles(handlers);
+  });
+  handlers.styles.observe(handlers.content, { attributes: true, attributeFilter: ["style"] });
 }
 
 function isSamePosition(previous, next) {
@@ -416,6 +445,7 @@ export function registerPopperContent(anchor, content, arrow, dotNetRef, options
   };
   initializeUpdates(content, handlers);
   popperContentHandlers.set(content, handlers);
+  observePositionStyles(handlers);
 
   reconnect(content);
 }
@@ -459,6 +489,7 @@ export function registerVirtualPopperContent(content, arrow, dotNetRef, x, y, op
   };
   initializeUpdates(content, handlers);
   popperContentHandlers.set(content, handlers);
+  observePositionStyles(handlers);
 
   reconnect(content);
 }
@@ -498,6 +529,7 @@ export function unregisterPopperContent(content) {
   }
 
   handlers.cleanup?.();
+  handlers.styles?.disconnect();
   cancelAnimationFrame(handlers.frame);
   handlers.frame = 0;
   popperContentHandlers.delete(content);

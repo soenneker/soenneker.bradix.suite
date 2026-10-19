@@ -264,8 +264,8 @@
         {
             previous = key;
             style = horizontal
-                ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"width: {size}px; transform: translate3d({offset}px, 0, 0);")
-                : string.Create(System.Globalization.CultureInfo.InvariantCulture, $"height: {size}px; transform: translate3d(0, {offset}px, 0);");
+                ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"width: var(--bradix-scroll-thumb-size, {size}px); transform: translate3d(var(--bradix-scroll-thumb-offset, {offset}px), 0, 0);")
+                : string.Create(System.Globalization.CultureInfo.InvariantCulture, $"height: var(--bradix-scroll-thumb-size, {size}px); transform: translate3d(0, var(--bradix-scroll-thumb-offset, {offset}px), 0);");
         }
         return style;
     }

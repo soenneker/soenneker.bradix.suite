@@ -52,23 +52,4 @@ public interface IHoverCardAvatarInterop : IAsyncDisposable
     /// <returns>A task that completes when the hover card selection containment registration has been removed.</returns>
     ValueTask UnregisterHoverCardSelectionContainment(ElementReference content, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Registers avatar Image Loading Status.
-    /// </summary>
-    /// <param name="src">Src for the register avatar image loading status operation.</param>
-    /// <param name="crossOrigin">CORS mode assigned to the script element.</param>
-    /// <param name="referrerPolicy">Referrer Policy for the register avatar image loading status operation.</param>
-    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
-    /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task that completes when the avatar image loading status registration is complete.</returns>
-    ValueTask RegisterAvatarImageLoadingStatus(string? src, string? crossOrigin, string? referrerPolicy,
-        DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Unregisters avatar Image Loading Status for the Hover Card Avatar.
-    /// </summary>
-    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
-    /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task that completes when the avatar image loading status registration has been removed.</returns>
-    ValueTask UnregisterAvatarImageLoadingStatus(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default);
 }

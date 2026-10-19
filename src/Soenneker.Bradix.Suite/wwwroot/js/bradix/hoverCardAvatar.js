@@ -105,9 +105,3 @@ export function unregisterHoverCardSelectionContainment(content) {
   handlers.dispose();
   hoverCardSelectionHandlers.delete(content);
 }
-
-export function registerAvatarImageLoadingStatus(src, crossOrigin, referrerPolicy, dotNetRef) {
-}
-
-export function unregisterAvatarImageLoadingStatus(dotNetRef) {
-}

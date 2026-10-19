@@ -14,7 +14,7 @@ function fixture(t) {
     observe() {}
     disconnect() { this.disconnected = true; }
   };
-  const element = { hidden: false, height: 200, width: 300,
+  const element = { getClientRects() { return this.hidden ? [] : [{}]; }, hidden: false, height: 200, width: 300,
     get scrollHeight() { reads++; return this.height; },
     get scrollWidth() { reads++; return this.width; },
     style: { getPropertyValue: key => styles.get(key) ?? '', setProperty(key, value) { writes++; styles.set(key, value); } }
@@ -42,7 +42,7 @@ test('initial size remains synchronous and repeated observers share one frame wi
   assert.equal(env.styles.get('--radix-collapsible-content-height'), '450px');
 });
 
-test('hidden and zero-size measurements preserve the last usable animation dimensions', t => {
+test('hidden measurements retain dimensions while rendered empty content publishes zero', t => {
   const env = fixture(t);
   observeCollapsibleContent(env.element);
   env.element.hidden = true;
@@ -52,7 +52,8 @@ test('hidden and zero-size measurements preserve the last usable animation dimen
   env.element.width = env.element.height = 0;
   env.observers[0].callback();
   env.flush();
-  assert.equal(env.writes(), 2);
+  assert.equal(env.writes(), 4);
+  assert.equal(env.styles.get("--radix-collapsible-content-height"), "0px");
 });
 
 test('teardown cancels queued work and ignores already-delivered observer callbacks', t => {

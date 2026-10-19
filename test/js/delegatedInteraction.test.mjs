@@ -28,8 +28,8 @@ async function createFixture() {
 
 test("document listeners exist only for requested events and survive shared registrations", async () => {
   const fixture = await createFixture();
-  const first = {};
-  const second = {};
+  const first = { removeEventListener() {} };
+  const second = { removeEventListener() {} };
   fixture.registerDelegatedInteraction(first, fixture.receiver, { click: { method: "Click" } });
   assert.deepEqual(fixture.added, [["click", true]]);
   fixture.registerDelegatedInteraction(second, fixture.receiver, {
@@ -46,7 +46,7 @@ test("document listeners exist only for requested events and survive shared regi
 
 test("reregistering mutated options updates counts without duplicate handlers", async () => {
   const fixture = await createFixture();
-  const element = {};
+  const element = { removeEventListener() {} };
   const options = { click: { method: "Click" } };
   fixture.registerDelegatedInteraction(element, fixture.receiver, options);
   fixture.registerDelegatedInteraction(element, fixture.receiver, options);
@@ -61,8 +61,8 @@ test("reregistering mutated options updates counts without duplicate handlers", 
 
 test("event filtering, preventDefault, bubbling and readiness retain their behavior", async () => {
   const fixture = await createFixture();
-  const parent = { parentNode: null };
-  const child = { parentNode: parent };
+  const parent = { matches() { return false; }, removeEventListener() {}, parentNode: null };
+  const child = { matches() { return false; }, removeEventListener() {}, parentNode: parent };
   fixture.registerDelegatedInteraction(parent, fixture.receiver, {
     readyMethod: "Ready",
     click: { method: "Parent", currentTargetOnly: false, checkForDefaultPrevented: false }
@@ -83,7 +83,7 @@ test("event filtering, preventDefault, bubbling and readiness retain their behav
 
 test("registrations with no events do not install document handlers", async () => {
   const fixture = await createFixture();
-  const element = {};
+  const element = { removeEventListener() {} };
   fixture.registerDelegatedInteraction(element, fixture.receiver, { readyMethod: "Ready" });
   assert.equal(fixture.listeners.size, 0);
   assert.deepEqual(fixture.calls, [["Ready"]]);

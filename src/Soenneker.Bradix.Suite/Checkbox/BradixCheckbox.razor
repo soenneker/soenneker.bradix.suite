@@ -67,6 +67,7 @@ else
     private ValueAtomicBool _delegatedInteractionReady;
     private bool _isFormControl = true;
     private ValueAtomicBool _registered;
+    private bool _registrationPending;
     private ValueAtomicBool _formRegistered;
     private ValueAtomicBool _disposed;
     private ValueAtomicBool _formControlStateResolved;
@@ -176,38 +177,52 @@ else
         if (_disposed.Read())
             return;
 
+        if (_registrationPending) return;
         if (!_registered.Value && !string.IsNullOrEmpty(_buttonElement.Id))
         {
-            _dotNetReference = DotNetObjectReference.Create<object>(this);
-            await FormInterop.RegisterCheckboxRoot(_buttonElement, _dotNetReference, Form);
-            if (_disposed.Read())
+            _registrationPending = true;
+            try
             {
-                await FormInterop.UnregisterCheckboxRoot(_buttonElement);
-                return;
-            }
-            _formRegistered.Value = true;
-            await DelegatedInteractionInterop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new BradixDelegatedInteractionOptions
-            {
-                ReadyMethod = nameof(HandleDelegatedInteractionReady),
-                Click = new BradixDelegatedEventOptions
+                _dotNetReference = DotNetObjectReference.Create<object>(this);
+                await FormInterop.RegisterCheckboxRoot(_buttonElement, _dotNetReference, Form);
+                if (_disposed.Read())
                 {
-                    Method = nameof(HandleDelegatedClick),
-                    CurrentTargetOnly = false,
-                    StopPropagation = true
-                },
-                Keydown = new BradixDelegatedEventOptions
-                {
-                    Method = nameof(HandleDelegatedKeyDown),
-                    Keys = ToggleKeys,
-                    PreventDefault = true
+                    await FormInterop.UnregisterCheckboxRoot(_buttonElement);
+                    return;
                 }
-            });
-            if (_disposed.Read())
-            {
-                await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_buttonElement);
-                return;
+                _formRegistered.Value = true;
+                await DelegatedInteractionInterop.RegisterDelegatedInteraction(_buttonElement, _dotNetReference, new BradixDelegatedInteractionOptions
+                {
+                    ReadyMethod = nameof(HandleDelegatedInteractionReady),
+                    Click = new BradixDelegatedEventOptions
+                    {
+                        Method = nameof(HandleDelegatedClick),
+                        CurrentTargetOnly = false,
+                        StopPropagation = true
+                    },
+                    Keydown = new BradixDelegatedEventOptions
+                    {
+                        Method = nameof(HandleDelegatedKeyDown),
+                        Keys = ToggleKeys,
+                        PreventDefault = true
+                    }
+                });
+                if (_disposed.Read())
+                {
+                    await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_buttonElement);
+                    return;
+                }
+                _registered.Value = true;
             }
-            _registered.Value = true;
+            finally
+            {
+                _registrationPending = false;
+                if (_disposed.Read())
+                {
+                    _dotNetReference?.Dispose();
+                    _dotNetReference = null;
+                }
+            }
         }
 
         if (Checked is null && !_hasUserInteracted && !StatesEqual(_uncontrolledChecked, DefaultChecked))
@@ -278,8 +293,13 @@ else
             }
             finally
             {
-                _dotNetReference?.Dispose();
-                _dotNetReference = null;
+                // Registration can be waiting for a module import. Keep the callback
+                // alive until that continuation unregisters and releases it.
+                if (!_registrationPending)
+                {
+                    _dotNetReference?.Dispose();
+                    _dotNetReference = null;
+                }
             }
         }
     }

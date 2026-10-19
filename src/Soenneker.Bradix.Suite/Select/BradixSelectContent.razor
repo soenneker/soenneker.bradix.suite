@@ -695,25 +695,23 @@ else
         _lastItemAlignedPositionValue = selectedItem.Value;
     }
 
+    private long _autoScrollGeneration;
     private async Task RunAutoScroll(bool upward, CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        var generation = ++_autoScrollGeneration;
+        var item = Select?.GetSelectedOrFirstEnabledItem();
+        if (item is null) return;
+        var viewport = _viewportElement;
+        try
         {
-            if (Select is null)
-                return;
-
-            IBradixSelectCollectionItem? item = Select.GetSelectedOrFirstEnabledItem();
-
-            try
-            {
-                if (item is not null)
-                    await SelectInterop.ScrollSelectViewportByItem(_viewportElement, item.ItemElement, upward, cancellationToken);
-                await Task.Delay(50, cancellationToken);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
+            await SelectInterop.StartSelectAutoScroll(viewport, item.ItemElement, upward, generation, cancellationToken);
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        finally
+        {
+            try { await SelectInterop.StopSelectAutoScroll(viewport, generation); }
+            catch (JSDisconnectedException) { }
         }
     }
 
