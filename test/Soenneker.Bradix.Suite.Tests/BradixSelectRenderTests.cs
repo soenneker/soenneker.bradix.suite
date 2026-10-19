@@ -733,7 +733,7 @@ public sealed class BradixSelectRenderTests : BunitContext
 }
 
 
-public sealed class FocusCountingSelect : BradixSelect
+public sealed partial class FocusCountingSelect : BradixSelect
 {
     public int CompletedRenders { get; private set; }
     protected override Task OnAfterRenderAsync(bool firstRender)

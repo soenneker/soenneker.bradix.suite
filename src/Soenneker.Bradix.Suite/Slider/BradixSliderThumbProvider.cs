@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Soenneker.Bradix;
 
-public class BradixSliderThumbProvider : BradixSliderThumb, IBradixSliderThumbProvider
+public partial class BradixSliderThumbProvider : BradixSliderThumb, IBradixSliderThumbProvider
 {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     protected override bool RenderDefaultParts => false;

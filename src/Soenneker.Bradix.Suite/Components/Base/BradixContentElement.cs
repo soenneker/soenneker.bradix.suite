@@ -3,7 +3,7 @@ using Soenneker.Lepton.Suite.Abstract;
 
 namespace Soenneker.Bradix;
 
-public abstract class BradixContentElement : BradixElement, ILeptonContentElement
+public abstract partial class BradixContentElement : BradixElement, ILeptonContentElement
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }

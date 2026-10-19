@@ -12,8 +12,10 @@ namespace Soenneker.Bradix;
 /// Blazor can retain a dictionary in the previous render tree, so adjacent renders must not
 /// mutate the same instance. Alternating buffers removes steady-state allocations safely.
 /// </summary>
-public abstract class BradixElement : LeptonElement
+public abstract partial class BradixElement : LeptonElement
 {
+    protected override bool UseSharedParameterMetadata => true;
+
     private Dictionary<string, object>? _attributesA;
     private Dictionary<string, object>? _attributesB;
     private BradixAttributeDictionary? _additionalAttributeDictionaries;

@@ -4,7 +4,7 @@ using Soenneker.Lepton.Suite.Abstract;
 
 namespace Soenneker.Bradix;
 
-public abstract class BradixIdentifiableElement : BradixElement, ILeptonIdentifiableElement
+public abstract partial class BradixIdentifiableElement : BradixElement, ILeptonIdentifiableElement
 {
     [Parameter]
     public string? Id { get; set; }

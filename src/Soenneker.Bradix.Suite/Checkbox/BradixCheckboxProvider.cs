@@ -1,6 +1,6 @@
 namespace Soenneker.Bradix;
 
-public class BradixCheckboxProvider : BradixCheckbox, IBradixCheckboxProvider
+public partial class BradixCheckboxProvider : BradixCheckbox, IBradixCheckboxProvider
 {
     protected override bool RenderDefaultParts => false;
 }

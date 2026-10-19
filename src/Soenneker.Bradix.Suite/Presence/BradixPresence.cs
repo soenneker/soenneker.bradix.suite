@@ -13,7 +13,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Represents the bradix presence.
 /// </summary>
-public sealed class BradixPresence : BradixIdentifiableContentElement, IAsyncDisposable
+public sealed partial class BradixPresence : BradixIdentifiableContentElement, IAsyncDisposable
 {
     /// <summary>
     /// Gets or sets presence overlay interop.

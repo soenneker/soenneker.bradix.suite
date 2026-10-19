@@ -13,6 +13,7 @@
 
     <PropertyGroup>
         <UseLocalLeptonProject Condition="'$(UseLocalLeptonProject)' == ''">false</UseLocalLeptonProject>
+        <LeptonSuiteVersion Condition="'$(LeptonSuiteVersion)' == ''">4.0.120</LeptonSuiteVersion>
         <LocalLeptonProject Condition="'$(LocalLeptonProject)' == ''">..\..\..\..\Lepton\soenneker.lepton.suite\src\Soenneker.Lepton.Suite\Soenneker.Lepton.Suite.csproj</LocalLeptonProject>
     </PropertyGroup>
 
@@ -54,10 +55,14 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.13" />
         <PackageReference Include="Soenneker.Blazor.Interops.Floating" Version="4.0.129" />
-        <PackageReference Include="Soenneker.Lepton.Suite" Version="4.0.120" Condition="'$(UseLocalLeptonProject)' != 'true'" />
+        <PackageReference Include="Soenneker.Lepton.Suite" Version="4.0.121" Condition="'$(UseLocalLeptonProject)' != 'true'" />
         <PackageReference Include="Soenneker.Blazor.Extensions.EventCallback" Version="4.0.472" />
     </ItemGroup>
     <ItemGroup Condition="'$(UseLocalLeptonProject)' == 'true'">
-        <ProjectReference Include="$(LocalLeptonProject)" />
+        <ProjectReference Include="$(LocalLeptonProject)" AdditionalProperties="BUILD_VERSION=$(LeptonSuiteVersion)" />
+        <ProjectReference Include="..\..\..\..\Lepton\soenneker.lepton.suite\src\Soenneker.Lepton.Gen.Parameters\Soenneker.Lepton.Gen.Parameters.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     </ItemGroup>
+    <PropertyGroup Condition="'$(UseLocalLeptonProject)' == 'true'">
+        <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
+    </PropertyGroup>
 </Project>

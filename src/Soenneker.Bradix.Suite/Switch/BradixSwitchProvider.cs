@@ -1,6 +1,6 @@
 namespace Soenneker.Bradix;
 
-public class BradixSwitchProvider : BradixSwitch, IBradixSwitchProvider
+public partial class BradixSwitchProvider : BradixSwitch, IBradixSwitchProvider
 {
     protected override bool RenderDefaultParts => false;
 }

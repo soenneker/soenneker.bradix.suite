@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Soenneker.Bradix.Suite.Tests;
 
-public sealed class BradixAttributeProbe : BradixIdentifiableElement
+public sealed partial class BradixAttributeProbe : BradixIdentifiableElement
 {
     public void Configure(string? id = null, string? cssClass = null, string? style = null,
         IReadOnlyDictionary<string, object>? additionalAttributes = null)

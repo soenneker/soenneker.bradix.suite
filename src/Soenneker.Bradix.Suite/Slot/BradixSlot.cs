@@ -12,7 +12,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Represents the bradix slot.
 /// </summary>
-public sealed class BradixSlot : BradixIdentifiableContentElement
+public sealed partial class BradixSlot : BradixIdentifiableContentElement
 {
     private Dictionary<string, BradixSlotEventHandlers>? _composedHandlers;
     private string? _mergedClass;
