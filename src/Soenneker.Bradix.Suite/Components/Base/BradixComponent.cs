@@ -2,13 +2,7 @@ using Soenneker.Lepton.Suite;
 
 namespace Soenneker.Bradix;
 
-/// <summary>Bradix component base with generated parameter bindings.</summary>
+/// <summary>Bradix component base using standard Blazor parameter binding.</summary>
 public abstract partial class BradixComponent : LeptonComponent
 {
-    protected override bool UseSharedParameterMetadata =>
-#if BRADIX_FRAMEWORK_PARAMETER_BINDING
-        false;
-#else
-        true;
-#endif
 }

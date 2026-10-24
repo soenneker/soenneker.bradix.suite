@@ -14,13 +14,6 @@ namespace Soenneker.Bradix;
 /// </summary>
 public abstract partial class BradixElement : LeptonElement
 {
-    protected override bool UseSharedParameterMetadata =>
-#if BRADIX_FRAMEWORK_PARAMETER_BINDING
-        false;
-#else
-        true;
-#endif
-
     private Dictionary<string, object>? _attributesA;
     private Dictionary<string, object>? _attributesB;
     private BradixAttributeDictionary? _additionalAttributeDictionaries;
