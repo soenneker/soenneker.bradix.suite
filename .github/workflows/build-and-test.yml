@@ -27,14 +27,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24.22.1
-
-      - name: Browser module regression tests
-        run: node --test test/js/*.test.mjs
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
@@ -51,6 +43,9 @@ jobs:
 
       - name: Build bUnit tests
         run: dotnet build test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-restore --verbosity minimal
+
+      - name: Browser module regression tests
+        run: node --test test/js/*.test.mjs
 
       - name: bUnit tests
         run: dotnet test --project test/Soenneker.Bradix.Suite.Tests/Soenneker.Bradix.Suite.Tests.csproj --configuration Release --no-build --no-restore --verbosity normal
