@@ -21,6 +21,8 @@
     private ValueAtomicBool _disposed;
     private ValueAtomicBool _initialized;
     private bool _uncontrolledOpen;
+    private int _openVersion;
+    private bool _pendingOpen;
     private ValueAtomicBool _openedWithDelay;
     private CancellationTokenSource? _openDelayTokenSource;
 
@@ -67,7 +69,7 @@
 
     public void SetPointerInTransit(bool inTransit)
     {
-        Provider?.SetPointerInTransit(inTransit);
+        Provider?.SetPointerInTransit(this, inTransit);
     }
 
     public void RegisterTrigger(ElementReference triggerElement)
@@ -94,6 +96,7 @@
         if (!_disposed.TrySetTrue())
             return ValueTask.CompletedTask;
         CancelOpenDelay();
+        Provider?.NotifyClose(this);
         return ValueTask.CompletedTask;
     }
 
@@ -171,7 +174,7 @@
         try
         {
             await Task.Delay(EffectiveDelayDuration, cancellationToken);
-            await OpenNow(true);
+            if (!cancellationToken.IsCancellationRequested) await OpenNow(true);
         }
         catch (TaskCanceledException)
         {
@@ -186,38 +189,56 @@
 
     private async Task SetOpen(bool open, bool delayed, bool notifyProvider)
     {
-        if (_disposed.Read() || CurrentOpen == open)
+        if (_disposed.Read()) return;
+        if (CurrentOpen == open)
         {
             if (open)
                 _openedWithDelay.Value = delayed;
-
+            else
+            {
+                if (_pendingOpen)
+                {
+                    ++_openVersion;
+                    _pendingOpen = false;
+                }
+                if (notifyProvider) Provider?.NotifyClose(this);
+            }
             return;
         }
+        if (open && _pendingOpen) return;
 
-        if (open && notifyProvider && Provider is not null)
-            await Provider.NotifyOpen(this);
+        var version = ++_openVersion;
+        _pendingOpen = open;
+        try
+        {
+            if (open && notifyProvider && Provider is not null)
+                await Provider.NotifyOpen(this);
+            if (_disposed.Read() || version != _openVersion) return;
 
-        if (_disposed.Read())
-            return;
+            if (Open is null)
+                _uncontrolledOpen = open;
+            _openedWithDelay.Value = open && delayed;
 
-        if (Open is null)
-            _uncontrolledOpen = open;
+            if (open)
+                await TooltipInterop.DispatchTooltipOpen(ContentId);
+            if (_disposed.Read() || version != _openVersion) return;
 
-        _openedWithDelay.Value = open && delayed;
+            if (OpenChanged.HasDelegate)
+                await OpenChanged.InvokeAsync(open);
+            if (_disposed.Read() || version != _openVersion) return;
 
-        if (open)
-            await TooltipInterop.DispatchTooltipOpen(ContentId);
+            if (OnOpenChange.HasDelegate)
+                await OnOpenChange.InvokeAsync(open);
+            if (_disposed.Read() || version != _openVersion) return;
 
-        if (OpenChanged.HasDelegate)
-            await OpenChanged.InvokeAsync(open);
-
-        if (OnOpenChange.HasDelegate)
-            await OnOpenChange.InvokeAsync(open);
-
-        if (!open && notifyProvider)
-            Provider?.NotifyClose(this);
-
-        await RequestRender();
+            if (!open && notifyProvider)
+                Provider?.NotifyClose(this);
+            await RequestRender();
+        }
+        finally
+        {
+            if (version == _openVersion) _pendingOpen = false;
+        }
     }
 
     private void CancelOpenDelay()

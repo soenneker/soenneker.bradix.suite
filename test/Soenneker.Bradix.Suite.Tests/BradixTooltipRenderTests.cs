@@ -47,6 +47,82 @@ public sealed class BradixTooltipRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Repeated_focus_while_open_interop_is_pending_keeps_the_open_notification()
+    {
+        var changes = new List<bool>();
+        var cut = Render<BradixTooltip>(p => p.Add(c => c.OnOpenChange, (bool open) => changes.Add(open)));
+        var pending = _module.SetupVoid("dispatchTooltipOpen", cut.Instance.ContentId);
+        var opening = cut.InvokeAsync(() => cut.Instance.HandleTriggerFocus(false));
+        await cut.InvokeAsync(() => cut.Instance.HandleTriggerFocus(false));
+        pending.SetVoidResult();
+        await opening;
+        await Assert.That(changes).IsEquivalentTo(new[] { true });
+    }
+
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
+    public async Task Pending_tooltip_open_cannot_override_a_newer_close_or_open(bool openAnother)
+    {
+        var closing = new TaskCompletionSource();
+        var release = new TaskCompletionSource();
+        var cut = Render<BradixTooltipProvider>(p => p.Add(c => c.DelayDuration, 0).AddChildContent(builder =>
+        {
+            builder.AddContent(0, CreateTooltip("First", "First content", onOpenChange: async open =>
+            {
+                if (!open) { closing.TrySetResult(); await release.Task; }
+            }));
+            builder.AddContent(1, CreateTooltip("Second", "Second content"));
+            builder.AddContent(2, CreateTooltip("Third", "Third content"));
+        }));
+        var roots = cut.FindComponents<BradixTooltip>();
+        await cut.InvokeAsync(() => roots[0].Instance.HandleTriggerFocus(false));
+        var opening = cut.InvokeAsync(() => roots[1].Instance.HandleTriggerFocus(false));
+        await closing.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        if (openAnother)
+            await cut.InvokeAsync(() => roots[2].Instance.HandleTriggerFocus(false));
+        else
+            await cut.InvokeAsync(() => roots[1].Instance.Close());
+        release.SetResult();
+        await opening;
+        await Assert.That(roots[1].Instance.CurrentOpen).IsFalse();
+        await Assert.That(roots[2].Instance.CurrentOpen).IsEqualTo(openAnother);
+    }
+
+    [Test]
+    public async Task Late_grace_callbacks_from_closed_tooltips_do_not_block_reopening()
+    {
+        var cut = Render<BradixTooltipProvider>(p => p.Add(c => c.DelayDuration, 0)
+            .AddChildContent(CreateTooltip()));
+        var tooltip = cut.FindComponent<BradixTooltip>().Instance;
+        await cut.InvokeAsync(() => tooltip.HandleTriggerEnter());
+        tooltip.SetPointerInTransit(true);
+        await Assert.That(tooltip.IsPointerInTransit).IsTrue();
+        await cut.InvokeAsync(() => tooltip.Close());
+        tooltip.SetPointerInTransit(true);
+        await Assert.That(tooltip.ShouldBlockTriggerHoverOpen).IsFalse();
+        await cut.InvokeAsync(() => tooltip.HandleTriggerEnter());
+        await Assert.That(tooltip.CurrentOpen).IsTrue();
+    }
+
+    [Test]
+    public async Task Previous_tooltip_cannot_clear_the_current_owners_grace_area()
+    {
+        var cut = Render<BradixTooltipProvider>(p => p.Add(c => c.DelayDuration, 0)
+            .AddChildContent(builder =>
+            {
+                builder.AddContent(0, CreateTooltip("First", "First content"));
+                builder.AddContent(1, CreateTooltip("Second", "Second content"));
+            }));
+        var tooltips = cut.FindComponents<BradixTooltip>();
+        await cut.InvokeAsync(() => tooltips[0].Instance.HandleTriggerEnter());
+        await cut.InvokeAsync(() => tooltips[1].Instance.HandleTriggerEnter());
+        tooltips[1].Instance.SetPointerInTransit(true);
+        tooltips[0].Instance.SetPointerInTransit(false);
+        await Assert.That(tooltips[1].Instance.IsPointerInTransit).IsTrue();
+    }
+
+    [Test]
     public async ValueTask Changed_content_updates_accessible_tooltip_text(CancellationToken cancellationToken)
     {
         var cut = Render(CreateTooltip(defaultOpen: true));
@@ -216,14 +292,16 @@ public sealed class BradixTooltipRenderTests : BunitContext
 
     private RenderFragment CreateTooltip(string triggerText = "Trigger", string contentText = "Tooltip body", bool defaultOpen = false, bool includeArrow = false,
         string? ariaLabel = null, Action<BradixPointerDownOutsideEventArgs>? onPointerDownOutsideDetailed = null,
-        Action<RenderTreeBuilder>? configureContent = null)
+        Action<RenderTreeBuilder>? configureContent = null, Func<bool, Task>? onOpenChange = null)
     {
         return builder =>
         {
             builder.OpenComponent<BradixTooltip>(0);
             builder.AddAttribute(1, nameof(BradixTooltip.DefaultOpen), defaultOpen);
             builder.AddAttribute(2, nameof(BradixTooltip.DelayDuration), 0);
-            builder.AddAttribute(3, nameof(BradixTooltip.ChildContent), (RenderFragment)(content =>
+            if (onOpenChange is not null)
+                builder.AddAttribute(3, nameof(BradixTooltip.OnOpenChange), EventCallback.Factory.Create(this, onOpenChange));
+            builder.AddAttribute(4, nameof(BradixTooltip.ChildContent), (RenderFragment)(content =>
             {
                 content.OpenComponent<BradixTooltipTrigger>(0);
                 content.AddAttribute(1, nameof(BradixTooltipTrigger.ChildContent), (RenderFragment)(trigger =>

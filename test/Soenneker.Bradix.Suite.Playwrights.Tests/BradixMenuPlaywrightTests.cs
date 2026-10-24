@@ -22,7 +22,7 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}menus",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true }),
-            expectedTitle: "Menu");
+            expectedTitle: "Blazor Menu Component: Modal & Non-Modal Modes | Bradix");
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true })
             .ClickAsync(new LocatorClickOptions { Timeout = 2000 });
@@ -34,7 +34,7 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(shareTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await copyLink.ClickAsync();
 
-        await Assertions.Expect(page.Locator(".docs-shell__content"))
+        await Assertions.Expect(page.Locator("#main-content"))
             .ToContainTextAsync("Last selection: Copy link", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
     }
 
@@ -47,7 +47,7 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}menus",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true }),
-            expectedTitle: "Menu");
+            expectedTitle: "Blazor Menu Component: Modal & Non-Modal Modes | Bradix");
 
         ILocator trigger = page.Locator("button").Filter(new LocatorFilterOptions { HasText = "Open modal menu" });
         await trigger.ClickAsync();
@@ -76,7 +76,7 @@ public sealed class BradixMenuPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}menus",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true }),
-            expectedTitle: "Menu");
+            expectedTitle: "Blazor Menu Component: Modal & Non-Modal Modes | Bradix");
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open modal menu", Exact = true }).ClickAsync();
 

@@ -62,6 +62,17 @@ export function syncCheckboxBubbleInputState(element, isChecked, isIndeterminate
 
   const control = element.previousElementSibling instanceof HTMLElement ? element.previousElementSibling : null;
 
+  const renderedChecked = control?.getAttribute("aria-checked");
+  if (renderedChecked === "true" || renderedChecked === "false" || renderedChecked === "mixed") {
+    // Interop may complete after a newer render, particularly during initial module loading.
+    // Never let an older write undo the rendered state or uncheck the current native radio.
+    const currentChecked = renderedChecked === "true";
+    const currentIndeterminate = renderedChecked === "mixed";
+    dispatchEvent = dispatchEvent && !!isChecked === currentChecked && !!isIndeterminate === currentIndeterminate;
+    isChecked = currentChecked;
+    isIndeterminate = currentIndeterminate;
+  }
+
   if (control && element.form) {
     const rect = control.getBoundingClientRect();
 

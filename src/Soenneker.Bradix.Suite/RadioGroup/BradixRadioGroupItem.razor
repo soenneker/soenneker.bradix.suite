@@ -182,7 +182,6 @@ else
                 return;
             }
             _radioKeysRegistered.Value = true;
-            _lastRenderedChecked = IsChecked;
         }
 
         if (!_formControlStateResolved.Value || !string.Equals(_lastResolvedForm, ResolvedForm, StringComparison.Ordinal))
@@ -205,8 +204,12 @@ else
         {
             if (!_hasSyncedBubbleInput.Value || _lastRenderedChecked != IsChecked)
             {
-                bool dispatchEvent = _hasSyncedBubbleInput.Value && IsChecked && Group.ConsumeUserChange(Value);
-                await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, IsChecked, false, dispatchEvent);
+                bool isChecked = IsChecked;
+                bool dispatchEvent = _hasSyncedBubbleInput.Value && isChecked && Group.ConsumeUserChange(Value);
+                // Record the value sent to JavaScript before yielding: another render may change selection.
+                _lastRenderedChecked = isChecked;
+                _hasSyncedBubbleInput.Value = true;
+                await ControlsInterop.SyncCheckboxBubbleInputState(_bubbleInputElement, isChecked, false, dispatchEvent);
             }
 
             _hasSyncedBubbleInput.Value = true;
@@ -216,7 +219,6 @@ else
             _hasSyncedBubbleInput.Value = false;
         }
 
-        _lastRenderedChecked = IsChecked;
     }
 
     public async ValueTask DisposeAsync()

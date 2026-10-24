@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Text.Json;
 using System.Collections.Generic;
@@ -26,6 +27,33 @@ public sealed class BradixTabsRenderTests : BunitContext
         module.Setup<JsonElement?>("getPresenceState", _ => true)
             .SetResult(JsonSerializer.SerializeToElement(new BradixPresenceSnapshot { AnimationName = "none", Display = "block" }, BradixInteropJsonContext.Default.BradixPresenceSnapshot));
         Services.AddBradixTestInterops();
+    }
+
+    [Test]
+    public async Task Arbitrary_values_produce_unique_stable_linked_ids()
+    {
+        var values = new[] { "New York", "New%20York", new string('界', 400) };
+        var cut = Render<BradixTabs>(p => p.Add(c => c.DefaultValue, values[0]).AddChildContent(builder =>
+        {
+            foreach (var value in values)
+            {
+                builder.OpenComponent<BradixTabsTrigger>(0);
+                builder.AddAttribute(1, nameof(BradixTabsTrigger.Value), value);
+                builder.AddAttribute(2, nameof(BradixTabsTrigger.ChildContent), (RenderFragment)(child => child.AddContent(0, value)));
+                builder.CloseComponent();
+                builder.OpenComponent<BradixTabsContent>(3);
+                builder.AddAttribute(4, nameof(BradixTabsContent.Value), value);
+                builder.AddAttribute(5, nameof(BradixTabsContent.ChildContent), (RenderFragment)(child => child.AddContent(0, value)));
+                builder.CloseComponent();
+            }
+        }));
+        var ids = cut.FindAll("[role=tab]").Select(tab => tab.Id).ToArray();
+        await Assert.That(ids.Distinct().Count()).IsEqualTo(3);
+        await Assert.That(ids.Any(id => id.Any(char.IsWhiteSpace))).IsFalse();
+        var active = cut.Find("[role=tab][aria-selected=true]");
+        await Assert.That(cut.Find("[role=tabpanel]").Id).IsEqualTo(active.GetAttribute("aria-controls"));
+        cut.Render();
+        await Assert.That(cut.FindAll("[role=tab]").Select(tab => tab.Id).SequenceEqual(ids)).IsTrue();
     }
 
     [Test]

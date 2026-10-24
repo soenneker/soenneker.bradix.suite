@@ -275,6 +275,12 @@ export function updateFocusScope(element, loop, trapped, preventMountAutoFocus, 
   handlers.scope.preventUnmountAutoFocus = !!preventUnmountAutoFocus;
 }
 
+export function isFocusScopeSuperseded(element, registrationId) {
+  element = focusScopeElements.get(registrationId) || element;
+  const scope = focusScopeHandlers.get(element)?.scope;
+  return !!scope && !!focusScopeStack[0] && focusScopeStack[0] !== scope;
+}
+
 export async function unregisterFocusScope(element, unmountAutoFocusPrevented = false, registrationId) {
   element = focusScopeElements.get(registrationId) || element;
   if (registrationId) focusScopeElements.delete(registrationId);

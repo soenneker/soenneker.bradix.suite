@@ -31,7 +31,7 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
 
         await page.Mouse.ClickAsync((float)outsideX, (float)outsideY);
 
-        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Dismissed: True");
+        await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync("Dismissed: True");
     }
 
 [Test]
@@ -44,7 +44,7 @@ public sealed class BradixDismissableLayerPlaywrightTests : BradixComponentPlayw
 
         await page.Keyboard.PressAsync("Escape");
 
-        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Dismissed: True");
+        await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync("Dismissed: True");
     }
 }
 

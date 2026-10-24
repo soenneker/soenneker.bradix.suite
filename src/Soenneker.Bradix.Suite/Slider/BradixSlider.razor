@@ -23,6 +23,7 @@
     private ValueAtomicBool _initialized;
     private ValueAtomicBool _registered;
     private bool _formRegistered;
+    private string? _registeredForm;
     private readonly List<double> _valuesBeforeSlideStart = [];
     private string? _multipleInputName;
     private bool _hasStepDecimalCount;
@@ -118,8 +119,18 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed.Read() || !firstRender)
+        if (_disposed.Read())
             return;
+        if (!firstRender)
+        {
+            if (_formRegistered && !string.Equals(_registeredForm, Form, StringComparison.Ordinal))
+            {
+                _registeredForm = Form;
+                await FormInterop.RegisterAssociatedFormReset(_element, _dotNetReference!, Form);
+                if (_disposed.Read()) await FormInterop.UnregisterAssociatedFormReset(_element);
+            }
+            return;
+        }
 
         _dotNetReference = DotNetObjectReference.Create<object>(this);
         await ControlsInterop.RegisterSliderPointerBridge(_element, _dotNetReference);
@@ -129,6 +140,7 @@
             return;
         }
 
+        _registeredForm = Form;
         await FormInterop.RegisterAssociatedFormReset(_element, _dotNetReference, Form);
         if (_disposed.Read())
         {

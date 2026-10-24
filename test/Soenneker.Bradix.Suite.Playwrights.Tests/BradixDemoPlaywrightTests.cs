@@ -25,11 +25,11 @@ public sealed class BradixDemoPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.GotoAndWaitForReady(
             BaseUrl,
-            static p => p.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Bradix primitives" }),
-            expectedTitle: "Bradix Component Library");
+            static p => p.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Headless Blazor components." }),
+            expectedTitle: "Headless Blazor UI Components & Radix UI Patterns | Bradix");
 
         await Assertions.Expect(page.GetByRole(AriaRole.Navigation, new PageGetByRoleOptions { Name = "Bradix primitives" })).ToBeVisibleAsync();
-        var main = page.GetByRole(AriaRole.Main);
+        var main = page.GetByRole(AriaRole.Navigation, new() { Name = "Bradix primitives" });
         await Assertions.Expect(main.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Dialog", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(main.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Checkbox", Exact = true })).ToBeVisibleAsync();
     }

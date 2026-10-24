@@ -24,11 +24,11 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}dialogs",
             static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }),
-            expectedTitle: "Bradix Dialog");
+            expectedTitle: "Blazor Dialog & Modal with Nested Overlays | Bradix");
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
 
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Edit profile", Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Heading, new LocatorGetByRoleOptions { Name = "Edit profile", Exact = true })).ToBeVisibleAsync();
 
         ILocator nameInput = page.Locator("#dialog-name");
         ILocator usernameInput = page.Locator("#dialog-username");
@@ -36,7 +36,7 @@ public sealed class BradixDialogPlaywrightTests : BradixComponentPlaywrightTest
         await usernameInput.FillAsync("@jake");
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Save changes", Exact = true }).ClickAsync();
 
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Edit profile", Exact = true })).Not.ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Heading, new LocatorGetByRoleOptions { Name = "Edit profile", Exact = true })).Not.ToBeVisibleAsync();
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true }).ClickAsync();
         await Assertions.Expect(nameInput).ToHaveValueAsync("Jake");

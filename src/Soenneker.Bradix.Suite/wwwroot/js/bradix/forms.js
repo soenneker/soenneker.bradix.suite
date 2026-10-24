@@ -253,16 +253,7 @@ export function isFormControl(element, formId = null) {
 }
 
 export function requestFormSubmit(associatedElement, formId) {
-  let form = null;
-
-  if (formId) {
-    const candidate = associatedElement?.ownerDocument?.getElementById(formId) || document.getElementById(formId);
-    if (candidate instanceof HTMLFormElement) {
-      form = candidate;
-    }
-  }
-
-  form ||= associatedElement?.form || (typeof associatedElement?.closest === "function" ? associatedElement.closest("form") : null);
+  const form = resolveAssociatedForm(associatedElement, formId);
 
   if (form && typeof form.requestSubmit === "function") {
     form.requestSubmit();

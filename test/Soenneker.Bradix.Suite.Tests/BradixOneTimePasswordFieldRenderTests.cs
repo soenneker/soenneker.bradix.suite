@@ -30,6 +30,18 @@ public sealed class BradixOneTimePasswordFieldRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Changing_form_rebinds_otp_reset_handler()
+    {
+        var cut = Render<BradixOneTimePasswordField>(p => p.Add(c => c.Name, "code")
+            .Add(c => c.Form, "first").AddChildContent<BradixOneTimePasswordFieldHiddenInput>());
+        cut.Render(p => p.Add(c => c.Form, "second"));
+        cut.Render();
+        var calls = _module.Invocations["registerAssociatedFormReset"];
+        await Assert.That(calls.Count).IsEqualTo(2);
+        await Assert.That(calls.Last().Arguments.Last()).IsEqualTo("second");
+    }
+
+    [Test]
     public async ValueTask Replacing_a_character_preserves_the_remaining_code(CancellationToken cancellationToken)
     {
         var cut = RenderOtpField();

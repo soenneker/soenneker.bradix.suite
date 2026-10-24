@@ -25,7 +25,7 @@ async function fixture() {
   const layer = new Element();
   const outside = new Element();
   const module = await import(`../../src/Soenneker.Bradix.Suite/wwwroot/js/bradix/dismissableLayer.js?test=${crypto.randomUUID()}`);
-  return { module, layer,
+  return { module, layer, outside,
     emit(type) { const event = { target: outside, key: 'Escape', preventDefault() { this.defaultPrevented = true; } }; for (const entry of [...(document.listeners.get(type) ?? [])].sort((a,b) => Number(b.capture) - Number(a.capture))) entry.callback(event); }
   };
 }
@@ -112,3 +112,25 @@ test('cleanup still finds the registration after Blazor removes its DOM element'
   finish();
   await cleanup;
 });
+
+for (const event of ['pointerdown', 'focusin']) {
+  test(`portaled anchors suppress ${event} dismissal only for their owning popover`, async () => {
+    const f = await fixture();
+    const calls = [];
+    f.layer.dataset.bradixDismissableLayerOwner = 'popover-one';
+    f.outside.dataset.bradixDismissableLayerOwner = 'popover-one';
+    f.module.registerDismissableLayerBranch(f.outside);
+    f.module.registerDismissableLayer(f.layer, {
+      invokeMethodAsync(name) { calls.push(name); return Promise.resolve(); }
+    }, false);
+    f.emit(event);
+    await Promise.resolve();
+    assert.deepEqual(calls, []);
+    f.outside.dataset.bradixDismissableLayerOwner = 'popover-two';
+    f.emit(event);
+    await Promise.resolve();
+    assert.equal(calls.length, 1);
+    await f.module.unregisterDismissableLayer(f.layer);
+    f.module.unregisterDismissableLayerBranch(f.outside);
+  });
+}

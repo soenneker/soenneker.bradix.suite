@@ -134,7 +134,7 @@
 
     internal bool CurrentOpen => Open ?? _uncontrolledOpen;
 
-    internal string? CurrentValue => Value ?? _uncontrolledValue;
+    internal string? CurrentValue => ValueChanged.HasDelegate ? Value : Value ?? _uncontrolledValue;
 
     internal bool HasActiveTypeahead => !string.IsNullOrEmpty(_typeahead?.CurrentSearch);
 
@@ -214,6 +214,15 @@
 
         if (HasTrigger && (!_formControlStateResolved.Value || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal)))
         {
+            if (_bubbleSelectRegistered.Value && !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
+            {
+                await FormInterop.RegisterAssociatedFormReset(_bubbleSelectElement, _dotNetReference!, Form);
+                if (_disposed.Read())
+                {
+                    await FormInterop.UnregisterAssociatedFormReset(_bubbleSelectElement);
+                    return;
+                }
+            }
             bool isFormControl = await FormInterop.IsFormControl(TriggerElement, Form);
 
             if (_disposed.Read())

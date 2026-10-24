@@ -3,13 +3,22 @@
 
 <head>
     <meta charset="utf-8" />
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y3YJW2T1WH"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-Y3YJW2T1WH');
+        if (location.hostname === "bradix.soenneker.com") {
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', 'G-Y3YJW2T1WH');
+            const googleTag = document.createElement("script");
+            googleTag.async = true;
+            googleTag.src = "https://www.googletagmanager.com/gtag/js?id=G-Y3YJW2T1WH";
+            document.head.appendChild(googleTag);
+            const beacon = document.createElement("script");
+            beacon.defer = true;
+            beacon.src = "https://static.cloudflareinsights.com/beacon.min.js";
+            beacon.dataset.cfBeacon = JSON.stringify({ token: "fc1038ae596e4dedac4f46dcf34a4a65" });
+            document.head.appendChild(beacon);
+        }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#111113" />
@@ -19,11 +28,11 @@
     <link href="css/quark-tailwind.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
     <link href="css/docs.css" rel="stylesheet" />
+    <script type="importmap"></script>
     <script type="module">
         import { initialize } from "./_content/Soenneker.Quark.Suite/js/themeinterop.js";
         initialize();
     </script>
-    <script type="importmap"></script>
 </head>
 
 <body>
@@ -38,9 +47,7 @@
     </div>
 
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
-    <!-- Cloudflare Web Analytics -->
-    <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "fc1038ae596e4dedac4f46dcf34a4a65"}'></script>
-    <!-- End Cloudflare Web Analytics -->
+
 </body>
 
 </html>

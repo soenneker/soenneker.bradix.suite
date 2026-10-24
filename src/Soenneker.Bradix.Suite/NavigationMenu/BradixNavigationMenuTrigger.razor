@@ -218,9 +218,9 @@
             IsOpen)
             return;
 
-        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
         _hasPointerMoveOpened.Value = true;
         _openedByPointerMove.Value = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
+        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
     }
 
     private async Task HandlePointerMove(PointerEventArgs args)
@@ -235,9 +235,9 @@
             _hasPointerMoveOpened.Value)
             return;
 
-        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
         _hasPointerMoveOpened.Value = true;
         _openedByPointerMove.Value = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
+        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
     }
 
     private async Task HandlePointerLeave(PointerEventArgs args)
@@ -270,8 +270,9 @@
             return;
         }
 
-        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
         _hasPointerMoveOpened.Value = true;
+        _openedByPointerMove.Value = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
+        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
     }
 
     private async Task HandleHoverMove()
@@ -285,8 +286,9 @@
             _hasPointerMoveOpened.Value)
             return;
 
-        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
         _hasPointerMoveOpened.Value = true;
+        _openedByPointerMove.Value = !string.Equals(_pointerOpenClickSuppressedValue, Item.ResolvedValue, StringComparison.Ordinal);
+        await NavigationMenu.HandleTriggerPointerMove(Item.ResolvedValue);
     }
 
     private async Task HandleHoverLeave()

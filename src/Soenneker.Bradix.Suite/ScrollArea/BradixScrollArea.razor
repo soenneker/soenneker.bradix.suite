@@ -570,6 +570,7 @@
         try
         {
             await Task.Delay(ScrollHideDelay, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
 
             if (horizontal)
             {
@@ -596,6 +597,7 @@
         try
         {
             await Task.Delay(ScrollHideDelay, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
             IsHovering = false;
             await RequestRender();
         }

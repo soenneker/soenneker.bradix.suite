@@ -53,6 +53,33 @@ public sealed class BradixNavigationMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Click_during_async_hover_open_does_not_close_the_newly_opened_menu(CancellationToken cancellationToken)
+    {
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var cut = Render(CreateNavigationMenu());
+        var root = cut.FindComponent<BradixNavigationMenu>();
+        root.Render(p => p.Add(c => c.OnValueChange, async value =>
+        {
+            if (value is not null)
+            {
+                entered.TrySetResult();
+                await release.Task;
+            }
+        }));
+        var trigger = cut.FindComponents<BradixNavigationMenuTrigger>()[0];
+        Task opening = trigger.Find("button").PointerMoveAsync(new PointerEventArgs { PointerType = "mouse" });
+        try
+        {
+            await entered.Task.WaitAsync(System.TimeSpan.FromSeconds(5), cancellationToken);
+            await cut.InvokeAsync(trigger.Instance.HandleDirectClick);
+        }
+        finally { release.TrySetResult(); }
+        await opening;
+        await Assert.That(trigger.Find("button").GetAttribute("aria-expanded")).IsEqualTo("true");
+    }
+
+    [Test]
     public async ValueTask Closing_menu_keeps_animated_content_indicator_and_viewport_until_exit(CancellationToken cancellationToken)
     {
         _module.Setup<JsonElement?>("getPresenceState", _ => true).SetResult(JsonSerializer.SerializeToElement(

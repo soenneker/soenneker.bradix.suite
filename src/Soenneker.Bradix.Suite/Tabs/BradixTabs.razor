@@ -60,7 +60,7 @@
 
     internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
-    internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
+    internal string CurrentValue => ValueChanged.HasDelegate ? Value ?? string.Empty : Value ?? _uncontrolledValue ?? string.Empty;
 
     internal bool IsAutomaticActivation => ActivationMode != TabsActivationMode.Manual;
 
@@ -89,10 +89,10 @@
     }
 
     internal string MakeTriggerId(string value, ref string? previous) =>
-        BradixStringCache.ChildId(BradixStringCache.ChildId(BaseId!, "trigger", ref _childIdCache0), value, ref previous);
+        BradixStringCache.ChildValueId(BradixStringCache.ChildId(BaseId!, "trigger", ref _childIdCache0), value, ref previous);
 
     internal string MakeContentId(string value, ref string? previous) =>
-        BradixStringCache.ChildId(BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache1), value, ref previous);
+        BradixStringCache.ChildValueId(BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache1), value, ref previous);
 
     internal void RegisterTrigger(BradixTabsTrigger trigger)
     {
@@ -204,7 +204,7 @@
         if (string.Equals(CurrentValue, value, StringComparison.Ordinal))
             return;
 
-        if (Value is null)
+        if (Value is null && !ValueChanged.HasDelegate)
             _uncontrolledValue = value;
 
         if (ValueChanged.HasDelegate)

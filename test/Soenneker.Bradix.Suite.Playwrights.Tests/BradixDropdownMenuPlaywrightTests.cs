@@ -130,10 +130,10 @@ public sealed class BradixDropdownMenuPlaywrightTests : BradixComponentPlaywrigh
         ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open dropdown dialog", Exact = true });
         await dialogTrigger.ClickAsync();
 
-        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Dropdown dialog", Exact = true });
+        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Dropdown dialog", Exact = true, IncludeHidden = true });
         await Assertions.Expect(dialog).ToBeVisibleAsync();
 
-        ILocator menuTrigger = dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Open nested dropdown menu", Exact = true });
+        ILocator menuTrigger = dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Open nested dropdown menu", Exact = true, IncludeHidden = true });
         await menuTrigger.ClickAsync();
 
         ILocator menu = page.GetByRole(AriaRole.Menu).Filter(new LocatorFilterOptions { HasText = "More options" });

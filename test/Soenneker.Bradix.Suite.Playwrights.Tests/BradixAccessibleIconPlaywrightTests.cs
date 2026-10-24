@@ -21,11 +21,11 @@ public sealed class BradixAccessibleIconPlaywrightTests : BradixComponentPlaywri
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/accessibleicons"));
 
         ILocator button = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Close panel", Exact = true });
-        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Panel: Open");
+        await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync("Panel: Open");
 
         await button.ClickAsync();
 
-        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Panel: Closed");
+        await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync("Panel: Closed");
     }
 }
 

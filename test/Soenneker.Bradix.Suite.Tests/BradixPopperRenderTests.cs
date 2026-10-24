@@ -130,13 +130,13 @@ public sealed class BradixPopperRenderTests : BunitContext
         await Assert.That(placedCount).IsEqualTo(1);
 
         await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px", "50");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, revert-layer);");
 
         await content.Instance.HandlePositionChanged("top", "start", 18, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px", "50");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, revert-layer);");
 
         await content.Instance.HandlePositionChanged("top", "start", 18, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, revert-layer);");
     }
 
     [Test]
@@ -219,13 +219,13 @@ public sealed class BradixPopperRenderTests : BunitContext
         await Assert.That(placedCount).IsEqualTo(1);
 
         await content.Instance.HandlePositionChanged("top", "start", 12, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px", "50");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, revert-layer);");
 
         await content.Instance.HandlePositionChanged("top", "start", 18, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px", "50");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, revert-layer);");
 
         await content.Instance.HandlePositionChanged("top", "start", 18, 20, 300, 240, 90, 24, 14, null, false, false, "14px", "100px");
-        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, auto);");
+        await Assert.That(content.Find("div").GetAttribute("style")!).Contains("z-index: var(--bradix-popper-z-index, revert-layer);");
     }
 
     [Test]

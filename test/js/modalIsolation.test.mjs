@@ -74,3 +74,18 @@ test('live announcements remain exposed while siblings and preexisting inert sta
   unregisterHideOthers(modal);
   assert.equal(sibling.inert, true);
 });
+
+
+test('modal backdrop remains a pointer dismiss surface while hidden from assistive technology', () => {
+  const body = new Element();
+  globalThis.document = { body };
+  const backdrop = body.append(new Element());
+  backdrop.setAttribute('data-bradix-dismiss-surface', '');
+  const modal = body.append(new Element());
+  registerHideOthers(modal);
+  assert.equal(backdrop.inert, false);
+  assert.equal(backdrop.getAttribute('aria-hidden'), 'true');
+  unregisterHideOthers(modal);
+  assert.equal(backdrop.inert, false);
+  assert.equal(backdrop.getAttribute('aria-hidden'), null);
+});

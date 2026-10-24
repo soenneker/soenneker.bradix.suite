@@ -81,3 +81,6 @@ a:hover { color: inherit; }
     .bradix-page-heading h1 { font-size: 32px; }
 }
 @media(max-width: 420px) { .bradix-search { width: 135px; min-width: 100px; } .bradix-header-actions { gap: 4px; } }
+
+/* Reserve the dropdown footprint so hover opening cannot move the trigger under the pointer. */
+.bradix-preview .nav-menu-demo { width: min(100%, 600px); min-height: 340px; }

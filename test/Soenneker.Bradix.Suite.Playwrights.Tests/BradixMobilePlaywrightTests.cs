@@ -80,7 +80,7 @@ public sealed class BradixMobilePlaywrightTests : BradixComponentPlaywrightTest
                 }
 
                 if (spec.Route == "/")
-                    await Assertions.Expect(page.Locator(".docs-shell__main")).ToContainTextAsync("A low-level Blazor component library for building accessible design systems and web apps.");
+                    await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync("Build accessible Blazor interfaces with unstyled, composable components based on Radix UI.");
 
                 if (runtimeErrors.Count > 0)
                     failures.Add($"{spec.Route}: {string.Join(" | ", runtimeErrors.Distinct())}");

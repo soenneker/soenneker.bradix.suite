@@ -199,7 +199,8 @@ function applyHideOthers(registration) {
     if (state) state.count++;
     else {
       hiddenElements.set(child, { count: 1, inert: child.inert === true, ariaHidden: child.getAttribute("aria-hidden") });
-      child.inert = true;
+      // Backdrops remain hidden from assistive technology but must receive outside clicks.
+      child.inert = child.getAttribute("data-bradix-dismiss-surface") === null;
       child.setAttribute("aria-hidden", "true");
     }
   }

@@ -22,7 +22,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady($"{BaseUrl}selects", static p => p.Locator("[role='combobox']")
-                                                                        .First, expectedTitle: "Select");
+                                                                        .First, expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator trigger = page.Locator("[role='combobox']")
                                .First;
@@ -64,7 +64,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady($"{BaseUrl}selects", static p => p.Locator("[role='combobox']")
-                                                                        .First, expectedTitle: "Select");
+                                                                        .First, expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator trigger = page.Locator("[role='combobox']")
                                .First;
@@ -107,7 +107,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady($"{BaseUrl}selects", static p => p.Locator("[role='combobox']")
-                                                                        .First, expectedTitle: "Select");
+                                                                        .First, expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator trigger = page.Locator("[role='combobox']")
                                .First;
@@ -143,7 +143,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}selects",
             static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select");
+            expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator trigger = page.Locator("[role='combobox']").First;
         await trigger.ClickAsync();
@@ -174,7 +174,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}selects",
             static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select");
+            expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator trigger = page.Locator("[role='combobox']").First;
         await trigger.ClickAsync();
@@ -200,7 +200,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}selects",
             static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select");
+            expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator trigger = page.Locator("[role='combobox']").First;
         await trigger.ClickAsync();
@@ -226,7 +226,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}selects",
             static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select");
+            expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator trigger = page.Locator("[role='combobox']").First;
         await trigger.ClickAsync();
@@ -255,7 +255,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}selects",
             static p => p.Locator("[role='combobox']").First,
-            expectedTitle: "Select");
+            expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator trigger = page.Locator("[role='combobox']").First;
         await trigger.ClickAsync();
@@ -313,7 +313,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}selects?testScenarios=true",
             static p => p.GetByRole(AriaRole.Combobox, new PageGetByRoleOptions { Name = "Open scroll boundary select", Exact = true }),
-            expectedTitle: "Select");
+            expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator trigger = page.GetByRole(AriaRole.Combobox, new PageGetByRoleOptions { Name = "Open scroll boundary select", Exact = true });
         await trigger.ClickAsync();
@@ -356,15 +356,15 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.GotoAndWaitForReady($"{BaseUrl}selects?testScenarios=true", static p => p.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true }),
-            expectedTitle: "Select");
+            expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator dialogTrigger = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Open select dialog", Exact = true });
         await dialogTrigger.ClickAsync();
 
-        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Select dialog", Exact = true });
+        ILocator dialog = page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Select dialog", Exact = true, IncludeHidden = true });
         await Assertions.Expect(dialog).ToBeVisibleAsync();
 
-        ILocator trigger = dialog.GetByRole(AriaRole.Combobox, new LocatorGetByRoleOptions { Name = "Open nested select", Exact = true });
+        ILocator trigger = dialog.GetByRole(AriaRole.Combobox, new LocatorGetByRoleOptions { Name = "Open nested select", Exact = true, IncludeHidden = true });
         await trigger.ClickAsync();
 
         ILocator listBox = page.GetByRole(AriaRole.Listbox);
@@ -378,6 +378,14 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
 
         await Assertions.Expect(dialog).ToBeVisibleAsync();
         await Assertions.Expect(trigger).ToContainTextAsync("Remix");
+        await Assertions.Expect(trigger).ToBeFocusedAsync();
+
+        await trigger.ClickAsync();
+        await Assertions.Expect(listBox).ToBeVisibleAsync();
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(listBox).ToBeHiddenAsync();
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+        await Assertions.Expect(trigger).ToBeFocusedAsync();
     }
 
     [Test]
@@ -389,7 +397,7 @@ public sealed class BradixSelectPlaywrightTests : BradixComponentPlaywrightTest
         await page.GotoAndWaitForReady(
             $"{BaseUrl}selects?testScenarios=true",
             static p => p.GetByTestId("select-native-form-result"),
-            expectedTitle: "Select");
+            expectedTitle: "Blazor Select: Groups & Form Validation | Bradix");
 
         ILocator form = page.GetByTestId("select-native-form");
         ILocator result = page.GetByTestId("select-native-form-result");

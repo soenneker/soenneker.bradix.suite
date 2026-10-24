@@ -9,8 +9,8 @@ internal static class DemoPageSpecs
 {
     private static readonly IReadOnlyList<DemoPageSpec> _all =
     [
-        new("/", "Overview", "Bradix primitives", "A low-level Blazor component library for building accessible design systems and web apps.",
-            page => page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Bradix primitives", Exact = true })),
+        new("/", "Overview", "Headless Blazor components.Built for your design system.", "Build accessible Blazor interfaces with unstyled, composable components based on Radix UI.",
+            page => page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Headless Blazor components." })),
         new("/accessibleicons", "AccessibleIcon", "AccessibleIcon",
             "Hide decorative glyphs from assistive technology while exposing a reliable accessible name.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Close panel", Exact = true })),
@@ -37,7 +37,7 @@ internal static class DemoPageSpecs
         new("/alertdialogs", "AlertDialog", "AlertDialog", "Present destructive confirmations with modal semantics and protected dismissal.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Delete account", Exact = true })),
         new("/collapsibles", "Collapsible", "Collapsible", "Toggle content visibility while preserving trigger, content, and measurement behavior.",
-            page => page.Locator(".component-example__preview").GetByText("starred 3 repositories")),
+            page => page.Locator(".bradix-preview").GetByText("starred 3 repositories")),
         new("/dialogs", "Dialog", "Dialog", "Build modal and non-modal dialogs with layering, restoration, and accessible naming.",
             page => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit profile", Exact = true })),
         new("/hovercards", "HoverCard", "HoverCard", "Preview contextual information with delayed hover and focus interactions.",

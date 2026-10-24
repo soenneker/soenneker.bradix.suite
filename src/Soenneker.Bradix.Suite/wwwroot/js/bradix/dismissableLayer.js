@@ -42,7 +42,11 @@ function isBranchTarget(target, layer) {
   }
 
   for (const branch of dismissableBranches) {
-    if (branch.contains(target) && (!layer || branch.contains(layer.element) || layer.element?.contains?.(branch))) {
+    // A portal moves a popover away from its anchor in the DOM. Keep that
+    // branch local to its owner rather than exempting every registered anchor.
+    const owner = branch.dataset?.bradixDismissableLayerOwner;
+    const ownsLayer = owner && owner === layer?.element?.dataset?.bradixDismissableLayerOwner;
+    if (branch.contains(target) && (!layer || ownsLayer || branch.contains(layer.element) || layer.element?.contains?.(branch))) {
       return true;
     }
   }

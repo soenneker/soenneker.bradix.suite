@@ -20,18 +20,18 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/removescrolls"));
 
-        ILocator textarea = page.GetByRole(AriaRole.Textbox);
+        ILocator textarea = page.GetByRole(AriaRole.Textbox, new() { Name = "Scrollable field content", Exact = true });
         ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle scroll lock", Exact = true });
 
         await Assertions.Expect(textarea).ToBeVisibleAsync();
 
         await toggle.ClickAsync();
-        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Mounted: False");
+        await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync("Mounted: False");
         await Assertions.Expect(textarea).ToHaveCountAsync(0);
 
         await toggle.ClickAsync();
-        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Mounted: True");
-        await Assertions.Expect(page.GetByRole(AriaRole.Textbox)).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync("Mounted: True");
+        await Assertions.Expect(page.GetByRole(AriaRole.Textbox, new() { Name = "Scrollable field content", Exact = true })).ToBeVisibleAsync();
     }
 
     [Test]
@@ -44,7 +44,7 @@ public sealed class BradixRemoveScrollPlaywrightTests : BradixComponentPlaywrigh
 
         ILocator toggle = page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle scroll lock", Exact = true });
 
-        await Assertions.Expect(page.GetByRole(AriaRole.Textbox)).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Textbox, new() { Name = "Scrollable field content", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(page.Locator("body")).ToHaveCSSAsync("overflow", "hidden");
 
         var touchAction = await page.EvaluateAsync<string>("() => document.documentElement.style.touchAction");

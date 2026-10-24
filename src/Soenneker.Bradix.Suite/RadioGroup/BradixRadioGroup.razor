@@ -22,6 +22,7 @@
     private ElementReference _element;
     private DotNetObjectReference<object>? _reference;
     private bool _disposed;
+    private string? _registeredForm;
 
     [Parameter] public string? Form { get; set; }
     private string? _pendingUserValue;
@@ -70,7 +71,7 @@
 
     internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
-    internal string? CurrentValue => Value ?? _uncontrolledValue;
+    internal string? CurrentValue => ValueChanged.HasDelegate ? Value : Value ?? _uncontrolledValue;
 
     internal string? CurrentTabStopId { get; private set; }
 
@@ -103,8 +104,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _disposed) return;
-        _reference = DotNetObjectReference.Create<object>(this);
+        if (_disposed || (_reference is not null && string.Equals(_registeredForm, Form, StringComparison.Ordinal))) return;
+        _reference ??= DotNetObjectReference.Create<object>(this);
+        _registeredForm = Form;
         await FormInterop.RegisterAssociatedFormReset(_element, _reference, Form);
         if (_disposed) await FormInterop.UnregisterAssociatedFormReset(_element);
     }

@@ -96,7 +96,7 @@
 
     internal string? BaseId { get; private set; }
 
-    internal string CurrentValue => Value ?? _uncontrolledValue ?? string.Empty;
+    internal string CurrentValue => ValueChanged.HasDelegate ? Value ?? string.Empty : Value ?? _uncontrolledValue ?? string.Empty;
 
     internal string TriggerRovingGroupId => BradixStringCache.ChildId(BaseId!, "triggers", ref _childIdCache0);
 
@@ -154,10 +154,10 @@
     }
 
     internal string MakeTriggerId(string value, ref string? previous) =>
-        BradixStringCache.ChildId(BradixStringCache.ChildId(BaseId!, "trigger", ref _childIdCache2), value, ref previous);
+        BradixStringCache.ChildValueId(BradixStringCache.ChildId(BaseId!, "trigger", ref _childIdCache2), value, ref previous);
 
     internal string MakeContentId(string value, ref string? previous) =>
-        BradixStringCache.ChildId(BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache3), value, ref previous);
+        BradixStringCache.ChildValueId(BradixStringCache.ChildId(BaseId!, "content", ref _childIdCache3), value, ref previous);
 
     internal bool IsCurrentTabStop(BradixNavigationMenuItem item)
     {
@@ -620,6 +620,7 @@
         try
         {
             await Task.Delay(DelayDuration, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
             await OpenValue(value);
         }
         catch (TaskCanceledException)
@@ -645,6 +646,7 @@
         try
         {
             await Task.Delay(150, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
             await SetValue(string.Empty);
         }
         catch (TaskCanceledException)
@@ -814,6 +816,7 @@
         try
         {
             await Task.Delay(SkipDelayDuration, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
             _isOpenDelayed.Value = true;
         }
         catch (TaskCanceledException)

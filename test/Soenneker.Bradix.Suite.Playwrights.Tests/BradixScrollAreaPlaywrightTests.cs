@@ -35,7 +35,7 @@ public sealed class BradixScrollAreaPlaywrightTests : BradixComponentPlaywrightT
         await page.OpenPage(BaseUrl, "/scrollareas?testScenarios=true", async currentPage =>
         {
             await Assertions.Expect(currentPage.Locator(".scroll-area-demo__horizontal")).ToBeVisibleAsync();
-            await Assertions.Expect(currentPage.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "RTL notes", Exact = true })).ToBeVisibleAsync();
+            await Assertions.Expect(currentPage.Locator("#rtl-notes")).ToBeVisibleAsync();
         });
 
         var verticalScrollTop = await page.EvaluateAsync<int>(

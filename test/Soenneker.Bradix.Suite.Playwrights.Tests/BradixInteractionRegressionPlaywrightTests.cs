@@ -15,6 +15,8 @@ public sealed class BradixInteractionRegressionPlaywrightTests : BradixComponent
     {
         await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         await session.Page.GotoAsync(BaseUrl.TrimEnd('/') + "/");
+        // Complete initial route focus before injecting an isolated focus test fixture.
+        await session.Page.WaitForFunctionAsync("() => document.activeElement?.matches('h1') === true");
         bool correct = await session.Page.EvaluateAsync<bool>("""
             async () => {
                 const collapsible = await import('/_content/Soenneker.Bradix.Suite/js/bradix/collapsible.js');
@@ -114,6 +116,8 @@ public sealed class BradixInteractionRegressionPlaywrightTests : BradixComponent
     {
         await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         await session.Page.GotoAsync(BaseUrl.TrimEnd('/') + "/");
+        // Complete initial route focus before injecting an isolated focus test fixture.
+        await session.Page.WaitForFunctionAsync("() => document.activeElement?.matches('h1') === true");
         bool released = await session.Page.EvaluateAsync<bool>("""
             async () => {
                 const events = await import('/_content/Soenneker.Bradix.Suite/js/bradix/delegatedInteraction.js');
@@ -145,6 +149,8 @@ public sealed class BradixInteractionRegressionPlaywrightTests : BradixComponent
     {
         await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         await session.Page.GotoAsync(BaseUrl.TrimEnd('/') + "/");
+        // Complete initial route focus before injecting an isolated focus test fixture.
+        await session.Page.WaitForFunctionAsync("() => document.activeElement?.matches('h1') === true");
         string result = await session.Page.EvaluateAsync<string>("""
             async () => {
                 const m = await import('/_content/Soenneker.Bradix.Suite/js/bradix/rovingFocus.js');

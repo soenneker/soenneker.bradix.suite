@@ -167,5 +167,5 @@ test('browser positioning retains the surface stacking order without layer-only 
   env.result(1);
   await second;
   assert.equal(env.notifications.length, 1);
-  assert.equal(env.content.style.getPropertyValue('--bradix-popper-z-index'), 'auto');
+  assert.equal(env.content.style.getPropertyValue('--bradix-popper-z-index'), 'revert-layer');
 });

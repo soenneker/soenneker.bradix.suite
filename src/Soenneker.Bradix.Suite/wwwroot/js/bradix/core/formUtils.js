@@ -3,14 +3,15 @@ export function resolveAssociatedForm(element, formId = null) {
     return null;
   }
 
-  if (formId && typeof document !== "undefined") {
-    const form = document.getElementById(formId);
-    if (form instanceof HTMLFormElement) {
-      return form;
-    }
+  if (formId) {
+    const ownerDocument = element.ownerDocument || (typeof document !== "undefined" ? document : null);
+    const form = ownerDocument?.getElementById(formId);
+    return form instanceof HTMLFormElement ? form : null;
   }
 
-  return element.form || (typeof element.closest === "function" ? element.closest("form") : null);
+  // A native control's null form is authoritative (for example form="missing").
+  // Only non-form-associated wrappers need ancestor lookup.
+  return "form" in element ? element.form : (typeof element.closest === "function" ? element.closest("form") : null);
 }
 
 export function isInvalidFormControl(element) {

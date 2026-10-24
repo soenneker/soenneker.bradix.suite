@@ -25,8 +25,12 @@ public sealed class BradixFocusGuardsPlaywrightTests : BradixComponentPlaywright
 
         var guardsAreBodyEdges = await page.EvaluateAsync<bool>(
             """
-            () => document.body.firstElementChild?.hasAttribute('data-radix-focus-guard') === true
-                && document.body.lastElementChild?.hasAttribute('data-radix-focus-guard') === true
+            () => {
+                // Runtime modules may append script elements after the ending guard.
+                const children = [...document.body.children].filter(e => !e.matches('script, style, link'));
+                return children[0]?.hasAttribute('data-radix-focus-guard') === true
+                    && children.at(-1)?.hasAttribute('data-radix-focus-guard') === true;
+            }
             """);
 
         await Assert.That(guardsAreBodyEdges).IsTrue();

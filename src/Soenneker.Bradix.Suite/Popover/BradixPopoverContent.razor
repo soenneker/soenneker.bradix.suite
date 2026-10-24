@@ -354,7 +354,7 @@ ResetState:
                           PreventUnmountAutoFocus="true"
                           OnMountAutoFocusDetailed="(_cachedHandleOpenAutoFocusDelegate ??= HandleOpenAutoFocus)"
                           OnUnmountAutoFocusDetailed="(_cachedHandleCloseAutoFocusDelegate ??= HandleCloseAutoFocus)">
-            <BradixDismissableLayer DeferPointerDownOutside="true" DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
+            <BradixDismissableLayer data-bradix-dismissable-layer-owner="@Popover?.BaseId" DeferPointerDownOutside="true" DisableOutsidePointerEvents="ShouldDisableOutsidePointerEvents"
                                     DismissOnEscapeKeyDown="CloseOnEscapeKeyDown"
                                     DismissOnPointerDownOutside="CloseOnPointerDownOutside"
                                     DismissOnFocusOutside="CloseOnFocusOutside"

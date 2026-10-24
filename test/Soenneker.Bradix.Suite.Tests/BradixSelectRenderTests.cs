@@ -75,6 +75,57 @@ public sealed class BradixSelectRenderTests : BunitContext
     }
 
     [Test]
+    public async Task Item_values_with_whitespace_have_valid_unique_label_ids()
+    {
+        var cut = Render<BradixSelect>(p => p.AddChildContent(builder =>
+        {
+            foreach (var value in new[] { "New York", "New\tYork" })
+            {
+                builder.OpenComponent<BradixSelectItem>(0);
+                builder.AddAttribute(1, nameof(BradixSelectItem.Value), value);
+                builder.AddAttribute(2, nameof(BradixSelectItem.TextValue), value);
+                builder.AddAttribute(3, nameof(BradixSelectItem.ChildContent), (RenderFragment)(child =>
+                {
+                    child.OpenComponent<BradixSelectItemText>(0);
+                    child.AddAttribute(1, nameof(BradixSelectItemText.ChildContent), (RenderFragment)(text => text.AddContent(0, value)));
+                    child.CloseComponent();
+                }));
+                builder.CloseComponent();
+            }
+        }));
+        var ids = cut.FindAll("[role=option]").Select(item => item.GetAttribute("aria-labelledby")!).ToArray();
+        await Assert.That(ids.Length).IsEqualTo(2);
+        await Assert.That(ids.Distinct().Count()).IsEqualTo(2);
+        foreach (var id in ids)
+        {
+            await Assert.That(id.Any(char.IsWhiteSpace)).IsFalse();
+            await Assert.That(cut.FindAll($"[id='{id}']").Count).IsEqualTo(1);
+        }
+    }
+
+    [Test]
+    public async Task Changing_form_rebinds_reset_without_reregistering_on_unchanged_renders()
+    {
+        var cut = Render<BradixSelect>(p => p.Add(c => c.Form, "first").AddChildContent<BradixSelectTrigger>());
+        cut.Render(p => p.Add(c => c.Form, "second"));
+        cut.Render();
+        var calls = _module.Invocations["registerAssociatedFormReset"];
+        await Assert.That(calls.Count).IsEqualTo(2);
+        await Assert.That(calls.Last().Arguments.Last()).IsEqualTo("second");
+    }
+
+    [Test]
+    public async Task Clearing_controlled_value_does_not_restore_default()
+    {
+        var cut = Render<BradixSelect>(p => p.Add(c => c.DefaultValue, "default")
+            .Add(c => c.Value, "chosen").Add(c => c.ValueChanged, (string? _) => {})
+            .AddChildContent<BradixSelectTrigger>());
+        cut.Render(p => p.Add(c => c.Value, (string?)null));
+        var lastSync = _module.Invocations["syncSelectBubbleInputValue"].Last();
+        await Assert.That(lastSync.Arguments[1]).IsNull();
+    }
+
+    [Test]
     public async ValueTask Changing_item_value_replaces_registration_and_explicit_text(CancellationToken cancellationToken)
     {
         string value = "one";
@@ -741,4 +792,5 @@ public sealed partial class FocusCountingSelect : BradixSelect
         CompletedRenders++;
         return base.OnAfterRenderAsync(firstRender);
     }
+
 }

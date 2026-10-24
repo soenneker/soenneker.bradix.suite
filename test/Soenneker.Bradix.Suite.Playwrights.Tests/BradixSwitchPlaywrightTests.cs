@@ -79,18 +79,17 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
     }
 
     [Test]
-    public async ValueTask Switch_demo_enter_key_preserves_focused_switch_state(CancellationToken cancellationToken)
+    public async ValueTask Switch_demo_enter_key_toggles_focused_switch(CancellationToken cancellationToken)
     {
         await using BrowserSession session = await CreateSession(cancellationToken: cancellationToken);
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switches"));
-        await WaitForSwitchRoot(page, "#airplane-mode");
 
         ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
         await toggle.PressAsync("Enter");
 
-        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "false");
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "true");
     }
 
     [Test]
@@ -100,7 +99,6 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         IPage page = session.Page;
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/switches"));
-        await WaitForSwitchRoot(page, "#airplane-mode");
 
         ILocator toggle = page.GetByRole(AriaRole.Switch, new PageGetByRoleOptions { Name = "Airplane mode", Exact = true });
         await toggle.PressAsync("Space");
@@ -108,11 +106,4 @@ public sealed class BradixSwitchPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-checked", "true");
     }
 
-    private static Task WaitForSwitchRoot(IPage page, string selector)
-    {
-        return page.WaitForFunctionAsync(
-            "selector => document.querySelector(selector)?.hasAttribute('data-bradix-checkbox-root') === true",
-            selector);
-    }
 }
-

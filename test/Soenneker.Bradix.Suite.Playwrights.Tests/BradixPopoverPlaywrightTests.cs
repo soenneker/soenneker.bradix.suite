@@ -135,7 +135,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(trigger).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(content).ToBeVisibleAsync();
 
-        ILocator main = page.Locator(".docs-shell__main");
+        ILocator main = page.Locator("#main-content");
         LocatorBoundingBoxResult? mainBox = await main.BoundingBoxAsync();
         await Assert.That(mainBox).IsNotNull();
         await page.Mouse.ClickAsync(mainBox!.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);
@@ -187,7 +187,7 @@ public sealed class BradixPopoverPlaywrightTests : BradixComponentPlaywrightTest
         await Assertions.Expect(controlledTrigger).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(controlledContent).ToBeVisibleAsync();
 
-        ILocator main = page.Locator(".docs-shell__main");
+        ILocator main = page.Locator("#main-content");
         LocatorBoundingBoxResult? mainBox = await main.BoundingBoxAsync();
         await Assert.That(mainBox).IsNotNull();
         await page.Mouse.ClickAsync(mainBox!.X + mainBox.Width - 10, mainBox.Y + mainBox.Height - 10);

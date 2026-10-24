@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using Soenneker.Blazor.Utils.Ids;
 
 namespace Soenneker.Bradix;
@@ -29,6 +30,33 @@ internal static class BradixStringCache
         if (parent is null || suffix is null || !Matches(previous, parent, "-", suffix))
             previous = BlazorIdGenerator.Child(parent!, suffix!);
         return previous!;
+    }
+
+    internal static string ChildValueId(string parent, string value, ref string? previous)
+    {
+        // Option values are arbitrary text, unlike structural ID segments. Escape
+        // into a reusable buffer so unchanged IDs do not allocate temporary strings.
+        ArgumentNullException.ThrowIfNull(parent);
+        ArgumentNullException.ThrowIfNull(value);
+        Span<char> escaped = stackalloc char[256];
+        char[]? rented = null;
+        try
+        {
+            if (!Uri.TryEscapeDataString(value, escaped, out int written))
+            {
+                escaped = rented = ArrayPool<char>.Shared.Rent(checked(value.Length * 12));
+                if (!Uri.TryEscapeDataString(value, escaped, out written))
+                    throw new InvalidOperationException("Unable to encode the component value as a DOM ID.");
+            }
+            var suffix = escaped[..written];
+            if (!Matches(previous, parent, "-", suffix))
+                previous = string.Concat(parent.AsSpan(), "-", suffix);
+            return previous!;
+        }
+        finally
+        {
+            if (rented is not null) ArrayPool<char>.Shared.Return(rented);
+        }
     }
 
     internal static string Concat(string first, string second, ref string? previous)

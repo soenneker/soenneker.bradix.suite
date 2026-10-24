@@ -19,6 +19,7 @@
 
     private BradixPopper? _popper;
     private ValueAtomicBool _initialized;
+    private ValueAtomicBool _disposed;
     private bool _uncontrolledOpen;
     private CancellationTokenSource? _openDelayTokenSource;
     private CancellationTokenSource? _closeDelayTokenSource;
@@ -70,6 +71,7 @@
 
     public ValueTask DisposeAsync()
     {
+        if (!_disposed.TrySetTrue()) return ValueTask.CompletedTask;
         CancelOpenDelay();
         CancelCloseDelay();
         return ValueTask.CompletedTask;
@@ -137,6 +139,7 @@
 
     private void StartOpenDelay()
     {
+        if (_disposed.Read()) return;
         CancelOpenDelay();
         if (OpenDelay == 0) { _ = SetOpen(true); return; }
         _openDelayTokenSource = new CancellationTokenSource();
@@ -148,6 +151,7 @@
         try
         {
             await Task.Delay(OpenDelay, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
             await SetOpen(true);
         }
         catch (TaskCanceledException)
@@ -157,6 +161,7 @@
 
     private void StartCloseDelay()
     {
+        if (_disposed.Read()) return;
         CancelOpenDelay();
 
         if (_hasSelection.Value || _isPointerDownOnContent.Value)
@@ -173,6 +178,7 @@
         try
         {
             await Task.Delay(CloseDelay, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
             await SetOpen(false);
         }
         catch (TaskCanceledException)
@@ -182,7 +188,7 @@
 
     private async Task SetOpen(bool open)
     {
-        if (CurrentOpen == open)
+        if (_disposed.Read() || CurrentOpen == open)
             return;
 
         if (Open is null)
@@ -197,6 +203,7 @@
         if (OpenChanged.HasDelegate)
             await OpenChanged.InvokeAsync(open);
 
+        if (_disposed.Read()) return;
         if (OnOpenChange.HasDelegate)
             await OnOpenChange.InvokeAsync(open);
 

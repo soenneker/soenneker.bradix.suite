@@ -594,6 +594,14 @@ else
         if (args.DefaultPrevented || Select is null)
             return;
 
+        // The trigger may still be inert until this select releases its modal isolation.
+        // Restore it before moving focus, rather than relying on parent render cleanup.
+        if (_hideOthersRegistered.Value)
+        {
+            _hideOthersRegistered.Value = false;
+            await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
+        }
+
         await Select.FocusTrigger();
         args.PreventDefault();
     }

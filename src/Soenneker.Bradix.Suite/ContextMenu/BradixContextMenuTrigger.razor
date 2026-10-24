@@ -124,9 +124,10 @@
         try
         {
             await Task.Delay(_longPressDelayMs, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
 
             if (ContextMenu is not null)
-                await InvokeAsync(() => ContextMenu.OpenAtPoint(x, y));
+                await InvokeAsync(() => cancellationToken.IsCancellationRequested ? Task.CompletedTask : ContextMenu.OpenAtPoint(x, y));
         }
         catch (OperationCanceledException)
         {

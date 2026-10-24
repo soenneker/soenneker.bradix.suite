@@ -20,7 +20,7 @@ public sealed class BradixPopperPlaywrightTests : BradixComponentPlaywrightTest
 
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/poppers"));
 
-        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync(new System.Text.RegularExpressions.Regex("Placed:\\s+[1-9]"));
+        await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync(new System.Text.RegularExpressions.Regex("Placed:\\s+[1-9]"));
     }
 
     [Test]

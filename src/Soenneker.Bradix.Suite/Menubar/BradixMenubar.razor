@@ -50,7 +50,7 @@
 
     internal string ResolvedDirection => BradixDirection.Resolve(Dir, CascadedDirection);
 
-    internal string? CurrentValue => Value ?? _uncontrolledValue;
+    internal string? CurrentValue => ValueChanged.HasDelegate ? Value : Value ?? _uncontrolledValue;
 
     internal bool HasOpenMenu => !string.IsNullOrWhiteSpace(CurrentValue);
 

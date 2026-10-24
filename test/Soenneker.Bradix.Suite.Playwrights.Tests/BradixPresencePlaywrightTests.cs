@@ -22,8 +22,8 @@ public sealed class BradixPresencePlaywrightTests : BradixComponentPlaywrightTes
 
         await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Toggle presence", Exact = true }).ClickAsync();
 
-        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Present: False");
-        await Assertions.Expect(page.Locator(".docs-shell__content")).ToContainTextAsync("Exit complete count: 1");
+        await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync("Present: False");
+        await Assertions.Expect(page.Locator("#main-content")).ToContainTextAsync("Exit complete count: 1");
     }
 }
 

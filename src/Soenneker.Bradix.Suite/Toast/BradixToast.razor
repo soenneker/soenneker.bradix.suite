@@ -80,7 +80,6 @@
     private ValueAtomicBool _disposed;
     private string? _swipeStyle;
     private (long MoveX, long MoveY, long EndX, long EndY) _swipeStyleKey;
-    private Func<Task>? _closeCallback;
     private ValueAtomicBool _initialized;
     private bool _uncontrolledOpen = true;
     private ValueAtomicBool _registered;
@@ -505,7 +504,8 @@
         try
         {
             await Task.Delay(TimeSpan.FromMilliseconds(duration), cancellationToken);
-            await InvokeAsync(_closeCallback ??= Close);
+            if (cancellationToken.IsCancellationRequested) return;
+            await InvokeAsync(() => cancellationToken.IsCancellationRequested ? Task.CompletedTask : Close());
         }
         catch (OperationCanceledException)
         {
@@ -884,6 +884,7 @@
         try
         {
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
             if (_disposed.Read())
                 return;
 

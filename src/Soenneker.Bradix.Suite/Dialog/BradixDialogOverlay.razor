@@ -68,8 +68,9 @@
     {
         get
         {
-            Dictionary<string, object> attributes = BuildAdditionalAttributes(1);
+            Dictionary<string, object> attributes = BuildAdditionalAttributes(2);
 
+            attributes["data-bradix-dismiss-surface"] = string.Empty;
             attributes["data-state"] = Dialog?.CurrentOpen == true ? "open" : "closed";
             return attributes;
         }

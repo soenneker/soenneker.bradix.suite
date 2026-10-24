@@ -216,6 +216,15 @@ else
 
         if (!_formControlStateResolved.Value || !string.Equals(_lastResolvedForm, Form, StringComparison.Ordinal))
         {
+            if (_formControlStateResolved.Value && _formRegistered.Value)
+            {
+                await FormInterop.RegisterAssociatedFormReset(_buttonElement, _dotNetReference!, Form);
+                if (_disposed.Read())
+                {
+                    await FormInterop.UnregisterAssociatedFormReset(_buttonElement);
+                    return;
+                }
+            }
             bool isFormControl = await FormInterop.IsFormControl(_buttonElement, Form);
             if (_disposed.Read())
                 return;

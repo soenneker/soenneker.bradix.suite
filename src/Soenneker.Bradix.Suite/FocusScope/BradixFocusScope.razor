@@ -126,7 +126,12 @@
             if (_registered.Value && Trapped)
                 await FocusScopeInterop.UpdateFocusScope(_element, Loop, false, PreventMountAutoFocus, PreventUnmountAutoFocus);
             if (OnUnmountAutoFocus.HasDelegate || OnUnmountAutoFocusDetailed.HasDelegate)
-                unmountAutoFocusPrevented = await HandleUnmountAutoFocusCore(new BradixAutoFocusEventArgs()) || unmountAutoFocusPrevented;
+            {
+                var args = new BradixAutoFocusEventArgs();
+                if (await FocusScopeInterop.IsFocusScopeSuperseded(_element))
+                    args.PreventDefault();
+                unmountAutoFocusPrevented = await HandleUnmountAutoFocusCore(args) || unmountAutoFocusPrevented;
+            }
         }
         finally
         {

@@ -69,6 +69,7 @@
         try
         {
             await Task.Delay(DelayMs!.Value, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
             _canRender.Value = true;
             await RequestRender();
         }

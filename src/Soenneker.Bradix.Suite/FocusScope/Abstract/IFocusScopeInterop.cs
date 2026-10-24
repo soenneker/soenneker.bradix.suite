@@ -46,6 +46,12 @@ public interface IFocusScopeInterop : IAsyncDisposable
     ValueTask UpdateFocusScope(ElementReference element, bool loop, bool trapped, bool preventMountAutoFocus, bool preventUnmountAutoFocus,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Checks whether a newer scope owns focus before restoring focus on unmount.</summary>
+    /// <param name="element">The scope being unmounted.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>Whether another scope superseded this scope.</returns>
+    ValueTask<bool> IsFocusScopeSuperseded(ElementReference element, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Unregisters focus Scope.
     /// </summary>

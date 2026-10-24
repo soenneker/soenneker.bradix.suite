@@ -21,7 +21,7 @@ public sealed class BradixPortalPlaywrightTests : BradixComponentPlaywrightTest
         await page.OpenDemoPage(BaseUrl, DemoPageSpecs.Get("/portals"));
 
         await Assertions.Expect(page.Locator("body .portal-surface")).ToContainTextAsync("Portaled into body.");
-        await Assertions.Expect(page.Locator(".docs-shell__content .portal-surface")).ToHaveCountAsync(0);
+        await Assertions.Expect(page.Locator("#main-content .portal-surface")).ToHaveCountAsync(0);
     }
 }
 

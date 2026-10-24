@@ -33,7 +33,7 @@
     [Parameter]
     public EventCallback<string?> OnValueChange { get; set; }
 
-    private string? CurrentValue => Value ?? _uncontrolledValue;
+    private string? CurrentValue => ValueChanged.HasDelegate ? Value : Value ?? _uncontrolledValue;
 
     private BradixMenuRadioGroupContext RadioGroupContext
     {

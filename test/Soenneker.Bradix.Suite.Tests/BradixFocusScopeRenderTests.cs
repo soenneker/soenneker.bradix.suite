@@ -19,6 +19,7 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
         _module.SetupVoid("registerFocusScope", _ => true).SetVoidResult();
         _module.SetupVoid("updateFocusScope", _ => true).SetVoidResult();
         _module.SetupVoid("unregisterFocusScope", _ => true).SetVoidResult();
+        _module.Setup<bool>("isFocusScopeSuperseded", _ => true).SetResult(false);
 
         Services.AddBradixTestInterops();
     }
@@ -75,6 +76,18 @@ public sealed class BradixFocusScopeRenderTests : BunitContext
         await Assert.That(invocation.Arguments.Count).IsEqualTo(3);
         await Assert.That(invocation.Arguments[2]).IsEqualTo(((ElementReference)invocation.Arguments[0]!).Id);
         await Assert.That(invocation.Arguments[1] is false).IsTrue();
+    }
+
+    [Test]
+    public async ValueTask Superseded_focus_scope_prevents_default_focus_restoration(CancellationToken cancellationToken)
+    {
+        _module.Setup<bool>("isFocusScopeSuperseded", _ => true).SetResult(true);
+        bool prevented = false;
+        var cut = Render<BradixFocusScope>(parameters => parameters
+            .Add(p => p.OnUnmountAutoFocusDetailed, args => prevented = args.DefaultPrevented));
+        await cut.Instance.DisposeAsync();
+        await Assert.That(prevented).IsTrue();
+        await Assert.That(_module.Invocations.Last(call => call.Identifier == "unregisterFocusScope").Arguments[1] is true).IsTrue();
     }
 
     [Test]

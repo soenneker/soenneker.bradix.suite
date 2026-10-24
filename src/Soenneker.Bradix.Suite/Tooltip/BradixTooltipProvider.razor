@@ -41,23 +41,27 @@
         CancelSkipDelayTimer();
         IsOpenDelayed = false;
 
-        if (_openTooltip is not null && _openTooltip != tooltip)
-            await _openTooltip.CloseFromProvider();
-
+        var previous = _openTooltip;
         _openTooltip = tooltip;
+        IsPointerInTransit = false;
+        if (previous is not null && !ReferenceEquals(previous, tooltip))
+            await previous.CloseFromProvider();
     }
 
     internal void NotifyClose(BradixTooltip tooltip)
     {
-        if (_openTooltip == tooltip)
-            _openTooltip = null;
-
+        if (!ReferenceEquals(_openTooltip, tooltip)) return;
+        _openTooltip = null;
+        IsPointerInTransit = false;
         StartSkipDelayTimer();
     }
 
-    internal void SetPointerInTransit(bool inTransit)
+    internal void SetPointerInTransit(BradixTooltip tooltip, bool inTransit)
     {
-        IsPointerInTransit = inTransit;
+        // Grace-area callbacks can arrive after a click closes their tooltip.
+        // Only the current owner may change the provider's transit state.
+        if (ReferenceEquals(_openTooltip, tooltip))
+            IsPointerInTransit = inTransit && tooltip.CurrentOpen;
     }
 
     internal bool ShouldBlockTriggerHoverOpen(BradixTooltip tooltip)
@@ -89,7 +93,7 @@
         try
         {
             await Task.Delay(SkipDelayDuration, cancellationToken);
-            IsOpenDelayed = true;
+            if (!cancellationToken.IsCancellationRequested) IsOpenDelayed = true;
         }
         catch (TaskCanceledException)
         {

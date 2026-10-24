@@ -173,7 +173,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "true", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToContainTextAsync("Radix Primitives", new LocatorAssertionsToContainTextOptions { Timeout = 3000 });
 
-        await page.Locator(".component-docs-header h1").ClickAsync();
+        await page.Locator(".bradix-page-heading h1").ClickAsync();
 
         await Assertions.Expect(learnTrigger).ToHaveAttributeAsync("aria-expanded", "false", new LocatorAssertionsToHaveAttributeOptions { Timeout = 3000 });
         await Assertions.Expect(viewport).ToHaveCountAsync(0, new LocatorAssertionsToHaveCountOptions { Timeout = 3000 });
@@ -526,9 +526,7 @@ public sealed class BradixNavigationMenuPlaywrightTests : BradixComponentPlaywri
 
     private static async Task ClickTrigger(IPage page, ILocator trigger)
     {
-        LocatorBoundingBoxResult? box = await trigger.BoundingBoxAsync();
-        await Assert.That(box).IsNotNull();
-        await page.Mouse.ClickAsync(box!.X + (box.Width / 2), box.Y + (box.Height / 2));
+        await trigger.ClickAsync();
     }
 
 }

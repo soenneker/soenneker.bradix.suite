@@ -307,7 +307,7 @@
 
     private string BuildPositionStyle()
     {
-        return "position: fixed; left: var(--bradix-popper-left, 0px); top: var(--bradix-popper-top, 0px); min-width: max-content; visibility: var(--bradix-popper-visibility, hidden); pointer-events: var(--bradix-popper-pointer-events, none); z-index: var(--bradix-popper-z-index, auto);";
+        return "position: fixed; left: var(--bradix-popper-left, 0px); top: var(--bradix-popper-top, 0px); min-width: max-content; visibility: var(--bradix-popper-visibility, hidden); pointer-events: var(--bradix-popper-pointer-events, none); z-index: var(--bradix-popper-z-index, revert-layer);";
     }
 
     private (string Side, double SideOffset, string Align, double AlignOffset, double ArrowPadding, bool AvoidCollisions, double CollisionPadding, string CollisionBoundarySelectors, string Sticky, bool HideWhenDetached, string Dir, string UpdatePositionStrategy) CurrentOptions => (Side.Value, SideOffset, Align.Value, AlignOffset, ArrowPadding, AvoidCollisions, CollisionPadding, CreateBoundarySelectorKey(), NormalizeSticky(Sticky), HideWhenDetached, Direction == "rtl" ? "rtl" : "ltr", UpdatePositionStrategy.Value);

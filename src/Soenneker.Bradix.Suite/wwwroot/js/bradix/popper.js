@@ -315,7 +315,7 @@ function applyPositionStyles(handlers) {
     "--radix-popper-transform-origin": `${p.transformOriginX} ${p.transformOriginY}`,
     "--bradix-popper-visibility": p.hidden ? "hidden" : "visible",
     "--bradix-popper-pointer-events": p.hidden ? "none" : "auto",
-    "--bradix-popper-z-index": p.zIndex ?? "auto",
+    "--bradix-popper-z-index": p.zIndex ?? "revert-layer",
     "--bradix-popper-arrow-x": p.arrowX === null ? "auto" : `${p.arrowX}px`,
     "--bradix-popper-arrow-y": p.arrowY === null ? "auto" : `${p.arrowY}px`,
     "--bradix-popper-arrow-visibility": p.shouldHideArrow ? "hidden" : "inherit"
