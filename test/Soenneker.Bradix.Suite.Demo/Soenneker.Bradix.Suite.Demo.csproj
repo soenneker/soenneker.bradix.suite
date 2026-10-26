@@ -67,6 +67,6 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0-rc.3.26522.148" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Utils.AutoBogus" Version="4.0.989" />
+        <PackageReference Include="Soenneker.Utils.AutoBogus" Version="4.0.991" />
     </ItemGroup>
 </Project>
