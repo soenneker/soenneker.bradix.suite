@@ -34,7 +34,7 @@
         <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="11.0.365" />
     </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Soenneker.Utils.File" Version="11.0.2325" />
+    <PackageReference Include="Soenneker.Utils.File" Version="11.0.2326" />
   </ItemGroup>
     <ItemGroup Condition="'$(UseLocalLeptonProject)' == 'true'">
         <ProjectReference Include="..\..\..\..\Lepton\soenneker.lepton.suite\src\Soenneker.Lepton.Gen.Parameters\Soenneker.Lepton.Gen.Parameters.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
