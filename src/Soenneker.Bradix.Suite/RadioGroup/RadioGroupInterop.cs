@@ -26,13 +26,13 @@ public sealed class RadioGroupInterop : IRadioGroupInterop
     public async ValueTask RegisterRadioGroupItemKeys(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerRadioGroupItemKeys", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("registerRadioGroupItemKeys", cancellationToken, element);
     }
 
     public async ValueTask UnregisterRadioGroupItemKeys(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterRadioGroupItemKeys", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unregisterRadioGroupItemKeys", cancellationToken, element);
     }
 
     /// <summary>

@@ -23,7 +23,7 @@ public sealed class FormInterop : IFormInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerCheckboxRoot", cancellationToken, element, dotNetReference, formId);
+        await module.InvokeBradixVoidAsync("registerCheckboxRoot", cancellationToken, element, dotNetReference, formId);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -34,19 +34,19 @@ public sealed class FormInterop : IFormInterop
     public async ValueTask RegisterFormRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerFormRoot", cancellationToken, element, dotNetReference);
+        await module.InvokeBradixVoidAsync("registerFormRoot", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterFormRoot(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterFormRoot", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unregisterFormRoot", cancellationToken, element);
     }
 
     public async ValueTask<BradixFormValiditySnapshot> GetFormControlValidity(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var payload = await module.InvokeAsync<JsonElement?>("getFormControlValidity", cancellationToken, element);
+        var payload = await module.InvokeBradixAsync<JsonElement?>("getFormControlValidity", cancellationToken, element);
         var snapshot = BradixInteropJson.Deserialize(payload, BradixInteropJsonContext.Default.BradixFormValiditySnapshot);
         return snapshot ?? new BradixFormValiditySnapshot();
     }
@@ -54,7 +54,7 @@ public sealed class FormInterop : IFormInterop
     public async ValueTask<BradixFormControlSnapshot> GetFormControlState(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var payload = await module.InvokeAsync<JsonElement?>("getFormControlState", cancellationToken, element);
+        var payload = await module.InvokeBradixAsync<JsonElement?>("getFormControlState", cancellationToken, element);
         var snapshot = BradixInteropJson.Deserialize(payload, BradixInteropJsonContext.Default.BradixFormControlSnapshot);
         return snapshot ?? new BradixFormControlSnapshot();
     }
@@ -62,50 +62,50 @@ public sealed class FormInterop : IFormInterop
     public async ValueTask SetFormControlCustomValidity(ElementReference element, string? validationMessage, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("setFormControlCustomValidity", cancellationToken, element, validationMessage);
+        await module.InvokeBradixVoidAsync("setFormControlCustomValidity", cancellationToken, element, validationMessage);
     }
 
     public async ValueTask ClearFormCustomValidity(ElementReference formElement, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("clearFormCustomValidity", cancellationToken, formElement);
+        await module.InvokeBradixVoidAsync("clearFormCustomValidity", cancellationToken, formElement);
     }
 
     public async ValueTask<bool> FocusServerInvalidFormControl(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeAsync<bool>("focusServerInvalidFormControl", cancellationToken, element);
+        return await module.InvokeBradixAsync<bool>("focusServerInvalidFormControl", cancellationToken, element);
     }
 
     public async ValueTask UnregisterCheckboxRoot(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterCheckboxRoot", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unregisterCheckboxRoot", cancellationToken, element);
     }
 
     public async ValueTask<bool> IsFormControl(ElementReference element, string? formId = null, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeAsync<bool>("isFormControl", cancellationToken, element, formId);
+        return await module.InvokeBradixAsync<bool>("isFormControl", cancellationToken, element, formId);
     }
 
     public async ValueTask RegisterAssociatedFormReset(ElementReference element, DotNetObjectReference<object> dotNetReference, string? formId = null,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerAssociatedFormReset", cancellationToken, element, dotNetReference, formId);
+        await module.InvokeBradixVoidAsync("registerAssociatedFormReset", cancellationToken, element, dotNetReference, formId);
     }
 
     public async ValueTask UnregisterAssociatedFormReset(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterAssociatedFormReset", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unregisterAssociatedFormReset", cancellationToken, element);
     }
 
     public async ValueTask RequestFormSubmit(ElementReference associatedElement, string? formId = null, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("requestFormSubmit", cancellationToken, associatedElement, formId);
+        await module.InvokeBradixVoidAsync("requestFormSubmit", cancellationToken, associatedElement, formId);
     }
 
     /// <summary>

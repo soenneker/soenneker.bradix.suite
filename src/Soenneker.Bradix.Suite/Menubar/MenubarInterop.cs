@@ -27,13 +27,13 @@ public sealed class MenubarInterop : IMenubarInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerMenubarDocumentDismiss", cancellationToken, element, dotNetReference, menubarId);
+        await module.InvokeBradixVoidAsync("registerMenubarDocumentDismiss", cancellationToken, element, dotNetReference, menubarId);
     }
 
     public async ValueTask UnregisterMenubarDocumentDismiss(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterMenubarDocumentDismiss", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unregisterMenubarDocumentDismiss", cancellationToken, element);
     }
 
     /// <summary>

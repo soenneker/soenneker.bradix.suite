@@ -22,7 +22,7 @@ public sealed class FocusScopeInterop : IFocusScopeInterop
         bool preventMountAutoFocus, bool preventUnmountAutoFocus, bool invokeMountAutoFocus, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerFocusScope", cancellationToken, element, dotNetReference, (loop ? BradixAttributeValues.True : BradixAttributeValues.False), (trapped ? BradixAttributeValues.True : BradixAttributeValues.False), (preventMountAutoFocus ? BradixAttributeValues.True : BradixAttributeValues.False),
+        await module.InvokeBradixVoidAsync("registerFocusScope", cancellationToken, element, dotNetReference, (loop ? BradixAttributeValues.True : BradixAttributeValues.False), (trapped ? BradixAttributeValues.True : BradixAttributeValues.False), (preventMountAutoFocus ? BradixAttributeValues.True : BradixAttributeValues.False),
             (preventUnmountAutoFocus ? BradixAttributeValues.True : BradixAttributeValues.False), (invokeMountAutoFocus ? BradixAttributeValues.True : BradixAttributeValues.False), element.Id);
     }
 
@@ -35,19 +35,19 @@ public sealed class FocusScopeInterop : IFocusScopeInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("updateFocusScope", cancellationToken, element, (loop ? BradixAttributeValues.True : BradixAttributeValues.False), (trapped ? BradixAttributeValues.True : BradixAttributeValues.False), (preventMountAutoFocus ? BradixAttributeValues.True : BradixAttributeValues.False), (preventUnmountAutoFocus ? BradixAttributeValues.True : BradixAttributeValues.False));
+        await module.InvokeBradixVoidAsync("updateFocusScope", cancellationToken, element, (loop ? BradixAttributeValues.True : BradixAttributeValues.False), (trapped ? BradixAttributeValues.True : BradixAttributeValues.False), (preventMountAutoFocus ? BradixAttributeValues.True : BradixAttributeValues.False), (preventUnmountAutoFocus ? BradixAttributeValues.True : BradixAttributeValues.False));
     }
 
     public async ValueTask<bool> IsFocusScopeSuperseded(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeAsync<bool>("isFocusScopeSuperseded", cancellationToken, element, element.Id);
+        return await module.InvokeBradixAsync<bool>("isFocusScopeSuperseded", cancellationToken, element, element.Id);
     }
 
     public async ValueTask UnregisterFocusScope(ElementReference element, bool unmountAutoFocusPrevented = false, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterFocusScope", cancellationToken, element, (unmountAutoFocusPrevented ? BradixAttributeValues.True : BradixAttributeValues.False), element.Id);
+        await module.InvokeBradixVoidAsync("unregisterFocusScope", cancellationToken, element, (unmountAutoFocusPrevented ? BradixAttributeValues.True : BradixAttributeValues.False), element.Id);
     }
 
     /// <summary>

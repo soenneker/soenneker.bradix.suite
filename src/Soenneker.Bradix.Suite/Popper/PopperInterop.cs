@@ -42,7 +42,7 @@ public sealed class PopperInterop : IPopperInterop
     {
         await EnsureFloatingUi(cancellationToken);
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerPopperContent", cancellationToken, anchor, content, arrow, dotNetReference, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
+        await module.InvokeBradixVoidAsync("registerPopperContent", cancellationToken, anchor, content, arrow, dotNetReference, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
     }
 
     public async ValueTask RegisterPopperContentBySelector(string anchorSelector, ElementReference content, ElementReference arrow,
@@ -50,7 +50,7 @@ public sealed class PopperInterop : IPopperInterop
     {
         await EnsureFloatingUi(cancellationToken);
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerPopperContentBySelector", cancellationToken, anchorSelector, content, arrow, dotNetReference, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
+        await module.InvokeBradixVoidAsync("registerPopperContentBySelector", cancellationToken, anchorSelector, content, arrow, dotNetReference, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
     }
 
     public async ValueTask RegisterVirtualPopperContent(ElementReference content, ElementReference arrow, DotNetObjectReference<object> dotNetReference,
@@ -58,14 +58,14 @@ public sealed class PopperInterop : IPopperInterop
     {
         await EnsureFloatingUi(cancellationToken);
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerVirtualPopperContent", cancellationToken, content, arrow, dotNetReference, x, y, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
+        await module.InvokeBradixVoidAsync("registerVirtualPopperContent", cancellationToken, content, arrow, dotNetReference, x, y, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
     }
 
     public async ValueTask UpdatePopperContent(ElementReference content, ElementReference arrow, BradixPopperInteropOptions options, CancellationToken cancellationToken = default)
     {
         await EnsureFloatingUi(cancellationToken);
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("updatePopperContent", cancellationToken, content, arrow, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
+        await module.InvokeBradixVoidAsync("updatePopperContent", cancellationToken, content, arrow, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
     }
 
     public async ValueTask UpdateVirtualPopperContent(ElementReference content, ElementReference arrow, double x, double y, BradixPopperInteropOptions options,
@@ -73,13 +73,13 @@ public sealed class PopperInterop : IPopperInterop
     {
         await EnsureFloatingUi(cancellationToken);
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("updateVirtualPopperContent", cancellationToken, content, arrow, x, y, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
+        await module.InvokeBradixVoidAsync("updateVirtualPopperContent", cancellationToken, content, arrow, x, y, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixPopperInteropOptions));
     }
 
     public async ValueTask UnregisterPopperContent(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterPopperContent", cancellationToken, content);
+        await module.InvokeBradixVoidAsync("unregisterPopperContent", cancellationToken, content);
     }
 
     /// <summary>

@@ -26,37 +26,37 @@ public sealed class ScrollAreaInterop : IScrollAreaInterop
     public async ValueTask RegisterScrollAreaRoot(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerScrollAreaRoot", cancellationToken, element, dotNetReference);
+        await module.InvokeBradixVoidAsync("registerScrollAreaRoot", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterScrollAreaRoot(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterScrollAreaRoot", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unregisterScrollAreaRoot", cancellationToken, element);
     }
 
     public async ValueTask RegisterScrollAreaViewport(ElementReference viewport, ElementReference content, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerScrollAreaViewport", cancellationToken, viewport, content, dotNetReference);
+        await module.InvokeBradixVoidAsync("registerScrollAreaViewport", cancellationToken, viewport, content, dotNetReference);
     }
 
     public async ValueTask UnregisterScrollAreaViewport(ElementReference viewport, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterScrollAreaViewport", cancellationToken, viewport);
+        await module.InvokeBradixVoidAsync("unregisterScrollAreaViewport", cancellationToken, viewport);
     }
 
     public async ValueTask RegisterScrollAreaScrollbar(ElementReference scrollbar, ElementReference thumb, ElementReference viewport, string orientation, string dir, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerScrollAreaScrollbar", cancellationToken, scrollbar, thumb, viewport, orientation, dir, dotNetReference);
+        await module.InvokeBradixVoidAsync("registerScrollAreaScrollbar", cancellationToken, scrollbar, thumb, viewport, orientation, dir, dotNetReference);
     }
 
     public async ValueTask UnregisterScrollAreaScrollbar(ElementReference scrollbar, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterScrollAreaScrollbar", cancellationToken, scrollbar);
+        await module.InvokeBradixVoidAsync("unregisterScrollAreaScrollbar", cancellationToken, scrollbar);
     }
 
     /// <summary>

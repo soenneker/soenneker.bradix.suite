@@ -27,7 +27,7 @@ public sealed class SelectInterop : ISelectInterop
         ElementReference valueNode, ElementReference selectedItem, ElementReference selectedItemText, string dir, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerSelectItemAlignedPosition", cancellationToken, wrapper, content, viewport, trigger, valueNode, selectedItem,
+        await module.InvokeBradixVoidAsync("registerSelectItemAlignedPosition", cancellationToken, wrapper, content, viewport, trigger, valueNode, selectedItem,
             selectedItemText, dir, wrapper.Id);
     }
 
@@ -35,14 +35,14 @@ public sealed class SelectInterop : ISelectInterop
         ElementReference valueNode, ElementReference selectedItem, ElementReference selectedItemText, string dir, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("updateSelectItemAlignedPosition", cancellationToken, wrapper, content, viewport, trigger, valueNode, selectedItem,
+        await module.InvokeBradixVoidAsync("updateSelectItemAlignedPosition", cancellationToken, wrapper, content, viewport, trigger, valueNode, selectedItem,
             selectedItemText, dir);
     }
 
     public async ValueTask UnregisterSelectItemAlignedPosition(ElementReference wrapper, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterSelectItemAlignedPosition", cancellationToken, wrapper, wrapper.Id);
+        await module.InvokeBradixVoidAsync("unregisterSelectItemAlignedPosition", cancellationToken, wrapper, wrapper.Id);
     }
 
     public async ValueTask RegisterSelectViewport(ElementReference viewport, ElementReference content, ElementReference wrapper,
@@ -50,76 +50,76 @@ public sealed class SelectInterop : ISelectInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerSelectViewport", cancellationToken, viewport, content, wrapper, dotNetReference, viewport.Id);
+        await module.InvokeBradixVoidAsync("registerSelectViewport", cancellationToken, viewport, content, wrapper, dotNetReference, viewport.Id);
     }
 
     public async ValueTask UnregisterSelectViewport(ElementReference viewport, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterSelectViewport", cancellationToken, viewport, viewport.Id);
+        await module.InvokeBradixVoidAsync("unregisterSelectViewport", cancellationToken, viewport, viewport.Id);
     }
 
     public async ValueTask RegisterSelectContentKeyboard(ElementReference content, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerSelectContentKeyboard", cancellationToken, content, dotNetReference, content.Id);
+        await module.InvokeBradixVoidAsync("registerSelectContentKeyboard", cancellationToken, content, dotNetReference, content.Id);
     }
 
     public async ValueTask UnregisterSelectContentKeyboard(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterSelectContentKeyboard", cancellationToken, content, content.Id);
+        await module.InvokeBradixVoidAsync("unregisterSelectContentKeyboard", cancellationToken, content, content.Id);
     }
 
     public async ValueTask ScrollSelectViewportByItem(ElementReference viewport, ElementReference item, bool upward, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("scrollSelectViewportByItem", cancellationToken, viewport, item, upward);
+        await module.InvokeBradixVoidAsync("scrollSelectViewportByItem", cancellationToken, viewport, item, upward);
     }
 
     public async ValueTask StartSelectAutoScroll(ElementReference viewport, ElementReference item, bool upward, long generation, CancellationToken cancellationToken = default)
     {
         var module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("startSelectAutoScroll", cancellationToken, viewport, item, upward, generation);
+        await module.InvokeBradixVoidAsync("startSelectAutoScroll", cancellationToken, viewport, item, upward, generation);
     }
 
     public async ValueTask StopSelectAutoScroll(ElementReference viewport, long generation)
     {
         var module = await _moduleImportUtil.GetContentModuleReference(_modulePath);
-        await module.InvokeVoidAsync("stopSelectAutoScroll", viewport, generation);
+        await module.InvokeBradixVoidAsync("stopSelectAutoScroll", viewport, generation);
     }
 
     public async ValueTask RegisterSelectContentPointerTracker(ElementReference content, DotNetObjectReference<object> dotNetReference, double pageX, double pageY,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerSelectContentPointerTracker", cancellationToken, content, dotNetReference, pageX, pageY, content.Id);
+        await module.InvokeBradixVoidAsync("registerSelectContentPointerTracker", cancellationToken, content, dotNetReference, pageX, pageY, content.Id);
     }
 
     public async ValueTask UnregisterSelectContentPointerTracker(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterSelectContentPointerTracker", cancellationToken, content, content.Id);
+        await module.InvokeBradixVoidAsync("unregisterSelectContentPointerTracker", cancellationToken, content, content.Id);
     }
 
     public async ValueTask RegisterSelectWindowDismiss(ElementReference content, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerSelectWindowDismiss", cancellationToken, content, dotNetReference, content.Id);
+        await module.InvokeBradixVoidAsync("registerSelectWindowDismiss", cancellationToken, content, dotNetReference, content.Id);
     }
 
     public async ValueTask UnregisterSelectWindowDismiss(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterSelectWindowDismiss", cancellationToken, content, content.Id);
+        await module.InvokeBradixVoidAsync("unregisterSelectWindowDismiss", cancellationToken, content, content.Id);
     }
 
     public async ValueTask<string?> GetSelectOptionValueAtPoint(double clientX, double clientY, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeAsync<string?>("getSelectOptionValueAtPoint", cancellationToken, clientX, clientY);
+        return await module.InvokeBradixAsync<string?>("getSelectOptionValueAtPoint", cancellationToken, clientX, clientY);
     }
 
     /// <summary>

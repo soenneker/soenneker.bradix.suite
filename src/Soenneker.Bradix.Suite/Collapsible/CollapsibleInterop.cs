@@ -21,7 +21,7 @@ public sealed class CollapsibleInterop : ICollapsibleInterop
     public async ValueTask ObserveCollapsibleContent(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("observeCollapsibleContent", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("observeCollapsibleContent", cancellationToken, element);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -32,7 +32,7 @@ public sealed class CollapsibleInterop : ICollapsibleInterop
     public async ValueTask UnobserveCollapsibleContent(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unobserveCollapsibleContent", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unobserveCollapsibleContent", cancellationToken, element);
     }
 
     /// <summary>

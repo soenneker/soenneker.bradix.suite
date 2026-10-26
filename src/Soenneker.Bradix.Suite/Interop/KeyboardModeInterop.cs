@@ -25,7 +25,7 @@ public sealed class KeyboardModeInterop : IKeyboardModeInterop
     public async ValueTask<bool> IsKeyboardInteractionMode(CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeAsync<bool>("isKeyboardInteractionMode", cancellationToken);
+        return await module.InvokeBradixAsync<bool>("isKeyboardInteractionMode", cancellationToken);
     }
 
     /// <summary>

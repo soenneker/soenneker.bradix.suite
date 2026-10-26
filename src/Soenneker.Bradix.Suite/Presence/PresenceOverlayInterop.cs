@@ -25,13 +25,13 @@ public sealed class PresenceOverlayInterop : IPresenceOverlayInterop
     public async ValueTask RegisterPresence(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerPresence", cancellationToken, element, dotNetReference, element.Id);
+        await module.InvokeBradixVoidAsync("registerPresence", cancellationToken, element, dotNetReference, element.Id);
     }
 
     public async ValueTask<BradixPresenceSnapshot> GetPresenceState(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var payload = await module.InvokeAsync<JsonElement?>("getPresenceState", cancellationToken, element);
+        var payload = await module.InvokeBradixAsync<JsonElement?>("getPresenceState", cancellationToken, element);
         var snapshot = BradixInteropJson.Deserialize(payload, BradixInteropJsonContext.Default.BradixPresenceSnapshot);
         return snapshot ?? new BradixPresenceSnapshot();
     }
@@ -39,61 +39,61 @@ public sealed class PresenceOverlayInterop : IPresenceOverlayInterop
     public async ValueTask UnregisterPresence(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterPresence", cancellationToken, element, element.Id);
+        await module.InvokeBradixVoidAsync("unregisterPresence", cancellationToken, element, element.Id);
     }
 
     public async ValueTask WaitForPresenceCallbacks(DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("waitForPresenceCallbacks", cancellationToken, dotNetReference);
+        await module.InvokeBradixVoidAsync("waitForPresenceCallbacks", cancellationToken, dotNetReference);
     }
 
     public async ValueTask RegisterFocusGuards(CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerFocusGuards", cancellationToken);
+        await module.InvokeBradixVoidAsync("registerFocusGuards", cancellationToken);
     }
 
     public async ValueTask UnregisterFocusGuards(CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterFocusGuards", cancellationToken);
+        await module.InvokeBradixVoidAsync("unregisterFocusGuards", cancellationToken);
     }
 
     public async ValueTask RegisterHideOthers(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerHideOthers", cancellationToken, element, element.Id);
+        await module.InvokeBradixVoidAsync("registerHideOthers", cancellationToken, element, element.Id);
     }
 
     public async ValueTask UnregisterHideOthers(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterHideOthers", cancellationToken, element, element.Id);
+        await module.InvokeBradixVoidAsync("unregisterHideOthers", cancellationToken, element, element.Id);
     }
 
     public async ValueTask RegisterRemoveScroll(bool allowPinchZoom = false, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerRemoveScroll", cancellationToken, allowPinchZoom ? BradixAttributeValues.True : BradixAttributeValues.False);
+        await module.InvokeBradixVoidAsync("registerRemoveScroll", cancellationToken, allowPinchZoom ? BradixAttributeValues.True : BradixAttributeValues.False);
     }
 
     public async ValueTask RegisterRemoveScroll(string registrationId, bool allowPinchZoom = false, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerRemoveScroll", cancellationToken, registrationId, allowPinchZoom ? BradixAttributeValues.True : BradixAttributeValues.False);
+        await module.InvokeBradixVoidAsync("registerRemoveScroll", cancellationToken, registrationId, allowPinchZoom ? BradixAttributeValues.True : BradixAttributeValues.False);
     }
 
     public async ValueTask UnregisterRemoveScroll(CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterRemoveScroll", cancellationToken);
+        await module.InvokeBradixVoidAsync("unregisterRemoveScroll", cancellationToken);
     }
 
     public async ValueTask UnregisterRemoveScroll(string registrationId, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterRemoveScroll", cancellationToken, registrationId);
+        await module.InvokeBradixVoidAsync("unregisterRemoveScroll", cancellationToken, registrationId);
     }
 
     /// <summary>

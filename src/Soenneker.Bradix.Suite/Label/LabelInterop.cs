@@ -27,13 +27,13 @@ public sealed class LabelInterop : ILabelInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerLabelTextSelectionGuard", cancellationToken, element, dotNetReference);
+        await module.InvokeBradixVoidAsync("registerLabelTextSelectionGuard", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterLabelTextSelectionGuard", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unregisterLabelTextSelectionGuard", cancellationToken, element);
     }
 
     /// <summary>

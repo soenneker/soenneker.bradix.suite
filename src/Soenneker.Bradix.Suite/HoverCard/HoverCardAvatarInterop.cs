@@ -20,7 +20,7 @@ public sealed class HoverCardAvatarInterop : IHoverCardAvatarInterop
     public async ValueTask DisableHoverCardContentTabNavigation(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("disableHoverCardContentTabNavigation", cancellationToken, content);
+        await module.InvokeBradixVoidAsync("disableHoverCardContentTabNavigation", cancellationToken, content);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -32,19 +32,19 @@ public sealed class HoverCardAvatarInterop : IHoverCardAvatarInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerHoverCardSelectionContainment", cancellationToken, content, dotNetReference);
+        await module.InvokeBradixVoidAsync("registerHoverCardSelectionContainment", cancellationToken, content, dotNetReference);
     }
 
     public async ValueTask BeginHoverCardSelectionContainment(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("beginHoverCardSelectionContainment", cancellationToken, content);
+        await module.InvokeBradixVoidAsync("beginHoverCardSelectionContainment", cancellationToken, content);
     }
 
     public async ValueTask UnregisterHoverCardSelectionContainment(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterHoverCardSelectionContainment", cancellationToken, content);
+        await module.InvokeBradixVoidAsync("unregisterHoverCardSelectionContainment", cancellationToken, content);
     }
 
     public async ValueTask DisposeAsync()

@@ -28,16 +28,16 @@
         if (_surfaceDisposed) return;
         _surfaceModule ??= await DismissableLayerInterop.Initialize();
         if (_surfaceDisposed) return;
-        if (!string.IsNullOrEmpty(_surface.Id)) await _surfaceModule.InvokeVoidAsync("unregisterDismissSurface", _surface);
+        if (!string.IsNullOrEmpty(_surface.Id)) await _surfaceModule.InvokeBradixVoidAsync("unregisterDismissSurface", _surface);
         _surface = element;
-        await _surfaceModule.InvokeVoidAsync("registerDismissSurface", element);
+        await _surfaceModule.InvokeBradixVoidAsync("registerDismissSurface", element);
     }
     public async ValueTask DisposeAsync()
     {
         _surfaceDisposed = true;
         try
         {
-            if (_surfaceModule is not null) await _surfaceModule.InvokeVoidAsync("unregisterDismissSurface", _surface);
+            if (_surfaceModule is not null) await _surfaceModule.InvokeBradixVoidAsync("unregisterDismissSurface", _surface);
         }
         catch (JSDisconnectedException) { }
     }

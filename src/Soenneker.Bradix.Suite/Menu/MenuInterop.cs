@@ -27,13 +27,13 @@ public sealed class MenuInterop : IMenuInterop
         DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeAsync<bool>("beginMenuSubmenuPointerGrace", cancellationToken, trigger, content, clientX, clientY, dotNetReference);
+        return await module.InvokeBradixAsync<bool>("beginMenuSubmenuPointerGrace", cancellationToken, trigger, content, clientX, clientY, dotNetReference);
     }
 
     public async ValueTask CancelMenuSubmenuPointerGrace(ElementReference trigger, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("cancelMenuSubmenuPointerGrace", cancellationToken, trigger);
+        await module.InvokeBradixVoidAsync("cancelMenuSubmenuPointerGrace", cancellationToken, trigger);
     }
 
     /// <summary>

@@ -27,13 +27,13 @@ public sealed class RovingFocusInterop : IRovingFocusInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("registerRovingFocusNavigationKeys", cancellationToken, element, dotNetReference, element.Id);
+        await module.InvokeBradixVoidAsync("registerRovingFocusNavigationKeys", cancellationToken, element, dotNetReference, element.Id);
     }
 
     public async ValueTask UnregisterRovingFocusNavigationKeys(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unregisterRovingFocusNavigationKeys", cancellationToken, element, element.Id);
+        await module.InvokeBradixVoidAsync("unregisterRovingFocusNavigationKeys", cancellationToken, element, element.Id);
     }
 
     /// <summary>

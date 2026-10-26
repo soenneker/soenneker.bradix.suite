@@ -27,13 +27,13 @@ public sealed class PortalInterop : IPortalInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("mountPortal", cancellationToken, element, containerSelector, container);
+        await module.InvokeBradixVoidAsync("mountPortal", cancellationToken, element, containerSelector, container);
     }
 
     public async ValueTask UnmountPortal(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unmountPortal", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unmountPortal", cancellationToken, element);
     }
 
     /// <summary>

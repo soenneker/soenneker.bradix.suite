@@ -25,26 +25,26 @@ public sealed class DomInterop : IDomInterop
     public async ValueTask<string> ObserveTextContent(ElementReference element, object receiver, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeAsync<string>("observeTextContent", cancellationToken, element, receiver) ?? string.Empty;
+        return await module.InvokeBradixAsync<string>("observeTextContent", cancellationToken, element, receiver) ?? string.Empty;
     }
 
     public async ValueTask UnobserveTextContent(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeVoidAsync("unobserveTextContent", cancellationToken, element);
+        await module.InvokeBradixVoidAsync("unobserveTextContent", cancellationToken, element);
     }
 
     public async ValueTask<string> GetTextContent(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var textContent = await module.InvokeAsync<string>("getTextContent", cancellationToken, element);
+        var textContent = await module.InvokeBradixAsync<string>("getTextContent", cancellationToken, element);
         return textContent ?? string.Empty;
     }
 
     public async ValueTask<string> GetTextContentExcluding(ElementReference element, string excludeSelector, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var textContent = await module.InvokeAsync<string>("getTextContentExcluding", cancellationToken, element, excludeSelector);
+        var textContent = await module.InvokeBradixAsync<string>("getTextContentExcluding", cancellationToken, element, excludeSelector);
         return textContent ?? string.Empty;
     }
 
