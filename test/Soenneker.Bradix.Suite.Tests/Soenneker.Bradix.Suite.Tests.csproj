@@ -30,7 +30,7 @@
         <PackageReference Include="Microsoft.JSInterop" Version="11.0.0-rc.3.26522.148" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Utils.Test" Version="11.0.343" />
+        <PackageReference Include="Soenneker.Utils.Test" Version="11.0.344" />
         <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="11.0.365" />
     </ItemGroup>
   <ItemGroup>
