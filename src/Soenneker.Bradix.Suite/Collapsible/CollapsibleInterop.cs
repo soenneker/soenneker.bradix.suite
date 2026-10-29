@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -21,7 +22,7 @@ public sealed class CollapsibleInterop : ICollapsibleInterop
     public async ValueTask ObserveCollapsibleContent(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("observeCollapsibleContent", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("observeCollapsibleContent", cancellationToken, element);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -32,7 +33,7 @@ public sealed class CollapsibleInterop : ICollapsibleInterop
     public async ValueTask UnobserveCollapsibleContent(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unobserveCollapsibleContent", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unobserveCollapsibleContent", cancellationToken, element);
     }
 
     /// <summary>

@@ -62,4 +62,7 @@
         <ProjectReference Include="$(LocalLeptonProject)" AdditionalProperties="BUILD_VERSION=$(LeptonSuiteVersion)" />
         <ProjectReference Include="..\..\..\..\Lepton\soenneker.lepton.suite\src\Soenneker.Lepton.Gen.Parameters\Soenneker.Lepton.Gen.Parameters.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Soenneker.Blazor.Extensions.IJSObjectReferences" Version="11.0.2" />
+    </ItemGroup>
 </Project>

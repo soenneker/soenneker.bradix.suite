@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -27,13 +28,13 @@ public sealed class PortalInterop : IPortalInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("mountPortal", cancellationToken, element, containerSelector, container);
+        await module.InvokeVoidWithContextAsync("mountPortal", cancellationToken, element, containerSelector, container);
     }
 
     public async ValueTask UnmountPortal(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unmountPortal", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unmountPortal", cancellationToken, element);
     }
 
     /// <summary>

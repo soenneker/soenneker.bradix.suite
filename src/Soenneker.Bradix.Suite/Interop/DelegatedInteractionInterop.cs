@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -22,7 +23,7 @@ public sealed class DelegatedInteractionInterop : IDelegatedInteractionInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerDelegatedInteraction", cancellationToken, element, dotNetReference, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixDelegatedInteractionOptions), element.Id);
+        await module.InvokeVoidWithContextAsync("registerDelegatedInteraction", cancellationToken, element, dotNetReference, JsonSerializer.SerializeToElement(options, BradixInteropJsonContext.Default.BradixDelegatedInteractionOptions), element.Id);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -33,7 +34,7 @@ public sealed class DelegatedInteractionInterop : IDelegatedInteractionInterop
     public async ValueTask UnregisterDelegatedInteraction(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterDelegatedInteraction", cancellationToken, element, element.Id);
+        await module.InvokeVoidWithContextAsync("unregisterDelegatedInteraction", cancellationToken, element, element.Id);
     }
 
     /// <summary>

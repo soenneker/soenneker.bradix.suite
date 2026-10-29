@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -25,26 +26,26 @@ public sealed class DomInterop : IDomInterop
     public async ValueTask<string> ObserveTextContent(ElementReference element, object receiver, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeBradixAsync<string>("observeTextContent", cancellationToken, element, receiver) ?? string.Empty;
+        return await module.InvokeWithContextAsync<string>("observeTextContent", cancellationToken, element, receiver) ?? string.Empty;
     }
 
     public async ValueTask UnobserveTextContent(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unobserveTextContent", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unobserveTextContent", cancellationToken, element);
     }
 
     public async ValueTask<string> GetTextContent(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var textContent = await module.InvokeBradixAsync<string>("getTextContent", cancellationToken, element);
+        var textContent = await module.InvokeWithContextAsync<string>("getTextContent", cancellationToken, element);
         return textContent ?? string.Empty;
     }
 
     public async ValueTask<string> GetTextContentExcluding(ElementReference element, string excludeSelector, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var textContent = await module.InvokeBradixAsync<string>("getTextContentExcluding", cancellationToken, element, excludeSelector);
+        var textContent = await module.InvokeWithContextAsync<string>("getTextContentExcluding", cancellationToken, element, excludeSelector);
         return textContent ?? string.Empty;
     }
 

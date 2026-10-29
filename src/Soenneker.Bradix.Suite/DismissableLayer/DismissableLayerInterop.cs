@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -20,7 +21,7 @@ public sealed class DismissableLayerInterop : IDismissableLayerInterop
     public async ValueTask RegisterDismissableLayer(ElementReference element, object dotNetReference, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerDismissableLayer", cancellationToken, element, dotNetReference, (disableOutsidePointerEvents ? BradixAttributeValues.True : BradixAttributeValues.False), element.Id);
+        await module.InvokeVoidWithContextAsync("registerDismissableLayer", cancellationToken, element, dotNetReference, (disableOutsidePointerEvents ? BradixAttributeValues.True : BradixAttributeValues.False), element.Id);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -31,25 +32,25 @@ public sealed class DismissableLayerInterop : IDismissableLayerInterop
     public async ValueTask UpdateDismissableLayer(ElementReference element, bool disableOutsidePointerEvents, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("updateDismissableLayer", cancellationToken, element, (disableOutsidePointerEvents ? BradixAttributeValues.True : BradixAttributeValues.False));
+        await module.InvokeVoidWithContextAsync("updateDismissableLayer", cancellationToken, element, (disableOutsidePointerEvents ? BradixAttributeValues.True : BradixAttributeValues.False));
     }
 
     public async ValueTask UnregisterDismissableLayer(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterDismissableLayer", cancellationToken, element, element.Id);
+        await module.InvokeVoidWithContextAsync("unregisterDismissableLayer", cancellationToken, element, element.Id);
     }
 
     public async ValueTask RegisterDismissableLayerBranch(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerDismissableLayerBranch", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("registerDismissableLayerBranch", cancellationToken, element);
     }
 
     public async ValueTask UnregisterDismissableLayerBranch(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterDismissableLayerBranch", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterDismissableLayerBranch", cancellationToken, element);
     }
 
     /// <summary>

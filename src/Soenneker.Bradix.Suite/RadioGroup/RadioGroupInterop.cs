@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -26,13 +27,13 @@ public sealed class RadioGroupInterop : IRadioGroupInterop
     public async ValueTask RegisterRadioGroupItemKeys(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerRadioGroupItemKeys", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("registerRadioGroupItemKeys", cancellationToken, element);
     }
 
     public async ValueTask UnregisterRadioGroupItemKeys(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterRadioGroupItemKeys", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterRadioGroupItemKeys", cancellationToken, element);
     }
 
     /// <summary>

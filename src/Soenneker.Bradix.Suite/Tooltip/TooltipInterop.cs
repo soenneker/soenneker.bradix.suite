@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -26,32 +27,32 @@ public sealed class TooltipInterop : ITooltipInterop
     public async ValueTask RegisterTooltipTrigger(ElementReference element, object dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerTooltipTrigger", cancellationToken, element, dotNetReference);
+        await module.InvokeVoidWithContextAsync("registerTooltipTrigger", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterTooltipTrigger(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterTooltipTrigger", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterTooltipTrigger", cancellationToken, element);
     }
 
     public async ValueTask RegisterTooltipContent(ElementReference content, ElementReference trigger, object dotNetReference, string contentId,
         bool hoverableContent, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerTooltipContent", cancellationToken, content, trigger, dotNetReference, contentId, hoverableContent ? BradixAttributeValues.True : BradixAttributeValues.False);
+        await module.InvokeVoidWithContextAsync("registerTooltipContent", cancellationToken, content, trigger, dotNetReference, contentId, hoverableContent ? BradixAttributeValues.True : BradixAttributeValues.False);
     }
 
     public async ValueTask UnregisterTooltipContent(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterTooltipContent", cancellationToken, content);
+        await module.InvokeVoidWithContextAsync("unregisterTooltipContent", cancellationToken, content);
     }
 
     public async ValueTask DispatchTooltipOpen(string contentId, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("dispatchTooltipOpen", cancellationToken, contentId);
+        await module.InvokeVoidWithContextAsync("dispatchTooltipOpen", cancellationToken, contentId);
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -25,7 +26,7 @@ public sealed class KeyboardModeInterop : IKeyboardModeInterop
     public async ValueTask<bool> IsKeyboardInteractionMode(CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeBradixAsync<bool>("isKeyboardInteractionMode", cancellationToken);
+        return await module.InvokeWithContextAsync<bool>("isKeyboardInteractionMode", cancellationToken);
     }
 
     /// <summary>

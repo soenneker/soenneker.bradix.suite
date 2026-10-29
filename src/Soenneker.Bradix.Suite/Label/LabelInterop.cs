@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -27,13 +28,13 @@ public sealed class LabelInterop : ILabelInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerLabelTextSelectionGuard", cancellationToken, element, dotNetReference);
+        await module.InvokeVoidWithContextAsync("registerLabelTextSelectionGuard", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterLabelTextSelectionGuard(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterLabelTextSelectionGuard", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterLabelTextSelectionGuard", cancellationToken, element);
     }
 
     /// <summary>

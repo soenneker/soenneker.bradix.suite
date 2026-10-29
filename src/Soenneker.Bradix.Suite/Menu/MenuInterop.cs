@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -27,13 +28,13 @@ public sealed class MenuInterop : IMenuInterop
         DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeBradixAsync<bool>("beginMenuSubmenuPointerGrace", cancellationToken, trigger, content, clientX, clientY, dotNetReference);
+        return await module.InvokeWithContextAsync<bool>("beginMenuSubmenuPointerGrace", cancellationToken, trigger, content, clientX, clientY, dotNetReference);
     }
 
     public async ValueTask CancelMenuSubmenuPointerGrace(ElementReference trigger, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("cancelMenuSubmenuPointerGrace", cancellationToken, trigger);
+        await module.InvokeVoidWithContextAsync("cancelMenuSubmenuPointerGrace", cancellationToken, trigger);
     }
 
     /// <summary>

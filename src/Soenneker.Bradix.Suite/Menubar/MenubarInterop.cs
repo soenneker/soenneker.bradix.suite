@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -27,13 +28,13 @@ public sealed class MenubarInterop : IMenubarInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerMenubarDocumentDismiss", cancellationToken, element, dotNetReference, menubarId);
+        await module.InvokeVoidWithContextAsync("registerMenubarDocumentDismiss", cancellationToken, element, dotNetReference, menubarId);
     }
 
     public async ValueTask UnregisterMenubarDocumentDismiss(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterMenubarDocumentDismiss", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterMenubarDocumentDismiss", cancellationToken, element);
     }
 
     /// <summary>

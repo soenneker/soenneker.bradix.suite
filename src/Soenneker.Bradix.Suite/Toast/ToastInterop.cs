@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -29,26 +30,26 @@ public sealed class ToastInterop : IToastInterop
         IReadOnlyList<string> hotkey, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerToastViewport", cancellationToken, wrapper, viewport, headProxy, tailProxy, JsonSerializer.SerializeToElement(hotkey, BradixInteropJsonContext.Default.IReadOnlyListString), dotNetReference)
+        await module.InvokeVoidWithContextAsync("registerToastViewport", cancellationToken, wrapper, viewport, headProxy, tailProxy, JsonSerializer.SerializeToElement(hotkey, BradixInteropJsonContext.Default.IReadOnlyListString), dotNetReference)
             ;
     }
 
     public async ValueTask UnregisterToastViewport(ElementReference viewport, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterToastViewport", cancellationToken, viewport);
+        await module.InvokeVoidWithContextAsync("unregisterToastViewport", cancellationToken, viewport);
     }
 
     public async ValueTask<bool> IsToastFocused(ElementReference toast, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeBradixAsync<bool>("isToastFocused", cancellationToken, toast);
+        return await module.InvokeWithContextAsync<bool>("isToastFocused", cancellationToken, toast);
     }
 
     public async ValueTask<string[]> GetToastAnnounceText(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        var payload = await module.InvokeBradixAsync<JsonElement?>("getToastAnnounceText", cancellationToken, element);
+        var payload = await module.InvokeWithContextAsync<JsonElement?>("getToastAnnounceText", cancellationToken, element);
         string[]? textContent = BradixInteropJson.Deserialize(payload, BradixInteropJsonContext.Default.StringArray);
         return textContent ?? [];
     }

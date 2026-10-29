@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -27,20 +28,20 @@ public sealed class NavigationMenuInterop : INavigationMenuInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerNavigationMenuTriggerInteraction", cancellationToken, element, dotNetReference);
+        await module.InvokeVoidWithContextAsync("registerNavigationMenuTriggerInteraction", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterNavigationMenuTriggerInteraction(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterNavigationMenuTriggerInteraction", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterNavigationMenuTriggerInteraction", cancellationToken, element);
     }
 
     public async ValueTask RegisterNavigationMenuIndicator(ElementReference indicator, ElementReference activeTrigger, ElementReference track,
         object dotNetReference, string orientation, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, track, dotNetReference, orientation)
+        await module.InvokeVoidWithContextAsync("registerNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, track, dotNetReference, orientation)
             ;
     }
 
@@ -48,58 +49,58 @@ public sealed class NavigationMenuInterop : INavigationMenuInterop
         string orientation, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("updateNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, track, orientation);
+        await module.InvokeVoidWithContextAsync("updateNavigationMenuIndicator", cancellationToken, indicator, activeTrigger, track, orientation);
     }
 
     public async ValueTask UnregisterNavigationMenuIndicator(ElementReference indicator, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterNavigationMenuIndicator", cancellationToken, indicator);
+        await module.InvokeVoidWithContextAsync("unregisterNavigationMenuIndicator", cancellationToken, indicator);
     }
 
     public async ValueTask RegisterNavigationMenuContentFocusBridge(ElementReference content, ElementReference trigger, ElementReference startProxy,
         ElementReference endProxy, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerNavigationMenuContentFocusBridge", cancellationToken, content, trigger, startProxy, endProxy);
+        await module.InvokeVoidWithContextAsync("registerNavigationMenuContentFocusBridge", cancellationToken, content, trigger, startProxy, endProxy);
     }
 
     public async ValueTask UpdateNavigationMenuContentFocusBridge(ElementReference content, ElementReference trigger, ElementReference startProxy,
         ElementReference endProxy, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("updateNavigationMenuContentFocusBridge", cancellationToken, content, trigger, startProxy, endProxy);
+        await module.InvokeVoidWithContextAsync("updateNavigationMenuContentFocusBridge", cancellationToken, content, trigger, startProxy, endProxy);
     }
 
     public async ValueTask<bool> FocusNavigationMenuContent(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeBradixAsync<bool>("focusNavigationMenuContent", cancellationToken, content);
+        return await module.InvokeWithContextAsync<bool>("focusNavigationMenuContent", cancellationToken, content);
     }
 
     public async ValueTask UnregisterNavigationMenuContentFocusBridge(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterNavigationMenuContentFocusBridge", cancellationToken, content);
+        await module.InvokeVoidWithContextAsync("unregisterNavigationMenuContentFocusBridge", cancellationToken, content);
     }
 
     public async ValueTask RegisterNavigationMenuViewport(ElementReference viewport, ElementReference content, object dotNetReference,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerNavigationMenuViewport", cancellationToken, viewport, content, dotNetReference);
+        await module.InvokeVoidWithContextAsync("registerNavigationMenuViewport", cancellationToken, viewport, content, dotNetReference);
     }
 
     public async ValueTask UpdateNavigationMenuViewport(ElementReference viewport, ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("updateNavigationMenuViewport", cancellationToken, viewport, content);
+        await module.InvokeVoidWithContextAsync("updateNavigationMenuViewport", cancellationToken, viewport, content);
     }
 
     public async ValueTask UnregisterNavigationMenuViewport(ElementReference viewport, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterNavigationMenuViewport", cancellationToken, viewport);
+        await module.InvokeVoidWithContextAsync("unregisterNavigationMenuViewport", cancellationToken, viewport);
     }
 
     /// <summary>

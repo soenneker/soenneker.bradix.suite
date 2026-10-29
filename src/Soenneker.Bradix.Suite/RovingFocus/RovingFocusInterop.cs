@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -27,13 +28,13 @@ public sealed class RovingFocusInterop : IRovingFocusInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerRovingFocusNavigationKeys", cancellationToken, element, dotNetReference, element.Id);
+        await module.InvokeVoidWithContextAsync("registerRovingFocusNavigationKeys", cancellationToken, element, dotNetReference, element.Id);
     }
 
     public async ValueTask UnregisterRovingFocusNavigationKeys(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterRovingFocusNavigationKeys", cancellationToken, element, element.Id);
+        await module.InvokeVoidWithContextAsync("unregisterRovingFocusNavigationKeys", cancellationToken, element, element.Id);
     }
 
     /// <summary>

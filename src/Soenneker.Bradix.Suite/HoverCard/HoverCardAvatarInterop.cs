@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -20,7 +21,7 @@ public sealed class HoverCardAvatarInterop : IHoverCardAvatarInterop
     public async ValueTask DisableHoverCardContentTabNavigation(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("disableHoverCardContentTabNavigation", cancellationToken, content);
+        await module.InvokeVoidWithContextAsync("disableHoverCardContentTabNavigation", cancellationToken, content);
     }
 
     public ValueTask<IJSObjectReference> Initialize(CancellationToken cancellationToken = default)
@@ -32,19 +33,19 @@ public sealed class HoverCardAvatarInterop : IHoverCardAvatarInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerHoverCardSelectionContainment", cancellationToken, content, dotNetReference);
+        await module.InvokeVoidWithContextAsync("registerHoverCardSelectionContainment", cancellationToken, content, dotNetReference);
     }
 
     public async ValueTask BeginHoverCardSelectionContainment(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("beginHoverCardSelectionContainment", cancellationToken, content);
+        await module.InvokeVoidWithContextAsync("beginHoverCardSelectionContainment", cancellationToken, content);
     }
 
     public async ValueTask UnregisterHoverCardSelectionContainment(ElementReference content, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterHoverCardSelectionContainment", cancellationToken, content);
+        await module.InvokeVoidWithContextAsync("unregisterHoverCardSelectionContainment", cancellationToken, content);
     }
 
     public async ValueTask DisposeAsync()

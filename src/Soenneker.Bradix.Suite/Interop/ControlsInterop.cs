@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Bradix;
@@ -22,7 +23,7 @@ public sealed class ControlsInterop : IControlsInterop
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("syncCheckboxBubbleInputState", cancellationToken, element, (isChecked ? BradixAttributeValues.True : BradixAttributeValues.False), (isIndeterminate ? BradixAttributeValues.True : BradixAttributeValues.False), (dispatchEvent ? BradixAttributeValues.True : BradixAttributeValues.False), (bubbles ? BradixAttributeValues.True : BradixAttributeValues.False))
+        await module.InvokeVoidWithContextAsync("syncCheckboxBubbleInputState", cancellationToken, element, (isChecked ? BradixAttributeValues.True : BradixAttributeValues.False), (isIndeterminate ? BradixAttributeValues.True : BradixAttributeValues.False), (dispatchEvent ? BradixAttributeValues.True : BradixAttributeValues.False), (bubbles ? BradixAttributeValues.True : BradixAttributeValues.False))
             ;
     }
 
@@ -34,98 +35,98 @@ public sealed class ControlsInterop : IControlsInterop
     public async ValueTask ClickElement(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("clickElement", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("clickElement", cancellationToken, element);
     }
 
     public async ValueTask RegisterContextMenuKeyboard(ElementReference element, DotNetObjectReference<object>? dotNetReference = null, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerContextMenuKeyboard", cancellationToken, element, dotNetReference);
+        await module.InvokeVoidWithContextAsync("registerContextMenuKeyboard", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterContextMenuKeyboard(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterContextMenuKeyboard", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterContextMenuKeyboard", cancellationToken, element);
     }
 
     public async ValueTask FocusElementDeferred(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("focusElementDeferred", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("focusElementDeferred", cancellationToken, element);
     }
 
     public async ValueTask SelectInputText(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("selectInputText", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("selectInputText", cancellationToken, element);
     }
 
     public async ValueTask SyncInputValue(ElementReference element, string? value, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("syncInputValue", cancellationToken, element, value);
+        await module.InvokeVoidWithContextAsync("syncInputValue", cancellationToken, element, value);
     }
 
     public async ValueTask<bool> IsDirectionRtl(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeBradixAsync<bool>("isDirectionRtl", cancellationToken, element);
+        return await module.InvokeWithContextAsync<bool>("isDirectionRtl", cancellationToken, element);
     }
 
     public async ValueTask RegisterSliderPointerBridge(ElementReference element, DotNetObjectReference<object> dotNetReference, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerSliderPointerBridge", cancellationToken, element, dotNetReference);
+        await module.InvokeVoidWithContextAsync("registerSliderPointerBridge", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterSliderPointerBridge(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterSliderPointerBridge", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterSliderPointerBridge", cancellationToken, element);
     }
 
     public async ValueTask SyncSliderBubbleInputValue(ElementReference element, double value, bool dispatchEvent, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("syncSliderBubbleInputValue", cancellationToken, element, value, (dispatchEvent ? BradixAttributeValues.True : BradixAttributeValues.False));
+        await module.InvokeVoidWithContextAsync("syncSliderBubbleInputValue", cancellationToken, element, value, (dispatchEvent ? BradixAttributeValues.True : BradixAttributeValues.False));
     }
 
     public async ValueTask RegisterSelectBubbleInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerSelectBubbleInput", cancellationToken, element, dotNetReference);
+        await module.InvokeVoidWithContextAsync("registerSelectBubbleInput", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterSelectBubbleInput(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterSelectBubbleInput", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterSelectBubbleInput", cancellationToken, element);
     }
 
     public async ValueTask SyncSelectBubbleInputValue(ElementReference element, string? value, bool dispatchEvent, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("syncSelectBubbleInputValue", cancellationToken, element, value, (dispatchEvent ? BradixAttributeValues.True : BradixAttributeValues.False));
+        await module.InvokeVoidWithContextAsync("syncSelectBubbleInputValue", cancellationToken, element, value, (dispatchEvent ? BradixAttributeValues.True : BradixAttributeValues.False));
     }
 
     public async ValueTask CapturePointer(ElementReference element, long pointerId, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("capturePointer", cancellationToken, element, pointerId);
+        await module.InvokeVoidWithContextAsync("capturePointer", cancellationToken, element, pointerId);
     }
 
     public async ValueTask ReleasePointer(ElementReference element, long pointerId, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("releasePointer", cancellationToken, element, pointerId);
+        await module.InvokeVoidWithContextAsync("releasePointer", cancellationToken, element, pointerId);
     }
 
     public async ValueTask SuppressNextClick(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("suppressNextClick", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("suppressNextClick", cancellationToken, element);
     }
 
     public async ValueTask FocusElementById(string? elementId, CancellationToken cancellationToken = default)
@@ -134,7 +135,7 @@ public sealed class ControlsInterop : IControlsInterop
             return;
 
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("focusElementById", cancellationToken, elementId);
+        await module.InvokeVoidWithContextAsync("focusElementById", cancellationToken, elementId);
     }
 
     public async ValueTask FocusElementByIdDeferred(string? elementId, CancellationToken cancellationToken = default)
@@ -143,38 +144,38 @@ public sealed class ControlsInterop : IControlsInterop
             return;
 
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("focusElementByIdDeferred", cancellationToken, elementId);
+        await module.InvokeVoidWithContextAsync("focusElementByIdDeferred", cancellationToken, elementId);
     }
 
     public async ValueTask FocusElementPreventScroll(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("focusElementPreventScroll", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("focusElementPreventScroll", cancellationToken, element);
     }
 
     public async ValueTask<bool> FocusFirstMatchingDescendant(ElementReference element, string selector, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        return await module.InvokeBradixAsync<bool>("focusFirstMatchingDescendant", cancellationToken, element, selector);
+        return await module.InvokeWithContextAsync<bool>("focusFirstMatchingDescendant", cancellationToken, element, selector);
     }
 
     public async ValueTask ScrollElementIntoViewNearest(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("scrollElementIntoViewNearest", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("scrollElementIntoViewNearest", cancellationToken, element);
     }
 
     public async ValueTask RegisterOneTimePasswordInput(ElementReference element, DotNetObjectReference<object> dotNetReference,
         CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("registerOneTimePasswordInput", cancellationToken, element, dotNetReference);
+        await module.InvokeVoidWithContextAsync("registerOneTimePasswordInput", cancellationToken, element, dotNetReference);
     }
 
     public async ValueTask UnregisterOneTimePasswordInput(ElementReference element, CancellationToken cancellationToken = default)
     {
         IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
-        await module.InvokeBradixVoidAsync("unregisterOneTimePasswordInput", cancellationToken, element);
+        await module.InvokeVoidWithContextAsync("unregisterOneTimePasswordInput", cancellationToken, element);
     }
 
     /// <summary>
