@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +22,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
         await Assert.That(register.Invocations.Count).IsEqualTo(1);
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         register.SetVoidResult();
-        await cut.WaitForAssertionAsync(async () => await Assert.That(unregister.Invocations.Count).IsEqualTo(1));
+        await WaitForCleanupAsync(unregister, cancellationToken);
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         await Assert.That(unregister.Invocations.Count).IsEqualTo(1);
     }
@@ -37,7 +39,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
         await Assert.That(register.Invocations.Count).IsEqualTo(1);
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         register.SetVoidResult();
-        await cut.WaitForAssertionAsync(async () => await Assert.That(unregister.Invocations.Count).IsEqualTo(1));
+        await WaitForCleanupAsync(unregister, cancellationToken);
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         await Assert.That(unregister.Invocations.Count).IsEqualTo(1);
     }
@@ -54,7 +56,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
         await Assert.That(register.Invocations.Count).IsEqualTo(1);
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         register.SetVoidResult();
-        await cut.WaitForAssertionAsync(async () => await Assert.That(unregister.Invocations.Count).IsEqualTo(1));
+        await WaitForCleanupAsync(unregister, cancellationToken);
     }
 
     [Test]
@@ -69,7 +71,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
         await Assert.That(register.Invocations.Count).IsEqualTo(1);
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         register.SetVoidResult();
-        await cut.WaitForAssertionAsync(async () => await Assert.That(unregister.Invocations.Count).IsEqualTo(1));
+        await WaitForCleanupAsync(unregister, cancellationToken);
     }
 
     [Test]
@@ -91,7 +93,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
         var viewport = cut.FindComponent<BradixScrollAreaViewport>();
         await viewport.InvokeAsync(async () => await viewport.Instance.DisposeAsync());
         register.SetVoidResult();
-        await cut.WaitForAssertionAsync(async () => await Assert.That(unregister.Invocations.Count).IsEqualTo(1));
+        await WaitForCleanupAsync(unregister, cancellationToken);
     }
 
     [Test]
@@ -118,7 +120,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
         var scrollbar = cut.FindComponent<BradixScrollAreaScrollbar>();
         await scrollbar.InvokeAsync(async () => await scrollbar.Instance.DisposeAsync());
         register.SetVoidResult();
-        await cut.WaitForAssertionAsync(async () => await Assert.That(unregister.Invocations.Count).IsEqualTo(1));
+        await WaitForCleanupAsync(unregister, cancellationToken);
     }
 
     [Test]
@@ -132,7 +134,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
         var cut = Render<BradixPortal>();
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         mount.SetVoidResult();
-        await cut.WaitForAssertionAsync(async () => await Assert.That(unmount.Invocations.Count).IsEqualTo(1));
+        await WaitForCleanupAsync(unmount, cancellationToken);
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         await Assert.That(unmount.Invocations.Count).IsEqualTo(1);
     }
@@ -148,7 +150,7 @@ public sealed class BradixPendingRegistrationTests : BunitContext
         var cut = Render<BradixFocusGuards>();
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         register.SetVoidResult();
-        await cut.WaitForAssertionAsync(async () => await Assert.That(unregister.Invocations.Count).IsEqualTo(1));
+        await WaitForCleanupAsync(unregister, cancellationToken);
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         await Assert.That(unregister.Invocations.Count).IsEqualTo(1);
     }
@@ -164,8 +166,18 @@ public sealed class BradixPendingRegistrationTests : BunitContext
         var cut = Render<BradixDismissableLayerBranch>();
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         register.SetVoidResult();
-        await cut.WaitForAssertionAsync(async () => await Assert.That(unregister.Invocations.Count).IsEqualTo(1));
+        await WaitForCleanupAsync(unregister, cancellationToken);
         await cut.InvokeAsync(async () => await cut.Instance.DisposeAsync());
         await Assert.That(unregister.Invocations.Count).IsEqualTo(1);
+    }
+
+    private static async Task WaitForCleanupAsync(JSRuntimeInvocationHandler cleanup, CancellationToken cancellationToken)
+    {
+        // Cleanup after disposal does not trigger renders, so bUnit's render-based waits cannot observe it reliably.
+        var stopwatch = Stopwatch.StartNew();
+        while (cleanup.Invocations.Count == 0 && stopwatch.Elapsed < TimeSpan.FromSeconds(5))
+            await Task.Delay(10, cancellationToken);
+
+        await Assert.That(cleanup.Invocations.Count).IsEqualTo(1);
     }
 }
