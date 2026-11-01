@@ -39,5 +39,8 @@
     <ItemGroup Condition="'$(UseLocalLeptonProject)' == 'true'">
         <ProjectReference Include="..\..\..\..\Lepton\soenneker.lepton.suite\src\Soenneker.Lepton.Gen.Parameters\Soenneker.Lepton.Gen.Parameters.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Soenneker.Node.Util" Version="11.0.396" />
+    </ItemGroup>
 </Project>
 
