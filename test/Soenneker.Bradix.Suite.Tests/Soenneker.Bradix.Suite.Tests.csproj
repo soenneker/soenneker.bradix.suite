@@ -27,14 +27,12 @@
         <ProjectReference Include="..\..\src\Soenneker.Bradix.Suite\Soenneker.Bradix.Suite.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.JSInterop" Version="11.0.0-rc.3.26522.148" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Soenneker.Utils.Test" Version="11.0.345" />
         <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="11.0.365" />
     </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Soenneker.Utils.File" Version="11.0.2329" />
   </ItemGroup>
     <ItemGroup Condition="'$(UseLocalLeptonProject)' == 'true'">
         <ProjectReference Include="..\..\..\..\Lepton\soenneker.lepton.suite\src\Soenneker.Lepton.Gen.Parameters\Soenneker.Lepton.Gen.Parameters.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />

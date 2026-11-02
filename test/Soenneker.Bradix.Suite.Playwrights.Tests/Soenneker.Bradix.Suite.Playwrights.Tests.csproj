@@ -27,6 +27,5 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
-        <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.133" />
     </ItemGroup>
 </Project>
