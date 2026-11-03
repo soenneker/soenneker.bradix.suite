@@ -41,8 +41,8 @@
         <PackageReference Include="Soenneker.Quark.Suite" Version="11.0.1663" Condition="'$(UseLocalQuarkProject)' != 'true'" />
         <ProjectReference Include="$(LocalQuarkProject)" Condition="'$(UseLocalQuarkProject)' == 'true'" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="11.0.330" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="11.0.310" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="11.0.306" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="11.0.311" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="11.0.307" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
@@ -64,6 +64,6 @@
         </ItemGroup>
     </Target>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Utils.AutoBogus" Version="11.0.1000" />
+        <PackageReference Include="Soenneker.Utils.AutoBogus" Version="11.0.1001" />
     </ItemGroup>
 </Project>
