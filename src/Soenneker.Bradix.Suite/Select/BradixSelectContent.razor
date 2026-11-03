@@ -602,8 +602,26 @@ else
             await PresenceOverlayInterop.UnregisterHideOthers(_contentElement);
         }
 
-        await Select.FocusTrigger();
+        if (_tabBackward is bool backward)
+        {
+            _tabBackward = null;
+            await SelectInterop.FocusSelectTabTarget(Select.TriggerElement, backward);
+        }
+        else
+            await Select.FocusTrigger();
         args.PreventDefault();
+    }
+
+    private bool? _tabBackward;
+
+    [JSInvokable]
+    public async Task HandleContentTab(string? value, bool backward)
+    {
+        if (Select?.CurrentOpen != true)
+            return;
+
+        _tabBackward = backward;
+        await Select.CommitTabSelection(value);
     }
 
     private Task HandleDismiss()

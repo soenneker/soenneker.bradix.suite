@@ -117,4 +117,8 @@ public interface IBradixSelectContent : IAsyncDisposable {
     /// <param name="args">Command-line arguments passed to the application.</param>
     /// <returns>A task that completes when the handle delegated content key down operation is complete.</returns>
     Task HandleDelegatedContentKeyDown(BradixDelegatedKeyboardEvent args);
+    /// <summary>Commits the enabled option identified by the browser and closes before moving focus in the requested tab direction.</summary>
+    /// <param name="value">The focused option value, or null when no enabled option exists.</param>
+    /// <param name="backward">Whether Shift+Tab moves focus to the previous control.</param>
+    Task HandleContentTab(string? value, bool backward);
 }

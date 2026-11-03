@@ -131,4 +131,9 @@ public sealed class SelectInterop : ISelectInterop
     {
         await _moduleImportUtil.DisposeContentModule(_modulePath);
     }
+    public async ValueTask FocusSelectTabTarget(ElementReference trigger, bool backward, CancellationToken cancellationToken = default)
+    {
+        IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        await module.InvokeVoidWithContextAsync("focusSelectTabTarget", cancellationToken, trigger, backward);
+    }
 }

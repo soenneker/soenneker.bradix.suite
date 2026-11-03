@@ -1,4 +1,5 @@
 import { cssEscape } from "./core/dom.js";
+import { getTabbableCandidates } from "./core/focus.js";
 
 const selectItemAlignedPositionElements = new Map();
 const selectWindowDismissElements = new Map();
@@ -152,8 +153,16 @@ export function registerSelectContentKeyboard(content, dotNetRef, registrationId
   });
 
   const keydown = (event) => {
-  if (event.isComposing || event.keyCode === 229) return;
-    if (event.ctrlKey || event.altKey || event.metaKey || event.key === "Tab") {
+    if (event.isComposing || event.keyCode === 229) return;
+    if (event.key === "Tab" && !event.ctrlKey && !event.altKey && !event.metaKey) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      const option = getCurrentSelectOption(content, getEnabledSelectOptions(content));
+      invokeDotNetSafely(dotNetRef, "HandleContentTab", option?.getAttribute("data-value") ?? null, !!event.shiftKey);
+      return;
+    }
+    if (event.ctrlKey || event.altKey || event.metaKey) {
       return;
     }
 
@@ -806,4 +815,14 @@ function positionSelectItemAligned(wrapper, content, viewport, trigger, valueNod
   wrapper.style.maxHeight = `${availableHeight}px`;
   content.style.boxSizing = "border-box";
   content.style.maxHeight = "100%";
+}
+
+export function focusSelectTabTarget(trigger, backward) {
+  if (!trigger?.isConnected) return;
+  const candidates = getTabbableCandidates(trigger.ownerDocument.body)
+    .filter(element => element.getClientRects().length > 0 && getComputedStyle(element).visibility !== "hidden")
+    .sort((a, b) => (a.tabIndex || Infinity) - (b.tabIndex || Infinity));
+  const index = candidates.indexOf(trigger);
+  const target = index < 0 ? null : candidates[index + (backward ? -1 : 1)];
+  (target || trigger).focus();
 }

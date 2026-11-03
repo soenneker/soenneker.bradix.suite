@@ -367,6 +367,14 @@
         await RequestRender();
     }
 
+    internal async Task CommitTabSelection(string? value)
+    {
+        IBradixSelectCollectionItem? item = FindEnabledItem(value);
+        if (item is not null)
+            await SetValue(item.Value);
+        await SetOpen(false);
+    }
+
     internal async Task SetOpen(bool open)
     {
         if (CurrentOpen == open)

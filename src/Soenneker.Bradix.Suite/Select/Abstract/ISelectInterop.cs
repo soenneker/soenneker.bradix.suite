@@ -159,4 +159,6 @@ public interface ISelectInterop : IAsyncDisposable
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task whose result is the text returned by get Select Option Value At Point.</returns>
     ValueTask<string?> GetSelectOptionValueAtPoint(double clientX, double clientY, CancellationToken cancellationToken = default);
+    /// <summary>Moves focus to the next or previous tabbable control relative to the select trigger after closing.</summary>
+    ValueTask FocusSelectTabTarget(ElementReference trigger, bool backward, CancellationToken cancellationToken = default);
 }
