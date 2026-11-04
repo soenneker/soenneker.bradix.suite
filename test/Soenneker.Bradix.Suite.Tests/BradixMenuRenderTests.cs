@@ -60,6 +60,28 @@ public sealed class BradixMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Removing_open_menu_releases_modal_isolation(CancellationToken cancellationToken)
+    {
+        _module.Setup<bool>("isFocusScopeSuperseded", _ => true).SetResult(true);
+        var cut = Render<BradixMenu>(p => p.Add(c => c.DefaultOpen, true).AddChildContent(builder =>
+        {
+            builder.OpenComponent<BradixMenuContent>(0);
+            builder.CloseComponent();
+        }));
+        await Assert.That(cut.FindComponent<BradixMenuContent>().Instance is IAsyncDisposable).IsTrue();
+        await Assert.That(_module.Invocations.Any(i => i.Identifier == "registerHideOthers")).IsTrue();
+        int releases = _module.Invocations.Count(i => i.Identifier == "unregisterHideOthers");
+
+        cut.Render(p => p.AddChildContent(builder => { }));
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            await Assert.That(cut.FindComponents<BradixMenuContent>().Count).IsEqualTo(0);
+            await Assert.That(_module.Invocations.Count(i => i.Identifier == "unregisterHideOthers")).IsGreaterThan(releases);
+        });
+    }
+
+    [Test]
     public async ValueTask Canceling_open_autofocus_prevents_fallback_focus(CancellationToken cancellationToken)
     {
         int callbacks = 0;
