@@ -40,7 +40,7 @@
         <PackageReference Include="Soenneker.Quark.Gen.Lucide" Version="11.0.318" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Quark.Suite" Version="11.0.1681" Condition="'$(UseLocalQuarkProject)' != 'true'" />
         <ProjectReference Include="$(LocalQuarkProject)" Condition="'$(UseLocalQuarkProject)' == 'true'" />
-        <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="11.0.337" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="11.0.338" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="11.0.317" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="11.0.314" PrivateAssets="all" />
     </ItemGroup>
