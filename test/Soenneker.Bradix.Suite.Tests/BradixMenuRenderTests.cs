@@ -69,7 +69,8 @@ public sealed class BradixMenuRenderTests : BunitContext
             builder.CloseComponent();
         }));
         await Assert.That(cut.FindComponent<BradixMenuContent>().Instance is IAsyncDisposable).IsTrue();
-        await Assert.That(_module.Invocations.Any(i => i.Identifier == "registerHideOthers")).IsTrue();
+        await cut.WaitForAssertionAsync(async () =>
+            await Assert.That(_module.Invocations.Any(i => i.Identifier == "registerHideOthers")).IsTrue());
         int releases = _module.Invocations.Count(i => i.Identifier == "unregisterHideOthers");
 
         cut.Render(p => p.AddChildContent(builder => { }));

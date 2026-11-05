@@ -333,6 +333,7 @@
             _openAutoFocusApplied.Value = true;
             _pendingOpenAutoFocus.Value = false;
             _pendingFirstItemFocusAfterOpen.Value = false;
+            await RegisterHideOthersIfNeeded();
             return;
         }
 
@@ -579,7 +580,10 @@
 
     private async Task RegisterHideOthersIfNeeded()
     {
-        if (_disposed.Read() || Menu?.Modal != true || _hideOthersRegistered.Value)
+        // The trigger can still own focus when the layer is captured. Complete
+        // opening autofocus before hiding its ancestors from assistive technology.
+        if (_disposed.Read() || Menu?.Modal != true || Menu.CurrentOpen != true ||
+            !_openAutoFocusApplied.Value || _layerElement.Id is null || _hideOthersRegistered.Value)
             return;
 
         var element = _layerElement;
@@ -607,7 +611,6 @@
             return;
 
         _pendingOpenAutoFocus.Value = false;
-        _openAutoFocusApplied.Value = true;
 
         bool shouldFocusContent = Menu.ConsumeFocusContentOnOpen();
         bool shouldFocusFirstItem = Menu.ConsumeFocusFirstItemOnOpen();
@@ -625,6 +628,9 @@
             _pendingFirstItemFocusAfterOpen.Value = true;
             await Menu.FocusFirstItem();
         }
+
+        _openAutoFocusApplied.Value = true;
+        await RegisterHideOthersIfNeeded();
     }
 
     private async Task HandleContentElementCapturedInternal(ElementReference element)
@@ -660,8 +666,13 @@
             _delegatedInteractionRegistered.Value = true;
         }
 
-        if (_pendingOpenAutoFocus.Value && Menu?.CurrentOpen == true)
-            await ApplyOpenAutoFocus();
+        if (Menu?.CurrentOpen == true)
+        {
+            if (!_openAutoFocusHandled.Value)
+                await HandleOpenAutoFocus(new BradixAutoFocusEventArgs());
+            else if (_pendingOpenAutoFocus.Value)
+                await ApplyOpenAutoFocus();
+        }
     }
 
     private Task HandlePlacementChanged(BradixPopperPlacementEventArgs args)

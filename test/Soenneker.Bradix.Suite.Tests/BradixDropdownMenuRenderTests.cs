@@ -123,6 +123,26 @@ public sealed class BradixDropdownMenuRenderTests : BunitContext
     }
 
     [Test]
+    public async ValueTask Opening_modal_dropdown_moves_focus_before_hiding_the_trigger(CancellationToken cancellationToken)
+    {
+        IRenderedComponent<ContainerFragment> cut = Render(CreateDropdownMenu());
+
+        await cut.Find("button").TriggerEventAsync("onpointerdown", new Microsoft.AspNetCore.Components.Web.PointerEventArgs
+        {
+            Button = 0,
+            PointerType = "mouse"
+        });
+
+        await cut.WaitForAssertionAsync(async () =>
+        {
+            var calls = _module.Invocations.ToList();
+            int focus = calls.FindIndex(call => call.Identifier == "focusElementPreventScroll");
+            int hide = calls.FindIndex(call => call.Identifier == "registerHideOthers");
+            await Assert.That(focus >= 0 && hide > focus).IsTrue();
+        });
+    }
+
+    [Test]
     public async ValueTask Opening_dropdown_registers_focus_scope_with_manual_autofocus_flags(CancellationToken cancellationToken)
     {
         _ = Render(CreateDropdownMenu(defaultOpen: true));
