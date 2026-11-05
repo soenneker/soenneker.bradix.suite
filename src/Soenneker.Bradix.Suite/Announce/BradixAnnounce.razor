@@ -1,0 +1,31 @@
+@namespace Soenneker.Bradix
+@inherits ComponentBase
+@implements IBradixAnnounce
+@implements IDisposable
+
+@code {
+    [CascadingParameter] private BradixAnnounceProvider? Provider { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Type { get; set; } = "polite";
+    private BradixAnnounceProvider? _registeredProvider;
+    private bool _pending;
+
+    protected override void OnParametersSet()
+    {
+        if (Provider is null) throw new InvalidOperationException("BradixAnnounce requires a BradixAnnounceProvider.");
+        if (Type is not ("polite" or "assertive" or "off"))
+            throw new ArgumentException("Announcement Type must be polite, assertive, or off.", nameof(Type));
+        _pending = true;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!_pending) return;
+        _pending = false;
+        if (!ReferenceEquals(_registeredProvider, Provider)) _registeredProvider?.Remove(this);
+        _registeredProvider = Provider;
+        Provider!.Publish(this, Type, ChildContent);
+    }
+
+    public void Dispose() => _registeredProvider?.Remove(this);
+}

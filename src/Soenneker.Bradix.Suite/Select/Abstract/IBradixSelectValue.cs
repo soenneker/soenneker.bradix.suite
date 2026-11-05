@@ -22,4 +22,7 @@ public interface IBradixSelectValue
 
     /// <summary>Gets or sets the placeholder shown when no value is selected.</summary>
     RenderFragment? Placeholder { get; set; }
+
+    /// <summary>Renders the selected value as rich Blazor content. ChildContent takes precedence; Placeholder is used when no value is selected. TextValue still supplies typeahead and native option text.</summary>
+    RenderFragment<string?>? ValueTemplate { get; set; }
 }

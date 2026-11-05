@@ -1,0 +1,36 @@
+@namespace Soenneker.Bradix
+@inherits ComponentBase
+@implements IBradixAnnounceProvider
+
+<CascadingValue Value="this" IsFixed="true">
+    <BradixAnnounceRegion Type="polite" />
+    <BradixAnnounceRegion Type="assertive" />
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly Dictionary<BradixAnnounce, RenderFragment> _polite = new();
+    private readonly Dictionary<BradixAnnounce, RenderFragment> _assertive = new();
+    internal event Action? Changed;
+
+    internal IEnumerable<KeyValuePair<BradixAnnounce, RenderFragment>> GetEntries(string type)
+        => type == "assertive" ? _assertive : _polite;
+
+    internal void Publish(BradixAnnounce source, string type, RenderFragment? content)
+    {
+        _polite.Remove(source);
+        _assertive.Remove(source);
+        if (content is not null && type != "off")
+            (type == "assertive" ? _assertive : _polite)[source] = content;
+        Changed?.Invoke();
+    }
+
+    internal void Remove(BradixAnnounce source)
+    {
+        bool removed = _polite.Remove(source);
+        removed |= _assertive.Remove(source);
+        if (removed) Changed?.Invoke();
+    }
+}

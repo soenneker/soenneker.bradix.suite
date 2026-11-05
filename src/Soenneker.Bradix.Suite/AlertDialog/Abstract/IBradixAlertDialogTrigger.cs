@@ -6,7 +6,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Describes the public API of <see cref="BradixAlertDialogTrigger"/>.
 /// </summary>
-public interface IBradixAlertDialogTrigger
+public interface IBradixAlertDialogTrigger : IBradixComposableTrigger
 {
     /// <summary>
     /// Gets or sets whether the trigger is disabled.

@@ -115,8 +115,11 @@
 
     public void RegisterTrigger(ElementReference element, string? triggerId = null)
     {
+        string resolvedId = string.IsNullOrWhiteSpace(triggerId) ? DefaultTriggerId : triggerId;
+        if (HasTrigger && TriggerElement.Equals(element) && ResolvedTriggerId == resolvedId)
+            return;
         TriggerElement = element;
-        ResolvedTriggerId = string.IsNullOrWhiteSpace(triggerId) ? DefaultTriggerId : triggerId;
+        ResolvedTriggerId = resolvedId;
         HasTrigger = true;
         _ = RequestRender();
     }

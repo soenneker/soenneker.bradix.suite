@@ -6,25 +6,53 @@
 <BradixDismissableLayerBranch>
     @if (Popover?.HasCustomAnchor == true)
     {
-        <button @ref="_button"
+        @if (TriggerTemplate is not null)
+        {
+            @TriggerTemplate(CreateTriggerContext())
+        }
+        else
+        {
+            <button @ref="_button"
                 @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
                 @attributes="ButtonAttributes">
-            @ChildContent
-        </button>
+                @ChildContent
+            </button>
+        }
     }
     else
     {
         <BradixPopperAnchor>
-            <button @ref="_button"
+            @if (TriggerTemplate is not null)
+            {
+                @TriggerTemplate(CreateTriggerContext())
+            }
+            else
+            {
+                <button @ref="_button"
                     @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
                     @attributes="ButtonAttributes">
-                @ChildContent
-            </button>
+                    @ChildContent
+                </button>
+            }
         </BradixPopperAnchor>
     }
 </BradixDismissableLayerBranch>
 
 @code {
+    [Parameter] public RenderFragment<BradixTriggerContext>? TriggerTemplate { get; set; }
+    [Parameter] public EventCallback<BradixActivationEventArgs> OnActivate { get; set; }
+
+    private BradixTriggerContext CreateTriggerContext() => new(ButtonAttributes,
+        EventCallback.Factory.Create<MouseEventArgs>(this, HandleClick), CaptureTrigger, _button);
+
+    private void CaptureTrigger(ElementReference element)
+    {
+        _button = element;
+        Popover?.RegisterTrigger(element, ResolvedTriggerId);
+        if (Popover?.HasCustomAnchor != true) Popper?.RegisterAnchor(element);
+    }
+
+
     private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
 
     private ElementReference _button;
@@ -55,25 +83,25 @@
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            Popover?.RegisterTrigger(_button, ResolvedTriggerId);
-            if (Popover?.HasCustomAnchor != true)
-                Popper?.RegisterAnchor(_button);
-        }
-
-        if (Popover?.HasCustomAnchor != true && Popper is not null && !Popper.HasAnchor && !Popper.HasVirtualAnchor)
-            Popper.RegisterAnchor(_button);
-
+        Popover?.RegisterTrigger(_button, ResolvedTriggerId);
+        if (Popover?.HasCustomAnchor != true)
+            Popper?.RegisterAnchor(_button);
         return Task.CompletedTask;
     }
 
     private async Task HandleClick(MouseEventArgs args)
     {
-        if (OnClick.HasDelegate)
-            await OnClick.InvokeAsync(args);
+        if (Disabled) return;
+        if (OnClick.HasDelegate) await OnClick.InvokeAsync(args);
+        if (Disabled) return;
 
-        if (!Disabled && Popover is not null)
-            await Popover.ToggleOpen();
+        if (OnActivate.HasDelegate)
+        {
+            var activation = new BradixActivationEventArgs(args);
+            await OnActivate.InvokeAsync(activation);
+            if (activation.DefaultPrevented) return;
+        }
+        if (Disabled) return;
+        if (Popover is not null) await Popover.ToggleOpen();
     }
 }

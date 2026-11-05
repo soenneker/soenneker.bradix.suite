@@ -13,6 +13,10 @@
     {
         @Placeholder
     }
+    else if (ValueTemplate is not null && Select is not null)
+    {
+        @ValueTemplate(Select.CurrentValue)
+    }
     else
     {
         @Select?.CurrentText
@@ -28,11 +32,14 @@
     private BradixSelect? Select { get; set; }
 
     [Parameter]
+    public RenderFragment<string?>? ValueTemplate { get; set; }
+
+    [Parameter]
     public RenderFragment? Placeholder { get; set; }
 
     protected override Task OnParametersSetAsync()
     {
-        Select?.SetValueNodeHasChildren(ChildContent is not null);
+        Select?.SetValueNodeHasChildren(ChildContent is not null || ValueTemplate is not null);
         return Task.CompletedTask;
     }
 

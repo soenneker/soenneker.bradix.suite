@@ -1,0 +1,13 @@
+@namespace Soenneker.Bradix.Suite.Demo
+
+<button @ref="_element" @attributes="Trigger.Attributes" @onclick="Trigger.OnClick" @onkeydown="Trigger.OnKeyDown">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter, EditorRequired] public BradixTriggerContext Trigger { get; set; } = null!;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    private ElementReference _element;
+
+    protected override void OnAfterRender(bool firstRender) => Trigger.Element = _element;
+}

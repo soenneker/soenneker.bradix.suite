@@ -1,0 +1,29 @@
+@namespace Soenneker.Bradix
+@inherits ComponentBase
+@implements IDisposable
+
+<span role="@(Type == "assertive" ? "alert" : "status")" aria-live="@Type" aria-atomic="false"
+      style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+    @foreach (var entry in Provider.GetEntries(Type))
+    {
+        <span @key="entry.Key">@entry.Value</span>
+    }
+</span>
+
+@code {
+    [CascadingParameter] private BradixAnnounceProvider Provider { get; set; } = null!;
+    [Parameter] public string Type { get; set; } = "polite";
+    private bool _disposed;
+
+    protected override void OnInitialized() => Provider.Changed += Refresh;
+    private void Refresh()
+    {
+        if (!_disposed) _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        Provider.Changed -= Refresh;
+    }
+}

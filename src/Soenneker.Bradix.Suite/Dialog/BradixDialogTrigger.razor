@@ -3,13 +3,33 @@
 @inherits BradixIdentifiableContentElement
 
 @implements IBradixDialogTrigger
-<button @ref="_button"
+@if (TriggerTemplate is not null)
+{
+    @TriggerTemplate(CreateTriggerContext())
+}
+else
+{
+    <button @ref="_button"
         @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
         @attributes="ButtonAttributes">
-    @ChildContent
-</button>
+        @ChildContent
+    </button>
+}
 
 @code {
+    [Parameter] public RenderFragment<BradixTriggerContext>? TriggerTemplate { get; set; }
+    [Parameter] public EventCallback<BradixActivationEventArgs> OnActivate { get; set; }
+
+    private BradixTriggerContext CreateTriggerContext() => new(ButtonAttributes,
+        EventCallback.Factory.Create<MouseEventArgs>(this, HandleClick), CaptureTrigger, _button);
+
+    private void CaptureTrigger(ElementReference element)
+    {
+        _button = element;
+        Dialog?.RegisterTrigger(element, ResolvedTriggerId);
+    }
+
+
     private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
 
     private ElementReference _button;
@@ -37,20 +57,23 @@
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-            Dialog?.RegisterTrigger(_button, ResolvedTriggerId);
+        Dialog?.RegisterTrigger(_button, ResolvedTriggerId);
         return Task.CompletedTask;
     }
 
     private async Task HandleClick(MouseEventArgs args)
     {
-        if (Disabled)
-            return;
+        if (Disabled) return;
+        if (OnClick.HasDelegate) await OnClick.InvokeAsync(args);
+        if (Disabled) return;
 
-        if (OnClick.HasDelegate)
-            await OnClick.InvokeAsync(args);
-
-        if (!Disabled && Dialog is not null)
-            await Dialog.ToggleOpen();
+        if (OnActivate.HasDelegate)
+        {
+            var activation = new BradixActivationEventArgs(args);
+            await OnActivate.InvokeAsync(activation);
+            if (activation.DefaultPrevented) return;
+        }
+        if (Disabled) return;
+        if (Dialog is not null) await Dialog.ToggleOpen();
     }
 }

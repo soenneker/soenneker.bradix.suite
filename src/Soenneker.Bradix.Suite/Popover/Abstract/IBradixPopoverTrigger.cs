@@ -7,7 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Button trigger that toggles the popover open state.
 /// </summary>
-public interface IBradixPopoverTrigger {
+public interface IBradixPopoverTrigger : IBradixComposableTrigger {
     /// <summary>When true, the trigger ignores interactions.</summary>
     bool Disabled { get; set; }
 

@@ -7,7 +7,7 @@ namespace Soenneker.Bradix;
 /// <summary>
 /// Describes the public API of <see cref="BradixCollapsibleTrigger"/>.
 /// </summary>
-public interface IBradixCollapsibleTrigger {
+public interface IBradixCollapsibleTrigger : IBradixComposableTrigger {
     /// <summary>
     /// Gets or sets the callback invoked when the trigger is clicked.
     /// </summary>

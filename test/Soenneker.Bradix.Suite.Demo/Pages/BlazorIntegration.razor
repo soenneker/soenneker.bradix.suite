@@ -1,0 +1,72 @@
+@page "/blazorintegration"
+
+<BradixSeoHead Title="Blazor composition and forms | Bradix" Description="Custom triggers, typed form bindings, rich Select values, and shared live announcements." CanonicalPath="/blazorintegration" />
+
+<BradixAnnounceProvider>
+    <section class="website-demo-page">
+        <DemoExample File="BlazorIntegration.razor" Index="0" Title="Custom trigger and cancellation">
+            <section class="card website-demo-card">
+                <label><input id="block-activation" type="checkbox" @bind="_blockActivation" /> Block opening</label>
+                <BradixDialog>
+                    <BradixDialogTrigger Id="composed-trigger" OnActivate="HandleActivate" Class="dialog-demo__button dialog-demo__button--violet">
+                        <TriggerTemplate Context="trigger">
+                            <BlazorIntegrationButton Trigger="trigger">Open composed dialog</BlazorIntegrationButton>
+                        </TriggerTemplate>
+                    </BradixDialogTrigger>
+                    <BradixDialogPortal>
+                        <BradixDialogOverlay Class="dialog-demo__overlay" />
+                        <BradixDialogContent Class="dialog-demo__content">
+                            <BradixDialogTitle>Composed dialog</BradixDialogTitle>
+                            <BradixDialogDescription>This trigger uses an existing Blazor button component.</BradixDialogDescription>
+                            <BradixDialogClose AriaLabel="Close composed dialog">Close composed dialog</BradixDialogClose>
+                        </BradixDialogContent>
+                    </BradixDialogPortal>
+                </BradixDialog>
+            </section>
+        </DemoExample>
+
+        <DemoExample File="BlazorIntegration.razor" Index="1" Title="Typed form binding and announcements">
+            <section class="card website-demo-card">
+                <EditForm Model="_model" OnValidSubmit="Save" FormName="integration">
+                    <DataAnnotationsValidator />
+                    <label id="city-label" for="city-trigger">City</label>
+                    <BradixInput TValue="string" @bind-Value="_model.City" Context="field">
+                        <BradixSelect Value="@field.Value" ValueChanged="@field.ValueChanged" Name="City">
+                            <BradixSelectTrigger Id="city-trigger" @attributes="field.Attributes" aria-labelledby="city-label" aria-describedby="city-errors">
+                                <BradixSelectValue>
+                                    <Placeholder>Choose a city</Placeholder>
+                                    <ValueTemplate Context="city"><strong data-selected-city>@city</strong></ValueTemplate>
+                                </BradixSelectValue>
+                            </BradixSelectTrigger>
+                            <BradixSelectPortal>
+                                <BradixSelectContent Position="SelectPosition.Popper" style="background:white;color:black;padding:12px;z-index:100;">
+                                    <BradixSelectViewport>
+                                        <BradixSelectItem Value="London" TextValue="London"><BradixSelectItemText>London</BradixSelectItemText></BradixSelectItem>
+                                        <BradixSelectItem Value="Paris" TextValue="Paris"><BradixSelectItemText>Paris</BradixSelectItemText></BradixSelectItem>
+                                    </BradixSelectViewport>
+                                </BradixSelectContent>
+                            </BradixSelectPortal>
+                        </BradixSelect>
+                    </BradixInput>
+                    <div id="city-errors"><ValidationMessage For="@(() => _model.City)" /></div>
+                    <button type="submit">Save city</button>
+                </EditForm>
+                <p id="saved-city">@_announcement</p>
+                <BradixAnnounce>@_announcement</BradixAnnounce>
+            </section>
+        </DemoExample>
+    </section>
+</BradixAnnounceProvider>
+
+@code {
+    private readonly BlazorIntegrationModel _model = new();
+    private bool _blockActivation;
+    private string? _announcement;
+
+    private void HandleActivate(BradixActivationEventArgs args)
+    {
+        if (_blockActivation) args.PreventDefault();
+    }
+
+    private void Save() => _announcement = $"Saved {_model.City}.";
+}

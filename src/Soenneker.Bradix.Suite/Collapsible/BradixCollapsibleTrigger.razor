@@ -3,14 +3,33 @@
 @inherits BradixIdentifiableContentElement
 
 @implements IBradixCollapsibleTrigger
-<button @ref="_element"
+@if (TriggerTemplate is not null)
+{
+    @TriggerTemplate(CreateTriggerContext())
+}
+else
+{
+    <button @ref="_element"
         @onclick="(_cachedHandleClickDelegate ??= HandleClick)"
         @onkeydown="(_cachedHandleKeyDownDelegate ??= HandleKeyDown)"
         @attributes="TriggerAttributes">
-    @ChildContent
-</button>
+        @ChildContent
+    </button>
+}
 
 @code {
+    [Parameter] public RenderFragment<BradixTriggerContext>? TriggerTemplate { get; set; }
+    [Parameter] public EventCallback<BradixActivationEventArgs> OnActivate { get; set; }
+
+    private BradixTriggerContext CreateTriggerContext() => new(TriggerAttributes,
+        EventCallback.Factory.Create<MouseEventArgs>(this, HandleClick), CaptureTrigger, _element, EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDown));
+
+    private void CaptureTrigger(ElementReference element)
+    {
+        _element = element;
+    }
+
+
     private System.Func<MouseEventArgs, Task>? _cachedHandleClickDelegate;
     private System.Func<KeyboardEventArgs, Task>? _cachedHandleKeyDownDelegate;
 
@@ -52,12 +71,17 @@
 
     private async Task HandleClick(MouseEventArgs args)
     {
-        if (OnClick.HasDelegate)
-            await OnClick.InvokeAsync(args);
+        if (IsDisabled) return;
+        if (OnClick.HasDelegate) await OnClick.InvokeAsync(args);
+        if (IsDisabled) return;
 
-        if (IsDisabled)
-            return;
-
+        if (OnActivate.HasDelegate)
+        {
+            var activation = new BradixActivationEventArgs(args);
+            await OnActivate.InvokeAsync(activation);
+            if (activation.DefaultPrevented) return;
+        }
+        if (IsDisabled) return;
         await Collapsible.Toggle();
     }
 
