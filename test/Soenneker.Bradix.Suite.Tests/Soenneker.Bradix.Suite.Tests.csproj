@@ -29,8 +29,8 @@
     <ItemGroup>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Utils.Test" Version="11.0.346" />
-        <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="11.0.366" />
+        <PackageReference Include="Soenneker.Utils.Test" Version="11.0.347" />
+        <PackageReference Include="Soenneker.Blazor.MockJsRuntime" Version="11.0.367" />
     </ItemGroup>
   <ItemGroup>
   </ItemGroup>
@@ -38,7 +38,7 @@
         <ProjectReference Include="..\..\..\..\Lepton\soenneker.lepton.suite\src\Soenneker.Lepton.Gen.Parameters\Soenneker.Lepton.Gen.Parameters.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Node.Util" Version="11.0.407" />
+        <PackageReference Include="Soenneker.Node.Util" Version="11.0.409" />
     </ItemGroup>
 </Project>
 
