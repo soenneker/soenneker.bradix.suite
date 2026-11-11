@@ -56,7 +56,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="11.0.0" />
         <PackageReference Include="Soenneker.Blazor.Interops.Floating" Version="11.0.148" />
         <PackageReference Include="Soenneker.Lepton.Suite" Version="11.0.138" Condition="'$(UseLocalLeptonProject)' != 'true'" />
-        <PackageReference Include="Soenneker.Blazor.Extensions.EventCallback" Version="11.0.475" />
+        <PackageReference Include="Soenneker.Blazor.Extensions.EventCallback" Version="11.0.476" />
     </ItemGroup>
     <ItemGroup Condition="'$(UseLocalLeptonProject)' == 'true'">
         <ProjectReference Include="$(LocalLeptonProject)" AdditionalProperties="BUILD_VERSION=$(LeptonSuiteVersion)" />
