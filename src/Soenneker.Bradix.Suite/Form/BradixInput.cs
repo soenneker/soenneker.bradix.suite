@@ -20,9 +20,13 @@ public sealed class BradixInput<TValue> : InputBase<TValue>, IBradixInput<TValue
         var attributes = AdditionalAttributes is null
             ? new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
             : new Dictionary<string, object>(AdditionalAttributes, StringComparer.OrdinalIgnoreCase);
-        if (!string.IsNullOrEmpty(CssClass)) attributes["class"] = CssClass;
-        if (!attributes.ContainsKey("name") && !string.IsNullOrEmpty(NameAttributeValue))
-            attributes["name"] = NameAttributeValue;
+        string cssClass = CssClass;
+        if (!string.IsNullOrEmpty(cssClass)) attributes["class"] = cssClass;
+        if (!attributes.ContainsKey("name"))
+        {
+            string name = NameAttributeValue;
+            if (!string.IsNullOrEmpty(name)) attributes["name"] = name;
+        }
         if (messages.Length > 0) attributes["aria-invalid"] = "true";
 
         builder.AddContent(0, ChildContent(new BradixInputContext<TValue>(CurrentValue,

@@ -32,7 +32,7 @@
 
     private static readonly string[] ContentPreventDefaultKeys = ["Tab", "Home", "End", "PageUp", "PageDown"];
 
-    private readonly HashSet<string> _submenuPointerGraceItems = [];
+    private HashSet<string>? _submenuPointerGraceItems;
     private bool _wasPresent;
     private ValueAtomicBool _disposed;
     private ValueAtomicBool _keyboardFocusApplied;
@@ -200,7 +200,7 @@
     {
         if (!_disposed.TrySetTrue())
             return;
-        _submenuPointerGraceItems.Clear();
+        _submenuPointerGraceItems?.Clear();
         try
         {
             if (_delegatedInteractionRegistered.Value)
@@ -399,7 +399,7 @@
             _delegatedInteractionRegistered.Value = false;
         }
 
-        _submenuPointerGraceItems.Clear();
+        _submenuPointerGraceItems?.Clear();
         _contentElementCaptured.Value = false;
         _pendingOpenAutoFocus.Value = false;
         _isExiting.Value = false;
@@ -485,7 +485,7 @@
         if (Menu is null || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
             return Task.CompletedTask;
 
-        if (_submenuPointerGraceItems.Count > 0)
+        if (_submenuPointerGraceItems is { Count: > 0 })
             return Task.CompletedTask;
 
         Menu.SetCurrentTabStop(item.TabStopId);
@@ -494,7 +494,7 @@
 
     Task IBradixMenuContentController.HandleItemLeave()
     {
-        if (_submenuPointerGraceItems.Count > 0)
+        if (_submenuPointerGraceItems is { Count: > 0 })
             return Task.CompletedTask;
 
         Menu?.ClearCurrentTabStop();
@@ -507,9 +507,9 @@
             return;
 
         if (active)
-            _submenuPointerGraceItems.Add(tabStopId);
+            (_submenuPointerGraceItems ??= []).Add(tabStopId);
         else
-            _submenuPointerGraceItems.Remove(tabStopId);
+            _submenuPointerGraceItems?.Remove(tabStopId);
     }
 
     private RenderFragment RenderContentTree() => _contentTree ??= @<CascadingValue Value="this">

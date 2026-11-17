@@ -519,14 +519,14 @@
         if (key is not ("ArrowUp" or "ArrowDown"))
             return;
 
-        int enabledCount = CountEnabledItems(CurrentFocusedItemValue, CurrentValue, out int currentIndex);
-        if (enabledCount == 0 || currentIndex < 0)
-            return;
+        var current = FindEnabledItem(CurrentFocusedItemValue) ?? FindEnabledItem(CurrentValue);
+        if (current is null) return;
 
-        if (!BradixRovingFocusNavigator.TryGetTargetIndex(key, "vertical", ResolvedDirection, currentIndex, enabledCount, false, out int targetIndex))
-            return;
+        int index = _items.IndexOf(current.Value);
+        if (index < 0) return;
 
-        IBradixSelectCollectionItem? target = GetEnabledItemAt(targetIndex);
+        int step = key == "ArrowDown" ? 1 : -1;
+        var target = FindEnabledFrom(index + step, step);
         if (target is not null)
             await FocusItem(target);
     }
@@ -617,8 +617,7 @@
     {
         IBradixSelectCollectionItem? item = GetSelectedOrFirstEnabledItem();
         if (item is not null) return item;
-        var items = _items.Snapshot();
-        return items.Count > 0 ? items[0].Item : null;
+        return _items.At(0);
     }
 
     internal IBradixSelectCollectionItem? GetSelectedItem()
@@ -680,17 +679,15 @@
         return null;
     }
 
-    private IBradixSelectCollectionItem? GetLastEnabledItem()
+    private IBradixSelectCollectionItem? GetLastEnabledItem() => FindEnabledFrom(_items.Count - 1, -1);
+
+    private IBradixSelectCollectionItem? FindEnabledFrom(int index, int step)
     {
-        IBradixSelectCollectionItem? last = null;
+        for (; (uint)index < (uint)_items.Count; index += step)
+            if (_items.At(index) is { Disabled: false } item)
+                return item;
 
-        foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
-        {
-            if (!entry.Value.Disabled)
-                last = entry.Value;
-        }
-
-        return last;
+        return null;
     }
 
     private IBradixSelectCollectionItem? FindEnabledItem(string? value)
@@ -699,53 +696,6 @@
             return null;
 
         return _items.TryGet(value, out var item) && !item.Disabled ? item : null;
-    }
-
-    private int CountEnabledItems(string? preferredValue, string? fallbackValue, out int currentIndex)
-    {
-        currentIndex = -1;
-        var count = 0;
-        var matchedPreferred = false;
-        bool hasPreferred = !string.IsNullOrWhiteSpace(preferredValue);
-        bool hasFallback = !string.IsNullOrWhiteSpace(fallbackValue);
-
-        foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
-        {
-            if (entry.Value.Disabled)
-                continue;
-
-            if (hasPreferred && string.Equals(entry.Value.Value, preferredValue, StringComparison.Ordinal))
-            {
-                currentIndex = count;
-                matchedPreferred = true;
-            }
-            else if (!matchedPreferred && hasFallback && string.Equals(entry.Value.Value, fallbackValue, StringComparison.Ordinal))
-            {
-                currentIndex = count;
-            }
-
-            count++;
-        }
-
-        return count;
-    }
-
-    private IBradixSelectCollectionItem? GetEnabledItemAt(int targetIndex)
-    {
-        var index = 0;
-
-        foreach (KeyValuePair<string, IBradixSelectCollectionItem> entry in _items)
-        {
-            if (entry.Value.Disabled)
-                continue;
-
-            if (index == targetIndex)
-                return entry.Value;
-
-            index++;
-        }
-
-        return null;
     }
 
     private IBradixSelectCollectionItem? FindNextTypeaheadItem(string search, IBradixSelectCollectionItem? currentItem)

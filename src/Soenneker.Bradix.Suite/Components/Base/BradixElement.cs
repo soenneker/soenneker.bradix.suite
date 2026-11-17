@@ -16,10 +16,8 @@ public abstract partial class BradixElement : LeptonElement
 {
     private Dictionary<string, object>? _attributesA;
     private Dictionary<string, object>? _attributesB;
-    private BradixAttributeDictionary? _additionalAttributeDictionaries;
+    private BradixElementAttributeCache? _attributeCache;
     private bool _useAttributesA;
-    private string? _mergedAdditionalClass;
-    private string? _mergedAdditionalStyle;
 
     protected virtual string? AttributeId => null;
 
@@ -181,8 +179,8 @@ public abstract partial class BradixElement : LeptonElement
     /// </summary>
     protected Dictionary<string, object> BuildAdditionalAttributes(IReadOnlyDictionary<string, object>? attributes, int extraCapacity = 0)
     {
-        _additionalAttributeDictionaries ??= new BradixAttributeDictionary();
-        return _additionalAttributeDictionaries.Create(attributes, extraCapacity);
+        _attributeCache ??= new BradixElementAttributeCache();
+        return _attributeCache.Create(attributes, extraCapacity);
     }
 
     private Dictionary<string, object> BeginAttributes(int extraCapacity = 0)
@@ -236,7 +234,8 @@ public abstract partial class BradixElement : LeptonElement
             string? text = value as string ?? value.ToString();
             if (string.IsNullOrWhiteSpace(text)) return;
             ref object? slot = ref CollectionsMarshal.GetValueRefOrAddDefault(attributes, "class", out _);
-            slot = BradixStringCache.MergeClass(slot as string ?? slot?.ToString(), text, ref _mergedAdditionalClass);
+            slot = slot is null ? text : BradixStringCache.MergeClass(slot as string ?? slot.ToString(), text,
+                ref (_attributeCache ??= new()).MergedClass);
             return;
         }
 
@@ -245,7 +244,8 @@ public abstract partial class BradixElement : LeptonElement
             string? text = value as string ?? value.ToString();
             if (string.IsNullOrWhiteSpace(text)) return;
             ref object? slot = ref CollectionsMarshal.GetValueRefOrAddDefault(attributes, "style", out _);
-            slot = BradixStringCache.MergeStyle(slot as string ?? slot?.ToString(), text, ref _mergedAdditionalStyle);
+            slot = slot is null ? text : BradixStringCache.MergeStyle(slot as string ?? slot.ToString(), text,
+                ref (_attributeCache ??= new()).MergedStyle);
             return;
         }
 

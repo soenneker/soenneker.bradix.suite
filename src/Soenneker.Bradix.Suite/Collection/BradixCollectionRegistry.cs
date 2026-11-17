@@ -134,6 +134,10 @@ public sealed class BradixCollectionRegistry<TItem>
         return _snapshot;
     }
 
+    internal int IndexOf(string key) => _items?.IndexOf(key) ?? -1;
+
+    internal TItem? At(int index) => _items is null ? default : _items.At(index);
+
     /// <summary>
     /// Gets enumerator.
     /// </summary>

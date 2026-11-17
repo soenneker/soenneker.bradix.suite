@@ -6,7 +6,7 @@ namespace Soenneker.Bradix;
 /// Double-buffers attribute dictionaries that are passed to child components. Blazor retains
 /// the previous render tree, so a single reused dictionary would be mutated too early.
 /// </summary>
-internal sealed class BradixAttributeDictionary
+internal class BradixAttributeDictionary
 {
     private Dictionary<string, object>? _first;
     private Dictionary<string, object>? _second;

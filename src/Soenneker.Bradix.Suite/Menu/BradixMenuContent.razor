@@ -48,7 +48,7 @@
 
     private static readonly string[] ContentPreventDefaultKeys = ["Tab", "Home", "End", "PageUp", "PageDown"];
 
-    private readonly HashSet<string> _submenuPointerGraceItems = [];
+    private HashSet<string>? _submenuPointerGraceItems;
     private bool _wasPresent;
     private ValueAtomicBool _disposed;
     private ValueAtomicBool _isExiting;
@@ -285,7 +285,7 @@
         if (Menu?.CurrentOpen != true || !string.Equals(pointerType, "mouse", StringComparison.Ordinal))
             return Task.CompletedTask;
 
-        if (_submenuPointerGraceItems.Count > 0)
+        if (_submenuPointerGraceItems is { Count: > 0 })
             return Task.CompletedTask;
 
         Menu.SetCurrentTabStop(item.TabStopId);
@@ -295,7 +295,7 @@
     internal Task HandleItemLeave()
     {
         if (Menu?.CurrentOpen != true) return Task.CompletedTask;
-        if (_submenuPointerGraceItems.Count > 0)
+        if (_submenuPointerGraceItems is { Count: > 0 })
             return Task.CompletedTask;
 
         Menu?.ClearCurrentTabStop();
@@ -308,9 +308,9 @@
             return;
 
         if (active)
-            _submenuPointerGraceItems.Add(tabStopId);
+            (_submenuPointerGraceItems ??= []).Add(tabStopId);
         else
-            _submenuPointerGraceItems.Remove(tabStopId);
+            _submenuPointerGraceItems?.Remove(tabStopId);
     }
 
     private async Task HandleOpenAutoFocus(BradixAutoFocusEventArgs args)
@@ -568,7 +568,7 @@
         _openAutoFocusApplied.Value = false;
         _openAutoFocusHandled.Value = false;
         _pendingFirstItemFocusAfterOpen.Value = false;
-        _submenuPointerGraceItems.Clear();
+        _submenuPointerGraceItems?.Clear();
 
         if (_contentElement.Id is not null)
             await DelegatedInteractionInterop.UnregisterDelegatedInteraction(_contentElement);

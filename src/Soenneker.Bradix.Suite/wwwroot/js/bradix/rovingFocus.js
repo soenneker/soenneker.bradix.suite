@@ -162,44 +162,22 @@ function getRovingFocusTarget(element, key) {
   const candidates = document.querySelectorAll(
     `[data-bradix-roving-group="${cssEscape(groupId)}"][data-bradix-roving-item]`
   );
-  let first = null;
-  let last = null;
-  let previous = null;
-  let next = null;
-  let found = false;
+  const current = Array.prototype.indexOf.call(candidates, element);
+  if (current < 0) return null;
 
-  for (let index = 0; index < candidates.length; index += 1) {
-    const candidate = candidates[index];
-
-    if (!(candidate instanceof HTMLElement) || !isRovingFocusableElement(candidate)) {
-      continue;
-    }
-
-    first ??= candidate;
-    if (candidate === element) {
-      previous = last;
-      found = true;
-    } else if (found && next === null) {
-      next = candidate;
-    }
-    last = candidate;
-  }
-
-  if (!found) {
-    return null;
-  }
-
+  const count = candidates.length;
+  const step = intent === "last" || intent === -1 ? -1 : 1;
+  let index = intent === "first" ? 0 : intent === "last" ? count - 1 : current + step;
   const loop = readBooleanDataAttribute(element, "bradixRovingLoop");
-
-  if (intent === "first") {
-    return first;
+  for (let visited = 0; visited < count; visited++, index += step) {
+    if (index < 0 || index >= count) {
+      if (!loop) break;
+      index = step > 0 ? 0 : count - 1;
+    }
+    const candidate = candidates[index];
+    if (candidate instanceof HTMLElement && isRovingFocusableElement(candidate)) return candidate;
   }
-
-  if (intent === "last") {
-    return last;
-  }
-
-  return intent < 0 ? previous ?? (loop ? last : null) : next ?? (loop ? first : null);
+  return null;
 }
 
 function getRovingFocusIntent(key, orientation, dir) {

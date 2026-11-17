@@ -6,6 +6,8 @@ namespace Soenneker.Bradix;
 
 internal static class BradixStringCache
 {
+    private static readonly SearchValues<char> _unreserved = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~");
+
     internal static string? MergeStyle(string? first, string? second, ref string? previous)
     {
         if (string.IsNullOrWhiteSpace(first)) return previous = second;
@@ -38,6 +40,13 @@ internal static class BradixStringCache
         // into a reusable buffer so unchanged IDs do not allocate temporary strings.
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(value);
+        if (!value.AsSpan().ContainsAnyExcept(_unreserved))
+        {
+            if (!Matches(previous, parent, "-", value))
+                previous = string.Concat(parent, "-", value);
+            return previous!;
+        }
+
         Span<char> escaped = stackalloc char[256];
         char[]? rented = null;
         try
