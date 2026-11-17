@@ -20,7 +20,7 @@
 
     <ItemGroup>
         <PackageReference Include="bunit" Version="2.15.2" />
-        <PackageReference Include="TUnit" Version="1.85.7" />
+        <PackageReference Include="TUnit" Version="1.86.0" />
     </ItemGroup>
 
     <ItemGroup>
