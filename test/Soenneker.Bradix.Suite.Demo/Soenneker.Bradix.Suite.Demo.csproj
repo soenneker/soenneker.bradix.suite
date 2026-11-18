@@ -32,16 +32,16 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="11.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Gateway" Version="11.0.0" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Gen.Razor.Sitemaps" Version="11.0.189">
+        <PackageReference Include="Soenneker.Gen.Razor.Sitemaps" Version="11.0.191">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Soenneker.Serilog.Sinks.Browser.Blazor" Version="11.0.452" />
+        <PackageReference Include="Soenneker.Serilog.Sinks.Browser.Blazor" Version="11.0.453" />
         <PackageReference Include="Soenneker.Quark.Gen.Lucide" Version="11.0.329" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Suite" Version="11.0.1737" Condition="'$(UseLocalQuarkProject)' != 'true'" />
+        <PackageReference Include="Soenneker.Quark.Suite" Version="11.0.1740" Condition="'$(UseLocalQuarkProject)' != 'true'" />
         <ProjectReference Include="$(LocalQuarkProject)" Condition="'$(UseLocalQuarkProject)' == 'true'" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="11.0.352" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="11.0.335" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="11.0.337" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="11.0.328" PrivateAssets="all" />
     </ItemGroup>
 
