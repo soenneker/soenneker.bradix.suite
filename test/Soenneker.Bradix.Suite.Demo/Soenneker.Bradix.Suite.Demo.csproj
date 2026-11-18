@@ -38,11 +38,11 @@
         </PackageReference>
         <PackageReference Include="Soenneker.Serilog.Sinks.Browser.Blazor" Version="11.0.453" />
         <PackageReference Include="Soenneker.Quark.Gen.Lucide" Version="11.0.329" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Suite" Version="11.0.1742" Condition="'$(UseLocalQuarkProject)' != 'true'" />
+        <PackageReference Include="Soenneker.Quark.Suite" Version="11.0.1744" Condition="'$(UseLocalQuarkProject)' != 'true'" />
         <ProjectReference Include="$(LocalQuarkProject)" Condition="'$(UseLocalQuarkProject)' == 'true'" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind" Version="11.0.353" PrivateAssets="all" />
         <PackageReference Include="Soenneker.Quark.Gen.Tailwind.Manifest" Version="11.0.337" PrivateAssets="all" />
-        <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="11.0.328" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Quark.Gen.Themes" Version="11.0.330" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
@@ -64,6 +64,6 @@
         </ItemGroup>
     </Target>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Utils.AutoBogus" Version="11.0.1013" />
+        <PackageReference Include="Soenneker.Utils.AutoBogus" Version="11.0.1014" />
     </ItemGroup>
 </Project>

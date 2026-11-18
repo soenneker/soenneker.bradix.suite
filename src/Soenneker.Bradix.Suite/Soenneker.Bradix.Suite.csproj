@@ -54,7 +54,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="11.0.0" />
-        <PackageReference Include="Soenneker.Blazor.Interops.Floating" Version="11.0.171" />
+        <PackageReference Include="Soenneker.Blazor.Interops.Floating" Version="11.0.173" />
         <PackageReference Include="Soenneker.Lepton.Suite" Version="11.0.146" Condition="'$(UseLocalLeptonProject)' != 'true'" />
         <PackageReference Include="Soenneker.Blazor.Extensions.EventCallback" Version="11.0.477" />
     </ItemGroup>
@@ -63,6 +63,6 @@
         <ProjectReference Include="..\..\..\..\Lepton\soenneker.lepton.suite\src\Soenneker.Lepton.Gen.Parameters\Soenneker.Lepton.Gen.Parameters.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Blazor.Extensions.IJSObjectReferences" Version="11.0.7" />
+        <PackageReference Include="Soenneker.Blazor.Extensions.IJSObjectReferences" Version="11.0.8" />
     </ItemGroup>
 </Project>
