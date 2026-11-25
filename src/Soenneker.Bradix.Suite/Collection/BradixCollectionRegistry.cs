@@ -144,7 +144,7 @@ public sealed class BradixCollectionRegistry<TItem>
     /// <returns>The requested bradix Ordered Dictionary.Enumerator.</returns>
     public BradixOrderedDictionary<string, TItem>.Enumerator GetEnumerator()
     {
-        return (_items ??= new()).GetEnumerator();
+        return _items?.GetEnumerator() ?? default;
     }
 
     /// <summary>

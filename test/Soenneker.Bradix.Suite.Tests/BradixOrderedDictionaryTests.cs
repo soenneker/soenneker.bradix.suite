@@ -52,6 +52,19 @@ public sealed class BradixOrderedDictionaryTests
     }
 
     [Test]
+    public async ValueTask Relative_moves_preserve_values_at_the_end_of_the_collection(CancellationToken cancellationToken)
+    {
+        var dictionary = new BradixOrderedDictionary<string, int>();
+        dictionary.Set("a", 1).Set("b", 2).Set("c", 3);
+        dictionary.SetBefore("c", "a", 4);
+        await Assert.That(string.Join(",", dictionary.Keys)).IsEqualTo("b,a,c");
+        dictionary.SetAfter("c", "b", 5);
+        await Assert.That(string.Join(",", dictionary.Keys)).IsEqualTo("a,c,b");
+        await Assert.That(dictionary.From("c", int.MaxValue)).IsEqualTo(5);
+        await Assert.That(dictionary.KeyFrom("b", int.MaxValue)).IsEqualTo("b");
+    }
+
+    [Test]
     public async ValueTask Before_after_and_from_follow_current_order(CancellationToken cancellationToken)
     {
         var dictionary = new BradixOrderedDictionary<string, int>();

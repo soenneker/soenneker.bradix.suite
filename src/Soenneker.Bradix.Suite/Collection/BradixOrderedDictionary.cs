@@ -120,40 +120,25 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     /// <returns>The resulting bradix Ordered Dictionary.</returns>
     public BradixOrderedDictionary<TKey, TValue> Insert(int index, TKey key, TValue value)
     {
-        bool has = _map.ContainsKey(key);
-        int length = _keys.Count;
-        int actualIndex = index >= 0 ? index : length + index;
-        int safeIndex = actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
+        int position = NormalizeLookupIndex(index, Count);
+        if (position < 0 || (position == Count - 1 && _map.ContainsKey(key)))
+            return Set(key, value);
 
-        if (safeIndex == -1 || (has && safeIndex == Count - 1))
+        return InsertAtBoundary(index < 0 ? position + 1 : position, key, value);
+    }
+
+    private BradixOrderedDictionary<TKey, TValue> InsertAtBoundary(int position, TKey key, TValue value)
+    {
+        ref TValue? slot = ref CollectionsMarshal.GetValueRefOrAddDefault(_map, key, out bool exists);
+        slot = value;
+        if (exists)
         {
-            Set(key, value);
-            return this;
+            int previous = _keys.IndexOf(key);
+            if (previous < position) position--;
+            if (previous == position) return this;
+            _keys.RemoveAt(previous);
         }
-
-        if (index < 0)
-        {
-            actualIndex++;
-        }
-
-        if (has)
-        {
-            int existingIndex = _keys.IndexOf(key);
-            if (existingIndex >= 0)
-            {
-                _keys.RemoveAt(existingIndex);
-
-                if (existingIndex < actualIndex)
-                {
-                    actualIndex--;
-                }
-            }
-        }
-
-        int targetIndex = Math.Clamp(actualIndex, 0, _keys.Count);
-        _keys.Insert(targetIndex, key);
-        _map[key] = value;
-
+        _keys.Insert(position, key);
         return this;
     }
 
@@ -291,7 +276,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     public BradixOrderedDictionary<TKey, TValue> SetBefore(TKey key, TKey newKey, TValue value)
     {
         int index = IndexOf(key);
-        return index < 0 ? this : Insert(index, newKey, value);
+        return index < 0 ? this : InsertAtBoundary(index, newKey, value);
     }
 
     /// <summary>
@@ -304,7 +289,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     public BradixOrderedDictionary<TKey, TValue> SetAfter(TKey key, TKey newKey, TValue value)
     {
         int index = IndexOf(key);
-        return index < 0 ? this : Insert(index + 1, newKey, value);
+        return index < 0 ? this : InsertAtBoundary(index + 1, newKey, value);
     }
 
     /// <summary>
@@ -321,7 +306,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
             return default;
         }
 
-        int destination = Math.Clamp(index + offset, 0, Count - 1);
+        int destination = (int)Math.Clamp((long)index + offset, 0, Count - 1);
         return At(destination);
     }
 
@@ -339,7 +324,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
             return default;
         }
 
-        int destination = Math.Clamp(index + offset, 0, Count - 1);
+        int destination = (int)Math.Clamp((long)index + offset, 0, Count - 1);
         return KeyAt(destination);
     }
 
@@ -454,7 +439,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
     /// </summary>
     public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
     {
-        private readonly BradixOrderedDictionary<TKey, TValue> _dictionary;
+        private readonly BradixOrderedDictionary<TKey, TValue>? _dictionary;
         private int _index;
 
         internal Enumerator(BradixOrderedDictionary<TKey, TValue> dictionary)
@@ -477,6 +462,7 @@ public sealed class BradixOrderedDictionary<TKey, TValue> : IEnumerable<KeyValue
         /// <returns>true if the enumerator advanced to another item; false if it reached the end.</returns>
         public bool MoveNext()
         {
+            if (_dictionary is null) return false;
             int nextIndex = _index + 1;
 
             if (nextIndex >= _dictionary._keys.Count)
